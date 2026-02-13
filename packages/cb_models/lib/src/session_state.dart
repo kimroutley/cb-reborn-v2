@@ -6,7 +6,7 @@ part 'session_state.freezed.dart';
 part 'session_state.g.dart';
 
 String generateJoinCode() {
-  final rng = Random();
+  final rng = Random.secure();
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   final suffix = List.generate(4, (_) => chars[rng.nextInt(chars.length)]).join();
   return 'NEON-$suffix';
