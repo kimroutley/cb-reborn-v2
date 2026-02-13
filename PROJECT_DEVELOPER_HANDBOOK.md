@@ -1,7 +1,8 @@
 # Club Blackout Reborn: Developer Handbook
 
-> **Last Updated:** February 13, 2026 (Bot Simulation, Auth Streamline & UX Refactor)
+> **Last Updated:** February 13, 2026 (Documentation Update & Tech Context)
 > **Project Location:** `C:\Club Blackout Reborn\`
+> **Technical Reference:** See [`AGENT_CONTEXT.md`](./AGENT_CONTEXT.md) for deep technical details, build order, and known issues.
 
 ---
 
@@ -101,10 +102,11 @@ cd ../../apps/host ; dart run build_runner build --delete-conflicting-outputs
 - [x] **Unified Auth**: Google Sign-In + Moniker Gate implemented for Host & Player.
 
 ### Build Status (Feb 13, 2026)
+
 | App | Status | Notes |
 | :--- | :--- | :--- |
 | **Host** | ✅ Verified | 0 Analyzer errors. Build successful. |
-| **Player**| ✅ Verified | Auth parity with Host. 0 Analyzer errors. |
+| **Player** | ✅ Verified | Auth parity with Host. 0 Analyzer errors. |
 
 ---
 

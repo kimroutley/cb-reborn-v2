@@ -25,6 +25,8 @@ The game is designed to feel like you're inside a dark, upscale nightclub with n
 
 ## 🏗️ Architecture
 
+> **⚠️ Developers & Agents:** Please read [`AGENT_CONTEXT.md`](./AGENT_CONTEXT.md) for critical implementation details, build order constraints, and known issues.
+
 This project is a **Flutter monorepo** containing:
 
 ```text
