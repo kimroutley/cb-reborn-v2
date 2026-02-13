@@ -9,13 +9,19 @@ final geminiNarrationServiceProvider = Provider<GeminiNarrationService>((ref) {
 });
 
 class GeminiNarrationService {
-  GeminiNarrationService({http.Client? client}) : _client = client ?? http.Client();
+  GeminiNarrationService({http.Client? client, String? apiKey})
+      : _client = client ?? http.Client(),
+        _injectedApiKey = apiKey;
 
   final http.Client _client;
+  final String? _injectedApiKey;
 
   static const _fallbackModel = 'gemini-1.5-flash';
 
   String get _apiKey {
+    // 0. Check for injected API key (highest priority, for testing)
+    if (_injectedApiKey != null) return _injectedApiKey!;
+
     // 1. Check for command-line/environment injection (highest priority)
     const direct = String.fromEnvironment('GEMINI_API_KEY');
     if (direct.isNotEmpty) return direct;
