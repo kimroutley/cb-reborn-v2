@@ -578,6 +578,7 @@ class CBTextField extends StatelessWidget {
       textAlign: textAlign,
       style: textStyle ??
           (monospace ? CBTypography.code : theme.textTheme.bodyLarge!),
+      textAlign: textAlign,
       inputFormatters: inputFormatters,
       cursorColor: theme.colorScheme.primary,
       decoration: effectiveDecoration,
