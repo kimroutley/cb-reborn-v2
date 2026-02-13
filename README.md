@@ -57,6 +57,15 @@ cb_reborn/
 - Dart 3.9.0 or higher
 - Firebase CLI (for deployment)
 
+### Android Build Configuration (Required)
+
+The Android apps require `google-services.json` to be present in the build directory. This file is not checked into version control for security reasons.
+
+1. Download `google-services.json` from your Firebase Console (Project Settings > General > Your Apps).
+2. Place the file in:
+   - Host App: `apps/host/android/app/google-services.json`
+   - Player App: `apps/player/android/app/google-services.json`
+
 ### Firebase Auth Setup (Email Link)
 
 Both Host and Player now use **Firebase Email Link (passwordless)** sign-in.
