@@ -48,7 +48,18 @@ class HostOverviewScreen extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: scheme.onSurface.withValues(alpha: 0.75)),
                 ),
-                // TODO: Add more host-specific info like host name if available in PlayerGameState
+                const SizedBox(height: 4),
+                Text(
+                  'Day: ${gameState.dayCount}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.75)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Players: ${gameState.players.length}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.75)),
+                ),
               ],
             ),
           ),

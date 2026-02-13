@@ -522,6 +522,7 @@ class CBTextField extends StatelessWidget {
   final ValueChanged<String>? onSubmitted;
   final List<TextInputFormatter>? inputFormatters;
   final TextStyle? textStyle;
+  final TextAlign textAlign;
 
   const CBTextField({
     super.key,
@@ -544,6 +545,7 @@ class CBTextField extends StatelessWidget {
     this.onSubmitted,
     this.inputFormatters,
     this.textStyle,
+    this.textAlign = TextAlign.start,
   });
 
   @override
@@ -572,6 +574,7 @@ class CBTextField extends StatelessWidget {
       },
       onSubmitted: onSubmitted,
       textCapitalization: textCapitalization,
+      textAlign: textAlign,
       style: textStyle ??
           (monospace ? CBTypography.code : theme.textTheme.bodyLarge!),
       inputFormatters: inputFormatters,
