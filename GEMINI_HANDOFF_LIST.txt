@@ -1,0 +1,192 @@
+Club Blackout Reborn - Gemini Handoff List
+Date: 2026-02-13
+
+1) Current Verified State
+- Host app release build succeeded.
+- Last successful command: Push-Location "apps/host"; flutter build apk --release; Pop-Location
+- Artifact: apps/host/build/app/outputs/flutter-apk/app-release.apk
+
+2) Documentation Work Completed
+- PROJECT_DEVELOPER_HANDBOOK.md updated:
+  - Last Updated -> February 13, 2026
+  - Build status refreshed (Host verified, Player pending fresh full rerun)
+  - Release readiness split into:
+    - Stable applicationId (done)
+    - Keystore-backed signing (still pending)
+  - Repeatable build/install notes marked complete
+- README.md updated with:
+  - Debug APK install steps
+  - Release APK install steps
+- apps/host/README.md updated with:
+  - Debug APK install steps
+  - Release APK install steps
+
+3) Markdown Lint Status (Docs)
+- README.md: clean (no markdown errors reported)
+- apps/host/README.md: clean (no markdown errors reported)
+- PROJECT_DEVELOPER_HANDBOOK.md: still has legacy markdown style noise, mainly:
+  - MD060 table alignment/style warnings
+  - MD040 one code-fence missing language
+  - Some mixed list style remnants
+
+4) Code/Build Risks Still Open
+- Host keystore signing is not fully configured for ship-ready signed release.
+- CI does not fully guarantee Host release regression detection in current flow.
+- Player app had recent edits and should be revalidated now.
+
+5) Recent Player Files Changed (Needs Validation)
+- apps/player/lib/screens/settings_screen.dart
+- apps/player/lib/player_stats.dart
+- apps/player/lib/screens/stats_screen.dart
+
+6) Recommended Immediate Validation Commands
+- cd apps/player ; flutter pub get
+- cd apps/player ; flutter analyze
+- cd apps/player ; flutter test
+
+7) Optional Host Re-Check Commands
+- cd apps/host ; flutter analyze
+- cd apps/host ; flutter test
+- cd apps/host ; flutter build apk --release
+
+8) If Gemini Should Continue Docs Cleanup
+- Target file: PROJECT_DEVELOPER_HANDBOOK.md
+- Scope: formatting-only pass (no meaning/content changes)
+- Goal: remove MD060/MD040/style warnings and keep existing wording intact
+
+9) Ground Rules Already Followed
+- No generated files were edited.
+- No runtime feature behavior was changed during doc-only cleanup.
+- README/install paths are Windows PowerShell compatible.
+
+10) Fresh Test Run Results (Executed Now)
+- Command run (Host): Push-Location "apps/host"; flutter test; Pop-Location
+- Result (Host): FAILED (compilation/test load failed)
+  - packages/cb_theme/lib/src/screens/guide_screen.dart: invalid references to `theme.colorScheme` when `theme` is already a `ColorScheme`, and undefined `scheme` symbol.
+  - apps/host/lib/main.dart + packages/cb_logic/lib/src/firebase_analytics_provider.dart: missing `firebase_analytics` package resolution.
+  - apps/host/lib/screens/host_home_shell.dart: `GamePhase` symbol not resolved in current imports/scope.
+  - apps/host/lib/screens/about_screen.dart, game_screen.dart, guides_screen.dart: `CustomDrawer` now requires `onDrawerItemTap` but calls are missing it.
+  - apps/host/lib/screens/lobby_screen.dart: `HostBridge.port` getter not found.
+
+- Command run (Player): Push-Location "apps/player"; flutter test; Pop-Location
+- Result (Player): FAILED (compilation/test load failed)
+  - apps/player/lib/screens/games_night_screen.dart: unresolved `intl` / `DateFormat` (dependency/import mismatch).
+  - packages/cb_theme/lib/src/screens/guide_screen.dart: same `theme.colorScheme` and undefined `scheme` issues as Host.
+  - apps/player/lib/player_bridge.dart: `SoundService.play` member not found.
+  - apps/player/lib/player_bridge.dart + apps/player/lib/player_stats.dart: `recordCompletedGameIfNeeded` / `CompletedGameOutcome` symbols not found.
+
+11) Priority Fix Order (for Gemini)
+1. Fix shared cb_theme compile errors first: packages/cb_theme/lib/src/screens/guide_screen.dart
+2. Fix dependency/import breakages: `firebase_analytics` (host path), `intl` (player path)
+3. Reconcile API drift: CustomDrawer required args, HostBridge.port usage, SoundService and PlayerStats symbol changes
+4. Re-run:
+   - cd apps/host ; flutter pub get ; flutter test
+   - cd apps/player ; flutter pub get ; flutter test
+
+12) Multiplayer Configuration Hardening (Completed This Session)
+- Host now enforces one active sync bridge at a time:
+  - apps/host/lib/screens/host_home_shell.dart
+  - apps/host/lib/screens/lobby_screen.dart
+  - local<->cloud switch now stops inactive bridge before starting active bridge.
+- Player now isolates local/cloud join state:
+  - apps/player/lib/screens/connect_screen.dart
+  - switching mode disconnects the other bridge before connect/join.
+- Player bridge stability updates:
+  - apps/player/lib/cloud_player_bridge.dart (cleans prior subscriptions on rejoin)
+  - apps/player/lib/player_bridge.dart (replaces existing local socket client before reconnect)
+
+13) Targeted Multiplayer Analyzer Status (Current)
+- Host targeted files: PASS
+  - flutter analyze lib/screens/host_home_shell.dart lib/screens/lobby_screen.dart
+- Player targeted files: PASS
+  - flutter analyze lib/player_bridge.dart lib/screens/connect_screen.dart lib/cloud_player_bridge.dart lib/screens/home_screen.dart lib/screens/game_router.dart
+
+14) Fresh Full Test Run Status (Current)
+- Host full tests: FAILED (compilation in shared packages)
+  - Role/freezed constructor drift in packages/cb_models (missing/extra fields like complexity/tacticalTip)
+  - GameState/freezed constructor drift in packages/cb_models (deadPoolBets/globalDrinkDebt mismatch)
+  - cb_theme compile issues (missing cb_theme.dart import path in cb_phase_timeline.dart; missing symbols/icons such as CBColors.errorRed, Icons.skull_rounded)
+- Player full tests: FAILED (same shared compile blockers, plus player app dependency)
+  - Missing package import: package:intl/intl.dart in apps/player/lib/screens/games_night_screen.dart
+
+15) Manual Multiplayer Seamlessness Checklist (Run on devices/emulators)
+- Local Mode Flow
+  1. Host in LOCAL mode shows local URL QR with mode=local, host, code.
+  2. Player scans/pastes URL and auto-fills host+code.
+  3. Player joins and claims identity once; no duplicate claim prompts.
+- Cloud Mode Flow
+  1. Host in CLOUD mode shows cloud URL QR with mode=cloud and code.
+  2. Player scans/pastes URL and joins without requiring host IP.
+  3. Reopen player app and ensure reconnect preserves claim when session is active.
+- Mode Switch Robustness
+  1. In Host lobby, toggle LOCAL -> CLOUD -> LOCAL.
+  2. Confirm only one transport path is active each time (no duplicate state updates/joins).
+  3. Confirm Player can still join after each switch with matching URL payload.
+- Deep Link Runtime Robustness
+  1. While Player app is already open, open another join URL.
+  2. Confirm debounce prevents repeated sheet spam for same URL.
+  3. Confirm connect sheet does not stack multiple times.
+
+16) Shared Blockers Resolved (Current Session)
+- Regenerated stale model outputs in packages/cb_models with build_runner (Role/GameState/Player/Session/etc. now aligned).
+- Fixed cb_theme compile issues:
+  - packages/cb_theme/lib/src/widgets/cb_phase_timeline.dart import path
+  - packages/cb_theme/lib/src/widgets/glass_tile.dart invalid CBColors token
+  - packages/cb_theme/lib/src/widgets/cb_alliance_graph.dart invalid icon constants
+- Added missing dependency for player:
+  - apps/player/pubspec.yaml -> intl
+- Fixed host compile break in about screen drawer signature:
+  - apps/host/lib/screens/about_screen.dart
+- Updated smoke tests to initialize mocked Firebase before pumping app roots:
+  - apps/host/test/widget_test.dart
+  - apps/player/test/widget_test.dart
+
+17) Fresh Final Test Status (Now)
+- Host: PASS
+  - command: cd apps/host ; flutter test
+- Player: PASS
+  - command: cd apps/player ; flutter test
+
+18) Current State Summary
+- Multiplayer configuration hardening remains in place and analyzer-clean.
+- Full host/player test suites are currently passing.
+- Remaining work should focus on real-device multiplayer checklist execution (local/cloud/mode switch/deep-link runtime).
+
+19) Multiplayer Checklist Execution Matrix (This Environment)
+- Environment capability
+  - `flutter devices` reports available targets: Windows desktop, Chrome web, Edge web.
+
+- Verified PASS (code-path + test-backed)
+  - Host cloud QR payload includes `mode=cloud` + `code`.
+  - Host local QR payload includes `mode=local` + encoded `host` + `code`.
+  - Player join URL parser supports both cloud/local payloads and decodes local host URL.
+  - Player deep-link runtime guardrails exist and are active:
+    - duplicate URL debounce window
+    - connect sheet single-instance guard
+    - skip auto-open while already connected and outside lobby
+  - Host local/cloud toggle is bridge-exclusive (stop inactive, start active).
+  - Player mode switch/connect path disconnects non-selected transport first.
+  - Full tests currently pass in both apps (`flutter test`).
+
+- Pending MANUAL (interactive runtime verification still needed)
+  - Scan cloud QR in Player and verify claim/join flow from camera/deep-link entry.
+  - Scan local QR in Player and verify websocket host join over LAN.
+  - Toggle Host mode LOCAL -> CLOUD -> LOCAL during active lobby and verify no duplicate events.
+  - Open repeated identical join links while Player app is open and confirm no sheet stacking/spam in live UX.
+
+20) Manual Run Script (Operator Steps)
+- Terminal A: `cd apps/host ; flutter run -d windows`
+- Terminal B: `cd apps/player ; flutter run -d chrome`
+- In Host lobby:
+  1. Validate cloud QR and local QR modes by toggling SYNC.
+  2. Keep one player joined while toggling modes.
+- In Player:
+  1. Paste/scan host URL payloads and confirm mode auto-fill.
+  2. Attempt duplicate deep-link open and verify debounce/single sheet behavior.
+
+21) Auth + Onboarding Stabilization (Latest)
+- Host and Player auth providers are now aligned with Riverpod Notifier API (compile-safe).
+- Player entry flow now uses unified `PlayerAuthScreen` (Google-first + moniker gate path).
+- Host release APK build: PASS.
+- Player release web build: PASS.
+- Current blocking issues for auth/onboarding flow: none found in build/analyze validation.

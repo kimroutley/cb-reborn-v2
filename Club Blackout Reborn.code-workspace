@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "Club Blackout Reborn",
+			"path": "."
+		}
+	],
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "automatic"
+	}
+}

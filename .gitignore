@@ -1,0 +1,64 @@
+# Flutter / Dart
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/*.iml
+**/.metadata
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Generated files
+**/*.g.dart
+**/*.freezed.dart
+**/*.gr.dart
+**/*.mocks.dart
+
+# Pub
+.pub-cache/
+.pub/
+pubspec.lock
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+.secrets/
+*adminsdk*.json
+firebase-adminsdk*.json
+
+# Android
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+**/android/*.jks
+**/android/*.keystore
+
+# iOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+
+# Coverage
+coverage/
+**/coverage/
+
+# Temp / Migration scripts
+migrate_opacity.py
+*.pyc
+__pycache__/

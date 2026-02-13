@@ -1,0 +1,23 @@
+name: cb_models
+description: "Club Blackout data models - roles, players, game state, and script definitions"
+publish_to: 'none'
+version: 1.0.0
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.10.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.11.0
+  freezed: ^3.2.5
+  json_serializable: ^6.12.0
+
+flutter:
+  assets:
+    - lib/src/data/

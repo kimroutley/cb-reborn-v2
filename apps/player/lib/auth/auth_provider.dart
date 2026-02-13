@@ -1,0 +1,134 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+@immutable
+class AuthState {
+  final AuthStatus status;
+  final User? user;
+  final String? error;
+
+  const AuthState(this.status, {this.user, this.error});
+
+  AuthState copyWith({AuthStatus? status, User? user, String? error}) {
+    return AuthState(
+      status ?? this.status,
+      user: user ?? this.user,
+      error: error ?? this.error,
+    );
+  }
+}
+
+enum AuthStatus {
+  initial,
+  loading,
+  unauthenticated,
+  needsProfile,
+  authenticated,
+  error,
+}
+
+class AuthNotifier extends Notifier<AuthState> {
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  GoogleSignIn? _googleSignIn;
+  StreamSubscription? _userSub;
+
+  final usernameController = TextEditingController();
+
+  @override
+  AuthState build() {
+    _userSub?.cancel();
+    _userSub = _auth.authStateChanges().listen((user) async {
+      if (user != null) {
+        final profile = await _loadProfile(user);
+        if (profile.exists) {
+          state = AuthState(AuthStatus.authenticated, user: user);
+        } else {
+          state = AuthState(AuthStatus.needsProfile, user: user);
+        }
+      } else {
+        state = const AuthState(AuthStatus.unauthenticated);
+      }
+    });
+
+    ref.onDispose(() {
+      _userSub?.cancel();
+      usernameController.dispose();
+    });
+
+    return const AuthState(AuthStatus.initial);
+  }
+
+  Future<void> signInWithGoogle() async {
+    state = state.copyWith(status: AuthStatus.loading);
+    try {
+      if (kIsWeb) {
+        await _auth.signInWithPopup(GoogleAuthProvider());
+        return;
+      }
+
+      _googleSignIn ??= GoogleSignIn.instance;
+      await _googleSignIn!.initialize();
+      final GoogleSignInAccount googleUser = await _googleSignIn!.authenticate();
+
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+
+      await _auth.signInWithCredential(credential);
+    } catch (e) {
+      state = AuthState(AuthStatus.error,
+          error: 'Terminal link failed. Biometric interference detected.');
+    }
+  }
+
+  Future<void> saveUsername() async {
+    final user = _auth.currentUser;
+    final username = usernameController.text.trim();
+    if (user == null) return;
+    if (username.length < 3) {
+      state = state.copyWith(
+          status: AuthStatus.needsProfile,
+          error: 'Username must be at least 3 characters.');
+      return;
+    }
+
+    state = state.copyWith(status: AuthStatus.loading);
+
+    try {
+      final profileRef = _firestore.collection('user_profiles').doc(user.uid);
+      await profileRef.set({
+        'username': username,
+        'email': user.email,
+        'createdAt': FieldValue.serverTimestamp(),
+        'isHost': false,
+      }, SetOptions(merge: true));
+      state = AuthState(AuthStatus.authenticated, user: user);
+    } catch (e) {
+      state = AuthState(AuthStatus.needsProfile,
+          user: user, error: 'Failed to establish identity. System breach.');
+    }
+  }
+
+  Future<DocumentSnapshot<Map<String, dynamic>>> _loadProfile(User user) {
+    return _firestore.collection('user_profiles').doc(user.uid).get();
+  }
+
+  Future<void> signOut() async {
+    if (!kIsWeb) {
+      _googleSignIn ??= GoogleSignIn.instance;
+      await _googleSignIn?.signOut();
+    }
+    await _auth.signOut();
+    state = const AuthState(AuthStatus.unauthenticated);
+  }
+}
+
+final authProvider =
+    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

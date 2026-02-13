@@ -1,0 +1,26 @@
+name: cb_theme
+description: "Club Blackout neo-noir design system - colors, typography, and UI components"
+publish_to: 'none'
+version: 1.0.0
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^8.0.1
+  dynamic_color: ^1.1.2
+  cb_models:
+    path: ../cb_models
+  cb_logic:
+    path: ../cb_logic
+  audioplayers: ^6.0.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  assets:
+    - assets/audio/
+    - assets/backgrounds/

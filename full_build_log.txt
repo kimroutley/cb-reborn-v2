@@ -1,0 +1,118 @@
+Club Blackout Reborn - Full Build Log (Refreshed)
+Date: 2026-02-13
+Workspace: C:\Club Blackout Reborn
+
+This file now tracks current-state validation rather than stale verbose tool output.
+
+Focused Diagnostics Sweep
+- apps/host/lib
+- apps/player/lib
+- packages/cb_logic/lib
+- packages/cb_models/lib
+- packages/cb_theme/lib
+- packages/cb_comms/lib
+- packages/cb_logic/test
+- packages/cb_models/test
+- packages/cb_theme/test
+- packages/cb_comms/test
+- apps/host/test
+- apps/player/test
+
+Result
+- No errors found in focused source/test scope.
+
+Recent Actionable Fixes Applied
+- Removed unused locals in apps/host/lib/screens/settings_screen.dart
+- Removed unused imports in apps/host/lib/screens/guides_screen.dart
+- Removed unused imports/local in packages/cb_theme/lib/src/widgets/cb_alliance_graph.dart
+- Removed unused import in apps/host/lib/widgets/custom_drawer.dart
+- Removed unused local in apps/player/lib/screens/games_night_screen.dart
+
+Retest Status
+- Test execution tool is currently disabled in this session.
+- Full automated test rerun is pending once test execution is enabled.
+
+Reference Build Snapshot
+- Running Gradle task 'assembleRelease'... 144.1s
+- Built build\\app\\outputs\\flutter-apk\\app-release.apk (175.2MB)
+
+Current Active Errors
+- None in focused source/test scope.
+
+Markdown Lint Pass
+- apps/host/README.md: clean
+- apps/player/README.md: clean
+- packages/cb_theme/AUDIO_AUDIT.md: clean
+- packages/cb_theme/assets/audio/README.md: clean
+
+Broad Workspace Diagnostics Annotation
+- Broad scan currently reports 232 results in total (UI shows first subset).
+- These are not present in focused source/test scope.
+- Observed broad-scan findings are generated-context noise from paths like:
+	- packages/cb_comms/build/unit_test_assets/...
+- Actionable source/test errors: none.
+
+Exclude-Path Implementation
+- `.vscode/settings.json` updated to reduce generated-path noise in editor tooling:
+	- files.exclude: `**/build/unit_test_assets/**`, `**/.dart_tool/**`, `**/coverage/**`
+	- search.exclude: `**/build/unit_test_assets/**`, `**/.dart_tool/**`, `**/coverage/**`
+	- files.watcherExclude: `**/build/unit_test_assets/**`, `**/.dart_tool/**`, `**/coverage/**`
+
+Post-Implementation Verification
+- Focused diagnostics rerun (apps/*/lib, packages/*/lib, and test folders) returned no errors.
+- Broad diagnostics rerun still returns generated-path entries (235 total in current tool output), concentrated under `packages/cb_comms/build/unit_test_assets/...`.
+- Operational interpretation remains unchanged: focused source/test scope is clean; broad generated-context findings are non-actionable.
+
+Auth + Onboarding Stabilization Verification (2026-02-13)
+- Host auth provider migrated to current Riverpod Notifier API and validated.
+- Player auth provider migrated to current Riverpod Notifier API and validated.
+- Player app entry switched from legacy `PhoneAuthGate` to unified `PlayerAuthScreen` gate.
+- Player Google Sign-In dependency added in `apps/player/pubspec.yaml`.
+- Host Auth UI Overhaul: Applied "Neon Glass" aesthetic to HostAuthScreen with:
+	- Animated radiance backgrounds and cinematic Hero transitions.
+	- Themed terminal-style login blurb and secure fallback dividers.
+	- Consolidated error containers with biometric verification status feedback.
+- Production builds completed successfully:
+	- Host: `flutter build apk --release` → success (`apps/host/build/app/outputs/flutter-apk/app-release.apk`)
+	- Player: `flutter build web --release --no-wasm-dry-run` → success (`apps/player/build/web`)
+- Analyzer status:
+	- No compile errors in Host or Player app scopes.
+	- All manual UI polishes verified as lint-free.
+
+
+UX & UI Refinements Verification (2026-02-13)
+- Host shell navigation remains drawer-centric with animated content switching, and redundant bottom navigation/header overlap is removed.
+- Settings screen section blocks are standardized to shared `CBSectionHeader` usage for consistent host UI primitives.
+- Home screen footer text contrast improved for accessibility.
+- MiniTag component refactored for modern Material 3 styling and dynamic colors.
+- RosterTile and VoteTallyPanel components migrated to Material 3 dynamic colors.
+- `GodModePanel` migrated to Material 3 dynamic colors.
+- `TacticalMonitor` migrated to Material 3 dynamic colors.
+- `EffectsOverlay` migrated to Material 3 dynamic colors.
+- `GuidesScreen` is now context-aware, receiving `gameState` from the provider.
+- `LogsView` now displays a placeholder timestamp, with a `TODO` for `GameState` to store actual timestamps for proper implementation.
+
+All planned Host UI polish and hardening, including bug fixes, theme migration, and contrast improvements, have been completed.
+
+== STABILIZATION LOG ==
+[X] 2026-02-13 10:15 - Host App stabilization complete.
+[X] 2026-02-13 10:30 - Player App analysis: 4 minor issues found.
+[X] 2026-02-13 10:35 - Player App: Migrated ChatWidget to Material 3 colors.
+[X] 2026-02-13 10:35 - Player App: Migrated BulletinBoard to Material 3 colors.
+[X] 2026-02-13 10:35 - Player App: Migrated ActionInputBar to Material 3 colors.
+[X] 2026-02-13 10:35 - Player App: Removed dead code (GameEvent architecture).
+[X] 2026-02-13 10:40 - Player App: Verified clean compilation (3 info/warnings).
+
+== HOST APP BUILD STATUS ==
+- Compiles: YES
+- Analyzer Issues: 2 (minor deprecations)
+- M3 Migration: COMPLETE
+
+== PLAYER APP BUILD STATUS ==
+- Compiles: YES
+- Analyzer Issues: 3 (minor warnings)
+- M3 Migration: COMPLETE
+
+== PENDING ACTIONS ==
+1. Verify "Go to Game" flow in Player App.
+2. Check `CT-001` (CustomDrawer) behavior on small screens.

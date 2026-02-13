@@ -1,0 +1,32 @@
+name: cb_logic
+description: Club Blackout game engine - core game logic, state management, and business rules
+publish_to: 'none'
+version: 1.0.0
+homepage: https://github.com/yourorg/club-blackout-reborn
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  cb_models:
+    path: ../cb_models
+  riverpod: ^3.0.0
+  riverpod_annotation: ^4.0.0
+  freezed_annotation: ^3.1.0
+  hive_ce: ^2.19.3
+  hive_ce_flutter: ^2.3.4
+  flutter_secure_storage: ^9.0.0
+  path_provider: ^2.1.5
+  firebase_analytics: ^12.0.1
+  http: ^1.3.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_secure_storage_platform_interface: ^1.1.2
+  plugin_platform_interface: ^2.1.8
+  build_runner: ^2.11.0
+  riverpod_generator: ^4.0.0+1
+  cb_comms:
+    path: ../cb_comms

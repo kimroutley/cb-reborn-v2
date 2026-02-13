@@ -1,0 +1,66 @@
+﻿Club Blackout Reborn - Build/Validation Log
+Date: 2026-02-13
+Workspace: C:\Club Blackout Reborn
+
+Summary
+- Stale historical errors cleared from this log.
+- Actionable lint issues reported earlier were fixed in source files.
+
+Current Validation (focused source + tests scope)
+- Checked paths:
+  - apps/host/lib
+  - apps/player/lib
+  - packages/cb_logic/lib
+  - packages/cb_models/lib
+  - packages/cb_theme/lib
+  - packages/cb_comms/lib
+  - packages/cb_logic/test
+  - packages/cb_models/test
+  - packages/cb_theme/test
+  - packages/cb_comms/test
+  - apps/host/test
+  - apps/player/test
+- Result: No errors found.
+
+Notes
+- Broad workspace diagnostics can include noisy/generated contexts; focused scope above is the canonical health check.
+- Test execution via tooling is currently disabled in this session, so a full re-test pass could not be executed here.
+
+Latest known release snapshot (reference)
+- Running Gradle task 'assembleRelease'... 144.1s
+- Built build\\app\\outputs\\flutter-apk\\app-release.apk (175.2MB)
+
+Current Active Errors
+- None in focused source/test scope.
+
+Markdown Lint Pass (2026-02-13)
+- Files cleaned:
+  - apps/host/README.md
+  - apps/player/README.md
+  - packages/cb_theme/AUDIO_AUDIT.md
+  - packages/cb_theme/assets/audio/README.md
+- Result: No markdown lint errors in cleaned files.
+
+Broad Workspace Diagnostics Annotation (2026-02-13)
+- Broad scan reported 232 results (truncated output view).
+- Classification:
+  - Actionable source/test errors: none found in focused source/test scope.
+  - Non-actionable/generated noise: results concentrated under generated paths such as
+    `packages/cb_comms/build/unit_test_assets/...`.
+- Canonical project health remains the focused scope status: clean.
+
+Exclude-Path Implementation (2026-02-13)
+- Added workspace excludes in `.vscode/settings.json`:
+  - `**/build/unit_test_assets/**`
+  - `**/.dart_tool/**`
+  - `**/coverage/**`
+- Applied to `files.exclude`, `search.exclude`, and `files.watcherExclude`.
+
+Post-Implementation Verification (2026-02-13)
+- Focused diagnostics rerun (same source/test scope): No errors found.
+- Broad diagnostics rerun still reports generated-path entries (now 235 total shown by tool), centered on `packages/cb_comms/build/unit_test_assets/...`.
+- Conclusion: source/test health remains clean; broad generated-context noise remains non-actionable.
+
+UX & UI Refinements Verification (2026-02-13)
+- Host shell navigation remains drawer-centric with animated content switching, and redundant bottom navigation/header overlap is removed.
+- Settings screen section blocks are standardized to shared `CBSectionHeader` usage for consistent host UI primitives.

@@ -1,0 +1,212 @@
+[
+  {
+    "id": "bouncer_alive_dealer",
+    "condition": "myRole:dealer;role:bouncer;status:alive",
+    "priority": 1,
+    "type": "warning",
+    "text": "⚠️ The Bouncer is alive and hunting. Avoid suspicious behavior and blend in."
+  },
+  {
+    "id": "bouncer_dead_dealer",
+    "condition": "myRole:dealer;role:bouncer;status:dead",
+    "priority": 3,
+    "type": "opportunity",
+    "text": "✓ The Bouncer is dead. No more ID checks - you can be more aggressive."
+  },
+  {
+    "id": "medic_alive_dealer",
+    "condition": "myRole:dealer;role:medic;status:alive",
+    "priority": 2,
+    "type": "warning",
+    "text": "⚠️ Medic is active. Your kills may be saved - consider targeting the Medic or their likely protections."
+  },
+  {
+    "id": "medic_dead_dealer",
+    "condition": "myRole:dealer;role:medic;status:dead",
+    "priority": 3,
+    "type": "opportunity",
+    "text": "✓ Medic is dead. No more protection or resurrections - kills will stick."
+  },
+  {
+    "id": "roofi_alive_dealer",
+    "condition": "myRole:dealer;role:roofi;status:alive",
+    "priority": 2,
+    "type": "warning",
+    "text": "⚠️ Roofi is active. They can block one of your kills and silence teammates."
+  },
+  {
+    "id": "last_dealer",
+    "condition": "myRole:dealer;aliveAlliance:clubStaff;count:1",
+    "priority": 1,
+    "type": "critical",
+    "text": "🚨 You are the LAST Dealer alive! Play extremely cautiously - any mistake ends the game."
+  },
+  {
+    "id": "dealer_parity",
+    "condition": "myRole:dealer;parity:reached",
+    "priority": 1,
+    "type": "critical",
+    "text": "🎯 You've reached parity with Party Animals. One more death and you WIN!"
+  },
+  {
+    "id": "minor_alive_dealer",
+    "condition": "myRole:dealer;role:minor;status:alive",
+    "priority": 2,
+    "type": "warning",
+    "text": "⚠️ The Minor is alive and immune to your kills until Bouncer IDs them."
+  },
+  {
+    "id": "bouncer_dead_town",
+    "condition": "myRole:party_animal,medic,wallflower,sober,bartender;role:bouncer;status:dead",
+    "priority": 2,
+    "type": "warning",
+    "text": "⚠️ Your investigator is dead. Rely on voting patterns and social reads."
+  },
+  {
+    "id": "medic_dead_town",
+    "condition": "myRole:party_animal,bouncer,wallflower,bartender;role:medic;status:dead",
+    "priority": 2,
+    "type": "warning",
+    "text": "⚠️ Medic is dead. No safety net - every death is permanent."
+  },
+  {
+    "id": "multiple_lives_remaining",
+    "condition": "myRole:seasoned_drinker,ally_cat;lives:>2",
+    "priority": 3,
+    "type": "tip",
+    "text": "💪 You have multiple lives remaining. Be aggressive and draw Dealer kills away from fragile roles."
+  },
+  {
+    "id": "one_life_left",
+    "condition": "myRole:seasoned_drinker,ally_cat;lives:1",
+    "priority": 1,
+    "type": "critical",
+    "text": "🚨 DOWN TO YOUR LAST LIFE! Play defensively or coordinate with Medic for protection."
+  },
+  {
+    "id": "silenced",
+    "condition": "status:silenced",
+    "priority": 1,
+    "type": "critical",
+    "text": "🔇 You were silenced by Roofi. Your night action was blocked."
+  },
+  {
+    "id": "has_rumour",
+    "condition": "status:rumour",
+    "priority": 3,
+    "type": "tip",
+    "text": "📰 Messy Bitch spread a rumour about you. This is public knowledge."
+  },
+  {
+    "id": "late_game_few_players",
+    "condition": "phase:day;aliveCount:<5",
+    "priority": 2,
+    "type": "warning",
+    "text": "⏰ Late game with few players remaining. Every vote is critical."
+  },
+  {
+    "id": "dealer_majority_imminent",
+    "condition": "myRole:party_animal,medic,bouncer,wallflower,bartender,sober;aliveAlliance:clubStaff;percentage:>40",
+    "priority": 1,
+    "type": "critical",
+    "text": "🚨 Dealers are close to majority! You MUST vote out a Dealer today or lose."
+  },
+  {
+    "id": "whore_alive_town",
+    "condition": "myRole:party_animal,medic,bouncer;role:whore;status:alive",
+    "priority": 2,
+    "type": "warning",
+    "text": "⚠️ The Whore is alive. They can deflect a critical vote - have a backup target ready."
+  },
+  {
+    "id": "messy_bitch_close_to_win",
+    "condition": "myRole:messy_bitch;rumourPercentage:>70",
+    "priority": 1,
+    "type": "critical",
+    "text": "🎯 You're close to victory! Over 70% of living players have rumours. Target the last few."
+  },
+  {
+    "id": "clinger_partner_alive",
+    "condition": "myRole:clinger;partnerStatus:alive",
+    "priority": 3,
+    "type": "tip",
+    "text": "💑 Your clinger partner is alive. Remember: you die if they die."
+  },
+  {
+    "id": "clinger_partner_danger",
+    "condition": "myRole:clinger;partnerStatus:endangered",
+    "priority": 1,
+    "type": "critical",
+    "text": "🚨 Your partner is in danger! Protect them or you both die."
+  },
+  {
+    "id": "bouncer_claimed",
+    "condition": "myRole:medic;role:bouncer;hasClaimed:true",
+    "priority": 2,
+    "type": "tip",
+    "text": "🛡️ Bouncer has claimed. Consider protecting them if in PROTECT mode."
+  },
+  {
+    "id": "revive_token_unused_late",
+    "condition": "myRole:medic;hasReviveToken:true;phase:day;dayCount:>3",
+    "priority": 2,
+    "type": "warning",
+    "text": "⚠️ You still have your revive token on Day 3+. Don't wait too long or you might die with it unused."
+  },
+  {
+    "id": "minor_not_ided",
+    "condition": "myRole:minor;idCheckedByBouncer:false",
+    "priority": 3,
+    "type": "tip",
+    "text": "🛡️ You haven't been ID'd by Bouncer yet. You're still immune to Dealer kills!"
+  },
+  {
+    "id": "minor_ided",
+    "condition": "myRole:minor;idCheckedByBouncer:true",
+    "priority": 1,
+    "type": "warning",
+    "text": "⚠️ WARNING: Bouncer has ID'd you. You've lost your Dealer-kill immunity!"
+  },
+  {
+    "id": "creep_target_alive",
+    "condition": "myRole:creep;creepTargetStatus:alive",
+    "priority": 3,
+    "type": "tip",
+    "text": "👀 Your target is alive. Continue playing as their alliance and study their behavior."
+  },
+  {
+    "id": "creep_inherited",
+    "condition": "myRole:creep;hasInherited:true",
+    "priority": 1,
+    "type": "critical",
+    "text": "🎭 You've inherited your target's role! Adopt their behavior seamlessly."
+  },
+  {
+    "id": "second_wind_pending",
+    "condition": "myRole:second_wind;pendingConversion:true",
+    "priority": 1,
+    "type": "critical",
+    "text": "⏳ Dealers are deciding your fate: convert you to Club Staff or execute you. Your game hangs in the balance."
+  },
+  {
+    "id": "bartender_confirmed_pair",
+    "condition": "myRole:bartender;alignmentChecksComplete:>2",
+    "priority": 3,
+    "type": "tip",
+    "text": "🔍 You've completed multiple alignment checks. Cross-reference your findings with Bouncer results if available."
+  },
+  {
+    "id": "predator_dying",
+    "condition": "myRole:predator;phase:day;votesAgainst:>50%",
+    "priority": 1,
+    "type": "critical",
+    "text": "💀 You're likely being voted out. Prepare to choose your revenge kill target wisely!"
+  },
+  {
+    "id": "drama_queen_chaos",
+    "condition": "myRole:party_animal,dealer;role:drama_queen;status:alive",
+    "priority": 2,
+    "type": "warning",
+    "text": "⚠️ Drama Queen is alive. If they die, two random players swap roles - this could change everything."
+  }
+]
