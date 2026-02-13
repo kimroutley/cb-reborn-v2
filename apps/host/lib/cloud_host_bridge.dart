@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cb_comms/cb_comms.dart';
 import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
+import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,10 @@ import 'firebase_options.dart';
 class CloudHostBridge {
   final Ref _ref;
   FirebaseBridge? _firebase;
+  @visibleForTesting
+  FirebaseBridge? debugFirebase;
+
+  int? _lastPublishedHash;
 
   StreamSubscription? _joinSub;
   StreamSubscription? _actionSub;
@@ -30,7 +35,8 @@ class CloudHostBridge {
 
   String get joinCode => _ref.read(sessionProvider).joinCode;
 
-  Future<String?> _resolveHostUid() async {
+  @visibleForTesting
+  Future<String?> resolveHostUid() async {
     final current = FirebaseAuth.instance.currentUser?.uid;
     if (current != null && current.isNotEmpty) {
       return current;
@@ -52,11 +58,13 @@ class CloudHostBridge {
     if (_running) return;
 
     // Ensure Firebase is initialized for cloud mode
-    await FirebaseBridge.ensureInitialized(
-      options: kIsWeb ? DefaultFirebaseOptions.currentPlatform : null,
-    );
+    if (debugFirebase == null) {
+      await FirebaseBridge.ensureInitialized(
+        options: kIsWeb ? DefaultFirebaseOptions.currentPlatform : null,
+      );
+    }
 
-    _firebase = FirebaseBridge(joinCode: joinCode);
+    _firebase = debugFirebase ?? FirebaseBridge(joinCode: joinCode);
     _running = true;
 
     // Listen for join requests from players
@@ -161,14 +169,22 @@ class CloudHostBridge {
   Future<void> publishState() async {
     if (_firebase == null || !_running) return;
 
-    final hostUid = await _resolveHostUid();
+    final game = _ref.read(gameProvider);
+    final session = _ref.read(sessionProvider);
+
+    final currentHash = _computeStateHash(game, session);
+    if (currentHash == _lastPublishedHash) {
+      return;
+    }
+
+    final hostUid = await resolveHostUid();
     if (hostUid == null || hostUid.isEmpty) {
       debugPrint('[CloudHostBridge] Skipping publish: host user is not authenticated yet.');
       return;
     }
 
-    final game = _ref.read(gameProvider);
-    final session = _ref.read(sessionProvider);
+    _lastPublishedHash = currentHash;
+
     final step = game.currentStep;
     final isEndGame = game.phase == GamePhase.endGame;
 
@@ -251,6 +267,26 @@ class CloudHostBridge {
     await _firebase!.publishState(
       publicState: publicState,
       playerPrivateData: playerPrivateData,
+    );
+  }
+
+  int _computeStateHash(GameState game, SessionState session) {
+    const equality = DeepCollectionEquality();
+    return Object.hash(
+      game.phase,
+      game.dayCount,
+      game.winner,
+      equality.hash(game.players),
+      game.currentStep,
+      equality.hash(game.dayVoteTally),
+      equality.hash(game.dayVotesByVoter),
+      equality.hash(game.lastNightReport),
+      equality.hash(game.lastDayReport),
+      equality.hash(game.endGameReport),
+      equality.hash(game.gameHistory),
+      equality.hash(game.deadPoolBets),
+      equality.hash(game.privateMessages),
+      equality.hash(session.claimedPlayerIds),
     );
   }
 
