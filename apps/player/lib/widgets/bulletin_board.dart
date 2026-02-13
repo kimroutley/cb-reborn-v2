@@ -72,9 +72,8 @@ class _CBBulletinBoardState extends State<CBBulletinBoard> {
                 orElse: () => roleCatalog.first)
             : null;
 
-        final color = role != null
-            ? CBColors.fromHex(role.colorHex)
-            : scheme.primary;
+        final color =
+            role != null ? CBColors.fromHex(role.colorHex) : scheme.primary;
 
         return CBMessageBubble(
           variant: entry.type == 'system'

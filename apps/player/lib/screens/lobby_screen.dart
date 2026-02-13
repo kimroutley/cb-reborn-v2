@@ -69,11 +69,13 @@ class LobbyScreen extends ConsumerWidget {
                     variant: CBMessageVariant.narrative,
                     senderName: "SECURITY",
                     content: "${p.name.toUpperCase()} has entered the lounge.",
-                    accentColor:
-                        isMe ? scheme.primary : scheme.tertiary, // Was electricCyan : matrixGreen
+                    accentColor: isMe
+                        ? scheme.primary
+                        : scheme.tertiary, // Was electricCyan : matrixGreen
                     avatar: CBRoleAvatar(
-                      color:
-                          isMe ? scheme.primary : scheme.tertiary, // Was electricCyan : matrixGreen
+                      color: isMe
+                          ? scheme.primary
+                          : scheme.tertiary, // Was electricCyan : matrixGreen
                       size: 32,
                       pulsing: isMe,
                     ),

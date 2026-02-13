@@ -1,5 +1,6 @@
 import '../enums.dart';
 import '../role.dart';
+import '../role_ids.dart';
 
 /// Complete role catalog for Club Blackout.
 ///
@@ -15,7 +16,7 @@ const List<Role> roleCatalog = [
   // ═══════════════════════════════════════════════
 
   Role(
-    id: 'dealer',
+    id: RoleIds.dealer,
     name: 'The Dealer',
     alliance: Team.clubStaff,
     type: 'Killer',
@@ -30,7 +31,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'whore',
+    id: RoleIds.whore,
     name: 'The Whore',
     alliance: Team.clubStaff,
     type: 'Defensive',
@@ -45,7 +46,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'silver_fox',
+    id: RoleIds.silverFox,
     name: 'The Silver Fox',
     alliance: Team.clubStaff,
     type: 'Disruptive',
@@ -64,7 +65,7 @@ const List<Role> roleCatalog = [
   // ═══════════════════════════════════════════════
 
   Role(
-    id: 'party_animal',
+    id: RoleIds.partyAnimal,
     name: 'The Party Animal',
     alliance: Team.partyAnimals,
     type: 'Passive',
@@ -80,7 +81,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'medic',
+    id: RoleIds.medic,
     name: 'The Medic',
     alliance: Team.partyAnimals,
     type: 'Defensive',
@@ -97,7 +98,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'bouncer',
+    id: RoleIds.bouncer,
     name: 'The Bouncer',
     alliance: Team.partyAnimals,
     type: 'Investigative',
@@ -112,7 +113,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'roofi',
+    id: RoleIds.roofi,
     name: 'The Roofi',
     alliance: Team.partyAnimals,
     type: 'Offensive',
@@ -127,7 +128,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'sober',
+    id: RoleIds.sober,
     name: 'The Sober',
     alliance: Team.partyAnimals,
     type: 'Protective',
@@ -142,7 +143,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'wallflower',
+    id: RoleIds.wallflower,
     name: 'The Wallflower',
     alliance: Team.partyAnimals,
     type: 'Investigative',
@@ -158,7 +159,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'ally_cat',
+    id: RoleIds.allyCat,
     name: 'The Ally Cat',
     alliance: Team.partyAnimals,
     type: 'Investigative',
@@ -173,7 +174,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'minor',
+    id: RoleIds.minor,
     name: 'The Minor',
     alliance: Team.partyAnimals,
     type: 'Defensive',
@@ -188,7 +189,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'seasoned_drinker',
+    id: RoleIds.seasonedDrinker,
     name: 'The Seasoned Drinker',
     alliance: Team.partyAnimals,
     type: 'Tank',
@@ -203,7 +204,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'lightweight',
+    id: RoleIds.lightweight,
     name: 'The Lightweight',
     alliance: Team.partyAnimals,
     type: 'Passive',
@@ -218,7 +219,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'tea_spiller',
+    id: RoleIds.teaSpiller,
     name: 'The Tea Spiller',
     alliance: Team.partyAnimals,
     type: 'Reactive',
@@ -233,7 +234,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'predator',
+    id: RoleIds.predator,
     name: 'The Predator',
     alliance: Team.partyAnimals,
     type: 'Reactive',
@@ -248,7 +249,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'drama_queen',
+    id: RoleIds.dramaQueen,
     name: 'The Drama Queen',
     alliance: Team.partyAnimals,
     type: 'Reactive',
@@ -263,7 +264,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'bartender',
+    id: RoleIds.bartender,
     name: 'The Bartender',
     alliance: Team.partyAnimals,
     type: 'Investigative',
@@ -282,7 +283,7 @@ const List<Role> roleCatalog = [
   // ═══════════════════════════════════════════════
 
   Role(
-    id: 'messy_bitch',
+    id: RoleIds.messyBitch,
     name: 'The Messy Bitch',
     alliance: Team.neutral,
     type: 'Chaos',
@@ -297,7 +298,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'club_manager',
+    id: RoleIds.clubManager,
     name: 'The Club Manager',
     alliance: Team.neutral,
     type: 'Investigative',
@@ -312,7 +313,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'clinger',
+    id: RoleIds.clinger,
     name: 'The Clinger',
     alliance: Team.neutral,
     type: 'Passive-Aggressive',
@@ -327,7 +328,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'second_wind',
+    id: RoleIds.secondWind,
     name: 'The Second Wind',
     alliance: Team.partyAnimals,
     startAlliance: Team.partyAnimals,
@@ -343,7 +344,7 @@ const List<Role> roleCatalog = [
   ),
 
   Role(
-    id: 'creep',
+    id: RoleIds.creep,
     name: 'The Creep',
     alliance: Team.neutral,
     type: 'Mimic',

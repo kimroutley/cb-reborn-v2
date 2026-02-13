@@ -127,16 +127,16 @@ class Game extends _$Game {
       final eyesOpen = state.eyesOpen;
 
       const roster = <(String, String)>[
-        ('Ava Viper', 'dealer'),
-        ('Nico Pulse', 'silver_fox'),
-        ('Mara Halo', 'medic'),
-        ('Jax Cipher', 'bouncer'),
-        ('Rhea Static', 'roofi'),
-        ('Kai Drift', 'sober'),
-        ('Luna Glitch', 'messy_bitch'),
-        ('Ivy Luxe', 'club_manager'),
-        ('Zed Echo', 'clinger'),
-        ('Nova Flux', 'second_wind'),
+        ('Ava Viper', RoleIds.dealer),
+        ('Nico Pulse', RoleIds.silverFox),
+        ('Mara Halo', RoleIds.medic),
+        ('Jax Cipher', RoleIds.bouncer),
+        ('Rhea Static', RoleIds.roofi),
+        ('Kai Drift', RoleIds.sober),
+        ('Luna Glitch', RoleIds.messyBitch),
+        ('Ivy Luxe', RoleIds.clubManager),
+        ('Zed Echo', RoleIds.clinger),
+        ('Nova Flux', RoleIds.secondWind),
       ];
 
       final players = <Player>[];
@@ -450,7 +450,7 @@ class Game extends _$Game {
       case 'r-rated':
         buffer.writeln('[R-RATED RECAP REQUEST]');
         buffer.writeln(
-          'You are recapping a social deduction game called Club Blackout.',
+          'You are recapping a social deduction game called Club Blackout set in a nightclub.',
         );
         buffer.writeln(
           'Be ironic, dramatic, and roast the players mercilessly.',
@@ -462,7 +462,7 @@ class Game extends _$Game {
       case 'spicy':
         buffer.writeln('[SPICY CLUB-THEMED RECAP REQUEST]');
         buffer.writeln(
-          'You are recapping a social deduction game called Club Blackout set in a nightclub.',
+          'You are recapping a social deduction game called Club Blackout.',
         );
         buffer.writeln(
           'Use club culture innuendo, bouncer jokes, and VIP lounge drama.',
@@ -1234,7 +1234,7 @@ class Game extends _$Game {
 
     // 1. Clinger Trigger: If partner dies, Clinger dies.
     for (final p
-        in updatedPlayers.where((p) => p.isAlive && p.role.id == 'clinger')) {
+        in updatedPlayers.where((p) => p.isAlive && p.role.id == RoleIds.clinger)) {
       if (p.clingerPartnerId == deadPlayerId) {
         updatedPlayers = updatedPlayers
             .map((pl) => pl.id == p.id
@@ -1250,7 +1250,7 @@ class Game extends _$Game {
 
     // 2. Creep Trigger: If target dies, Creep inherits role.
     for (final p
-        in updatedPlayers.where((p) => p.isAlive && p.role.id == 'creep')) {
+        in updatedPlayers.where((p) => p.isAlive && p.role.id == RoleIds.creep)) {
       if (p.creepTargetId == deadPlayerId) {
         updatedPlayers = updatedPlayers
             .map((pl) => pl.id == p.id
@@ -1536,14 +1536,14 @@ class Game extends _$Game {
     for (var i = 0; i < staffCount; i++) {
       final p = shuffledPlayers.removeAt(0);
       assigned.add(p.copyWith(
-        role: roleCatalogMap['dealer']!,
+        role: roleCatalogMap[RoleIds.dealer]!,
         alliance: Team.clubStaff,
       ));
     }
 
     // 2. Assign Required roles if any
     final requiredRoles =
-        roleCatalog.where((r) => r.isRequired && r.id != 'dealer').toList();
+        roleCatalog.where((r) => r.isRequired && r.id != RoleIds.dealer).toList();
     for (final role in requiredRoles) {
       if (shuffledPlayers.isNotEmpty) {
         final p = shuffledPlayers.removeAt(0);
@@ -1553,7 +1553,7 @@ class Game extends _$Game {
 
     // 3. Assign remaining roles randomly
     final remainingRoles =
-        roleCatalog.where((r) => !r.isRequired && r.id != 'dealer').toList();
+        roleCatalog.where((r) => !r.isRequired && r.id != RoleIds.dealer).toList();
     while (shuffledPlayers.isNotEmpty) {
       final p = shuffledPlayers.removeAt(0);
       final role = remainingRoles[rng.nextInt(remainingRoles.length)];
@@ -1565,7 +1565,7 @@ class Game extends _$Game {
     final actualStaffCount =
         assigned.where((p) => p.alliance == Team.clubStaff).length;
     assigned = assigned.map((p) {
-      if (p.role.id == 'seasoned_drinker') {
+      if (p.role.id == RoleIds.seasonedDrinker) {
         return p.copyWith(lives: actualStaffCount);
       }
       return p;
@@ -1606,7 +1606,7 @@ class Game extends _$Game {
         // Roofi also blocks if they hit the ONLY active dealer
         final activeDealers = currentPlayers.where((pl) =>
             pl.isAlive &&
-            pl.role.id == 'dealer' &&
+            pl.role.id == RoleIds.dealer &&
             !blockedIds.contains(pl.id));
         if (activeDealers.length == 1 &&
             activeDealers.first.id == roofiTarget) {
@@ -1637,14 +1637,14 @@ class Game extends _$Game {
 
     // 3. Process Murder (Dealer)
     for (final p in currentPlayers.where((p) =>
-        p.isAlive && p.role.id == 'dealer' && !blockedIds.contains(p.id))) {
+        p.isAlive && p.role.id == RoleIds.dealer && !blockedIds.contains(p.id))) {
       final targetId = log['dealer_act_${p.id}'];
       if (targetId != null) murderTargets.add(targetId);
     }
 
     // 4. Process Protection (Medic)
     for (final p in currentPlayers.where((p) =>
-        p.isAlive && p.role.id == 'medic' && !blockedIds.contains(p.id))) {
+        p.isAlive && p.role.id == RoleIds.medic && !blockedIds.contains(p.id))) {
       final targetId = log['medic_act_${p.id}'];
       if (targetId != null && p.medicChoice == 'PROTECT_DAILY') {
         protectedIds.add(targetId);
@@ -1664,7 +1664,7 @@ class Game extends _$Game {
       final victim = currentPlayers.firstWhere((p) => p.id == targetId);
 
       // Handle Second Wind
-      if (victim.role.id == 'second_wind' && !victim.secondWindConverted) {
+      if (victim.role.id == RoleIds.secondWind && !victim.secondWindConverted) {
         currentPlayers = currentPlayers
             .map((p) => p.id == targetId
                 ? p.copyWith(secondWindPendingConversion: true)
@@ -1676,7 +1676,7 @@ class Game extends _$Game {
       }
 
       // Handle Seasoned Drinker lives
-      if (victim.role.id == 'seasoned_drinker' && victim.lives > 1) {
+      if (victim.role.id == RoleIds.seasonedDrinker && victim.lives > 1) {
         currentPlayers = currentPlayers
             .map((p) => p.id == targetId ? p.copyWith(lives: p.lives - 1) : p)
             .toList();

@@ -558,6 +558,7 @@ class CBTextField extends StatelessWidget {
     );
     return TextField(
       controller: controller,
+      textAlign: textAlign,
       autofocus: autofocus,
       maxLines: maxLines,
       minLines: minLines,
@@ -574,6 +575,7 @@ class CBTextField extends StatelessWidget {
       },
       onSubmitted: onSubmitted,
       textCapitalization: textCapitalization,
+      textAlign: textAlign,
       style: textStyle ??
           (monospace ? CBTypography.code : theme.textTheme.bodyLarge!),
       textAlign: textAlign,

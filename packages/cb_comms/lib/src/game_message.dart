@@ -34,6 +34,7 @@ class GameMessage {
     List<String>? gameHistory,
     Map<String, String>? deadPoolBets,
     int globalDrinkDebt = 0,
+    String hostName = 'Club Host',
   }) {
     return GameMessage(type: 'state_sync', payload: {
       'phase': phase,
@@ -53,6 +54,7 @@ class GameMessage {
       if (gameHistory != null) 'gameHistory': gameHistory,
       if (deadPoolBets != null) 'deadPoolBets': deadPoolBets,
       'globalDrinkDebt': globalDrinkDebt,
+      'hostName': hostName,
     });
   }
 

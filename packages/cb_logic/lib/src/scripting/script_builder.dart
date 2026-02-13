@@ -28,7 +28,7 @@ class ScriptBuilder {
 
     // ── Medic binary choice ──
     final medics =
-        players.where((p) => p.role.id == 'medic' && p.isAlive).toList();
+        players.where((p) => p.role.id == RoleIds.medic && p.isAlive).toList();
     for (final medic in medics) {
       steps.add(ScriptStep(
         id: 'medic_choice_${medic.id}',
@@ -36,14 +36,14 @@ class ScriptBuilder {
         readAloudText: 'Medic, choose your strategy for the game.',
         instructionText: 'Protect Daily or Revive (one time).',
         actionType: ScriptActionType.binaryChoice,
-        roleId: 'medic',
+        roleId: RoleIds.medic,
         options: const ['PROTECT_DAILY', 'REVIVE'],
       ));
     }
 
     // ── Creep picks a target at Night 0 ──
     final creeps =
-        players.where((p) => p.role.id == 'creep' && p.isAlive).toList();
+        players.where((p) => p.role.id == RoleIds.creep && p.isAlive).toList();
     for (final creep in creeps) {
       steps.add(ScriptStep(
         id: 'creep_setup_${creep.id}',
@@ -52,13 +52,13 @@ class ScriptBuilder {
         instructionText:
             'This player\'s alliance becomes yours. If they die, you inherit their role.',
         actionType: ScriptActionType.selectPlayer,
-        roleId: 'creep',
+        roleId: RoleIds.creep,
       ));
     }
 
     // ── Clinger chooses a partner at Night 0 ──
     final clingers =
-        players.where((p) => p.role.id == 'clinger' && p.isAlive).toList();
+        players.where((p) => p.role.id == RoleIds.clinger && p.isAlive).toList();
     for (final clinger in clingers) {
       steps.add(ScriptStep(
         id: 'clinger_setup_${clinger.id}',
@@ -67,13 +67,13 @@ class ScriptBuilder {
         instructionText:
             'You are now obsessed with this player. If they die, you die.',
         actionType: ScriptActionType.selectPlayer,
-        roleId: 'clinger',
+        roleId: RoleIds.clinger,
       ));
     }
 
     // ── Wallflower instruction ──
     final wallflowers =
-        players.where((p) => p.role.id == 'wallflower' && p.isAlive).toList();
+        players.where((p) => p.role.id == RoleIds.wallflower && p.isAlive).toList();
     if (wallflowers.isNotEmpty) {
       steps.add(const ScriptStep(
         id: 'wallflower_info',
@@ -122,9 +122,9 @@ class ScriptBuilder {
 
     // ── Attack Dog: Clinger freed after partner death, one-shot ──
     final attackDogStrategy =
-        roleStrategies['attack_dog']! as AttackDogStrategy;
+        roleStrategies[RoleIds.attackDog]! as AttackDogStrategy;
     for (final player
-        in players.where((p) => p.isActive && p.role.id == 'clinger')) {
+        in players.where((p) => p.isActive && p.role.id == RoleIds.clinger)) {
       if (attackDogStrategy.canAct(player, dayCount)) {
         steps.add(attackDogStrategy.buildStep(player, dayCount));
       }
@@ -132,9 +132,9 @@ class ScriptBuilder {
 
     // ── Messy Bitch Kill: optional one-shot ability ──
     final mbKillStrategy =
-        roleStrategies['messy_bitch_kill']! as MessyBitchKillStrategy;
+        roleStrategies[RoleIds.messyBitchKill]! as MessyBitchKillStrategy;
     for (final player
-        in players.where((p) => p.isActive && p.role.id == 'messy_bitch')) {
+        in players.where((p) => p.isActive && p.role.id == RoleIds.messyBitch)) {
       if (mbKillStrategy.canAct(player, dayCount)) {
         steps.add(mbKillStrategy.buildStep(player, dayCount));
       }
@@ -142,7 +142,7 @@ class ScriptBuilder {
 
     // ── Wallflower reminder (between Dealer step and end) ──
     final hasWallflower =
-        players.any((p) => p.role.id == 'wallflower' && p.isAlive);
+        players.any((p) => p.role.id == RoleIds.wallflower && p.isAlive);
     final hasDealerStep = steps.any((s) => s.id.startsWith('dealer_act_'));
     if (hasWallflower && hasDealerStep) {
       // Insert Wallflower witness step right after the Dealer step
@@ -157,7 +157,7 @@ class ScriptBuilder {
               instructionText:
                   'Show the murder result. Wallflower closes eyes.',
               actionType: ScriptActionType.info,
-              roleId: 'wallflower',
+              roleId: RoleIds.wallflower,
             ));
       }
     }
@@ -215,7 +215,7 @@ class ScriptBuilder {
         instructionText:
             'CONVERT: joins Dealers next night. EXECUTE: killed immediately.',
         actionType: ScriptActionType.binaryChoice,
-        roleId: 'second_wind',
+        roleId: RoleIds.secondWind,
         options: const ['CONVERT', 'EXECUTE'],
       ));
     }

@@ -1,5 +1,6 @@
 export 'src/enums.dart';
 export 'src/role.dart';
+export 'src/role_ids.dart';
 export 'src/data/role_catalog.dart';
 export 'src/data/rumour_catalog.dart';
 export 'src/strategy_data.dart';

@@ -17,7 +17,6 @@ class GameRouter extends ConsumerStatefulWidget {
 }
 
 class _GameRouterState extends ConsumerState<GameRouter> {
-
   @override
   void initState() {
     super.initState();
@@ -41,8 +40,8 @@ class _GameRouterState extends ConsumerState<GameRouter> {
     }
   }
 
-  void _handleNavigation(
-      BuildContext context, PlayerGameState gameState, bool isCloud, WidgetRef ref) {
+  void _handleNavigation(BuildContext context, PlayerGameState gameState,
+      bool isCloud, WidgetRef ref) {
     final PlayerBridgeActions bridge = isCloud
         ? ref.read(cloudPlayerBridgeProvider.notifier)
         : ref.read(playerBridgeProvider.notifier);
@@ -64,9 +63,8 @@ class _GameRouterState extends ConsumerState<GameRouter> {
           ),
           (route) => route.isFirst,
         );
-
       } else {
-         if (!mounted) return;
+        if (!mounted) return;
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -78,7 +76,7 @@ class _GameRouterState extends ConsumerState<GameRouter> {
         );
       }
     } else {
-       if (!mounted) return;
+      if (!mounted) return;
       Navigator.popUntil(context, (route) => route.isFirst);
     }
   }
@@ -132,9 +130,12 @@ class _GameRouterState extends ConsumerState<GameRouter> {
     }
 
     // 2. New Bulletin Message (Alert)
-    if (previous != null && next.bulletinBoard.length > previous.bulletinBoard.length) {
+    if (previous != null &&
+        next.bulletinBoard.length > previous.bulletinBoard.length) {
       final newEntry = next.bulletinBoard.last;
-      if (newEntry.type == 'system' || newEntry.type == 'result' || newEntry.type == 'urgent') {
+      if (newEntry.type == 'system' ||
+          newEntry.type == 'result' ||
+          newEntry.type == 'urgent') {
         HapticService.alertDispatch();
       } else {
         HapticService.selection();
@@ -143,7 +144,8 @@ class _GameRouterState extends ConsumerState<GameRouter> {
 
     // 3. New Turn (My role action)
     if (next.currentStep != null && next.currentStep != previous?.currentStep) {
-      if (next.currentStep!.roleId == next.myPlayerSnapshot?.roleId || next.currentStep!.isVote) {
+      if (next.currentStep!.roleId == next.myPlayerSnapshot?.roleId ||
+          next.currentStep!.isVote) {
         HapticService.heavy();
       }
     }

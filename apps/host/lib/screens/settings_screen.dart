@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../host_settings.dart';
 import '../widgets/custom_drawer.dart';
+import '../widgets/personality_picker_modal.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -285,68 +286,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     HostSettings settings,
     HostSettingsNotifier notifier,
   ) {
-    final scheme = Theme.of(context).colorScheme;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: scheme.surface.withValues(alpha: 0.9),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            border: Border.all(color: scheme.primary.withValues(alpha: 0.3)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: scheme.onSurface.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'SELECT HOST PERSONALITY',
-                style: CBTypography.micro.copyWith(letterSpacing: 2),
-              ),
-              const SizedBox(height: 12),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: hostPersonalities.length,
-                  itemBuilder: (context, index) {
-                    final p = hostPersonalities[index];
-                    final isSelected = p.id == settings.hostPersonalityId;
-                    return ListTile(
-                      title: Text(
-                        p.name,
-                        style: isSelected
-                            ? CBTypography.bodyBold
-                                .copyWith(color: scheme.primary)
-                            : CBTypography.body,
-                      ),
-                      subtitle:
-                          Text(p.description, style: CBTypography.caption),
-                      trailing: isSelected
-                          ? Icon(Icons.check_circle, color: scheme.primary)
-                          : null,
-                      onTap: () {
-                        notifier.setHostPersonalityId(p.id);
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        );
-      },
+      builder: (context) => PersonalityPickerModal(
+        selectedPersonalityId: settings.hostPersonalityId,
+        onPersonalitySelected: (id) {
+          notifier.setHostPersonalityId(id);
+          Navigator.pop(context);
+        },
+      ),
     );
   }
 

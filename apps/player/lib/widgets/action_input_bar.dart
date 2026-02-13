@@ -97,8 +97,7 @@ class _ActionInputBarState extends State<ActionInputBar> {
                   icon: const Icon(Icons.send),
                   color: scheme.primary,
                   style: IconButton.styleFrom(
-                    backgroundColor:
-                        scheme.primary.withValues(alpha: 0.1),
+                    backgroundColor: scheme.primary.withValues(alpha: 0.1),
                     shape: const RoundedRectangleBorder(),
                   ),
                 ),

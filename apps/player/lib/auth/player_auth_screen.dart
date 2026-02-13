@@ -347,8 +347,8 @@ class _ProfileSetupForm extends ConsumerWidget {
                     controller: notifier.usernameController,
                     hintText: 'YOUR MONIKER',
                     autofocus: true,
-                    textStyle:
-                        textTheme.headlineSmall!.copyWith(color: scheme.onSurface),
+                    textStyle: textTheme.headlineSmall!
+                        .copyWith(color: scheme.onSurface),
                     decoration: InputDecoration(
                       prefixIcon:
                           Icon(Icons.person_outline, color: scheme.secondary),

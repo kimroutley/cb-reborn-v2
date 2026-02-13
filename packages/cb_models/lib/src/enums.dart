@@ -1,5 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import 'role_ids.dart';
+
 @JsonEnum()
 enum GamePhase {
   lobby,
@@ -69,40 +71,40 @@ extension GameStyleExtension on GameStyle {
     switch (this) {
       case GameStyle.offensive:
         return [
-          'dealer',
-          'whore',
-          'roofi',
-          'predator',
-          'drama_queen',
-          'tea_spiller',
-          'messy_bitch',
-          'party_animal'
+          RoleIds.dealer,
+          RoleIds.whore,
+          RoleIds.roofi,
+          RoleIds.predator,
+          RoleIds.dramaQueen,
+          RoleIds.teaSpiller,
+          RoleIds.messyBitch,
+          RoleIds.partyAnimal
         ];
       case GameStyle.defensive:
         return [
-          'dealer',
-          'silver_fox',
-          'medic',
-          'sober',
-          'minor',
-          'seasoned_drinker',
-          'bouncer',
-          'second_wind',
-          'party_animal'
+          RoleIds.dealer,
+          RoleIds.silverFox,
+          RoleIds.medic,
+          RoleIds.sober,
+          RoleIds.minor,
+          RoleIds.seasonedDrinker,
+          RoleIds.bouncer,
+          RoleIds.secondWind,
+          RoleIds.partyAnimal
         ];
       case GameStyle.reactive:
         return [
-          'dealer',
-          'silver_fox',
-          'bouncer',
-          'wallflower',
-          'ally_cat',
-          'bartender',
-          'tea_spiller',
-          'lightweight',
-          'club_manager',
-          'creep',
-          'party_animal'
+          RoleIds.dealer,
+          RoleIds.silverFox,
+          RoleIds.bouncer,
+          RoleIds.wallflower,
+          RoleIds.allyCat,
+          RoleIds.bartender,
+          RoleIds.teaSpiller,
+          RoleIds.lightweight,
+          RoleIds.clubManager,
+          RoleIds.creep,
+          RoleIds.partyAnimal
         ];
       case GameStyle.chaos:
         return []; // Empty means all roles

@@ -12,11 +12,16 @@ import 'room_effects_provider.dart';
 /// Listens to [gameProvider] and [sessionProvider], broadcasting state_sync
 /// messages whenever the game state changes. Handles inbound messages from
 /// players (join, claim, vote, action, leave).
+/// Provider for the HostServer instance.
+final hostServerProvider = Provider<HostServer>((ref) {
+  return HostServer(port: 8080);
+});
+
 class HostBridge {
   final HostServer _server;
   final Ref _ref;
 
-  HostBridge(this._ref, {int port = 8080}) : _server = HostServer(port: port);
+  HostBridge(this._ref, {required HostServer server}) : _server = server;
 
   bool _running = false;
   bool get isRunning => _running;
@@ -194,6 +199,7 @@ class HostBridge {
         claimedPlayerIds: session.claimedPlayerIds,
         gameHistory: game.gameHistory.isNotEmpty ? game.gameHistory : null,
         deadPoolBets: game.deadPoolBets.isNotEmpty ? game.deadPoolBets : null,
+        hostName: session.hostName,
       );
 
       _server.sendTo(client, msg);
@@ -398,7 +404,8 @@ class HostBridge {
 ///   final bridge = ref.read(hostBridgeProvider);
 ///   bridge.start();
 final hostBridgeProvider = Provider<HostBridge>((ref) {
-  final bridge = HostBridge(ref);
+  final server = ref.watch(hostServerProvider);
+  final bridge = HostBridge(ref, server: server);
 
   // Auto-broadcast on game state changes
   ref.listen(gameProvider, (prev, next) {

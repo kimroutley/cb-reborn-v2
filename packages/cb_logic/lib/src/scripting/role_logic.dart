@@ -18,7 +18,7 @@ class DealerStrategy extends RoleStrategy {
   const DealerStrategy();
 
   @override
-  String get roleId => 'dealer';
+  String get roleId => RoleIds.dealer;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -42,7 +42,7 @@ class SilverFoxStrategy extends RoleStrategy {
   const SilverFoxStrategy();
 
   @override
-  String get roleId => 'silver_fox';
+  String get roleId => RoleIds.silverFox;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -66,7 +66,7 @@ class WhoreStrategy extends RoleStrategy {
   const WhoreStrategy();
 
   @override
-  String get roleId => 'whore';
+  String get roleId => RoleIds.whore;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -98,7 +98,7 @@ class SoberStrategy extends RoleStrategy {
   const SoberStrategy();
 
   @override
-  String get roleId => 'sober';
+  String get roleId => RoleIds.sober;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -122,7 +122,7 @@ class RoofiStrategy extends RoleStrategy {
   const RoofiStrategy();
 
   @override
-  String get roleId => 'roofi';
+  String get roleId => RoleIds.roofi;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -146,7 +146,7 @@ class BouncerStrategy extends RoleStrategy {
   const BouncerStrategy();
 
   @override
-  String get roleId => 'bouncer';
+  String get roleId => RoleIds.bouncer;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -170,7 +170,7 @@ class MedicStrategy extends RoleStrategy {
   const MedicStrategy();
 
   @override
-  String get roleId => 'medic';
+  String get roleId => RoleIds.medic;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -210,7 +210,7 @@ class BartenderStrategy extends RoleStrategy {
   const BartenderStrategy();
 
   @override
-  String get roleId => 'bartender';
+  String get roleId => RoleIds.bartender;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -234,7 +234,7 @@ class LightweightStrategy extends RoleStrategy {
   const LightweightStrategy();
 
   @override
-  String get roleId => 'lightweight';
+  String get roleId => RoleIds.lightweight;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -262,7 +262,7 @@ class MessyBitchStrategy extends RoleStrategy {
   const MessyBitchStrategy();
 
   @override
-  String get roleId => 'messy_bitch';
+  String get roleId => RoleIds.messyBitch;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -286,7 +286,7 @@ class ClubManagerStrategy extends RoleStrategy {
   const ClubManagerStrategy();
 
   @override
-  String get roleId => 'club_manager';
+  String get roleId => RoleIds.clubManager;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -311,7 +311,7 @@ class AttackDogStrategy extends RoleStrategy {
   const AttackDogStrategy();
 
   @override
-  String get roleId => 'attack_dog';
+  String get roleId => RoleIds.attackDog;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -330,7 +330,7 @@ class AttackDogStrategy extends RoleStrategy {
       instructionText:
           'Select a player to eliminate. This is a one-time ability.',
       actionType: ScriptActionType.selectPlayer,
-      roleId: 'clinger',
+      roleId: RoleIds.clinger,
     );
   }
 }
@@ -339,7 +339,7 @@ class MessyBitchKillStrategy extends RoleStrategy {
   const MessyBitchKillStrategy();
 
   @override
-  String get roleId => 'messy_bitch_kill';
+  String get roleId => RoleIds.messyBitchKill;
 
   @override
   bool canAct(Player player, int dayCount) {
@@ -357,7 +357,7 @@ class MessyBitchKillStrategy extends RoleStrategy {
       instructionText:
           'Select a player to eliminate. This is a one-time ability. Skip if not used.',
       actionType: ScriptActionType.selectPlayer,
-      roleId: 'messy_bitch',
+      roleId: RoleIds.messyBitch,
       isOptional: true,
     );
   }
@@ -375,23 +375,23 @@ class MessyBitchKillStrategy extends RoleStrategy {
 /// by the resolution engine or trigger on death.
 const Map<String, RoleStrategy> roleStrategies = {
   // Club Staff
-  'dealer': DealerStrategy(),
-  'silver_fox': SilverFoxStrategy(),
-  'whore': WhoreStrategy(),
+  RoleIds.dealer: DealerStrategy(),
+  RoleIds.silverFox: SilverFoxStrategy(),
+  RoleIds.whore: WhoreStrategy(),
 
   // Party Animals (active night)
-  'sober': SoberStrategy(),
-  'roofi': RoofiStrategy(),
-  'bouncer': BouncerStrategy(),
-  'medic': MedicStrategy(),
-  'bartender': BartenderStrategy(),
-  'lightweight': LightweightStrategy(),
+  RoleIds.sober: SoberStrategy(),
+  RoleIds.roofi: RoofiStrategy(),
+  RoleIds.bouncer: BouncerStrategy(),
+  RoleIds.medic: MedicStrategy(),
+  RoleIds.bartender: BartenderStrategy(),
+  RoleIds.lightweight: LightweightStrategy(),
 
   // Neutral (active night)
-  'messy_bitch': MessyBitchStrategy(),
-  'club_manager': ClubManagerStrategy(),
+  RoleIds.messyBitch: MessyBitchStrategy(),
+  RoleIds.clubManager: ClubManagerStrategy(),
 
   // Special (conditional)
-  'attack_dog': AttackDogStrategy(),
-  'messy_bitch_kill': MessyBitchKillStrategy(),
+  RoleIds.attackDog: AttackDogStrategy(),
+  RoleIds.messyBitchKill: MessyBitchKillStrategy(),
 };

@@ -74,7 +74,8 @@ class AuthNotifier extends Notifier<AuthState> {
 
       _googleSignIn ??= GoogleSignIn.instance;
       await _googleSignIn!.initialize();
-      final GoogleSignInAccount googleUser = await _googleSignIn!.authenticate();
+      final GoogleSignInAccount googleUser =
+          await _googleSignIn!.authenticate();
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(

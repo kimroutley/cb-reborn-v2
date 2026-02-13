@@ -22,12 +22,12 @@ class StrategyGenerator {
 
       // Roster Checks
       if (role.alliance == Team.clubStaff) {
-        if (alive.any((p) => p.role.id == 'bouncer')) {
+        if (alive.any((p) => p.role.id == RoleIds.bouncer)) {
           tips.add(
             "⚠️ ALERT: The Bouncer is currently ALIVE. They are hunting you.",
           );
         }
-        if (!alive.any((p) => p.role.id == 'medic')) {
+        if (!alive.any((p) => p.role.id == RoleIds.medic)) {
           tips.add(
             "🔥 OPPORTUNITY: The Medic is DEAD. No one can save your targets tonight.",
           );
@@ -42,7 +42,7 @@ class StrategyGenerator {
       }
 
       // "What If" scenarios
-      if (role.id == 'minor' && !alive.any((p) => p.role.id == 'bouncer')) {
+      if (role.id == RoleIds.minor && !alive.any((p) => p.role.id == RoleIds.bouncer)) {
         tips.add(
           "🛡️ WHAT IF I'M ATTACKED? Since the Bouncer is dead, your death protection is virtually unbreakable.",
         );
@@ -126,25 +126,25 @@ class StrategyGenerator {
   }
 
   static const Map<String, String> _baseStrategyMap = {
-    'dealer':
+    RoleIds.dealer:
         'Coordination is key. Don\'t eliminate quiet players first—they might be easier to frame during the day.',
-    'medic':
+    RoleIds.medic:
         'Self-protect on Night 1 if the game feels aggressive. Save your revive for the Bouncer or Wallflower.',
-    'bouncer':
+    RoleIds.bouncer:
         'Check the most active talkers first. They are either Dealers trying to lead or special roles you need to confirm.',
-    'wallflower':
+    RoleIds.wallflower:
         'Stare and ignore. Your power is in what you see, not what you do. Only reveal when you have a direct witness account.',
-    'messy_bitch':
+    RoleIds.messyBitch:
         'Spread rumours to create smoke screens. If everyone is confused, no one can find the true killers.',
-    'sober':
+    RoleIds.sober:
         'Send suspected power roles home to keep them safe from murder, or target suspicious players to block their night action.',
-    'roofi':
+    RoleIds.roofi:
         'Roof suspected Dealers to block their kill, or use it on talkative players to silence their defense for the next day.',
-    'silver_fox':
+    RoleIds.silverFox:
         'Give alibis to your fellow Dealers, or use them on "confirmed" innocents to build trust and blend in.',
-    'whore':
+    RoleIds.whore:
         'Keep your scapegoat alive. They are your second life. If you feel the heat, ensure they are positioned to take the fall.',
-    'lightweight':
+    RoleIds.lightweight:
         'Your name becomes taboo. If people say it, they drink. Use this social pressure to identify those who are paying attention.',
   };
 }

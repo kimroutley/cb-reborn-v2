@@ -271,7 +271,8 @@ class _GameScreenState extends ConsumerState<GameScreen>
                 ],
               ),
               const Spacer(),
-              CBBadge(text: "ALIVE", color: Theme.of(context).colorScheme.tertiary),
+              CBBadge(
+                  text: "ALIVE", color: Theme.of(context).colorScheme.tertiary),
             ],
           ),
         );
@@ -621,7 +622,8 @@ class _BiometricIdentityHeaderState extends State<_BiometricIdentityHeader>
             if (widget.isMyTurn)
               CBBadge(text: "YOUR TURN", color: widget.roleColor)
             else
-              CBBadge(text: "ALIVE", color: Theme.of(context).colorScheme.tertiary),
+              CBBadge(
+                  text: "ALIVE", color: Theme.of(context).colorScheme.tertiary),
           ],
         ),
       ),

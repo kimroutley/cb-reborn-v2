@@ -9,7 +9,8 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -140,7 +141,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                           hintText: "EMAIL ADDRESS",
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.email_outlined, color: scheme.primary),
+                            prefixIcon: Icon(Icons.email_outlined,
+                                color: scheme.primary),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -148,7 +150,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                           controller: _passwordController,
                           hintText: "PASSWORD",
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.lock_outline, color: scheme.primary),
+                            prefixIcon:
+                                Icon(Icons.lock_outline, color: scheme.primary),
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -163,7 +166,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                               // Simulation: wait and then navigate
                               Future.delayed(const Duration(seconds: 2), () {
                                 if (!mounted) return;
-                                Navigator.of(context).pushReplacementNamed('/home');
+                                Navigator.of(context)
+                                    .pushReplacementNamed('/home');
                               });
                             },
                           ),

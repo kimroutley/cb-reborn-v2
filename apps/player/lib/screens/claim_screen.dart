@@ -54,7 +54,8 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                   delay: Duration(milliseconds: 30 * index),
                   child: CBGlassTile(
                     title: player.name,
-                    accentColor: isSelected ? scheme.primary : scheme.outlineVariant,
+                    accentColor:
+                        isSelected ? scheme.primary : scheme.outlineVariant,
                     isResolved: isSelected,
                     onTap: () {
                       setState(() => _selectedId = player.id);
