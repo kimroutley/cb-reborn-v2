@@ -216,6 +216,8 @@ class _CBMessageBubbleState extends State<CBMessageBubble>
     final theme = Theme.of(context);
     final color = widget.accentColor ?? theme.colorScheme.primary;
     final hasHeader = widget.playerHeader != null;
+    final hasSender =
+        !hasHeader && (widget.senderName != null || widget.avatar != null);
 
     return AnimatedBuilder(
       animation: _glowAnimation,
@@ -245,10 +247,12 @@ class _CBMessageBubbleState extends State<CBMessageBubble>
                       Padding(
                         padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
                         child: widget.playerHeader!,
-                      ),
+                      )
+                    else if (hasSender)
+                      _buildSenderHeader(context, color),
                     Padding(
-                      padding: hasHeader
-                          ? const EdgeInsets.fromLTRB(16, 0, 16, 16)
+                      padding: (hasHeader || hasSender)
+                          ? const EdgeInsets.fromLTRB(16, 4, 16, 16)
                           : const EdgeInsets.all(16),
                       child: Text(
                         widget.content,
@@ -274,6 +278,31 @@ class _CBMessageBubbleState extends State<CBMessageBubble>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSenderHeader(BuildContext context, Color color) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Row(
+        children: [
+          if (widget.avatar != null) ...[
+            widget.avatar!,
+            const SizedBox(width: 12),
+          ],
+          if (widget.senderName != null)
+            Text(
+              widget.senderName!.toUpperCase(),
+              style: theme.textTheme.labelSmall!.copyWith(
+                color: color,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                shadows: CBColors.textGlow(color, intensity: 0.6),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
