@@ -177,9 +177,6 @@ class FirebaseBridge {
   /// Host: Delete the game from Firestore (cleanup on end).
   Future<void> deleteGame() async {
     try {
-      // Delete all subcollections first
-      final batch = _firestore.batch();
-
       // Fetch all subcollections concurrently to reduce latency
       final snapshots = await Future.wait([
         gameDoc.collection('joins').get(),
@@ -187,13 +184,21 @@ class FirebaseBridge {
         gameDoc.collection('private_state').get(),
       ]);
 
-      for (final snapshot in snapshots) {
-        for (final doc in snapshot.docs) {
+      // Flatten all docs to delete
+      final allDocs = snapshots.expand((s) => s.docs).toList();
+
+      // Process deletions in chunks of 500 (Firestore limit)
+      for (var i = 0; i < allDocs.length; i += 500) {
+        final batch = _firestore.batch();
+        final end = (i + 500 < allDocs.length) ? i + 500 : allDocs.length;
+        final chunk = allDocs.sublist(i, end);
+
+        for (final doc in chunk) {
           batch.delete(doc.reference);
         }
+        await batch.commit();
       }
 
-      await batch.commit();
       await gameDoc.delete();
       debugPrint('[FirebaseBridge] Deleted game $joinCode');
     } catch (e) {
