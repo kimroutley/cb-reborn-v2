@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../widgets/custom_drawer.dart';
+import 'games_night_recap_screen.dart';
 
 class GamesNightScreen extends ConsumerStatefulWidget {
   const GamesNightScreen({super.key});
@@ -114,11 +115,14 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
         icon: Icon(Icons.history_rounded, color: accentColor, size: 24),
         isPrismatic: true,
         onTap: () {
-          // TODO: Implement navigation to a detailed Games Night Recap for the player
-          showThemedSnackBar(
+          Navigator.push(
             context,
-            'Viewing session details for ${session.sessionName} (Not yet implemented).',
-            accentColor: scheme.primary,
+            MaterialPageRoute(
+              builder: (context) => GamesNightRecapScreen(
+                session: session,
+                games: gamesInSession,
+              ),
+            ),
           );
         },
         content: const SizedBox.shrink(),
