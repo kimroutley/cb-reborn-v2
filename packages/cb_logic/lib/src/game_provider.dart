@@ -7,6 +7,7 @@ import 'session_provider.dart';
 import 'games_night_provider.dart';
 import 'gemini_narration_service.dart';
 import 'scripting/script_builder.dart';
+import 'game_resolution_logic.dart';
 
 part 'game_provider.g.dart';
 
@@ -1351,7 +1352,7 @@ class Game extends _$Game {
     if (state.players.length < 4) return;
     if (state.phase != GamePhase.lobby) return;
 
-    final assignedPlayers = _assignRoles(state.players);
+    final assignedPlayers = GameResolutionLogic.assignRoles(state.players);
     state = state.copyWith(
       players: assignedPlayers,
       phase: GamePhase.setup,
@@ -1409,11 +1410,17 @@ class Game extends _$Game {
         );
         break;
       case GamePhase.night:
-        final res = _resolveNightActions(state.players, state.actionLog);
+        final res = GameResolutionLogic.resolveNightActions(
+          state.players,
+          state.actionLog,
+          state.dayCount,
+          state.privateMessages,
+        );
         state = state.copyWith(
           players: res.players,
           lastNightReport: res.report,
           lastNightTeasers: res.teasers,
+          privateMessages: res.privateMessages,
           gameHistory: [
             ...state.gameHistory,
             '── NIGHT ${state.dayCount} RESOLVED ──',
@@ -1436,7 +1443,11 @@ class Game extends _$Game {
         _checkAndResolveWinCondition(state.players);
         break;
       case GamePhase.day:
-        final res = _resolveDayVote(state.players, state.dayVoteTally);
+        final res = GameResolutionLogic.resolveDayVote(
+          state.players,
+          state.dayVoteTally,
+          state.dayCount,
+        );
 
         // ── RESOLVE DEAD POOL BETS ──
         final exiledPlayerId = res.players
@@ -1524,232 +1535,10 @@ class Game extends _$Game {
     );
   }
 
-  List<Player> _assignRoles(List<Player> players) {
-    final rng = Random();
-    final count = players.length;
-    final staffCount = (count / 4).ceil();
 
-    final shuffledPlayers = [...players]..shuffle(rng);
-    var assigned = <Player>[];
-
-    // 1. Assign Dealer(s)
-    for (var i = 0; i < staffCount; i++) {
-      final p = shuffledPlayers.removeAt(0);
-      assigned.add(p.copyWith(
-        role: roleCatalogMap[RoleIds.dealer]!,
-        alliance: Team.clubStaff,
-      ));
-    }
-
-    // 2. Assign Required roles if any
-    final requiredRoles =
-        roleCatalog.where((r) => r.isRequired && r.id != RoleIds.dealer).toList();
-    for (final role in requiredRoles) {
-      if (shuffledPlayers.isNotEmpty) {
-        final p = shuffledPlayers.removeAt(0);
-        assigned.add(p.copyWith(role: role, alliance: role.alliance));
-      }
-    }
-
-    // 3. Assign remaining roles randomly
-    final remainingRoles =
-        roleCatalog.where((r) => !r.isRequired && r.id != RoleIds.dealer).toList();
-    while (shuffledPlayers.isNotEmpty) {
-      final p = shuffledPlayers.removeAt(0);
-      final role = remainingRoles[rng.nextInt(remainingRoles.length)];
-      assigned.add(p.copyWith(role: role, alliance: role.alliance));
-      if (!role.canRepeat) remainingRoles.remove(role);
-    }
-
-    // 4. Special Initialization for Seasoned Drinker
-    final actualStaffCount =
-        assigned.where((p) => p.alliance == Team.clubStaff).length;
-    assigned = assigned.map((p) {
-      if (p.role.id == RoleIds.seasonedDrinker) {
-        return p.copyWith(lives: actualStaffCount);
-      }
-      return p;
-    }).toList();
-
-    return assigned;
-  }
-
-  _NightResolution _resolveNightActions(
-    List<Player> players,
-    Map<String, String> log,
-  ) {
-    var currentPlayers = List<Player>.from(players);
-    final spicyReport = <String>[];
-    final teaserReport = <String>[];
-    final privates = Map<String, List<String>>.from(state.privateMessages);
-
-    final murderTargets = <String>[];
-    final protectedIds = <String>{};
-    final blockedIds = <String>{};
-    final silencedIds = <String>{};
-
-    // 1. Process Pre-emptive actions (Sober, Roofi)
-    for (final p in currentPlayers.where((p) => p.isAlive)) {
-      final targetId = log['sober_act_${p.id}'];
-      if (targetId != null) {
-        blockedIds.add(targetId);
-        protectedIds.add(targetId);
-        spicyReport.add(
-            '${p.name} sent ${players.firstWhere((pl) => pl.id == targetId).name} home.');
-        teaserReport.add(
-            '${players.firstWhere((pl) => pl.id == targetId).name} was seen leaving the club early.');
-      }
-
-      final roofiTarget = log['roofi_act_${p.id}'];
-      if (roofiTarget != null) {
-        silencedIds.add(roofiTarget);
-        // Roofi also blocks if they hit the ONLY active dealer
-        final activeDealers = currentPlayers.where((pl) =>
-            pl.isAlive &&
-            pl.role.id == RoleIds.dealer &&
-            !blockedIds.contains(pl.id));
-        if (activeDealers.length == 1 &&
-            activeDealers.first.id == roofiTarget) {
-          blockedIds.add(roofiTarget);
-        }
-        spicyReport.add(
-            '${p.name} drugged ${players.firstWhere((pl) => pl.id == roofiTarget).name}.');
-        teaserReport.add(
-            '${players.firstWhere((pl) => pl.id == roofiTarget).name} looks a bit dazed.');
-      }
-    }
-
-    // 2. Process Investigative (Bouncer, Bartender)
-    for (final p in currentPlayers
-        .where((p) => p.isAlive && !blockedIds.contains(p.id))) {
-      final bouncerTarget = log['bouncer_act_${p.id}'];
-      if (bouncerTarget != null) {
-        final target =
-            currentPlayers.firstWhere((pl) => pl.id == bouncerTarget);
-        final isStaff = target.alliance == Team.clubStaff;
-        privates.putIfAbsent(p.id, () => []).add(
-            'ID CHECK: ${target.name} is ${isStaff ? "STAFF" : "NOT STAFF"}.');
-        spicyReport.add('${p.name} checked ${target.name}\'s ID.');
-        teaserReport
-            .add('Someone\'s ID was carefully scrutinized by the Bouncer.');
-      }
-    }
-
-    // 3. Process Murder (Dealer)
-    for (final p in currentPlayers.where((p) =>
-        p.isAlive && p.role.id == RoleIds.dealer && !blockedIds.contains(p.id))) {
-      final targetId = log['dealer_act_${p.id}'];
-      if (targetId != null) murderTargets.add(targetId);
-    }
-
-    // 4. Process Protection (Medic)
-    for (final p in currentPlayers.where((p) =>
-        p.isAlive && p.role.id == RoleIds.medic && !blockedIds.contains(p.id))) {
-      final targetId = log['medic_act_${p.id}'];
-      if (targetId != null && p.medicChoice == 'PROTECT_DAILY') {
-        protectedIds.add(targetId);
-      }
-    }
-
-    // 5. Apply Deaths
-    for (final targetId in murderTargets) {
-      if (protectedIds.contains(targetId)) {
-        spicyReport.add(
-            'A murder attempt on ${players.firstWhere((pl) => pl.id == targetId).name} was thwarted.');
-        teaserReport
-            .add('A patron barely escaped a close encounter with "the staff".');
-        continue;
-      }
-
-      final victim = currentPlayers.firstWhere((p) => p.id == targetId);
-
-      // Handle Second Wind
-      if (victim.role.id == RoleIds.secondWind && !victim.secondWindConverted) {
-        currentPlayers = currentPlayers
-            .map((p) => p.id == targetId
-                ? p.copyWith(secondWindPendingConversion: true)
-                : p)
-            .toList();
-        spicyReport.add('Second Wind triggered for ${victim.name}.');
-        teaserReport.add('Someone survived a lethal encounter.');
-        continue;
-      }
-
-      // Handle Seasoned Drinker lives
-      if (victim.role.id == RoleIds.seasonedDrinker && victim.lives > 1) {
-        currentPlayers = currentPlayers
-            .map((p) => p.id == targetId ? p.copyWith(lives: p.lives - 1) : p)
-            .toList();
-        spicyReport
-            .add('Seasoned Drinker ${victim.name} lost a life but survived.');
-        teaserReport.add('A seasoned patron took a hit but kept going.');
-        continue;
-      }
-
-      // Final kill
-      currentPlayers = currentPlayers
-          .map((p) => p.id == targetId
-              ? p.copyWith(
-                  isAlive: false,
-                  deathDay: state.dayCount,
-                  deathReason: 'murder')
-              : p)
-          .toList();
-      spicyReport.add('The Dealers butchered ${victim.name} in cold blood.');
-      teaserReport
-          .add('A messy scene was found. ${victim.name} didn\'t make it.');
-    }
-
-    // Apply silencing
-    currentPlayers = currentPlayers
-        .map((p) => silencedIds.contains(p.id)
-            ? p.copyWith(silencedDay: state.dayCount)
-            : p)
-        .toList();
-
-    return _NightResolution(
-      players: currentPlayers,
-      report: spicyReport,
-      teasers: teaserReport,
-    );
-  }
-
-  _DayResolution _resolveDayVote(List<Player> players, Map<String, int> tally) {
-    if (tally.isEmpty)
-      return _DayResolution(players: players, report: ['No votes were cast.']);
-
-    final sorted = tally.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final top = sorted.first;
-
-    if (top.key == 'abstain')
-      return _DayResolution(
-          players: players,
-          report: ['The club decided to abstain from exiling anyone.']);
-
-    // Check for ties
-    if (sorted.length > 1 && sorted[1].value == top.value) {
-      return _DayResolution(
-          players: players,
-          report: ['The vote ended in a tie. No one was exiled.']);
-    }
-
-    final victim = players.firstWhere((p) => p.id == top.key);
-    final updatedPlayers = players
-        .map((p) => p.id == top.key
-            ? p.copyWith(
-                isAlive: false, deathDay: state.dayCount, deathReason: 'exile')
-            : p)
-        .toList();
-
-    return _DayResolution(
-      players: updatedPlayers,
-      report: ['${victim.name} was exiled from the club by popular vote.'],
-    );
-  }
 
   void _checkAndResolveWinCondition(List<Player> players) {
-    final win = _checkWinCondition(players);
+    final win = GameResolutionLogic.checkWinCondition(players);
     if (win != null) {
       state = state.copyWith(
         phase: GamePhase.endGame,
@@ -1761,57 +1550,4 @@ class Game extends _$Game {
       archiveGame();
     }
   }
-
-  _WinResult? _checkWinCondition(List<Player> players) {
-    int staff = 0;
-    int pa = 0;
-
-    for (final p in players) {
-      if (p.isAlive) {
-        if (p.alliance == Team.clubStaff) {
-          staff++;
-        } else if (p.alliance == Team.partyAnimals) {
-          pa++;
-        }
-      }
-    }
-
-    // staff == 0 only if there WERE dealers to begin with
-    final hadStaff = players.any((p) => p.alliance == Team.clubStaff);
-
-    if (hadStaff && staff == 0) {
-      return _WinResult(
-          winner: Team.partyAnimals,
-          report: ['All Dealers have been eliminated. Party Animals win!']);
-    }
-    if (staff >= pa && staff > 0) {
-      return _WinResult(
-          winner: Team.clubStaff,
-          report: ['The Dealers have taken over the club. Staff win!']);
-    }
-    return null;
-  }
-}
-
-class _NightResolution {
-  final List<Player> players;
-  final List<String> report;
-  final List<String> teasers;
-  const _NightResolution({
-    required this.players,
-    required this.report,
-    required this.teasers,
-  });
-}
-
-class _DayResolution {
-  final List<Player> players;
-  final List<String> report;
-  const _DayResolution({required this.players, required this.report});
-}
-
-class _WinResult {
-  final Team winner;
-  final List<String> report;
-  const _WinResult({required this.winner, required this.report});
 }
