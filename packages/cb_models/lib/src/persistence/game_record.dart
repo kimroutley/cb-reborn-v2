@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../enums.dart';
+import '../game_event.dart';
 
 part 'game_record.freezed.dart';
 part 'game_record.g.dart';
@@ -24,6 +25,9 @@ abstract class GameRecord with _$GameRecord {
 
     /// Full game timeline
     @Default([]) List<String> history,
+
+    /// Structured event log
+    @Default([]) List<GameEvent> eventLog,
   }) = _GameRecord;
 
   factory GameRecord.fromJson(Map<String, dynamic> json) =>

@@ -7,19 +7,27 @@ class NightResolution {
   final List<String> report;
   final List<String> teasers;
   final Map<String, List<String>> privateMessages;
+  final List<GameEvent> events;
 
   const NightResolution({
     required this.players,
     required this.report,
     required this.teasers,
     required this.privateMessages,
+    this.events = const [],
   });
 }
 
 class DayResolution {
   final List<Player> players;
   final List<String> report;
-  const DayResolution({required this.players, required this.report});
+  final List<GameEvent> events;
+
+  const DayResolution({
+    required this.players,
+    required this.report,
+    this.events = const [],
+  });
 }
 
 class WinResult {
@@ -85,12 +93,17 @@ class GameResolutionLogic {
     int dayCount,
     Map<String, List<String>> currentPrivateMessages,
   ) {
-    final context = NightResolutionContext(
-      players: players,
-      log: log,
-      dayCount: dayCount,
-      privateMessages: currentPrivateMessages,
-    );
+    var currentPlayers = List<Player>.from(players);
+    final spicyReport = <String>[];
+    final teaserReport = <String>[];
+    final privates = Map<String, List<String>>.from(currentPrivateMessages);
+
+    final murderTargets = <String>[];
+    final dealerAttacks = <String, String>{}; // dealerId -> targetId
+    final protectedIds = <String>{};
+    final blockedIds = <String>{};
+    final silencedIds = <String>{};
+    final events = <GameEvent>[];
 
     // 1. Process Pre-emptive actions (Sober, Roofi)
     SoberAction().execute(context);
@@ -100,7 +113,14 @@ class GameResolutionLogic {
     BouncerAction().execute(context);
 
     // 3. Process Murder (Dealer)
-    DealerAction().execute(context);
+    for (final p in currentPlayers.where((p) =>
+        p.isAlive && p.role.id == RoleIds.dealer && !blockedIds.contains(p.id))) {
+      final targetId = log['dealer_act_${p.id}'];
+      if (targetId != null) {
+        murderTargets.add(targetId);
+        dealerAttacks[p.id] = targetId;
+      }
+    }
 
     // 4. Process Protection (Medic)
     MedicAction().execute(context);
@@ -108,13 +128,76 @@ class GameResolutionLogic {
     // 5. Apply Deaths
     DeathResolutionStrategy().execute(context);
 
-    // 6. Apply Silencing (Post-processing)
-    for (final silencedId in context.silencedIds) {
-      final p = context.getPlayer(silencedId);
-      context.updatePlayer(p.copyWith(silencedDay: dayCount));
+      if (!victim.isAlive) continue;
+
+      // Handle Second Wind
+      if (victim.role.id == RoleIds.secondWind && !victim.secondWindConverted) {
+        currentPlayers = currentPlayers
+            .map((p) => p.id == targetId
+                ? p.copyWith(secondWindPendingConversion: true)
+                : p)
+            .toList();
+        spicyReport.add('Second Wind triggered for ${victim.name}.');
+        teaserReport.add('Someone survived a lethal encounter.');
+        continue;
+      }
+
+      // Handle Seasoned Drinker lives
+      if (victim.role.id == RoleIds.seasonedDrinker && victim.lives > 1) {
+        currentPlayers = currentPlayers
+            .map((p) => p.id == targetId ? p.copyWith(lives: p.lives - 1) : p)
+            .toList();
+        spicyReport
+            .add('Seasoned Drinker ${victim.name} lost a life but survived.');
+        teaserReport.add('A seasoned patron took a hit but kept going.');
+        continue;
+      }
+
+      // Final kill
+      currentPlayers = currentPlayers
+          .map((p) => p.id == targetId
+              ? p.copyWith(
+                  isAlive: false,
+                  deathDay: dayCount,
+                  deathReason: 'murder')
+              : p)
+          .toList();
+      spicyReport.add('The Dealers butchered ${victim.name} in cold blood.');
+      teaserReport
+          .add('A messy scene was found. ${victim.name} didn\'t make it.');
+
+      events.add(GameEvent.death(
+        playerId: targetId,
+        reason: 'murder',
+        day: dayCount,
+      ));
+
+      // Attribute kills to specific dealers
+      for (final entry in dealerAttacks.entries) {
+        if (entry.value == targetId) {
+          events.add(GameEvent.kill(
+            killerId: entry.key,
+            victimId: targetId,
+            day: dayCount,
+          ));
+        }
+      }
     }
 
-    return context.toNightResolution();
+    // Apply silencing
+    currentPlayers = currentPlayers
+        .map((p) => silencedIds.contains(p.id)
+            ? p.copyWith(silencedDay: dayCount)
+            : p)
+        .toList();
+
+    return NightResolution(
+      players: currentPlayers,
+      report: spicyReport,
+      teasers: teaserReport,
+      privateMessages: privates,
+      events: events,
+    );
   }
 
   static DayResolution resolveDayVote(
@@ -125,6 +208,8 @@ class GameResolutionLogic {
     if (tally.isEmpty) {
       return DayResolution(players: players, report: ['No votes were cast.']);
     }
+
+    final events = <GameEvent>[];
 
     final sorted = tally.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -151,9 +236,16 @@ class GameResolutionLogic {
             : p)
         .toList();
 
+    events.add(GameEvent.death(
+      playerId: victim.id,
+      reason: 'exile',
+      day: dayCount,
+    ));
+
     return DayResolution(
       players: updatedPlayers,
       report: ['${victim.name} was exiled from the club by popular vote.'],
+      events: events,
     );
   }
 

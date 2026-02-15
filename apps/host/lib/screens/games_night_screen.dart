@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../widgets/common_dialogs.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import 'games_night_recap_screen.dart';
@@ -127,7 +128,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
               child: CBPrimaryButton(
                 label: 'START SESSION',
                 onPressed: () async {
-                  final name = await _showStartSessionDialog(context, scheme);
+                  final name = await showStartSessionDialog(context);
                   if (name == null || name.trim().isEmpty) return;
                   await ref
                       .read(gamesNightProvider.notifier)
@@ -338,74 +339,6 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
       if (record != null) games.add(record);
     }
     return games;
-  }
-
-  Future<String?> _showStartSessionDialog(
-      BuildContext context, ColorScheme scheme) async {
-    final controller = TextEditingController();
-    final theme = Theme.of(context);
-    return showThemedDialog<String>(
-      context: context,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'START GAMES NIGHT',
-            style: theme.textTheme.headlineSmall!.copyWith(
-              color: scheme.tertiary, // Migrated from CBColors.matrixGreen
-              letterSpacing: 2.0,
-              fontWeight: FontWeight.bold,
-              shadows: CBColors.textGlow(
-                  scheme.tertiary), // Migrated from CBColors.matrixGreen
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'CONNECT MULTIPLE ROUNDS FOR A FULL RECAP',
-            style: theme.textTheme.labelSmall!.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.5),
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 24),
-          CBTextField(
-            controller: controller,
-            autofocus: true,
-            textStyle:
-                theme.textTheme.bodyLarge!.copyWith(color: scheme.onSurface),
-            decoration: InputDecoration(
-              labelText: 'SESSION NAME',
-              labelStyle: TextStyle(
-                  color: scheme.tertiary.withValues(
-                      alpha: 0.7)), // Migrated from CBColors.matrixGreen
-              hintText: 'e.g. SATURDAY NIGHT FEVER',
-              hintStyle:
-                  TextStyle(color: scheme.onSurface.withValues(alpha: 0.2)),
-            ),
-          ),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              CBGhostButton(
-                label: 'ABORT',
-                onPressed: () => Navigator.pop(context),
-              ),
-              const SizedBox(width: 12),
-              CBPrimaryButton(
-                label: 'INITIALIZE',
-                onPressed: () {
-                  if (controller.text.isNotEmpty) {
-                    Navigator.pop(context, controller.text);
-                  }
-                },
-              ),
-            ],
-          )
-        ],
-      ),
-    );
   }
 
   Future<bool?> _confirmEndSession(BuildContext context, Color color) {

@@ -1,10 +1,11 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'bulletin_entry.dart';
 import 'enums.dart';
 import 'feed_event.dart';
+import 'game_event.dart';
 import 'player.dart';
 import 'script/script_step.dart';
-import 'bulletin_entry.dart';
 
 part 'game_state.freezed.dart';
 part 'game_state.g.dart';
@@ -43,6 +44,9 @@ abstract class GameState with _$GameState {
 
     // Persistent game history (timeline entries across entire game)
     @Default([]) List<String> gameHistory,
+
+    // Structured event log (persistent across game)
+    @Default([]) List<GameEvent> eventLog,
 
     // The live bulletin board (Group Chat history)
     @Default([]) List<BulletinEntry> bulletinBoard,
