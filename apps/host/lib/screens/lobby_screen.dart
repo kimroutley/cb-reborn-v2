@@ -3,25 +3,16 @@ import 'dart:async';
 import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../cloud_host_bridge.dart';
 import '../host_bridge.dart';
+import '../providers/lobby_profiles_provider.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import 'game_screen.dart';
-
-final userProfileProvider =
-    StreamProvider.family<Map<String, dynamic>?, String>((ref, uid) {
-  return FirebaseFirestore.instance
-      .collection('user_profiles')
-      .doc(uid)
-      .snapshots()
-      .map((doc) => doc.data());
-});
 
 class LobbyScreen extends ConsumerWidget {
   const LobbyScreen({super.key});
@@ -52,6 +43,7 @@ class LobbyScreen extends ConsumerWidget {
     final isCloud = gameState.syncMode == SyncMode.cloud;
     final bridge = ref.read(hostBridgeProvider);
     final canStart = gameState.players.length >= 5;
+    final profilesAsync = ref.watch(lobbyProfilesProvider);
 
     return CBPrismScaffold(
       title: 'LOBBY',
@@ -157,12 +149,10 @@ class LobbyScreen extends ConsumerWidget {
           ...gameState.players.asMap().entries.map((entry) {
             final idx = entry.key;
             final player = entry.value;
-            final profileAsync = player.authUid != null
-                ? ref.watch(userProfileProvider(player.authUid!))
-                : null;
 
-            final profile = profileAsync?.maybeWhen(
-              data: (data) => data,
+            // PERFORMANCE: Use batch-fetched profiles to avoid N+1 Firestore reads
+            final profile = profilesAsync.maybeWhen(
+              data: (profiles) => player.authUid != null ? profiles[player.authUid] : null,
               orElse: () => null,
             );
             final profileUsername = (profile?['username'] as String?)?.trim();
