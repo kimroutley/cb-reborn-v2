@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cb_comms/cb_comms.dart';
 import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
-import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -271,22 +270,21 @@ class CloudHostBridge {
   }
 
   int _computeStateHash(GameState game, SessionState session) {
-    const equality = DeepCollectionEquality();
     return Object.hash(
       game.phase,
       game.dayCount,
       game.winner,
-      equality.hash(game.players),
+      game.players,
       game.currentStep,
-      equality.hash(game.dayVoteTally),
-      equality.hash(game.dayVotesByVoter),
-      equality.hash(game.lastNightReport),
-      equality.hash(game.lastDayReport),
-      equality.hash(game.endGameReport),
-      equality.hash(game.gameHistory),
-      equality.hash(game.deadPoolBets),
-      equality.hash(game.privateMessages),
-      equality.hash(session.claimedPlayerIds),
+      game.dayVoteTally,
+      game.dayVotesByVoter,
+      game.lastNightReport,
+      game.lastDayReport,
+      game.endGameReport,
+      game.gameHistory,
+      game.deadPoolBets,
+      game.privateMessages,
+      session.claimedPlayerIds,
     );
   }
 
