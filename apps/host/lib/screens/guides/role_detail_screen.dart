@@ -10,7 +10,7 @@ class RoleDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = CBColors.roleColorFromHex(role.colorHex);
+    final accent = CBColors.fromHex(role.colorHex);
     final textTheme = Theme.of(context).textTheme;
 
     return CBPrismScaffold(

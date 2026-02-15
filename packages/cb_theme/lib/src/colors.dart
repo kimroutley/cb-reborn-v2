@@ -168,17 +168,8 @@ class CBColors {
   static const Color matrixGreen = success;
   static const Color alertOrange = warning;
 
-  static Color roleColorFromHex(String hexString) {
-    try {
-      final buffer = StringBuffer();
-      final cleaned = hexString.replaceFirst('#', '');
-      if (cleaned.length == 6) buffer.write('FF');
-      buffer.write(cleaned);
-      return Color(int.parse(buffer.toString(), radix: 16));
-    } catch (_) {
-      return electricCyan;
-    }
-  }
+  @Deprecated('Use [fromHex] instead')
+  static Color roleColorFromHex(String hexString) => fromHex(hexString);
 
   static List<Color> roleShimmerStops(Color base) {
     final hsl = HSLColor.fromColor(base);
@@ -209,9 +200,27 @@ class CBColors {
     return Color.lerp(a, b, 0.5) ?? base;
   }
 
-  /// Converts a hex color string (e.g. `#FF00FF` or `FF00FF`) to a [Color].
+  /// Converts a hex color string (e.g. `#FF00FF`, `FF00FF` or `#F0F`) to a [Color].
   /// Falls back to [electricCyan] on invalid input.
   static Color fromHex(String hexString) {
-    return roleColorFromHex(hexString);
+    try {
+      var hex = hexString.trim().replaceAll('#', '');
+
+      if (hex.length == 3) {
+        hex = '${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}';
+      }
+
+      if (hex.length == 6) {
+        hex = 'FF$hex';
+      }
+
+      if (hex.length == 8) {
+        return Color(int.parse(hex, radix: 16));
+      }
+
+      return electricCyan;
+    } catch (_) {
+      return electricCyan;
+    }
   }
 }

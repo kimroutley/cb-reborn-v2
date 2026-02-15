@@ -179,7 +179,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
   }
 
   void _showOperativeFile(Role role) {
-    final color = CBColors.roleColorFromHex(role.colorHex);
+    final color = CBColors.fromHex(role.colorHex);
     showThemedFullScreenDialog<void>(
       context: context,
       accentColor: color,
@@ -363,7 +363,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
   }
 
   Widget _buildRoleSelector() {
-    final color = CBColors.roleColorFromHex(_selectedRoleForTips!.colorHex);
+    final color = CBColors.fromHex(_selectedRoleForTips!.colorHex);
     return CBGlassTile(
       title: _selectedRoleForTips!.name,
       subtitle: "TAP TO CHANGE DATA FEED",
@@ -406,7 +406,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
                     itemCount: roleCatalog.length,
                     itemBuilder: (context, index) {
                       final role = roleCatalog[index];
-                      final rColor = CBColors.roleColorFromHex(role.colorHex);
+                      final rColor = CBColors.fromHex(role.colorHex);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: ListTile(

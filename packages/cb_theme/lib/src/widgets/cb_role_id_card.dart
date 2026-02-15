@@ -15,7 +15,7 @@ class CBRoleIDCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = CBColors.roleColorFromHex(role.colorHex);
+    final color = CBColors.fromHex(role.colorHex);
 
     return CBGlassTile(
       title: role.name,
