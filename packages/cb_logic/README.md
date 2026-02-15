@@ -11,12 +11,31 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/to/develop-packages).
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+The `cb_logic` package contains the core business logic, game rules, and state management for the Club Blackout game.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+### Core Game Logic
+- **Role Assignment**: Automatically assigns roles to players, ensuring game balance with Dealers (Staff) and required roles. Supports special initialization for roles like "Seasoned Drinker".
+- **Night Phase Resolution**: Processes night actions including pre-emptive blocks (Sober, Roofi), investigations (Bouncer), murders (Dealer), and protections (Medic). Handles complex interactions like "Second Wind" and "Seasoned Drinker" survival mechanics.
+- **Day Phase Resolution**: Manages voting results, including ties and abstentions.
+- **Win Conditions**: Determines victory conditions for "Club Staff" (Dealers) or "Party Animals" (Townsfolk).
+
+### Scripting & Narration
+- **Dynamic Script Generation**: Generates step-by-step scripts for the game host, covering Setup, Night, and Day phases using `ScriptBuilder`.
+- **Role-Specific Instructions**: Includes specific steps for roles like Medic, Creep, Clinger, Wallflower, Attack Dog, and Messy Bitch.
+- **AI-Powered Narration**: Integrates with Google Gemini via `GeminiNarrationService` to generate thematic, immersive narration based on game events and selected voice styles (e.g., "nightclub_noir", "host_hype").
+
+### State Management
+- **Game Provider**: Manages the current game state using Riverpod (`game_provider.dart`).
+- **Games Night Provider**: Manages a session of multiple games (`games_night_provider.dart`).
+- **Chat Provider**: Handles in-game chat functionality (`chat_provider.dart`).
+
+### Utilities
+- **Player Matching**: Algorithms for matching players (`PlayerMatcher`).
+- **Recap Generation**: Creates summaries of game events (`RecapGenerator`).
+- **Strategy Hints**: Generates strategic tips for players (`StrategyGenerator`).
+- **Analytics**: Tracks game events using Firebase Analytics (`AnalyticsService`).
 
 ## Getting started
 
