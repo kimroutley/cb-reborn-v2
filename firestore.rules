@@ -31,7 +31,7 @@ service cloud.firestore {
     match /games/{joinCode} {
       
       // Anyone can read the public game state (needed for players to join and see updates)
-      allow read: if true;
+      allow read: if isAuthenticated();
       
       // Host can create/update/delete games
       allow write: if isAuthenticated() && isValidGameData() && (
@@ -79,7 +79,7 @@ service cloud.firestore {
       // ── Chat Messages Subcollection ──
       match /chat/{messageId} {
         // Anyone in the game can read chat messages
-        allow read: if true;
+        allow read: if isAuthenticated();
         
         // Anyone can create chat messages (players chatting)
         allow create: if isAuthenticated()
