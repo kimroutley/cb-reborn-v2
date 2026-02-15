@@ -57,19 +57,51 @@ class HostServer {
       pingAll();
     });
 
-    _server!.listen((HttpRequest request) async {
-      if (WebSocketTransformer.isUpgradeRequest(request)) {
-        final socket = await WebSocketTransformer.upgrade(request);
-        _handleConnection(socket);
-      } else {
-        // Simple health check endpoint
-        request.response
-          ..statusCode = HttpStatus.ok
-          ..headers.contentType = ContentType.text
-          ..write('Club Blackout Host Server')
-          ..close();
-      }
-    });
+    _server!.listen(
+      (HttpRequest request) async {
+        try {
+          if (WebSocketTransformer.isUpgradeRequest(request)) {
+            try {
+              final socket = await WebSocketTransformer.upgrade(request);
+              _handleConnection(socket);
+            } catch (e) {
+              debugPrint('[HostServer] WebSocket upgrade failed: $e');
+              try {
+                request.response
+                  ..statusCode = HttpStatus.internalServerError
+                  ..write('WebSocket upgrade failed');
+                await request.response.close();
+              } catch (_) {
+                // Response might be closed already
+              }
+            }
+          } else {
+            // Simple health check endpoint
+            request.response
+              ..statusCode = HttpStatus.ok
+              ..headers.contentType = ContentType.text
+              ..write('Club Blackout Host Server');
+            await request.response.close();
+          }
+        } catch (e) {
+          debugPrint('[HostServer] Request handling error: $e');
+          try {
+            request.response
+              ..statusCode = HttpStatus.internalServerError
+              ..write('Internal Server Error');
+            await request.response.close();
+          } catch (_) {
+            // Response might be closed already
+          }
+        }
+      },
+      onError: (error) {
+        debugPrint('[HostServer] Server error: $error');
+      },
+      onDone: () {
+        debugPrint('[HostServer] Server stream closed');
+      },
+    );
   }
 
   void _handleConnection(WebSocket socket) {
