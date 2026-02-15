@@ -198,21 +198,38 @@ class RecapGenerator {
     final playerTargets = <String, int>{};
 
     for (final game in games) {
-      for (final event in game.history) {
-        // Count votes (mentions in voting lines)
-        if (event.contains('voted for') || event.contains('Vote for')) {
-          final voteMatch = _voteRegex.firstMatch(event);
-          if (voteMatch != null) {
-            final target = voteMatch.group(1)!.trim();
-            playerTargets[target] = (playerTargets[target] ?? 0) + 1;
+      if (game.eventLog.isNotEmpty) {
+        for (final event in game.eventLog) {
+          if (event is GameEventVote) {
+            final name = _nameFromId(game, event.targetId);
+            if (name != null) {
+              playerTargets[name] = (playerTargets[name] ?? 0) + 1;
+            }
+          } else if (event is GameEventDeath) {
+            final name = _nameFromId(game, event.playerId);
+            if (name != null) {
+              playerTargets[name] = (playerTargets[name] ?? 0) + 1;
+            }
           }
         }
-        // Count kills (mentions in death lines)
-        if (event.contains('killed') || event.contains('died')) {
-          final killMatch = _killRegex.firstMatch(event);
-          if (killMatch != null) {
-            final target = killMatch.group(1)!.trim();
-            playerTargets[target] = (playerTargets[target] ?? 0) + 1;
+      } else {
+        // Fallback for old records
+        for (final event in game.history) {
+          // Count votes (mentions in voting lines)
+          if (event.contains('voted for') || event.contains('Vote for')) {
+            final voteMatch = _voteRegex.firstMatch(event);
+            if (voteMatch != null) {
+              final target = voteMatch.group(1)!.trim();
+              playerTargets[target] = (playerTargets[target] ?? 0) + 1;
+            }
+          }
+          // Count kills (mentions in death lines)
+          if (event.contains('killed') || event.contains('died')) {
+            final killMatch = _killRegex.firstMatch(event);
+            if (killMatch != null) {
+              final target = killMatch.group(1)!.trim();
+              playerTargets[target] = (playerTargets[target] ?? 0) + 1;
+            }
           }
         }
       }
@@ -249,18 +266,32 @@ class RecapGenerator {
               .putIfAbsent(player.name, () => [])
               .add(game.dayCount);
         } else {
-          // Find when they died in history
           int deathDay = 1;
-          for (final event in game.history) {
-            if (event.startsWith('─── DAY ')) {
-              final dayMatch = _dayRegex.firstMatch(event);
-              if (dayMatch != null) {
-                deathDay = int.parse(dayMatch.group(1)!);
-              }
+          if (game.eventLog.isNotEmpty) {
+            // Use structured events
+            final deathEvent = game.eventLog
+                .whereType<GameEventDeath>()
+                .firstWhere(
+                  (e) => e.playerId == player.id,
+                  orElse: () => const GameEventDeath(
+                      playerId: '', reason: '', day: 1), // fallback
+                );
+            if (deathEvent.playerId.isNotEmpty) {
+              deathDay = deathEvent.day;
             }
-            if (event.contains(player.name) &&
-                (event.contains('died') || event.contains('killed'))) {
-              break;
+          } else {
+            // Find when they died in history (Fallback)
+            for (final event in game.history) {
+              if (event.startsWith('─── DAY ')) {
+                final dayMatch = _dayRegex.firstMatch(event);
+                if (dayMatch != null) {
+                  deathDay = int.parse(dayMatch.group(1)!);
+                }
+              }
+              if (event.contains(player.name) &&
+                  (event.contains('died') || event.contains('killed'))) {
+                break;
+              }
             }
           }
           playerSurvivalDays.putIfAbsent(player.name, () => []).add(deathDay);
@@ -301,13 +332,25 @@ class RecapGenerator {
     final dealerKills = <String, int>{};
 
     for (final game in games) {
-      for (final event in game.history) {
-        // Look for dealer kill events
-        if (event.contains('Dealer') && event.contains('killed')) {
-          final match = _dealerKillRegex.firstMatch(event);
-          if (match != null) {
-            final dealerName = match.group(1)!.trim();
-            dealerKills[dealerName] = (dealerKills[dealerName] ?? 0) + 1;
+      if (game.eventLog.isNotEmpty) {
+        for (final event in game.eventLog) {
+          if (event is GameEventKill) {
+            final name = _nameFromId(game, event.killerId);
+            if (name != null) {
+              dealerKills[name] = (dealerKills[name] ?? 0) + 1;
+            }
+          }
+        }
+      } else {
+        // Fallback
+        for (final event in game.history) {
+          // Look for dealer kill events
+          if (event.contains('Dealer') && event.contains('killed')) {
+            final match = _dealerKillRegex.firstMatch(event);
+            if (match != null) {
+              final dealerName = match.group(1)!.trim();
+              dealerKills[dealerName] = (dealerKills[dealerName] ?? 0) + 1;
+            }
           }
         }
       }
@@ -360,5 +403,12 @@ class RecapGenerator {
     // Randomly pick one
     final random = Random();
     return allEvents[random.nextInt(allEvents.length)];
+  }
+
+  static String? _nameFromId(GameRecord game, String id) {
+    for (final p in game.roster) {
+      if (p.id == id) return p.name;
+    }
+    return null;
   }
 }

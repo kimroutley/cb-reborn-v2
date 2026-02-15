@@ -6,19 +6,27 @@ class NightResolution {
   final List<String> report;
   final List<String> teasers;
   final Map<String, List<String>> privateMessages;
+  final List<GameEvent> events;
 
   const NightResolution({
     required this.players,
     required this.report,
     required this.teasers,
     required this.privateMessages,
+    this.events = const [],
   });
 }
 
 class DayResolution {
   final List<Player> players;
   final List<String> report;
-  const DayResolution({required this.players, required this.report});
+  final List<GameEvent> events;
+
+  const DayResolution({
+    required this.players,
+    required this.report,
+    this.events = const [],
+  });
 }
 
 class WinResult {
@@ -90,9 +98,11 @@ class GameResolutionLogic {
     final privates = Map<String, List<String>>.from(currentPrivateMessages);
 
     final murderTargets = <String>[];
+    final dealerAttacks = <String, String>{}; // dealerId -> targetId
     final protectedIds = <String>{};
     final blockedIds = <String>{};
     final silencedIds = <String>{};
+    final events = <GameEvent>[];
 
     // 1. Process Pre-emptive actions (Sober, Roofi)
     for (final p in currentPlayers.where((p) => p.isAlive)) {
@@ -145,7 +155,10 @@ class GameResolutionLogic {
     for (final p in currentPlayers.where((p) =>
         p.isAlive && p.role.id == RoleIds.dealer && !blockedIds.contains(p.id))) {
       final targetId = log['dealer_act_${p.id}'];
-      if (targetId != null) murderTargets.add(targetId);
+      if (targetId != null) {
+        murderTargets.add(targetId);
+        dealerAttacks[p.id] = targetId;
+      }
     }
 
     // 4. Process Protection (Medic)
@@ -168,6 +181,8 @@ class GameResolutionLogic {
       }
 
       final victim = currentPlayers.firstWhere((p) => p.id == targetId);
+
+      if (!victim.isAlive) continue;
 
       // Handle Second Wind
       if (victim.role.id == RoleIds.secondWind && !victim.secondWindConverted) {
@@ -204,6 +219,23 @@ class GameResolutionLogic {
       spicyReport.add('The Dealers butchered ${victim.name} in cold blood.');
       teaserReport
           .add('A messy scene was found. ${victim.name} didn\'t make it.');
+
+      events.add(GameEvent.death(
+        playerId: targetId,
+        reason: 'murder',
+        day: dayCount,
+      ));
+
+      // Attribute kills to specific dealers
+      for (final entry in dealerAttacks.entries) {
+        if (entry.value == targetId) {
+          events.add(GameEvent.kill(
+            killerId: entry.key,
+            victimId: targetId,
+            day: dayCount,
+          ));
+        }
+      }
     }
 
     // Apply silencing
@@ -218,6 +250,7 @@ class GameResolutionLogic {
       report: spicyReport,
       teasers: teaserReport,
       privateMessages: privates,
+      events: events,
     );
   }
 
@@ -229,6 +262,8 @@ class GameResolutionLogic {
     if (tally.isEmpty) {
       return DayResolution(players: players, report: ['No votes were cast.']);
     }
+
+    final events = <GameEvent>[];
 
     final sorted = tally.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -255,9 +290,16 @@ class GameResolutionLogic {
             : p)
         .toList();
 
+    events.add(GameEvent.death(
+      playerId: victim.id,
+      reason: 'exile',
+      day: dayCount,
+    ));
+
     return DayResolution(
       players: updatedPlayers,
       report: ['${victim.name} was exiled from the club by popular vote.'],
+      events: events,
     );
   }
 

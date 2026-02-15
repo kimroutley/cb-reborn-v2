@@ -11,6 +11,7 @@ export 'src/bulletin_entry.dart';
 export 'src/feed_event.dart';
 export 'src/chat/chat_message.dart';
 export 'src/game_state.dart';
+export 'src/game_event.dart';
 export 'src/session_state.dart';
 export 'src/persistence/game_record.dart';
 export 'src/persistence/game_stats.dart';

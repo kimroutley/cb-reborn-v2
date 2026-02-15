@@ -72,6 +72,7 @@ class Game extends _$Game {
             )
             .toList(),
         history: state.gameHistory,
+        eventLog: state.eventLog,
       );
       await service.saveGameRecord(record);
 
@@ -775,6 +776,14 @@ class Game extends _$Game {
       state = state.copyWith(
         dayVoteTally: updatedTally,
         dayVotesByVoter: updatedVotes,
+        eventLog: [
+          ...state.eventLog,
+          GameEvent.vote(
+            voterId: voterId,
+            targetId: targetId,
+            day: state.dayCount,
+          ),
+        ],
       );
       return;
     }
@@ -1221,6 +1230,14 @@ class Game extends _$Game {
     state = state.copyWith(
       players: updatedPlayers,
       gameHistory: [...state.gameHistory, '${p.name} was removed by the host.'],
+      eventLog: [
+        ...state.eventLog,
+        GameEvent.death(
+          playerId: id,
+          reason: reason,
+          day: state.dayCount,
+        ),
+      ],
     );
 
     _handleDeathTriggers(id);
@@ -1232,6 +1249,7 @@ class Game extends _$Game {
     final deadPlayer = state.players.firstWhere((p) => p.id == deadPlayerId);
     var updatedPlayers = List<Player>.from(state.players);
     final history = <String>[];
+    final events = <GameEvent>[];
 
     // 1. Clinger Trigger: If partner dies, Clinger dies.
     for (final p
@@ -1246,6 +1264,11 @@ class Game extends _$Game {
                 : pl)
             .toList();
         history.add('The Clinger ${p.name} died with their partner.');
+        events.add(GameEvent.death(
+          playerId: p.id,
+          reason: 'clinger_bond',
+          day: state.dayCount,
+        ));
       }
     }
 
@@ -1270,6 +1293,7 @@ class Game extends _$Game {
       state = state.copyWith(
         players: updatedPlayers,
         gameHistory: [...state.gameHistory, ...history],
+        eventLog: [...state.eventLog, ...events],
       );
       // Recursively handle triggers for newly dead players
       for (final h in history) {
@@ -1426,6 +1450,7 @@ class Game extends _$Game {
             '── NIGHT ${state.dayCount} RESOLVED ──',
             ...res.report
           ],
+          eventLog: [...state.eventLog, ...res.events],
           phase: GamePhase.day,
           scriptQueue: ScriptBuilder.buildDayScript(
             state.dayCount,
@@ -1470,6 +1495,7 @@ class Game extends _$Game {
             '── DAY ${state.dayCount} RESOLVED ──',
             ...res.report
           ],
+          eventLog: [...state.eventLog, ...res.events],
           dayCount: state.dayCount + 1,
           phase: GamePhase.night,
           scriptQueue: ScriptBuilder.buildNightScript(
