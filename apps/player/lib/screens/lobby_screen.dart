@@ -25,7 +25,7 @@ class LobbyScreen extends ConsumerWidget {
               CBMessageBubble(
                 variant: CBMessageVariant.system,
                 content: "SECURE CONNECTION ESTABLISHED",
-                accentColor: scheme.primary, // Was neonBlue
+                accentColor: scheme.primary,
               ),
 
               // ── WELCOME MESSAGE ──
@@ -34,9 +34,9 @@ class LobbyScreen extends ConsumerWidget {
                 senderName: "CLUB MANAGER",
                 content:
                     "Welcome to Club Blackout. You're on the list. Find a seat and wait for the music to drop.",
-                accentColor: scheme.secondary, // Was neonPurple
+                accentColor: scheme.secondary,
                 avatar: CBRoleAvatar(
-                  color: scheme.secondary, // Was neonPurple
+                  color: scheme.secondary,
                   size: 32,
                   pulsing: true,
                 ),
@@ -48,14 +48,14 @@ class LobbyScreen extends ConsumerWidget {
                   variant: CBMessageVariant.result,
                   content:
                       "IDENTIFIED AS: ${gameState.myPlayerSnapshot!.name.toUpperCase()}",
-                  accentColor: scheme.tertiary, // Was matrixGreen
+                  accentColor: scheme.tertiary,
                 ),
 
               // ── ROSTER FEED ──
               CBMessageBubble(
                 variant: CBMessageVariant.system,
                 content: "PATRONS ENTERING: ${gameState.players.length}",
-                accentColor: scheme.tertiary, // Was matrixGreen
+                accentColor: scheme.tertiary,
               ),
 
               ...gameState.players.asMap().entries.map((entry) {
@@ -69,13 +69,9 @@ class LobbyScreen extends ConsumerWidget {
                     variant: CBMessageVariant.narrative,
                     senderName: "SECURITY",
                     content: "${p.name.toUpperCase()} has entered the lounge.",
-                    accentColor: isMe
-                        ? scheme.primary
-                        : scheme.tertiary, // Was electricCyan : matrixGreen
+                    accentColor: isMe ? scheme.primary : scheme.tertiary,
                     avatar: CBRoleAvatar(
-                      color: isMe
-                          ? scheme.primary
-                          : scheme.tertiary, // Was electricCyan : matrixGreen
+                      color: isMe ? scheme.primary : scheme.tertiary,
                       size: 32,
                       pulsing: isMe,
                     ),
@@ -97,7 +93,8 @@ class LobbyScreen extends ConsumerWidget {
               padding: CBInsets.panel,
               decoration: BoxDecoration(
                 color: CBColors.background.withValues(
-                    alpha: 0.9), // Replaced gradient with solid color
+                  alpha: 0.9,
+                ), // Replaced gradient with solid color
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -111,8 +108,10 @@ class LobbyScreen extends ConsumerWidget {
                       color: scheme.onSurface,
                       letterSpacing: 2.5,
                       fontWeight: FontWeight.bold,
-                      shadows:
-                          CBColors.textGlow(CBColors.neonBlue, intensity: 0.5),
+                      shadows: CBColors.textGlow(
+                        scheme.primary,
+                        intensity: 0.5,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),

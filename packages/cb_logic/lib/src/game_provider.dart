@@ -193,7 +193,7 @@ class Game extends _$Game {
       'Data-Stream',
       'Bit-Crusher',
       'Logic-Gate',
-      'Null-Pointer'
+      'Null-Pointer',
     ];
 
     // Find a unique name
@@ -208,8 +208,9 @@ class Game extends _$Game {
       name = _buildUniqueName('Bot');
     }
 
-    final id =
-        _buildUniquePlayerId('bot_${name.toLowerCase().replaceAll(' ', '_')}');
+    final id = _buildUniquePlayerId(
+      'bot_${name.toLowerCase().replaceAll(' ', '_')}',
+    );
 
     final newPlayer = Player(
       id: id,
@@ -513,8 +514,10 @@ class Game extends _$Game {
         orElse: () => hostPersonalities.first,
       );
       effectiveVoice = p.voice;
-      effectivePrompt =
-          [effectivePrompt, p.variationPrompt].whereType<String>().join(' ');
+      effectivePrompt = [
+        effectivePrompt,
+        p.variationPrompt,
+      ].whereType<String>().join(' ');
     }
 
     final gemini = ref.read(geminiNarrationServiceProvider);
@@ -544,8 +547,10 @@ class Game extends _$Game {
         orElse: () => hostPersonalities.first,
       );
       effectiveVoice = p.voice;
-      effectivePrompt =
-          [effectivePrompt, p.variationPrompt].whereType<String>().join(' ');
+      effectivePrompt = [
+        effectivePrompt,
+        p.variationPrompt,
+      ].whereType<String>().join(' ');
     }
 
     final gemini = ref.read(geminiNarrationServiceProvider);
@@ -875,8 +880,10 @@ class Game extends _$Game {
     state = state.copyWith(actionLog: updatedLog);
   }
 
-  void placeDeadPoolBet(
-      {required String playerId, required String targetPlayerId}) {
+  void placeDeadPoolBet({
+    required String playerId,
+    required String targetPlayerId,
+  }) {
     final bettor = state.players.firstWhere(
       (p) => p.id == playerId,
       orElse: () => Player(
@@ -1104,8 +1111,10 @@ class Game extends _$Game {
       final existingByUid = state.players.where((p) => p.authUid == authUid);
       if (existingByUid.isNotEmpty) {
         final existing = existingByUid.first;
-        final nextName =
-            _buildUniqueName(trimmedName, excludePlayerId: existing.id);
+        final nextName = _buildUniqueName(
+          trimmedName,
+          excludePlayerId: existing.id,
+        );
         state = state.copyWith(
           players: state.players
               .map(
@@ -1159,9 +1168,7 @@ class Game extends _$Game {
     final updatedName = _buildUniqueName(trimmed, excludePlayerId: id);
     state = state.copyWith(
       players: state.players
-          .map(
-            (p) => p.id == id ? p.copyWith(name: updatedName) : p,
-          )
+          .map((p) => p.id == id ? p.copyWith(name: updatedName) : p)
           .toList(),
     );
   }
@@ -1212,8 +1219,10 @@ class Game extends _$Game {
   // --- GOD MODE ACTIONS ---
 
   void forceKillPlayer(String id, {String reason = 'host_kick'}) {
-    final p = state.players.firstWhere((p) => p.id == id,
-        orElse: () => throw Exception('Player not found'));
+    final p = state.players.firstWhere(
+      (p) => p.id == id,
+      orElse: () => throw Exception('Player not found'),
+    );
     if (!p.isAlive) return;
 
     var updatedPlayers = state.players
@@ -1233,11 +1242,7 @@ class Game extends _$Game {
       gameHistory: [...state.gameHistory, '${p.name} was removed by the host.'],
       eventLog: [
         ...state.eventLog,
-        GameEvent.death(
-          playerId: id,
-          reason: reason,
-          day: state.dayCount,
-        ),
+        GameEvent.death(playerId: id, reason: reason, day: state.dayCount),
       ],
     );
 
@@ -1257,19 +1262,24 @@ class Game extends _$Game {
         .where((p) => p.isAlive && p.role.id == RoleIds.clinger)) {
       if (p.clingerPartnerId == deadPlayerId) {
         updatedPlayers = updatedPlayers
-            .map((pl) => pl.id == p.id
-                ? pl.copyWith(
-                    isAlive: false,
-                    deathDay: state.dayCount,
-                    deathReason: 'clinger_bond')
-                : pl)
+            .map(
+              (pl) => pl.id == p.id
+                  ? pl.copyWith(
+                      isAlive: false,
+                      deathDay: state.dayCount,
+                      deathReason: 'clinger_bond',
+                    )
+                  : pl,
+            )
             .toList();
         history.add('The Clinger ${p.name} died with their partner.');
-        events.add(GameEvent.death(
-          playerId: p.id,
-          reason: 'clinger_bond',
-          day: state.dayCount,
-        ));
+        events.add(
+          GameEvent.death(
+            playerId: p.id,
+            reason: 'clinger_bond',
+            day: state.dayCount,
+          ),
+        );
       }
     }
 
@@ -1278,15 +1288,19 @@ class Game extends _$Game {
         .where((p) => p.isAlive && p.role.id == RoleIds.creep)) {
       if (p.creepTargetId == deadPlayerId) {
         updatedPlayers = updatedPlayers
-            .map((pl) => pl.id == p.id
-                ? pl.copyWith(
-                    role: deadPlayer.role,
-                    alliance: deadPlayer.alliance,
-                    creepTargetId: null)
-                : pl)
+            .map(
+              (pl) => pl.id == p.id
+                  ? pl.copyWith(
+                      role: deadPlayer.role,
+                      alliance: deadPlayer.alliance,
+                      creepTargetId: null,
+                    )
+                  : pl,
+            )
             .toList();
         history.add(
-            'The Creep ${p.name} inherited the role of ${deadPlayer.role.name}.');
+          'The Creep ${p.name} inherited the role of ${deadPlayer.role.name}.',
+        );
       }
     }
 
@@ -1373,9 +1387,11 @@ class Game extends _$Game {
 
   // --- GAME FLOW ---
 
-  void startGame() {
-    if (state.players.length < 4) return;
-    if (state.phase != GamePhase.lobby) return;
+  static const int minPlayers = 4;
+
+  bool startGame() {
+    if (state.players.length < minPlayers) return false;
+    if (state.phase != GamePhase.lobby) return false;
 
     final assignedPlayers = GameResolutionLogic.assignRoles(state.players);
     state = state.copyWith(
@@ -1388,6 +1404,7 @@ class Game extends _$Game {
     );
     _gameStartedAt = DateTime.now();
     _persist();
+    return true;
   }
 
   void resetDayVotes() =>
@@ -1402,7 +1419,7 @@ class Game extends _$Game {
       state = state.copyWith(
         gameHistory: [
           ...state.gameHistory,
-          '── VOTE SKIPPED: no votes resolved ──'
+          '── VOTE SKIPPED: no votes resolved ──',
         ],
         scriptQueue: [],
       );
@@ -1449,7 +1466,7 @@ class Game extends _$Game {
           gameHistory: [
             ...state.gameHistory,
             '── NIGHT ${state.dayCount} RESOLVED ──',
-            ...res.report
+            ...res.report,
           ],
           eventLog: [...state.eventLog, ...res.events],
           phase: GamePhase.day,
@@ -1463,7 +1480,10 @@ class Game extends _$Game {
         // Dispatch teasers to bulletin
         for (final teaser in res.teasers) {
           dispatchBulletin(
-              title: 'NIGHT RECAP', content: teaser, type: 'result');
+            title: 'NIGHT RECAP',
+            content: teaser,
+            type: 'result',
+          );
         }
 
         _checkAndResolveWinCondition(state.players);
@@ -1477,12 +1497,15 @@ class Game extends _$Game {
 
         // ── RESOLVE DEAD POOL BETS ──
         final exiledPlayerId = res.players
-            .firstWhere((p) => !p.isAlive && p.deathReason == 'exile',
-                orElse: () => Player(
-                    id: '',
-                    name: '',
-                    role: roleCatalog.first,
-                    alliance: Team.unknown))
+            .firstWhere(
+              (p) => !p.isAlive && p.deathReason == 'exile',
+              orElse: () => Player(
+                id: '',
+                name: '',
+                role: roleCatalog.first,
+                alliance: Team.unknown,
+              ),
+            )
             .id;
         if (exiledPlayerId.isNotEmpty) {
           _resolveDeadPool(exiledPlayerId);
@@ -1494,7 +1517,7 @@ class Game extends _$Game {
           gameHistory: [
             ...state.gameHistory,
             '── DAY ${state.dayCount} RESOLVED ──',
-            ...res.report
+            ...res.report,
           ],
           eventLog: [...state.eventLog, ...res.events],
           dayCount: state.dayCount + 1,
@@ -1511,10 +1534,12 @@ class Game extends _$Game {
 
         // Check triggers for the exiled player
         final deadInDay = res.players
-            .where((p) =>
-                !p.isAlive &&
-                p.deathDay == state.dayCount - 1 &&
-                p.deathReason == 'exile')
+            .where(
+              (p) =>
+                  !p.isAlive &&
+                  p.deathDay == state.dayCount - 1 &&
+                  p.deathReason == 'exile',
+            )
             .toList();
         for (final victim in deadInDay) {
           _handleDeathTriggers(victim.id);

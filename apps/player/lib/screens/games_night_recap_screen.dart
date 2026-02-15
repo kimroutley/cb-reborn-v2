@@ -25,7 +25,7 @@ class GamesNightRecapScreen extends StatelessWidget {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Session Header
             CBGlassTile(
@@ -54,7 +54,8 @@ class GamesNightRecapScreen extends StatelessWidget {
                 child: Text(
                   "No games recorded for this session.",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.7)),
+                    color: scheme.onSurface.withValues(alpha: 0.7),
+                  ),
                 ),
               )
             else
@@ -88,7 +89,7 @@ class GamesNightRecapScreen extends StatelessWidget {
             context,
             "PARTY ANIMALS",
             partyWins,
-            scheme.primary, // Turquoise/Blue for Party Animals
+            scheme.primary, // Turquoise/Blue
             scheme,
           ),
         ),
@@ -98,7 +99,7 @@ class GamesNightRecapScreen extends StatelessWidget {
             context,
             "CLUB STAFF",
             staffWins,
-            scheme.secondary, // Pink/Magenta for Club Staff
+            scheme.secondary, // Pink/Magenta
             scheme,
           ),
         ),
@@ -106,8 +107,13 @@ class GamesNightRecapScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(BuildContext context, String label, int value,
-      Color color, ColorScheme scheme) {
+  Widget _buildStatCard(
+    BuildContext context,
+    String label,
+    int value,
+    Color color,
+    ColorScheme scheme,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -118,15 +124,13 @@ class GamesNightRecapScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            value.toString(),
-            style: CBTypography.h2.copyWith(color: color),
-          ),
+          Text(value.toString(), style: CBTypography.h2.copyWith(color: color)),
           const SizedBox(height: 4),
           Text(
             label,
-            style: CBTypography.micro
-                .copyWith(color: scheme.onSurface.withValues(alpha: 0.7)),
+            style: CBTypography.micro.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.7),
+            ),
             textAlign: TextAlign.center,
           ),
         ],

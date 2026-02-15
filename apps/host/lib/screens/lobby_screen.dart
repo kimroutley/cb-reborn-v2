@@ -25,7 +25,7 @@ class LobbyScreen extends ConsumerWidget {
     final session = ref.watch(sessionProvider);
     final isCloud = gameState.syncMode == SyncMode.cloud;
     final bridge = ref.read(hostBridgeProvider);
-    final canStart = gameState.players.length >= 5;
+    final canStart = gameState.players.length >= Game.minPlayers;
     final profilesAsync = ref.watch(lobbyProfilesProvider);
 
     return CBPrismScaffold(
@@ -38,17 +38,23 @@ class LobbyScreen extends ConsumerWidget {
               icon: Icons.play_arrow_rounded,
               onPressed: () {
                 HapticService.heavy();
-                controller.startGame();
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const GameScreen()),
-                );
+                final started = controller.startGame();
+                if (started) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const GameScreen()),
+                  );
+                } else {
+                  HapticService.error();
+                }
               },
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: ListView(
         padding: const EdgeInsets.symmetric(
-            vertical: CBSpace.x6, horizontal: CBSpace.x5),
+          vertical: CBSpace.x6,
+          horizontal: CBSpace.x5,
+        ),
         children: [
           // ── SYSTEM: SESSION CREATED ──
           CBMessageBubble(
@@ -74,7 +80,8 @@ class LobbyScreen extends ConsumerWidget {
           CBSectionHeader(
             title: "NETWORK PROTOCOLS",
             color: theme
-                .colorScheme.secondary, // Migrated from CBColors.neonPurple
+                .colorScheme
+                .secondary, // Migrated from CBColors.neonPurple
           ),
 
           const SizedBox(height: 12),

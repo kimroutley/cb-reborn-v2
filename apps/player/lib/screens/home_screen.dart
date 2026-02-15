@@ -145,6 +145,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    ref.listen(playerBridgeProvider, (prev, next) {
+      if (next.joinError != null || next.joinAccepted) {
+        if (_isConnecting) setState(() => _isConnecting = false);
+      }
+    });
+
+    ref.listen(cloudPlayerBridgeProvider, (prev, next) {
+      if (next.joinError != null || next.joinAccepted) {
+        if (_isConnecting) setState(() => _isConnecting = false);
+      }
+    });
+
     // Handle deep links
     final pendingJoinUrl = ref.watch(pendingJoinUrlProvider);
     if (pendingJoinUrl != null && pendingJoinUrl.isNotEmpty) {
@@ -237,7 +249,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   CBTextField(
                     controller: _joinCodeController,
                     hintText: 'XXXX-XXXXXX',
-                    textStyle: CBTypography.code.copyWith(fontSize: 20, letterSpacing: 4),
+                    textStyle: CBTypography.code.copyWith(
+                      fontSize: 20,
+                      letterSpacing: 4,
+                    ),
                     textAlign: TextAlign.center,
                     decoration: const InputDecoration(
                       labelText: 'ACCESS CODE',
@@ -267,10 +282,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   if (_isConnecting)
                     const Center(child: CBBreathingSpinner(size: 32))
                   else
-                    CBPrimaryButton(
-                      label: "CONNECT",
-                      onPressed: _connect,
-                    ),
+                    CBPrimaryButton(label: "CONNECT", onPressed: _connect),
                 ],
               ),
             ),
@@ -296,14 +308,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildMiniStat(String label, String value, Color color) {
     return Column(
       children: [
-        Text(
-          value,
-          style: CBTypography.h2.copyWith(color: color),
-        ),
-        Text(
-          label,
-          style: CBTypography.micro.copyWith(letterSpacing: 1.5),
-        ),
+        Text(value, style: CBTypography.h2.copyWith(color: color)),
+        Text(label, style: CBTypography.micro.copyWith(letterSpacing: 1.5)),
       ],
     );
   }
