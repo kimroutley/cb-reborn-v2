@@ -162,12 +162,14 @@ void main() {
 
       // Verify response sent
       expect(mockServer.sentMessages[socket], isNotEmpty);
-      final response = mockServer.sentMessages[socket]!.firstWhere((m) => m.type == 'join_response');
+      final response = mockServer.sentMessages[socket]!
+          .firstWhere((m) => m.type == 'join_response');
       expect(response.payload['accepted'], isTrue);
 
       // Verify state broadcasted to all (via _broadcastState which uses sendTo for each client)
       // Since _broadcastState iterates over clients and calls sendTo, we should see a state_sync message
-      final stateSync = mockServer.sentMessages[socket]!.firstWhere((m) => m.type == 'state_sync');
+      final stateSync = mockServer.sentMessages[socket]!
+          .firstWhere((m) => m.type == 'state_sync');
       expect(stateSync, isNotNull);
     });
 
@@ -181,7 +183,8 @@ void main() {
 
       // Verify response sent
       expect(mockServer.sentMessages[socket], isNotEmpty);
-      final response = mockServer.sentMessages[socket]!.firstWhere((m) => m.type == 'claim_response');
+      final response = mockServer.sentMessages[socket]!
+          .firstWhere((m) => m.type == 'claim_response');
       expect(response.payload['success'], isTrue);
       expect(response.payload['playerId'], 'player1');
 
@@ -249,7 +252,8 @@ void main() {
 
       // Verify message broadcasted to dead players (which is just Alice in this case)
       expect(mockServer.sentMessages[socket], isNotEmpty);
-      final chatMsg = mockServer.sentMessages[socket]!.firstWhere((m) => m.type == 'ghost_chat');
+      final chatMsg = mockServer.sentMessages[socket]!
+          .firstWhere((m) => m.type == 'ghost_chat');
       expect(chatMsg.payload['message'], 'Boo!');
     });
   });

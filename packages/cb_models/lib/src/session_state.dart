@@ -22,5 +22,6 @@ abstract class SessionState with _$SessionState {
     @Default([]) List<String> claimedPlayerIds,
   }) = _SessionState;
 
-  factory SessionState.fromJson(Map<String, dynamic> json) => _$SessionStateFromJson(json);
+  factory SessionState.fromJson(Map<String, dynamic> json) =>
+      _$SessionStateFromJson(json);
 }

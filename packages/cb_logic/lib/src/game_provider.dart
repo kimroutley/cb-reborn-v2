@@ -391,12 +391,13 @@ class Game extends _$Game {
     final alive = state.players.where((p) => p.isAlive).toList();
     if (alive.length < 2) return 0;
 
-    final voters = state.players.where((p) =>
-      p.isAlive &&
-      p.silencedDay != state.dayCount &&
-      !p.isSinBinned &&
-      !state.dayVotesByVoter.containsKey(p.id)
-    ).toList();
+    final voters = state.players
+        .where((p) =>
+            p.isAlive &&
+            p.silencedDay != state.dayCount &&
+            !p.isSinBinned &&
+            !state.dayVotesByVoter.containsKey(p.id))
+        .toList();
 
     if (voters.isEmpty) return 0;
 
@@ -1252,8 +1253,8 @@ class Game extends _$Game {
     final events = <GameEvent>[];
 
     // 1. Clinger Trigger: If partner dies, Clinger dies.
-    for (final p
-        in updatedPlayers.where((p) => p.isAlive && p.role.id == RoleIds.clinger)) {
+    for (final p in updatedPlayers
+        .where((p) => p.isAlive && p.role.id == RoleIds.clinger)) {
       if (p.clingerPartnerId == deadPlayerId) {
         updatedPlayers = updatedPlayers
             .map((pl) => pl.id == p.id
@@ -1273,8 +1274,8 @@ class Game extends _$Game {
     }
 
     // 2. Creep Trigger: If target dies, Creep inherits role.
-    for (final p
-        in updatedPlayers.where((p) => p.isAlive && p.role.id == RoleIds.creep)) {
+    for (final p in updatedPlayers
+        .where((p) => p.isAlive && p.role.id == RoleIds.creep)) {
       if (p.creepTargetId == deadPlayerId) {
         updatedPlayers = updatedPlayers
             .map((pl) => pl.id == p.id
@@ -1560,8 +1561,6 @@ class Game extends _$Game {
       deadPoolBets: {}, // Clear global bet map
     );
   }
-
-
 
   void _checkAndResolveWinCondition(List<Player> players) {
     final win = GameResolutionLogic.checkWinCondition(players);
