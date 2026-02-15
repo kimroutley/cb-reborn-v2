@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:cb_comms/cb_comms.dart';
+import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_player/player_bridge.dart';
 import 'package:cb_player/player_stats.dart';
-import 'package:cb_player/room_effects_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -21,3 +21,4 @@ export 'src/chat_provider.dart';
 export 'src/strategy_generator.dart';
 export 'src/analytics_service.dart';
 export 'src/gemini_narration_service.dart';
+export 'src/room_effects_provider.dart';

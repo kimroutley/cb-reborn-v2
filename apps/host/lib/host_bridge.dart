@@ -5,8 +5,6 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'room_effects_provider.dart';
-
 /// Bridges the Host's Riverpod state to connected Player devices via WebSocket.
 ///
 /// Listens to [gameProvider] and [sessionProvider], broadcasting state_sync
@@ -92,7 +90,7 @@ class HostBridge {
       final payload = message.payload['payload'] as Map<String, dynamic>?;
       if (effectType != null) {
         _ref
-            .read(hostRoomEffectsProvider.notifier)
+            .read(roomEffectsProvider.notifier)
             .triggerEffect(effectType, payload);
       }
     }

@@ -1,41 +1,42 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod/riverpod.dart';
 
-class HostEffectsState {
+class RoomEffectsState {
   final String? activeEffect;
   final Map<String, dynamic>? activeEffectPayload;
 
-  const HostEffectsState({
+  const RoomEffectsState({
     this.activeEffect,
     this.activeEffectPayload,
   });
 
-  HostEffectsState copyWith({
+  RoomEffectsState copyWith({
     String? activeEffect,
     Map<String, dynamic>? activeEffectPayload,
   }) {
-    return HostEffectsState(
+    return RoomEffectsState(
       activeEffect: activeEffect,
       activeEffectPayload: activeEffectPayload,
     );
   }
 }
 
-class HostRoomEffectsNotifier extends Notifier<HostEffectsState> {
+class RoomEffectsNotifier extends Notifier<RoomEffectsState> {
   @override
-  HostEffectsState build() {
-    return const HostEffectsState();
+  RoomEffectsState build() {
+    return const RoomEffectsState();
   }
 
   void triggerEffect(String effectType, Map<String, dynamic>? payload) {
     state =
         state.copyWith(activeEffect: effectType, activeEffectPayload: payload);
+    // Clear the effect after a short duration if not a persistent one
     Future.delayed(const Duration(milliseconds: 500), () {
       state = state.copyWith(activeEffect: null, activeEffectPayload: null);
     });
   }
 }
 
-final hostRoomEffectsProvider =
-    NotifierProvider<HostRoomEffectsNotifier, HostEffectsState>(
-  HostRoomEffectsNotifier.new,
+final roomEffectsProvider =
+    NotifierProvider<RoomEffectsNotifier, RoomEffectsState>(
+  RoomEffectsNotifier.new,
 );

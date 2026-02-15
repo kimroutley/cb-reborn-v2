@@ -1,10 +1,9 @@
 import 'dart:ui';
 
+import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../room_effects_provider.dart';
 
 class EffectsOverlay extends ConsumerWidget {
   final Widget child;
@@ -13,7 +12,7 @@ class EffectsOverlay extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final effectState = ref.watch(hostRoomEffectsProvider);
+    final effectState = ref.watch(roomEffectsProvider);
 
     if (effectState.activeEffect == null) {
       return child;
