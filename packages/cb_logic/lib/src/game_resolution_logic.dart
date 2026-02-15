@@ -93,17 +93,12 @@ class GameResolutionLogic {
     int dayCount,
     Map<String, List<String>> currentPrivateMessages,
   ) {
-    var currentPlayers = List<Player>.from(players);
-    final spicyReport = <String>[];
-    final teaserReport = <String>[];
-    final privates = Map<String, List<String>>.from(currentPrivateMessages);
-
-    final murderTargets = <String>[];
-    final dealerAttacks = <String, String>{}; // dealerId -> targetId
-    final protectedIds = <String>{};
-    final blockedIds = <String>{};
-    final silencedIds = <String>{};
-    final events = <GameEvent>[];
+    final context = NightResolutionContext(
+      players: players,
+      log: log,
+      dayCount: dayCount,
+      privateMessages: currentPrivateMessages,
+    );
 
     // 1. Process Pre-emptive actions (Sober, Roofi)
     SoberAction().execute(context);
@@ -113,14 +108,7 @@ class GameResolutionLogic {
     BouncerAction().execute(context);
 
     // 3. Process Murder (Dealer)
-    for (final p in currentPlayers.where((p) =>
-        p.isAlive && p.role.id == RoleIds.dealer && !blockedIds.contains(p.id))) {
-      final targetId = log['dealer_act_${p.id}'];
-      if (targetId != null) {
-        murderTargets.add(targetId);
-        dealerAttacks[p.id] = targetId;
-      }
-    }
+    DealerAction().execute(context);
 
     // 4. Process Protection (Medic)
     MedicAction().execute(context);
@@ -128,76 +116,13 @@ class GameResolutionLogic {
     // 5. Apply Deaths
     DeathResolutionStrategy().execute(context);
 
-      if (!victim.isAlive) continue;
-
-      // Handle Second Wind
-      if (victim.role.id == RoleIds.secondWind && !victim.secondWindConverted) {
-        currentPlayers = currentPlayers
-            .map((p) => p.id == targetId
-                ? p.copyWith(secondWindPendingConversion: true)
-                : p)
-            .toList();
-        spicyReport.add('Second Wind triggered for ${victim.name}.');
-        teaserReport.add('Someone survived a lethal encounter.');
-        continue;
-      }
-
-      // Handle Seasoned Drinker lives
-      if (victim.role.id == RoleIds.seasonedDrinker && victim.lives > 1) {
-        currentPlayers = currentPlayers
-            .map((p) => p.id == targetId ? p.copyWith(lives: p.lives - 1) : p)
-            .toList();
-        spicyReport
-            .add('Seasoned Drinker ${victim.name} lost a life but survived.');
-        teaserReport.add('A seasoned patron took a hit but kept going.');
-        continue;
-      }
-
-      // Final kill
-      currentPlayers = currentPlayers
-          .map((p) => p.id == targetId
-              ? p.copyWith(
-                  isAlive: false,
-                  deathDay: dayCount,
-                  deathReason: 'murder')
-              : p)
-          .toList();
-      spicyReport.add('The Dealers butchered ${victim.name} in cold blood.');
-      teaserReport
-          .add('A messy scene was found. ${victim.name} didn\'t make it.');
-
-      events.add(GameEvent.death(
-        playerId: targetId,
-        reason: 'murder',
-        day: dayCount,
-      ));
-
-      // Attribute kills to specific dealers
-      for (final entry in dealerAttacks.entries) {
-        if (entry.value == targetId) {
-          events.add(GameEvent.kill(
-            killerId: entry.key,
-            victimId: targetId,
-            day: dayCount,
-          ));
-        }
-      }
+    // Apply silencing
+    for (final id in context.silencedIds) {
+      final p = context.getPlayer(id);
+      context.updatePlayer(p.copyWith(silencedDay: dayCount));
     }
 
-    // Apply silencing
-    currentPlayers = currentPlayers
-        .map((p) => silencedIds.contains(p.id)
-            ? p.copyWith(silencedDay: dayCount)
-            : p)
-        .toList();
-
-    return NightResolution(
-      players: currentPlayers,
-      report: spicyReport,
-      teasers: teaserReport,
-      privateMessages: privates,
-      events: events,
-    );
+    return context.toNightResolution();
   }
 
   static DayResolution resolveDayVote(
