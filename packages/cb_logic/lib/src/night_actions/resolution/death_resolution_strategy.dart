@@ -1,26 +1,43 @@
-import 'package:cb_models/cb_models.dart';
+import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 import 'death_handler.dart';
 import 'second_wind_handler.dart';
 import 'seasoned_drinker_handler.dart';
+import 'medic_revive_handler.dart';
+import 'clinger_bond_handler.dart';
 import 'default_death_handler.dart';
 
-class DeathResolutionStrategy {
+class DeathResolutionStrategy implements NightActionStrategy {
   final List<DeathHandler> _handlers;
 
-  DeathResolutionStrategy([List<DeathHandler>? handlers])
-      : _handlers = handlers ?? [
-          SecondWindHandler(),
-          SeasonedDrinkerHandler(),
-          DefaultDeathHandler(),
-        ];
+  @override
+  String get roleId => '__death_resolution__';
 
+  DeathResolutionStrategy([List<DeathHandler>? handlers])
+      : _handlers = handlers ??
+            [
+              MedicReviveHandler(),
+              SecondWindHandler(),
+              SeasonedDrinkerHandler(),
+              ClingerBondHandler(),
+              DefaultDeathHandler(),
+            ];
+
+  @override
   void execute(NightResolutionContext context) {
-    for (final targetId in context.murderTargets) {
-      if (context.protectedIds.contains(targetId)) {
+    final resolvedIds = <String>{};
+
+    // Continue as long as there are pending deaths not yet resolved
+    while (context.killedPlayerIds.length > resolvedIds.length) {
+      final targetId = context.killedPlayerIds
+          .firstWhere((id) => !resolvedIds.contains(id));
+      resolvedIds.add(targetId);
+
+      if (context.protectedPlayerIds.contains(targetId)) {
         final victim = context.getPlayer(targetId);
-        context.report.add('A murder attempt on ${victim.name} was thwarted.');
-        context.teasers.add('A patron barely escaped a close encounter with "the staff".');
+        context.addReport('A murder attempt on ${victim.name} was thwarted.');
+        context.addTeaser(
+            'A patron barely escaped a close encounter with "the staff".');
         continue;
       }
 

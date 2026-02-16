@@ -28,7 +28,7 @@ class DealerStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'dealer_act_${player.id}',
+      id: 'dealer_act_${player.id}_$dayCount',
       title: 'THE DEALER',
       readAloudText: 'Dealer, wake up and choose your target.',
       instructionText: 'Select the player to eliminate.',
@@ -52,7 +52,7 @@ class SilverFoxStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'silver_fox_act_${player.id}',
+      id: 'silver_fox_act_${player.id}_$dayCount',
       title: 'THE SILVER FOX',
       readAloudText: 'Silver Fox, wake up and choose someone to give an alibi.',
       instructionText: 'This player cannot be voted out tomorrow.',
@@ -79,7 +79,7 @@ class WhoreStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'whore_act_${player.id}',
+      id: 'whore_act_${player.id}_$dayCount',
       title: 'THE WHORE',
       readAloudText: 'Whore, wake up and choose your scapegoat.',
       instructionText:
@@ -108,9 +108,9 @@ class SoberStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'sober_act_${player.id}',
-      title: 'THE SOBER',
-      readAloudText: 'Sober, wake up and send a player home.',
+      id: 'sober_act_${player.id}_$dayCount',
+      title: 'SOBER',
+      readAloudText: 'Sober, wake up and choose a player to investigate.',
       instructionText: 'Select a player to block their action tonight.',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
@@ -132,7 +132,7 @@ class RoofiStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'roofi_act_${player.id}',
+      id: 'roofi_act_${player.id}_$dayCount',
       title: 'THE ROOFI',
       readAloudText: 'Roofi, wake up and slip the drink.',
       instructionText: 'Select a player to silence or block.',
@@ -156,7 +156,7 @@ class BouncerStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'bouncer_act_${player.id}',
+      id: 'bouncer_act_${player.id}_$dayCount',
       title: 'THE BOUNCER',
       readAloudText: 'Bouncer, wake up and check a player\'s ID.',
       instructionText: 'Nod for Dealer. Shake head for not Dealer.',
@@ -196,7 +196,7 @@ class MedicStrategy extends RoleStrategy {
         : 'Tap the player the Medic chooses.';
 
     return ScriptStep(
-      id: 'medic_act_${player.id}',
+      id: 'medic_act_${player.id}_$dayCount',
       title: 'THE MEDIC',
       readAloudText: readText,
       instructionText: instruction,
@@ -220,7 +220,7 @@ class BartenderStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'bartender_act_${player.id}',
+      id: '${player.role.id}_act_${player.id}_$dayCount',
       title: 'THE BARTENDER',
       readAloudText: 'Bartender, wake up and choose two players to compare.',
       instructionText: 'Select two players. Reveal ALIGNED or NOT ALIGNED.',
@@ -244,7 +244,7 @@ class LightweightStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'lightweight_act_${player.id}',
+      id: 'lightweight_act_${player.id}_$dayCount',
       title: 'THE LIGHTWEIGHT',
       readAloudText: 'Lightweight, wake up. A new name is now taboo.',
       instructionText: 'Point to a player whose name becomes forbidden.',
@@ -272,7 +272,7 @@ class MessyBitchStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'messy_bitch_act_${player.id}',
+      id: '${player.role.id}_act_${player.id}_$dayCount',
       title: 'THE MESSY BITCH',
       readAloudText: 'Messy Bitch, wake up and start a rumour.',
       instructionText: 'Select a player to spread a rumour about.',
@@ -296,7 +296,7 @@ class ClubManagerStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'club_manager_act_${player.id}',
+      id: 'club_manager_act_${player.id}_$dayCount',
       title: 'THE CLUB MANAGER',
       readAloudText:
           'Club Manager, wake up and secretly look at a player\'s card.',
@@ -324,13 +324,13 @@ class AttackDogStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'attack_dog_act_${player.id}',
+      id: '${roleId}_act_${player.id}_$dayCount',
       title: 'THE ATTACK DOG',
       readAloudText: 'Attack Dog, wake up. You are free. Choose your revenge.',
       instructionText:
           'Select a player to eliminate. This is a one-time ability.',
       actionType: ScriptActionType.selectPlayer,
-      roleId: RoleIds.clinger,
+      roleId: RoleIds.attackDog,
     );
   }
 }
@@ -350,7 +350,7 @@ class MessyBitchKillStrategy extends RoleStrategy {
   @override
   ScriptStep buildStep(Player player, int dayCount) {
     return ScriptStep(
-      id: 'messy_bitch_kill_${player.id}',
+      id: '${RoleIds.messyBitch}_kill_${player.id}_$dayCount',
       title: 'THE MESSY BITCH - KILL',
       readAloudText:
           'Messy Bitch, do you wish to use your one-time kill tonight?',
@@ -390,6 +390,7 @@ const Map<String, RoleStrategy> roleStrategies = {
   // Neutral (active night)
   RoleIds.messyBitch: MessyBitchStrategy(),
   RoleIds.clubManager: ClubManagerStrategy(),
+  RoleIds.clinger: AttackDogStrategy(),
 
   // Special (conditional)
   RoleIds.attackDog: AttackDogStrategy(),

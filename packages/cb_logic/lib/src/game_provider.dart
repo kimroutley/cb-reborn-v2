@@ -62,7 +62,7 @@ class Game extends _$Game {
         rolesInPlay: state.players.map((p) => p.role.id).toSet().toList(),
         roster: state.players
             .map(
-              (p) => PlayerSnapshot(
+              (p) => GameRecordPlayerSnapshot(
                 id: p.id,
                 name: p.name,
                 roleId: p.role.id,
@@ -162,7 +162,7 @@ class Game extends _$Game {
         players: players,
         phase: GamePhase.setup,
         dayCount: 1,
-        scriptQueue: ScriptBuilder.buildSetupScript(players),
+        scriptQueue: ScriptBuilder.buildSetupScript(players, dayCount: 0),
         scriptIndex: 0,
         actionLog: const {},
         gameHistory: const [
@@ -228,7 +228,7 @@ class Game extends _$Game {
     final step = state.currentStep;
     if (step == null) return 0;
 
-    if (step.id == 'day_vote') {
+    if (_isDayVoteStep(step.id)) {
       return _simulateDayVotesForBots(stepId: step.id);
     }
 
@@ -261,7 +261,7 @@ class Game extends _$Game {
     final step = state.currentStep;
     if (step == null) return 0;
 
-    if (step.id == 'day_vote') {
+    if (_isDayVoteStep(step.id)) {
       return _simulateDayVotes(stepId: step.id);
     }
 
@@ -295,6 +295,20 @@ class Game extends _$Game {
 
   String _idFromName(String name) => name.toLowerCase().replaceAll(' ', '_');
 
+  bool _isDayVoteStep(String stepId) => stepId.startsWith('day_vote');
+
+  bool _isCompatibleStepId(String expectedStepId, String incomingStepId) {
+    if (expectedStepId == incomingStepId) return true;
+
+    // Backward compatibility: accept legacy unscoped day vote IDs ("day_vote")
+    // when the active script step is scoped (e.g. "day_vote_3").
+    if (_isDayVoteStep(expectedStepId) && _isDayVoteStep(incomingStepId)) {
+      return true;
+    }
+
+    return false;
+  }
+
   static const List<String> _stepPrefixesWithPlayerId = [
     'dealer_act_',
     'silver_fox_act_',
@@ -319,10 +333,31 @@ class Game extends _$Game {
   String? _extractActorId(String stepId) {
     for (final prefix in _stepPrefixesWithPlayerId) {
       if (stepId.startsWith(prefix)) {
-        return stepId.substring(prefix.length);
+        return _extractScopedPlayerId(stepId: stepId, prefix: prefix);
       }
     }
     return null;
+  }
+
+  String? _extractScopedPlayerId({
+    required String stepId,
+    required String prefix,
+  }) {
+    if (!stepId.startsWith(prefix)) return null;
+    final scoped = stepId.substring(prefix.length);
+
+    // New logic: The part between the prefix and the optional `_dayCount` is the ID.
+    final parts = scoped.split('_');
+    if (parts.isEmpty) return null;
+
+    // Check if the last part is a number (day count). If so, the ID is everything before it.
+    final lastPart = parts.last;
+    if (int.tryParse(lastPart) != null && parts.length > 1) {
+      return parts.sublist(0, parts.length - 1).join('_');
+    }
+
+    // Otherwise, the whole scoped part is the ID.
+    return scoped;
   }
 
   Player? _findPlayerById(String id) {
@@ -763,10 +798,34 @@ class Game extends _$Game {
     required String stepId,
     String? targetId,
     String? voterId,
+    String? actorId,
   }) {
-    if (targetId == null || targetId.isEmpty) return;
+    // Safety check: Ensure the interaction matches the current step in the queue.
+    // We only enforce this if a queue exists (standard game flow).
+    final currentQueue = state.scriptQueue;
+    final currentIndex = state.scriptIndex;
+    if (!_isDayVoteStep(stepId) &&
+        currentQueue.isNotEmpty &&
+        currentIndex >= 0 &&
+        currentIndex < currentQueue.length) {
+      final step = currentQueue[currentIndex];
+      if (!_isCompatibleStepId(step.id, stepId)) {
+        // Stale event, ignore.
+        return;
+      }
+    }
 
-    if (stepId == 'day_vote') {
+    // If targetId is null, it's a deselection.
+    if (targetId == null || targetId.isEmpty) {
+      final updatedLog = Map<String, String>.from(state.actionLog);
+      if (updatedLog.containsKey(stepId)) {
+        updatedLog.remove(stepId);
+        state = state.copyWith(actionLog: updatedLog);
+      }
+      return;
+    }
+
+    if (_isDayVoteStep(stepId)) {
       if (voterId == null) return;
       final updatedTally = Map<String, int>.from(state.dayVoteTally);
       final updatedVotes = Map<String, String>.from(state.dayVotesByVoter);
@@ -797,7 +856,11 @@ class Game extends _$Game {
 
     // Special case: Second Wind conversion
     if (stepId.startsWith('second_wind_convert_')) {
-      final playerId = stepId.replaceFirst('second_wind_convert_', '');
+      final playerId = _extractScopedPlayerId(
+        stepId: stepId,
+        prefix: 'second_wind_convert_',
+      );
+      if (playerId == null) return;
       if (targetId == 'CONVERT') {
         _applySecondWindConversion(playerId);
       } else if (targetId == 'EXECUTE') {
@@ -808,7 +871,11 @@ class Game extends _$Game {
 
     // Special case: Medic choice
     if (stepId.startsWith('medic_choice_')) {
-      final medicId = stepId.replaceFirst('medic_choice_', '');
+      final medicId = _extractScopedPlayerId(
+        stepId: stepId,
+        prefix: 'medic_choice_',
+      );
+      if (medicId == null) return;
       state = state.copyWith(
         players: state.players.map((p) {
           if (p.id == medicId) {
@@ -824,7 +891,11 @@ class Game extends _$Game {
 
     // Special case: Creep setup
     if (stepId.startsWith('creep_setup_')) {
-      final creepId = stepId.replaceFirst('creep_setup_', '');
+      final creepId = _extractScopedPlayerId(
+        stepId: stepId,
+        prefix: 'creep_setup_',
+      );
+      if (creepId == null) return;
       final target = state.players.firstWhere((p) => p.id == targetId);
       state = state.copyWith(
         players: state.players.map((p) {
@@ -841,7 +912,11 @@ class Game extends _$Game {
 
     // Special case: Clinger setup
     if (stepId.startsWith('clinger_setup_')) {
-      final clingerId = stepId.replaceFirst('clinger_setup_', '');
+      final clingerId = _extractScopedPlayerId(
+        stepId: stepId,
+        prefix: 'clinger_setup_',
+      );
+      if (clingerId == null) return;
       state = state.copyWith(
         players: state.players.map((p) {
           if (p.id == clingerId) {
@@ -854,7 +929,11 @@ class Game extends _$Game {
 
     // Special case: Whore act
     if (stepId.startsWith('whore_act_')) {
-      final whoreId = stepId.replaceFirst('whore_act_', '');
+      final whoreId = _extractScopedPlayerId(
+        stepId: stepId,
+        prefix: 'whore_act_',
+      );
+      if (whoreId == null) return;
       state = state.copyWith(
         players: state.players.map((p) {
           if (p.id == whoreId) {
@@ -867,7 +946,11 @@ class Game extends _$Game {
 
     // Special case: Minor ID
     if (stepId.startsWith('minor_id_')) {
-      final minorId = stepId.replaceFirst('minor_id_', '');
+      final minorId = _extractScopedPlayerId(
+        stepId: stepId,
+        prefix: 'minor_id_',
+      );
+      if (minorId == null) return;
       state = state.copyWith(
         players: state.players.map((p) {
           if (p.id == minorId) {
@@ -881,6 +964,32 @@ class Game extends _$Game {
     final updatedLog = Map<String, String>.from(state.actionLog)
       ..[stepId] = targetId;
     state = state.copyWith(actionLog: updatedLog);
+
+    final resolvedActorId = actorId ?? _extractActorId(stepId);
+    if (resolvedActorId != null) {
+      _resolveAndReportAction(
+        stepId: stepId,
+        actorId: resolvedActorId,
+        targetId: targetId,
+      );
+    }
+  }
+
+  void _resolveAndReportAction({
+    required String stepId,
+    required String actorId,
+    required String targetId,
+  }) {
+    final actor = _findPlayerById(actorId);
+    final target = _findPlayerById(targetId);
+    if (actor == null || target == null) return;
+
+    final resultText =
+        GameResolutionLogic.getImmediateActionText(actor, target, state);
+
+    if (resultText.isNotEmpty) {
+      emitResultToFeed(resultText, roleId: actor.role.id);
+    }
   }
 
   void placeDeadPoolBet({
@@ -1129,6 +1238,10 @@ class Game extends _$Game {
         );
         return;
       }
+    }
+
+    if (state.players.length >= maxPlayers) {
+      return;
     }
 
     final canonicalName = _buildUniqueName(trimmedName);
@@ -1391,20 +1504,50 @@ class Game extends _$Game {
   // --- GAME FLOW ---
 
   static const int minPlayers = 4;
+  static const int maxPlayers = 25;
 
   bool startGame() {
     if (state.players.length < minPlayers) return false;
     if (state.phase != GamePhase.lobby) return false;
 
-    final assignedPlayers = GameResolutionLogic.assignRoles(state.players);
+    if (state.gameStyle == GameStyle.manual) {
+      final allAssigned = state.players.every(
+          (p) => p.role.id != 'unassigned' && p.alliance != Team.unknown);
+      if (!allAssigned) {
+        return false;
+      }
+
+      state = state.copyWith(
+        phase: GamePhase.setup,
+        scriptQueue: ScriptBuilder.buildSetupScript(state.players,
+            dayCount: state.dayCount),
+        scriptIndex: 0,
+        actionLog: const {},
+        dayCount: 1,
+      );
+      final sessionController = ref.read(sessionProvider.notifier);
+      sessionController.clearRoleConfirmations();
+      sessionController.setForceStartOverride(false);
+      _gameStartedAt = DateTime.now();
+      _persist();
+      return true;
+    }
+
+    final assignedPlayers = GameResolutionLogic.assignRoles(
+      state.players,
+      gameStyle: state.gameStyle,
+    );
     state = state.copyWith(
       players: assignedPlayers,
       phase: GamePhase.setup,
-      scriptQueue: ScriptBuilder.buildSetupScript(assignedPlayers),
+      scriptQueue: ScriptBuilder.buildSetupScript(assignedPlayers, dayCount: 0),
       scriptIndex: 0,
       actionLog: const {},
       dayCount: 1,
     );
+    final sessionController = ref.read(sessionProvider.notifier);
+    sessionController.clearRoleConfirmations();
+    sessionController.setForceStartOverride(false);
     _gameStartedAt = DateTime.now();
     _persist();
     return true;
@@ -1444,6 +1587,23 @@ class Game extends _$Game {
     switch (state.phase) {
       case GamePhase.lobby:
       case GamePhase.setup:
+        if (state.phase == GamePhase.setup) {
+          final session = ref.read(sessionProvider);
+          final requiredIds = state.players
+              .where((player) => !player.isBot)
+              .map((player) => player.id)
+              .toSet();
+          final confirmedIds = session.roleConfirmedPlayerIds.toSet();
+          final allConfirmed = requiredIds.every(confirmedIds.contains);
+          final usesRoleConfirmationFlow =
+              session.claimedPlayerIds.isNotEmpty ||
+                  session.roleConfirmedPlayerIds.isNotEmpty;
+          if (usesRoleConfirmationFlow &&
+              !allConfirmed &&
+              !session.forceStartOverride) {
+            return;
+          }
+        }
         state = state.copyWith(
           phase: GamePhase.night,
           scriptQueue: ScriptBuilder.buildNightScript(
@@ -1498,6 +1658,9 @@ class Game extends _$Game {
           state.dayCount,
         );
 
+        // Apply resolution results to state first
+        state = state.copyWith(players: res.players);
+
         // ── RESOLVE DEAD POOL BETS ──
         final exiledPlayerId = res.players
             .firstWhere(
@@ -1515,7 +1678,8 @@ class Game extends _$Game {
         }
 
         state = state.copyWith(
-          players: state.players, // Updated by _resolveDeadPool
+          players:
+              state.players, // Current state includes resolution + deadpool
           lastDayReport: res.report,
           gameHistory: [
             ...state.gameHistory,
