@@ -315,6 +315,35 @@ void main() {
       expect(updated.dayVoteTally[aId], 1);
     });
 
+    test('silenced player cannot cast a day vote', () {
+      game.addPlayer('A');
+      game.addPlayer('B');
+
+      final initial = container.read(gameProvider);
+      final voter = initial.players[0];
+      final target = initial.players[1];
+
+      container.read(gameProvider.notifier).state = initial.copyWith(
+            players: initial.players
+                .map(
+                  (p) => p.id == voter.id
+                      ? p.copyWith(silencedDay: initial.dayCount)
+                      : p,
+                )
+                .toList(),
+          );
+
+      game.handleInteraction(
+        stepId: 'day_vote',
+        targetId: target.id,
+        voterId: voter.id,
+      );
+
+      final updated = container.read(gameProvider);
+      expect(updated.dayVoteTally, isEmpty);
+      expect(updated.dayVotesByVoter, isEmpty);
+    });
+
     test('resetDayVotes clears all votes', () {
       game.addPlayer('A');
       final state = container.read(gameProvider);

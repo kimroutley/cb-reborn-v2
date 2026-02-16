@@ -827,6 +827,15 @@ class Game extends _$Game {
 
     if (_isDayVoteStep(stepId)) {
       if (voterId == null) return;
+
+      final voterMatches = state.players.where((p) => p.id == voterId);
+      if (voterMatches.isNotEmpty) {
+        final voter = voterMatches.first;
+        if (voter.silencedDay == state.dayCount || voter.isSinBinned) {
+          return;
+        }
+      }
+
       final updatedTally = Map<String, int>.from(state.dayVoteTally);
       final updatedVotes = Map<String, String>.from(state.dayVotesByVoter);
       final previousVote = updatedVotes[voterId];
