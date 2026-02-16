@@ -1,20 +1,30 @@
 import 'package:cb_models/cb_models.dart';
-import '../night_action.dart';
+import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
-class DealerAction extends NightAction {
+class DealerAction implements NightActionStrategy {
   @override
-  ActionPhase get phase => ActionPhase.murder;
+  String get roleId => RoleIds.dealer;
 
   @override
   void execute(NightResolutionContext context) {
-    for (final p in context.players.where((p) => p.isAlive && p.role.id == RoleIds.dealer)) {
-      if (context.blockedIds.contains(p.id)) continue;
+    final dealers =
+        context.players.where((p) => p.isAlive && p.role.id == roleId);
 
-      final targetId = getTargetId(context, p.id, 'dealer');
+    for (final dealer in dealers) {
+      if (context.redirectedActions.containsKey(dealer.id) ||
+          context.silencedPlayerIds.contains(dealer.id)) {
+        continue;
+      }
+
+      final actionKey = '${roleId}_act_${dealer.id}_${context.dayCount}';
+      final targetId = context.log[actionKey];
+
       if (targetId != null) {
-        context.murderTargets.add(targetId);
-        context.dealerAttacks[p.id] = targetId;
+        context.killedPlayerIds.add(targetId);
+        context.dealerAttacks[dealer.id] = targetId;
+        context.addReport(
+            '${dealer.name} made a move on ${context.getPlayer(targetId).name}.');
       }
     }
   }
