@@ -60,9 +60,14 @@ The app supports dual-mode networking (Local WebSocket + Cloud Firestore), abstr
     *   **Batching**: Implements manual chunking (limit 500 operations) for large updates (e.g., `deleteGame`).
     *   **Atomicity**: `publishState` uses a single `WriteBatch` to commit public and private state updates simultaneously.
 
-### Dependency Injection (DI)
-*   **GeminiNarrationService**: Accepts an optional `apiKey` in the constructor. In tests, inject a mock key or use `ProviderContainer` overrides.
-*   **AnalyticsService**: Defines an abstract `AnalyticsProvider`. The concrete `FirebaseAnalyticsProvider` is injected at runtime, allowing tests to use `MockAnalyticsProvider`.
+### Bot Simulation Architecture
+*   **Model**: The `Player` model includes an `isBot` boolean field.
+*   **Creation**: Bots are instantiated via `Game.addBot()` with unique IDs prefixed with `bot_` and robot-themed names.
+*   **Execution**:
+    *   **`Game.simulateBotTurns()`**: The central method for bot logic. It checks the current `ScriptStep`.
+    *   **Voting**: If the step is `day_vote`, all eligible bots cast a random vote (or abstain) via `_simulateDayVotesForBots`.
+    *   **Actions**: If the step targets a specific bot role (e.g., `medic_act_bot_1`), or a group role containing bots, `_performRandomStepAction` is triggered.
+    *   **Constraint**: Bots respects game rules (silenced, sin-binned) just like human players.
 
 ---
 
@@ -97,14 +102,33 @@ The app supports dual-mode networking (Local WebSocket + Cloud Firestore), abstr
 
 ---
 
-## 5. Current Status Checklist (Feb 13, 2026)
+## 5. Universal Interactive Role Framework (Mar 2026)
+
+The game logic now uses a **Priority-Based Strategy Pattern** for resolving night actions. This replaced the monolithic and hardcoded `resolveNight` implementation.
+
+### Key Components
+
+*   **`NightResolutionContext`**: A mutable container passed through each action strategy. It collects reports, deaths, and redirects.
+*   **`NightActionStrategy`**: An interface implemented by each role (e.g., `MedicAction`, `BartenderAction`).
+*   **Scoped Interaction IDs**: All script step and action IDs follow the format `{role/step}_act_{playerId}_{dayCount}`. This prevents action "bleeding" between nights and allows for precise historical tracking.
+*   **`DeathResolutionStrategy`**: A dedicated post-processing step that handles primary deaths (murder) and secondary chain reactions (Broken Heart, Second Wind, Medic Revives).
+
+### ⚠️ Implementation Guidelines for New Roles
+
+1.  **ID Parsing**: Always use `Game._extractScopedPlayerId(stepId)` in `game_provider.dart` to extract the actor from a scoped ID.
+2.  **Action Keys**: Ensure the key generated in `role_logic.dart` (`buildStep`) matches the key checked in the `ActionStrategy` (packages/cb_logic).
+3.  **Death Handling**: If adding a new role with death-prevention or reaction-on-death logic, implement a `DeathHandler` and register it in `DeathResolutionStrategy`.
+
+---
+
+## 6. Current Status Checklist (Feb 13, 2026)
 
 ### Verified (Stable)
-- [x] **Monorepo Structure**: Logic moved to `packages/`.
-- [x] **Host App Build**: Release APK builds successfully.
-- [x] **Player App Build**: Web build succeeds.
-- [x] **Auth Flow**: Unified "Club Entry" flow (Google + Moniker) for both apps.
-- [x] **Bot Simulation**: `addBot` and `simulateBotTurns` logic in `cb_logic`.
+- [x] **Universal Framework**: All roles transitioned to the new priority-based resolution engine.
+- [x] **Stabilization Sweep**: Resolved logic regressions in Medic Revival, Clinger Bonds, and ID parsing for Day 1+ and Night 1+.
+- [x] **Static Analysis**: `apps/host`, `apps/player`, and all `packages/` have 0 analyzer errors.
+- [x] **Bot Simulation**: `addBot` and `simulateBotTurns` verified in `cb_logic`.
+- [x] **Auth & Nav**: Streamlined flows and `NavigationDrawer` implemented.
 
 ### Pending Validation (Manual)
 - [ ] **Cross-Device Multiplayer**: Verify Local vs Cloud mode switching on real devices.
@@ -113,7 +137,7 @@ The app supports dual-mode networking (Local WebSocket + Cloud Firestore), abstr
 
 ---
 
-## 6. Agent Directives
+## 7. Agent Directives
 
 1.  **Read Context First**: Before starting any task, verify your understanding against this document.
 2.  **Verify, Don't Assume**: After editing code, run `flutter test` in the relevant package.
