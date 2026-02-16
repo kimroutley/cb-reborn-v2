@@ -17,6 +17,22 @@ class GameRouter extends ConsumerStatefulWidget {
 }
 
 class _GameRouterState extends ConsumerState<GameRouter> {
+  bool _isCloudStateActive(PlayerGameState cloudState) {
+    final localState = ref.read(playerBridgeProvider);
+    if (localState.isConnected || localState.joinAccepted) {
+      return false;
+    }
+    return cloudState.isConnected || cloudState.joinAccepted;
+  }
+
+  bool _isLocalStateActive(PlayerGameState localState) {
+    final cloudState = ref.read(cloudPlayerBridgeProvider);
+    if (cloudState.isConnected || cloudState.joinAccepted) {
+      return false;
+    }
+    return localState.isConnected || localState.joinAccepted;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -28,13 +44,13 @@ class _GameRouterState extends ConsumerState<GameRouter> {
 
   void _checkInitialState() {
     final cloudState = ref.read(cloudPlayerBridgeProvider);
-    if (cloudState.joinAccepted) {
+    if (_isCloudStateActive(cloudState) && cloudState.joinAccepted) {
       _handleNavigation(context, cloudState, true, ref);
       return;
     }
 
     final localState = ref.read(playerBridgeProvider);
-    if (localState.joinAccepted) {
+    if (_isLocalStateActive(localState) && localState.joinAccepted) {
       _handleNavigation(context, localState, false, ref);
       return;
     }
@@ -85,6 +101,9 @@ class _GameRouterState extends ConsumerState<GameRouter> {
   Widget build(BuildContext context) {
     // Listen to cloud bridge
     ref.listen<PlayerGameState>(cloudPlayerBridgeProvider, (previous, next) {
+      if (!_isCloudStateActive(next)) {
+        return;
+      }
       _handleHaptics(previous, next);
 
       final wasJoined = previous?.joinAccepted ?? false;
@@ -100,6 +119,9 @@ class _GameRouterState extends ConsumerState<GameRouter> {
 
     // Listen to local bridge
     ref.listen<PlayerGameState>(playerBridgeProvider, (previous, next) {
+      if (!_isLocalStateActive(next)) {
+        return;
+      }
       _handleHaptics(previous, next);
 
       final wasJoined = previous?.joinAccepted ?? false;

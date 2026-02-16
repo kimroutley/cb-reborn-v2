@@ -173,6 +173,40 @@ void main() {
       expect(stateSync, isNotNull);
     });
 
+    test(
+        'player_join with playerName adds roster entry once and repeated join with same uid does not duplicate',
+        () async {
+      await bridge.start();
+      final socket = MockWebSocket();
+      mockServer.simulateConnect(socket);
+
+      final joinCode = container.read(sessionProvider).joinCode;
+
+      mockServer.simulateMessage(
+        GameMessage.playerJoin(
+          joinCode: joinCode,
+          playerName: 'Alice',
+          uid: 'uid-123',
+        ),
+        socket,
+      );
+
+      var game = container.read(gameProvider);
+      expect(game.players.where((p) => p.authUid == 'uid-123').length, 1);
+
+      mockServer.simulateMessage(
+        GameMessage.playerJoin(
+          joinCode: joinCode,
+          playerName: 'Alice Again',
+          uid: 'uid-123',
+        ),
+        socket,
+      );
+
+      game = container.read(gameProvider);
+      expect(game.players.where((p) => p.authUid == 'uid-123').length, 1);
+    });
+
     test('handles player_claim correctly', () async {
       await bridge.start();
       final socket = MockWebSocket();
@@ -199,19 +233,37 @@ void main() {
     test('handles player_vote correctly', () async {
       await bridge.start();
 
-      // Setup players
       final gameNotifier = container.read(gameProvider.notifier);
-      gameNotifier.addPlayer('Alice');
-      gameNotifier.addPlayer('Bob');
-      gameNotifier.startGame(); // Need to start game to have phases/steps?
+      expect(gameNotifier.loadTestGameSandbox(), isTrue);
 
-      // We need to be in day phase for voting usually, but let's see if we can force interaction
-      // HostBridge handles 'player_vote' by calling handleInteraction(stepId: 'day_vote', ...)
+      // Deterministically advance to first day vote step.
+      while (container.read(gameProvider).phase.name == 'setup') {
+        gameNotifier.advancePhase();
+      }
+      while (container.read(gameProvider).phase.name == 'night') {
+        gameNotifier.advancePhase();
+      }
 
-      // Get player IDs
-      final players = container.read(gameProvider).players;
-      final alice = players.firstWhere((p) => p.name == 'Alice');
-      final bob = players.firstWhere((p) => p.name == 'Bob');
+      expect(container.read(gameProvider).phase.name, 'day');
+
+      var currentStepId = container.read(gameProvider).currentStep?.id;
+      while (currentStepId != null &&
+          !currentStepId.startsWith('day_vote') &&
+          container.read(gameProvider).phase.name == 'day') {
+        gameNotifier.advancePhase();
+        currentStepId = container.read(gameProvider).currentStep?.id;
+      }
+
+      expect(currentStepId, isNotNull);
+      expect(currentStepId!.startsWith('day_vote'), isTrue);
+
+      final players = container
+          .read(gameProvider)
+          .players
+          .where((p) => p.isAlive)
+          .toList();
+      final alice = players.first;
+      final bob = players.firstWhere((p) => p.id != alice.id);
 
       final socket = MockWebSocket();
       mockServer.simulateConnect(socket);

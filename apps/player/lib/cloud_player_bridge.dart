@@ -75,8 +75,10 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
   @override
   Future<void> joinGame(String joinCode, String playerName) async {
+    final resolvedName =
+        playerName.trim().isEmpty ? 'Player' : playerName.trim();
     await joinWithCode(joinCode);
-    await sendJoinRequest(playerName);
+    await sendJoinRequest(resolvedName);
   }
 
   /// Send a join request (player name → joins subcollection).
@@ -133,6 +135,11 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       playerId: voterId ?? state.myPlayerId ?? '',
       targetId: targetId,
     );
+  }
+
+  @override
+  Future<void> confirmRole({required String playerId}) async {
+    _firebase?.sendRoleConfirm(playerId: playerId);
   }
 
   @override
@@ -215,9 +222,6 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
     final phase = data['phase'] as String? ?? 'lobby';
 
-    // Detect returnToLobby: host reset to lobby with no players
-    final isNewLobby = phase == 'lobby' && players.isEmpty;
-
     // Determine myPlayerId and myPlayerSnapshot after receiving new players list
     final String? updatedMyPlayerId =
         state.myPlayerId != null && players.any((p) => p.id == state.myPlayerId)
@@ -239,13 +243,13 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       nightReport: _toStringList(data['nightReport']),
       dayReport: _toStringList(data['dayReport']),
       privateMessages: privates,
-      claimedPlayerIds:
-          isNewLobby ? const [] : _toStringList(data['claimedPlayerIds']),
+      claimedPlayerIds: _toStringList(data['claimedPlayerIds']),
+      roleConfirmedPlayerIds: _toStringList(data['roleConfirmedPlayerIds']),
       gameHistory: _toStringList(data['gameHistory']),
       deadPoolBets: deadPoolBets,
       ghostChatMessages: state.ghostChatMessages,
       isConnected: true,
-      joinAccepted: isNewLobby ? false : state.joinAccepted,
+      joinAccepted: state.joinAccepted,
       joinError: state.joinError,
       claimError: state.claimError,
       myPlayerId: updatedMyPlayerId, // Set updated ID

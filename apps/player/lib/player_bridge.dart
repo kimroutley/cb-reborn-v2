@@ -1,12 +1,15 @@
 import 'package:cb_comms/cb_comms.dart';
 import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_theme/cb_theme.dart';
 
 import 'player_bridge_actions.dart';
 import 'player_stats.dart';
+
+export 'package:cb_models/cb_models.dart' show PlayerSnapshot;
 
 /// Constant for the 'day_vote' step ID.
 const String kDayVoteStepId = 'day_vote';
@@ -32,6 +35,7 @@ class PlayerGameState {
   final List<String> dayReport;
   final Map<String, List<String>> privateMessages;
   final List<String> claimedPlayerIds;
+  final List<String> roleConfirmedPlayerIds;
   final List<String> gameHistory;
   final Map<String, String> deadPoolBets;
   final List<String> ghostChatMessages;
@@ -65,6 +69,7 @@ class PlayerGameState {
     this.dayReport = const [],
     this.privateMessages = const {},
     this.claimedPlayerIds = const [],
+    this.roleConfirmedPlayerIds = const [],
     this.gameHistory = const [],
     this.deadPoolBets = const {},
     this.ghostChatMessages = const [],
@@ -99,6 +104,7 @@ class PlayerGameState {
     List<String>? dayReport,
     Map<String, List<String>>? privateMessages,
     List<String>? claimedPlayerIds,
+    List<String>? roleConfirmedPlayerIds,
     List<String>? gameHistory,
     Map<String, String>? deadPoolBets,
     List<String>? ghostChatMessages,
@@ -130,11 +136,14 @@ class PlayerGameState {
       dayReport: dayReport ?? this.dayReport,
       privateMessages: privateMessages ?? this.privateMessages,
       claimedPlayerIds: claimedPlayerIds ?? this.claimedPlayerIds,
+      roleConfirmedPlayerIds:
+          roleConfirmedPlayerIds ?? this.roleConfirmedPlayerIds,
       gameHistory: gameHistory ?? this.gameHistory,
       deadPoolBets: deadPoolBets ?? this.deadPoolBets,
       ghostChatMessages: ghostChatMessages ?? this.ghostChatMessages,
       isConnected: isConnected ?? this.isConnected,
-      joinError: joinError == _undefined ? this.joinError : joinError as String?,
+      joinError:
+          joinError == _undefined ? this.joinError : joinError as String?,
       joinAccepted: joinAccepted ?? this.joinAccepted,
       claimError:
           claimError == _undefined ? this.claimError : claimError as String?,
@@ -155,94 +164,6 @@ class PlayerGameState {
       hostName: hostName ?? this.hostName,
     );
   }
-}
-
-/// Minimal player snapshot received from host.
-class PlayerSnapshot {
-  final String id;
-  final String name;
-  final String roleId;
-  final String roleName;
-  final String roleDescription;
-  final String roleColorHex;
-  final String alliance;
-  final bool isAlive;
-  final int? deathDay;
-  final int? silencedDay;
-  final String? medicChoice;
-  final int lives;
-  final int drinksOwed;
-  final String? currentBetTargetId;
-  final List<String> penalties;
-  final bool hasRumour;
-  final String? clingerPartnerId;
-  final bool hasReviveToken;
-  final bool secondWindPendingConversion;
-  final String? creepTargetId;
-  final bool whoreDeflectionUsed;
-  final List<String> tabooNames;
-
-  const PlayerSnapshot({
-    required this.id,
-    required this.name,
-    required this.roleId,
-    required this.roleName,
-    this.roleDescription = '',
-    this.roleColorHex = '#888888',
-    this.alliance = 'unknown',
-    this.isAlive = true,
-    this.deathDay,
-    this.silencedDay,
-    this.medicChoice,
-    this.lives = 1,
-    this.drinksOwed = 0,
-    this.currentBetTargetId,
-    this.penalties = const [],
-    this.hasRumour = false,
-    this.clingerPartnerId,
-    this.hasReviveToken = false,
-    this.secondWindPendingConversion = false,
-    this.creepTargetId,
-    this.whoreDeflectionUsed = false,
-    this.tabooNames = const [],
-  });
-
-  factory PlayerSnapshot.fromMap(Map<String, dynamic> map) {
-    return PlayerSnapshot(
-      id: map['id'] as String? ?? '',
-      name: map['name'] as String? ?? '',
-      roleId: map['roleId'] as String? ?? '',
-      roleName: map['roleName'] as String? ?? '',
-      roleDescription: map['roleDescription'] as String? ?? '',
-      roleColorHex: map['roleColorHex'] as String? ?? '#888888',
-      alliance: map['alliance'] as String? ?? 'unknown',
-      isAlive: map['isAlive'] as bool? ?? true,
-      deathDay: map['deathDay'] as int?,
-      silencedDay: map['silencedDay'] as int?,
-      medicChoice: map['medicChoice'] as String?,
-      lives: map['lives'] as int? ?? 1,
-      drinksOwed: map['drinksOwed'] as int? ?? 0,
-      currentBetTargetId: map['currentBetTargetId'] as String?,
-      penalties: (map['penalties'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-      hasRumour: map['hasRumour'] as bool? ?? false,
-      clingerPartnerId: map['clingerPartnerId'] as String?,
-      hasReviveToken: map['hasReviveToken'] as bool? ?? false,
-      secondWindPendingConversion:
-          map['secondWindPendingConversion'] as bool? ?? false,
-      creepTargetId: map['creepTargetId'] as String?,
-      whoreDeflectionUsed: map['whoreDeflectionUsed'] as bool? ?? false,
-      tabooNames: (map['tabooNames'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
-    );
-  }
-
-  bool get isClubStaff => alliance == 'clubStaff';
-  bool get isPartyAnimal => alliance == 'partyAnimals';
 }
 
 /// Step snapshot received from host.
@@ -327,8 +248,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
       _client = null;
     }
 
-    final onMessage = _handleMessage;
-    final onConnectionChanged = (PlayerConnectionState newState) {
+    void onConnectionChanged(PlayerConnectionState newState) {
       final prevState = _connectionState;
       _connectionState = newState;
       debugPrint('[PlayerBridge] Connection: ${newState.name}');
@@ -348,16 +268,16 @@ class PlayerBridge extends Notifier<PlayerGameState>
       state = state.copyWith(
         isConnected: newState == PlayerConnectionState.connected,
       );
-    };
+    }
 
     if (mockClientFactory != null) {
       _client = mockClientFactory!(
-        onMessage: onMessage,
+        onMessage: _handleMessage,
         onConnectionChanged: onConnectionChanged,
       );
     } else {
       _client = PlayerClient(
-        onMessage: onMessage,
+        onMessage: _handleMessage,
         onConnectionChanged: onConnectionChanged,
       );
     }
@@ -380,11 +300,22 @@ class PlayerBridge extends Notifier<PlayerGameState>
 
   // ─── OUTBOUND ─────────────────────────────────
 
-  void joinWithCode(String code) => _client?.joinWithCode(code);
+  void joinWithCode(String code, {String? playerName, String? authUid}) =>
+      _client?.joinWithCode(
+        code,
+        playerName: playerName,
+        uid: authUid,
+      );
 
   @override
   Future<void> joinGame(String joinCode, String playerName) async {
-    joinWithCode(joinCode);
+    String? uid;
+    try {
+      uid = FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      uid = null;
+    }
+    joinWithCode(joinCode, playerName: playerName, authUid: uid);
   }
 
   @override
@@ -408,6 +339,11 @@ class PlayerBridge extends Notifier<PlayerGameState>
       targetId: targetId,
       voterId: voterId,
     ));
+  }
+
+  @override
+  Future<void> confirmRole({required String playerId}) async {
+    _client?.send(GameMessage.playerRoleConfirm(playerId: playerId));
   }
 
   @override
@@ -537,7 +473,6 @@ class PlayerBridge extends Notifier<PlayerGameState>
   }
 
   void _applyStateSync(Map<String, dynamic> payload) {
-    final prevPhase = state.phase;
     final players = (payload['players'] as List<dynamic>?)
             ?.map((e) => PlayerSnapshot.fromMap(e as Map<String, dynamic>))
             .toList() ??
@@ -577,10 +512,6 @@ class PlayerBridge extends Notifier<PlayerGameState>
 
     final phase = payload['phase'] as String? ?? 'lobby';
 
-    // Detect returnToLobby: host reset to lobby with no players
-    // → clear local join/claim state so player can re-join the next game
-    final isNewLobby = phase == 'lobby' && players.isEmpty;
-
     // Determine myPlayerId and myPlayerSnapshot after receiving new players list
     final String? updatedMyPlayerId =
         state.myPlayerId != null && players.any((p) => p.id == state.myPlayerId)
@@ -604,18 +535,18 @@ class PlayerBridge extends Notifier<PlayerGameState>
       nightReport: _toStringList(payload['nightReport']),
       dayReport: _toStringList(payload['dayReport']),
       privateMessages: privates,
-      claimedPlayerIds:
-          isNewLobby ? const [] : _toStringList(payload['claimedPlayerIds']),
+      claimedPlayerIds: _toStringList(payload['claimedPlayerIds']),
+      roleConfirmedPlayerIds: _toStringList(payload['roleConfirmedPlayerIds']),
       gameHistory: _toStringList(payload['gameHistory']),
       deadPoolBets: deadPoolBets,
-      ghostChatMessages: [
+      ghostChatMessages: {
         ...(state.ghostChatMessages),
         ...(_toStringList(privates[updatedMyPlayerId])
             .where((m) => m.startsWith('[GHOST] '))
             .map((m) => m.replaceFirst('[GHOST] ', ''))),
-      ].toSet().toList(),
+      }.toList(),
       isConnected: state.isConnected,
-      joinAccepted: isNewLobby ? false : state.joinAccepted,
+      joinAccepted: state.joinAccepted,
       joinError: state.joinError,
       claimError: state.claimError,
       myPlayerId: updatedMyPlayerId, // Set updated ID
@@ -625,12 +556,12 @@ class PlayerBridge extends Notifier<PlayerGameState>
 
     state = nextState;
 
-    // Refresh active player stats view once when the game ends.
-    if (prevPhase != 'endGame' && nextState.isEndGame) {
-      final meId = nextState.myPlayerId;
-      if (meId != null) {
-        ref.read(playerStatsProvider.notifier).setActivePlayerId(meId);
-      }
+    // Check for game completion to record stats
+    // We do this after setting state so the notifier receives the *new* state if it reads it.
+    if (nextState.winner != null) {
+      ref
+          .read(playerStatsProvider.notifier)
+          .recordCompletedGameIfNeeded(nextState);
     }
   }
 

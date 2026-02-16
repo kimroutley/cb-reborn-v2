@@ -77,11 +77,22 @@ class CloudHostBridge {
         final data = change.doc.data();
         if (data == null) continue;
 
-        final name = data['name'] as String?;
-        final uid = data['uid'] as String?;
+        final name = (data['name'] as String?)?.trim();
+        final uid = (data['uid'] as String?)?.trim();
         if (name != null && name.isNotEmpty) {
-          _ref.read(gameProvider.notifier).addPlayer(name, authUid: uid);
-          debugPrint('[CloudHostBridge] Player joined: $name ($uid)');
+          final players = _ref.read(gameProvider).players;
+          final hasExisting = (uid != null && uid.isNotEmpty)
+              ? players.any((p) => (p.authUid ?? '').trim() == uid)
+              : players.any(
+                  (p) => p.name.trim().toLowerCase() == name.toLowerCase(),
+                );
+          if (!hasExisting) {
+            _ref.read(gameProvider.notifier).addPlayer(
+                  name,
+                  authUid: uid?.isNotEmpty == true ? uid : null,
+                );
+            debugPrint('[CloudHostBridge] Player joined: $name ($uid)');
+          }
         }
       }
     });
@@ -129,6 +140,15 @@ class CloudHostBridge {
           continue;
         }
 
+        if (type == 'role_confirm') {
+          final playerId = data['playerId'] as String? ?? '';
+          if (playerId.isNotEmpty) {
+            _ref.read(sessionProvider.notifier).confirmRole(playerId);
+            debugPrint('[CloudHostBridge] Role confirmed: $playerId');
+          }
+          continue;
+        }
+
         final stepId = data['stepId'] as String? ?? '';
         final targetId = data['targetId'] as String?;
         final playerId = data['playerId'] as String?;
@@ -170,6 +190,10 @@ class CloudHostBridge {
 
     final game = _ref.read(gameProvider);
     final session = _ref.read(sessionProvider);
+    final currentPlayerIds = game.players.map((p) => p.id).toSet();
+    final roleConfirmedPlayerIds = session.roleConfirmedPlayerIds
+        .where(currentPlayerIds.contains)
+        .toList();
 
     final currentHash = _computeStateHash(game, session);
     if (currentHash == _lastPublishedHash) {
@@ -178,7 +202,8 @@ class CloudHostBridge {
 
     final hostUid = await resolveHostUid();
     if (hostUid == null || hostUid.isEmpty) {
-      debugPrint('[CloudHostBridge] Skipping publish: host user is not authenticated yet.');
+      debugPrint(
+          '[CloudHostBridge] Skipping publish: host user is not authenticated yet.');
       return;
     }
 
@@ -235,6 +260,7 @@ class CloudHostBridge {
           game.lastNightReport.isNotEmpty ? game.lastNightReport : null,
       'dayReport': game.lastDayReport.isNotEmpty ? game.lastDayReport : null,
       'claimedPlayerIds': session.claimedPlayerIds,
+      'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
       'gameHistory': game.gameHistory.isNotEmpty ? game.gameHistory : null,
       'deadPoolBets': game.deadPoolBets.isNotEmpty ? game.deadPoolBets : null,
       'updatedAt': DateTime.now().millisecondsSinceEpoch,

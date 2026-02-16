@@ -98,8 +98,12 @@ class PlayerClient {
   }
 
   /// Send join request.
-  void joinWithCode(String code) {
-    send(GameMessage.playerJoin(joinCode: code));
+  void joinWithCode(String code, {String? playerName, String? uid}) {
+    send(GameMessage.playerJoin(
+      joinCode: code,
+      playerName: playerName,
+      uid: uid,
+    ));
   }
 
   /// Claim a player name.

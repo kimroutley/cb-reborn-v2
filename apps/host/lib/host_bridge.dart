@@ -113,6 +113,10 @@ class HostBridge {
     final session = _ref.read(sessionProvider);
     final step = game.currentStep;
     final isEndGame = game.phase == GamePhase.endGame;
+    final currentPlayerIds = game.players.map((p) => p.id).toSet();
+    final roleConfirmedPlayerIds = session.roleConfirmedPlayerIds
+        .where(currentPlayerIds.contains)
+        .toList();
 
     for (final client in _server.clients) {
       final recipientId = _server.socketMap[client];
@@ -195,6 +199,7 @@ class HostBridge {
         bulletinBoard: game.bulletinBoard.map((e) => e.toJson()).toList(),
         eyesOpen: game.eyesOpen,
         claimedPlayerIds: session.claimedPlayerIds,
+        roleConfirmedPlayerIds: roleConfirmedPlayerIds,
         gameHistory: game.gameHistory.isNotEmpty ? game.gameHistory : null,
         deadPoolBets: game.deadPoolBets.isNotEmpty ? game.deadPoolBets : null,
       );
@@ -231,6 +236,9 @@ class HostBridge {
       case 'player_reconnect':
         _handleReconnect(msg, sender);
         break;
+      case 'player_role_confirm':
+        _handleRoleConfirm(msg);
+        break;
       case 'pong':
         // heartbeat ack — no action needed
         break;
@@ -241,9 +249,27 @@ class HostBridge {
 
   void _handleJoin(GameMessage msg, dynamic sender) {
     final code = msg.payload['joinCode'] as String? ?? '';
+    final rawPlayerName = msg.payload['playerName'] as String?;
+    final rawUid = msg.payload['uid'] as String?;
+    final playerName = rawPlayerName?.trim() ?? '';
+    final uid = rawUid?.trim();
     final session = _ref.read(sessionProvider);
 
     if (code == session.joinCode) {
+      if (playerName.isNotEmpty) {
+        final players = _ref.read(gameProvider).players;
+        final hasExisting = (uid != null && uid.isNotEmpty)
+            ? players.any((p) => (p.authUid ?? '').trim() == uid)
+            : players.any(
+                (p) => p.name.trim().toLowerCase() == playerName.toLowerCase(),
+              );
+
+        if (!hasExisting) {
+          _ref.read(gameProvider.notifier).addPlayer(playerName,
+              authUid: uid?.isNotEmpty == true ? uid : null);
+        }
+      }
+
       _server.sendTo(sender, GameMessage.joinCodeResponse(accepted: true));
       _broadcastState();
     } else {
@@ -279,9 +305,13 @@ class HostBridge {
   void _handleVote(GameMessage msg) {
     final voterId = msg.payload['voterId'] as String? ?? '';
     final targetId = msg.payload['targetId'] as String? ?? '';
+    final currentStepId = _ref.read(gameProvider).currentStep?.id;
+    if (currentStepId == null || !currentStepId.startsWith('day_vote')) {
+      return;
+    }
 
     _ref.read(gameProvider.notifier).handleInteraction(
-          stepId: 'day_vote',
+          stepId: currentStepId,
           targetId: targetId,
           voterId: voterId,
         );
@@ -292,11 +322,13 @@ class HostBridge {
     final stepId = msg.payload['stepId'] as String? ?? '';
     final targetId = msg.payload['targetId'] as String? ?? '';
     final voterId = msg.payload['voterId'] as String?;
+    final actorId = msg.payload['actorId'] as String?;
 
     _ref.read(gameProvider.notifier).handleInteraction(
           stepId: stepId,
           targetId: targetId,
           voterId: voterId,
+          actorId: actorId,
         );
     _broadcastState();
   }
@@ -392,6 +424,15 @@ class HostBridge {
 
     // Auto-accept the join (they were already in) and send full state
     _server.sendTo(sender, GameMessage.joinCodeResponse(accepted: true));
+    _broadcastState();
+  }
+
+  void _handleRoleConfirm(GameMessage msg) {
+    final playerId = msg.payload['playerId'] as String? ?? '';
+    if (playerId.isEmpty) {
+      return;
+    }
+    _ref.read(sessionProvider.notifier).confirmRole(playerId);
     _broadcastState();
   }
 }

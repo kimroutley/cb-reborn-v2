@@ -31,6 +31,7 @@ class GameMessage {
     List<Map<String, dynamic>>? bulletinBoard,
     bool eyesOpen = true,
     List<String> claimedPlayerIds = const [],
+    List<String> roleConfirmedPlayerIds = const [],
     List<String>? gameHistory,
     Map<String, String>? deadPoolBets,
     int globalDrinkDebt = 0,
@@ -51,6 +52,7 @@ class GameMessage {
       if (dayReport != null) 'dayReport': dayReport,
       if (privateMessages != null) 'privateMessages': privateMessages,
       'claimedPlayerIds': claimedPlayerIds,
+      'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
       if (gameHistory != null) 'gameHistory': gameHistory,
       if (deadPoolBets != null) 'deadPoolBets': deadPoolBets,
       'globalDrinkDebt': globalDrinkDebt,
@@ -111,9 +113,16 @@ class GameMessage {
     });
   }
 
-  factory GameMessage.playerJoin({required String joinCode}) {
+  factory GameMessage.playerJoin({
+    required String joinCode,
+    String? playerName,
+    String? uid,
+  }) {
     return GameMessage(type: 'player_join', payload: {
       'joinCode': joinCode,
+      if (playerName != null && playerName.trim().isNotEmpty)
+        'playerName': playerName.trim(),
+      if (uid != null && uid.trim().isNotEmpty) 'uid': uid.trim(),
     });
   }
 
@@ -137,11 +146,27 @@ class GameMessage {
     required String stepId,
     required String targetId,
     String? voterId,
+    String? actorId,
   }) {
     return GameMessage(type: 'player_action', payload: {
       'stepId': stepId,
       'targetId': targetId,
       if (voterId != null) 'voterId': voterId,
+      if (actorId != null) 'actorId': actorId,
+    });
+  }
+
+  factory GameMessage.actionResult({
+    required String stepId,
+    required String actorId,
+    required String targetId,
+    required String resultText,
+  }) {
+    return GameMessage(type: 'action_result', payload: {
+      'stepId': stepId,
+      'actorId': actorId,
+      'targetId': targetId,
+      'resultText': resultText,
     });
   }
 
@@ -177,6 +202,12 @@ class GameMessage {
       {required List<String> claimedPlayerIds}) {
     return GameMessage(type: 'player_reconnect', payload: {
       'claimedPlayerIds': claimedPlayerIds,
+    });
+  }
+
+  factory GameMessage.playerRoleConfirm({required String playerId}) {
+    return GameMessage(type: 'player_role_confirm', payload: {
+      'playerId': playerId,
     });
   }
 

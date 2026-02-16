@@ -2,15 +2,15 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart';
 import 'package:cb_player/cloud_player_bridge.dart';
+import 'package:cb_player/auth/auth_provider.dart';
 import 'package:cb_player/player_bridge.dart';
 import 'package:cb_player/join_link_state.dart';
-import 'package:cb_player/player_stats.dart';
 import 'package:cb_theme/cb_theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/custom_drawer.dart';
-import 'games_night_screen.dart';
 
 enum PlayerSyncMode { local, cloud }
 
@@ -27,7 +27,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Connection State
   PlayerSyncMode _mode = PlayerSyncMode.cloud;
   final TextEditingController _joinCodeController = TextEditingController();
-  final TextEditingController _hostIpController = TextEditingController(text: 'ws://192.168.1.');
+  final TextEditingController _hostIpController =
+      TextEditingController(text: 'ws://192.168.1.');
   String? _connectionError;
   bool _isConnecting = false;
 
@@ -82,6 +83,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return '${compact.substring(0, 4)}-${compact.substring(4)}';
   }
 
+  Future<String> _resolveJoinIdentity() async {
+    final authState = ref.read(authProvider);
+    final user = authState.user ?? FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return 'Player';
+    }
+
+    try {
+      final profile = await FirebaseFirestore.instance
+          .collection('user_profiles')
+          .doc(user.uid)
+          .get();
+      final profileData = profile.data();
+      final username = (profileData?['username'] as String?)?.trim();
+      if (username != null && username.isNotEmpty) {
+        return username;
+      }
+    } catch (_) {
+      // Fall through to displayName/default.
+    }
+
+    final displayName = user.displayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
+
+    return 'Player';
+  }
+
   Future<void> _connect() async {
     setState(() {
       _connectionError = null;
@@ -92,6 +122,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     FocusScope.of(context).unfocus();
 
     final code = _normalizeJoinCode(_joinCodeController.text);
+    _joinCodeController.text = code;
     if (code.length != 11) {
       setState(() {
         _connectionError = 'INVALID CODE FORMAT (XXXX-XXXXXX)';
@@ -100,269 +131,160 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return;
     }
 
+    // Attempt connection
     try {
-      if (_mode == PlayerSyncMode.cloud) {
-        await ref.read(playerBridgeProvider.notifier).disconnect();
-        await ref.read(cloudPlayerBridgeProvider.notifier).joinWithCode(code);
-      } else {
-        await ref.read(cloudPlayerBridgeProvider.notifier).disconnect();
-        final bridge = ref.read(playerBridgeProvider.notifier);
-        final url = _hostIpController.text.trim();
-        if (!url.startsWith('ws')) {
-           setState(() {
-            _connectionError = 'INVALID HOST URL';
-            _isConnecting = false;
+      final playerName = await _resolveJoinIdentity();
+
+      if (_mode == PlayerSyncMode.local) {
+        final host = _hostIpController.text.trim();
+        if (host.isEmpty) {
+          setState(() {
+            _connectionError = 'HOST IP/ADDRESS CANNOT BE EMPTY';
           });
           return;
         }
-        await bridge.connect(url);
-        bridge.joinWithCode(code);
+        await ref.read(cloudPlayerBridgeProvider.notifier).disconnect();
+        await ref.read(playerBridgeProvider.notifier).connect(host);
+        await ref
+            .read(playerBridgeProvider.notifier)
+            .joinGame(code, playerName);
+      } else {
+        await ref.read(playerBridgeProvider.notifier).disconnect();
+        await ref
+            .read(cloudPlayerBridgeProvider.notifier)
+            .joinGame(code, playerName);
       }
     } catch (e) {
+      setState(() {
+        _connectionError = e.toString();
+      });
+    } finally {
       if (mounted) {
         setState(() {
-          _connectionError = e.toString().replaceAll('Exception:', '').trim();
           _isConnecting = false;
         });
       }
     }
-
-    // Note: If successful, GameRouter handles navigation.
-    // If we are still here after a few seconds without navigation, it might have failed silently or is waiting.
-    // We rely on bridge state updates for success.
-    if (mounted) {
-       Future.delayed(const Duration(seconds: 5), () {
-         if (mounted && _isConnecting) {
-           setState(() => _isConnecting = false);
-         }
-       });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final ref = this.ref;
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
-    ref.listen(playerBridgeProvider, (prev, next) {
-      if (next.joinError != null || next.joinAccepted) {
-        if (_isConnecting) setState(() => _isConnecting = false);
-      }
-    });
-
-    ref.listen(cloudPlayerBridgeProvider, (prev, next) {
-      if (next.joinError != null || next.joinAccepted) {
-        if (_isConnecting) setState(() => _isConnecting = false);
-      }
-    });
-
-    // Handle deep links
-    final pendingJoinUrl = ref.watch(pendingJoinUrlProvider);
-    if (pendingJoinUrl != null && pendingJoinUrl.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _applyPendingJoinUrl(pendingJoinUrl);
+    // Listen for pending join URL
+    ref.listen<String?>(pendingJoinUrlProvider, (prev, next) {
+      if (next != null) {
+        _applyPendingJoinUrl(next);
         ref.read(pendingJoinUrlProvider.notifier).setValue(null);
-      });
-    }
+      }
+    });
 
-    // Bridge error states
-    final cloudState = ref.watch(cloudPlayerBridgeProvider);
-    final localState = ref.watch(playerBridgeProvider);
-    final bridgeError = _mode == PlayerSyncMode.cloud ? cloudState.joinError : localState.joinError;
-    final displayError = _connectionError ?? bridgeError;
-
-    // Stats for header
-    final stats = ref.watch(playerStatsProvider);
-
-    return CBPrismScaffold(
-      title: 'CLUB LOBBY',
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: Text(
+          'JOIN A GAME',
+          style: textTheme.titleLarge!,
+        ),
+        centerTitle: true,
+      ),
       drawer: const CustomDrawer(),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6, vertical: CBSpace.x6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── HEADER STATS ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildMiniStat('GAMES', '${stats.gamesPlayed}', scheme.primary),
-                const SizedBox(width: 24),
-                _buildMiniStat('WINS', '${stats.gamesWon}', scheme.tertiary),
-              ],
-            ),
-            const SizedBox(height: CBSpace.x8),
-
-            // ── JOIN CARD ──
-            CBGlassTile(
-              title: "JOIN SESSION",
-              subtitle: _mode == PlayerSyncMode.cloud ? "CLOUD SYNC" : "LOCAL NETWORK",
-              accentColor: scheme.primary,
-              isPrismatic: true,
-              icon: Icon(_mode == PlayerSyncMode.cloud ? Icons.cloud : Icons.wifi, color: scheme.primary),
-              content: Column(
+      body: CBNeonBackground(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Mode Toggle
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(12),
+                  Text(
+                    'CLUB BLACKOUT',
+                    textAlign: TextAlign.center,
+                    style: textTheme.displayMedium!.copyWith(
+                      color: scheme.primary,
+                      letterSpacing: 4,
+                      fontWeight: FontWeight.w900,
+                      shadows: CBColors.textGlow(scheme.primary),
                     ),
-                    child: Row(
+                  ),
+                  const SizedBox(height: 48),
+                  CBPanel(
+                    borderColor: scheme.primary.withValues(alpha: 0.4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
-                          child: _ModeTab(
-                            label: 'CLOUD',
-                            selected: _mode == PlayerSyncMode.cloud,
-                            onTap: () => setState(() => _mode = PlayerSyncMode.cloud),
-                          ),
+                        _buildSyncModeSelector(context),
+                        const SizedBox(height: 24),
+                        CBTextField(
+                          controller: _joinCodeController,
+                          hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
+                          textCapitalization: TextCapitalization.characters,
                         ),
-                        Expanded(
-                          child: _ModeTab(
-                            label: 'LOCAL',
-                            selected: _mode == PlayerSyncMode.local,
-                            onTap: () => setState(() => _mode = PlayerSyncMode.local),
+                        if (_mode == PlayerSyncMode.local) ...[
+                          const SizedBox(height: 16),
+                          CBTextField(
+                            controller: _hostIpController,
+                            hintText:
+                                'HOST IP ADDRESS (E.G. WS://192.168.1.100)',
+                            keyboardType: TextInputType.url,
                           ),
-                        ),
+                        ],
+                        const SizedBox(height: 24),
+                        if (_isConnecting)
+                          const Center(child: CBBreathingLoader())
+                        else
+                          CBPrimaryButton(
+                            label: 'CONNECT TO HOST',
+                            onPressed: _connect,
+                          ),
+                        if (_connectionError != null) ...[
+                          const SizedBox(height: 16),
+                          Text(
+                            _connectionError!,
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodySmall!
+                                .copyWith(color: scheme.error),
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-
-                  // Host IP (Local Only)
-                  if (_mode == PlayerSyncMode.local) ...[
-                    CBTextField(
-                      controller: _hostIpController,
-                      hintText: 'HOST IP (ws://...)',
-                      decoration: const InputDecoration(
-                        labelText: 'HOST ADDRESS',
-                        prefixIcon: Icon(Icons.computer),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Join Code
-                  CBTextField(
-                    controller: _joinCodeController,
-                    hintText: 'XXXX-XXXXXX',
-                    textStyle: CBTypography.code.copyWith(
-                      fontSize: 20,
-                      letterSpacing: 4,
-                    ),
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      labelText: 'ACCESS CODE',
-                      prefixIcon: Icon(Icons.key),
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
-                      _JoinCodeFormatter(),
-                    ],
-                    onSubmitted: (_) => _connect(),
-                  ),
-
-                  if (displayError != null) ...[
-                    const SizedBox(height: 16),
-                    Text(
-                      displayError.toUpperCase(),
-                      style: textTheme.labelSmall?.copyWith(
-                        color: scheme.error,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-
-                  const SizedBox(height: 24),
-
-                  if (_isConnecting)
-                    const Center(child: CBBreathingSpinner(size: 32))
-                  else
-                    CBPrimaryButton(label: "CONNECT", onPressed: _connect),
                 ],
               ),
             ),
-
-            const SizedBox(height: CBSpace.x6),
-
-            // ── HISTORY BUTTON ──
-            CBGhostButton(
-              label: 'VIEW HISTORY',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const GamesNightScreen()),
-                );
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildMiniStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(value, style: CBTypography.h2.copyWith(color: color)),
-        Text(label, style: CBTypography.micro.copyWith(letterSpacing: 1.5)),
-      ],
-    );
-  }
-}
-
-class _ModeTab extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _ModeTab({required this.label, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSyncModeSelector(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? scheme.primary.withValues(alpha: 0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: selected ? scheme.primary.withValues(alpha: 0.5) : Colors.transparent,
+    return Row(
+      children: [
+        Expanded(
+          child: CBFilterChip(
+            label: 'CLOUD',
+            icon: Icons.cloud,
+            selected: _mode == PlayerSyncMode.cloud,
+            onSelected: () => setState(() => _mode = PlayerSyncMode.cloud),
+            color: _mode == PlayerSyncMode.cloud ? scheme.primary : null,
           ),
         ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: CBTypography.labelSmall.copyWith(
-            color: selected ? scheme.primary : scheme.onSurface.withValues(alpha: 0.5),
-            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+        const SizedBox(width: 16),
+        Expanded(
+          child: CBFilterChip(
+            label: 'LOCAL',
+            icon: Icons.wifi,
+            selected: _mode == PlayerSyncMode.local,
+            onSelected: () => setState(() => _mode = PlayerSyncMode.local),
+            color: _mode == PlayerSyncMode.local ? scheme.primary : null,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _JoinCodeFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    var text = newValue.text.toUpperCase().replaceAll('-', '');
-    if (text.length > 10) text = text.substring(0, 10);
-    var newText = '';
-    for (var i = 0; i < text.length; i++) {
-      if (i == 4) newText += '-';
-      newText += text[i];
-    }
-    return TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newText.length),
+      ],
     );
   }
 }
