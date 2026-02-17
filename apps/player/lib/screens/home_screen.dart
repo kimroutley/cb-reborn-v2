@@ -10,7 +10,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/custom_drawer.dart';
 
 enum PlayerSyncMode { local, cloud }
 
@@ -45,6 +44,9 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  static const Duration _connectAttemptTimeout = Duration(seconds: 12);
+  static const Duration _profileLookupTimeout = Duration(seconds: 5);
+
   StreamSubscription<Uri>? _linkSub;
   static const Duration _joinUrlDebounceWindow = Duration(seconds: 2);
   String? _lastHandledJoinUrl;
@@ -139,7 +141,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final profile = await FirebaseFirestore.instance
           .collection('user_profiles')
           .doc(user.uid)
-          .get();
+          .get()
+          .timeout(_profileLookupTimeout);
       final profileData = profile.data();
       final username = (profileData?['username'] as String?)?.trim();
       if (username != null && username.isNotEmpty) {
@@ -197,17 +200,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           });
           return;
         }
-        await ref.read(cloudPlayerBridgeProvider.notifier).disconnect();
-        await ref.read(playerBridgeProvider.notifier).connect(host);
-        await ref
-            .read(playerBridgeProvider.notifier)
-            .joinGame(code, playerName);
-      } else {
-        await ref.read(playerBridgeProvider.notifier).disconnect();
         await ref
             .read(cloudPlayerBridgeProvider.notifier)
-            .joinGame(code, playerName);
+            .disconnect()
+            .timeout(_connectAttemptTimeout);
+        await ref
+            .read(playerBridgeProvider.notifier)
+            .connect(host)
+            .timeout(_connectAttemptTimeout);
+        await ref
+            .read(playerBridgeProvider.notifier)
+            .joinGame(code, playerName)
+            .timeout(_connectAttemptTimeout);
+      } else {
+        await ref
+            .read(playerBridgeProvider.notifier)
+            .disconnect()
+            .timeout(_connectAttemptTimeout);
+        await ref
+            .read(cloudPlayerBridgeProvider.notifier)
+            .joinGame(code, playerName)
+            .timeout(_connectAttemptTimeout);
       }
+    } on TimeoutException {
+      setState(() {
+        _connectionError =
+            'CONNECTION TIMED OUT. PLEASE CHECK YOUR NETWORK AND TRY AGAIN.';
+      });
     } catch (e) {
       setState(() {
         _connectionError = e.toString();
@@ -255,7 +274,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         centerTitle: true,
       ),
-      drawer: const CustomDrawer(),
       body: Stack(
         children: [
           CBNeonBackground(
@@ -288,8 +306,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             CBTextField(
                               controller: _joinCodeController,
                               hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
-                              textCapitalization:
-                                  TextCapitalization.characters,
+                              textCapitalization: TextCapitalization.characters,
                             ),
                             if (_mode == PlayerSyncMode.local) ...[
                               const SizedBox(height: 16),
