@@ -198,6 +198,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_firebase.ps1 -SkipBuil
 ```
 
 Notes:
+
 - Script uses `GOOGLE_APPLICATION_CREDENTIALS` if set.
 - If not set, it automatically falls back to `.secrets/firebase-adminsdk.json`.
 - Requires Firebase CLI (`npm install -g firebase-tools`).
@@ -229,9 +230,8 @@ The nervous system.
 ## ✅ Latest Updates (Feb 2026)
 
 - **Autonomous Bots:** Added capability to add bot players in Lobby and simulate their turns in Game Control. Useful for solo testing and filling rosters.
-- **Streamlined Auth & Onboarding:**
-    - **Player App:** "Guest List Check" -> "VIP Pass" flow. Merged connection screen into Home for a seamless "Lobby" feel.
-    - **Host App:** "Biometric Security" -> "Manager License" flow.
+- **Streamlined Auth & Onboarding (Player):** "Guest List Check" -> "VIP Pass" flow. Merged connection screen into Home for a seamless "Lobby" feel.
+- **Streamlined Auth & Onboarding (Host):** "Biometric Security" -> "Manager License" flow.
 - **Navigation Overhaul:** Host App now uses a robust `NavigationDrawer` with Riverpod state management, eliminating "double scaffold" visual bugs.
 - **Club Bible Polish:** The "Operatives" tab now uses the high-fidelity `CBRoleIDCard` widget for a consistent visual identity.
 - **Prismatic/Shimmer UI:** `CBGlassTile(isPrismatic: true)` enables the animated oil-slick overlay (“The Shimmer”).
@@ -241,8 +241,8 @@ The nervous system.
 
 - **Ghost Lounge + Dead Pool** (full player + host experience integration)
 - **Multi-slot save system** (beyond single active recovery save)
-- **Release signing** (proper keystore + CI build artifacts)
-- **Host parity checklist** (canonical list lives in `AGENT_CONTEXT.md`)
+- **Real-device multiplayer validation** (local/cloud/mode-switch/deep-link checklist)
+- **Role mechanics parity audit** against `COMPREHENSIVE_ROLE_MECHANICS.md`
 
 ## 🤝 Contributing
 

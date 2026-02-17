@@ -190,3 +190,215 @@ Date: 2026-02-13
 - Host release APK build: PASS.
 - Player release web build: PASS.
 - Current blocking issues for auth/onboarding flow: none found in build/analyze validation.
+
+22) Setup + Release + CI Follow-Through (Feb 17, 2026)
+- Manual role assignment UX in Host Lobby now includes drag-and-drop assignment cards.
+  - file: apps/host/lib/screens/lobby_screen.dart
+- Host Android release signing setup documentation is now standardized.
+  - file: apps/host/android/key.properties.example
+  - file: apps/host/README.md
+- CI now includes host/player analyzer coverage, host release build hardening, and runtime optimizations.
+  - file: .github/workflows/ci-cd.yml
+  - Improvements include concurrency cancellation, pub/flutter caching, updated action versions,
+    and iOS build only on push events.
+
+23) What Is Actually Still Open (Current)
+- MANUAL ONLY: Real-device multiplayer execution checklist in section 15/19 remains pending.
+- OPS ONLY: Configure production GitHub secrets for host Android signing on `main`:
+  - HOST_ANDROID_KEYSTORE_BASE64
+  - HOST_ANDROID_STORE_PASSWORD
+  - HOST_ANDROID_KEY_ALIAS
+  - HOST_ANDROID_KEY_PASSWORD
+- PRODUCT/POLISH: Ghost Lounge + Dead Pool end-to-end parity and multi-slot save system remain roadmap tasks.
+
+24) Suggested Next Engineering Slice
+- Run a role-mechanics parity pass using `COMPREHENSIVE_ROLE_MECHANICS.md` as source-of-truth and
+  verify each role action logs the expected private notification, host report string, and teaser behavior.
+
+25) Role Mechanics Parity Pass (Completed - Feb 17, 2026)
+- Scope completed in `packages/cb_logic/lib/src/night_actions/actions/`:
+  - sober_action.dart
+  - roofi_action.dart
+  - bouncer_action.dart
+  - bartender_action.dart
+  - club_manager_action.dart
+  - messy_bitch_action.dart
+  - lightweight_action.dart
+  - dealer_action.dart
+  - attack_dog_action.dart
+  - messy_bitch_kill_action.dart
+  - medic_action.dart
+  - silver_fox_action.dart
+  - whore_action.dart
+- Aligned behavior to spreadsheet expectations for:
+  - private notifications
+  - public teasers (where required)
+  - host report phrasing
+- Validation:
+  - Updated test expectations in `packages/cb_logic/test/night_resolution_test.dart`
+  - Test run PASS:
+    - `packages/cb_logic/test/night_resolution_test.dart`
+    - `packages/cb_logic/test/game_resolution_logic_test.dart`
+
+26) Remaining Work (Current)
+- Manual real-device multiplayer checklist execution remains pending (sections 15/19).
+- GitHub production signing secrets must be configured in repository settings for strict `main` release enforcement.
+
+27) Manual Multiplayer Verification Matrix (Refreshed - Feb 17, 2026)
+- Environment preflight
+  - `flutter devices`: available in this environment (Windows/Chrome/Edge reported in prior checks)
+  - Host desktop launch attempt: BLOCKED
+    - command: `cd apps/host ; flutter run -d windows`
+    - result: `Unable to find suitable Visual Studio toolchain. Please run flutter doctor for more details.`
+
+- Checklist status
+  1. Host cloud QR payload (`mode=cloud` + `code`)
+     - Status: PASS (code-verified)
+     - Evidence: `apps/host/lib/widgets/lobby/lobby_access_code_tile.dart`
+       - `.../join?mode=cloud&sid=...&code=...`
+
+  2. Host local QR payload (`mode=local` + encoded `host` + `code`)
+     - Status: PASS (code-verified)
+     - Evidence: same file
+       - encodes `ws://ip:port` into `host` query param and includes `mode=local`
+
+  3. Player join URL parser supports cloud/local payload and host decode
+     - Status: PASS (code-verified)
+     - Evidence: `apps/player/lib/screens/connect_screen.dart`
+       - `_tryApplyJoinUrl` parses `mode`, `code`, `host` and decodes local host URL
+
+  4. Host mode switch is transport-exclusive
+     - Status: PASS (code-verified)
+     - Evidence: `apps/host/lib/widgets/lobby/lobby_config_tile.dart`
+       - `_setSyncMode` stops inactive bridge before starting selected bridge
+
+  5. Player mode switch/connect disconnects non-selected transport first
+     - Status: PASS (code-verified)
+     - Evidence: `apps/player/lib/screens/connect_screen.dart`
+       - `_switchMode` and `_connect` disconnect opposite bridge before use
+
+  6. Player bridge regression test coverage (state sync/join accepted path)
+     - Status: PASS (test-verified)
+     - command: `flutter test apps/player/test/player_bridge_test.dart`
+     - result: `15 passed, 0 failed`
+
+  7. Duplicate deep-link debounce + connect-sheet single-instance guard (live UX)
+     - Status: PASS (code + test verified), PENDING LIVE UX CONFIRMATION
+     - Implementation:
+       - `apps/player/lib/screens/home_screen.dart`
+         - explicit URL debounce window guard (`shouldAcceptJoinUrlEvent`)
+         - ignore pending join URL while already connected outside lobby
+       - `apps/player/lib/screens/connect_screen.dart`
+         - `_navigatingToClaim` guard to prevent duplicate claim-screen pushes
+         - explicit claim-navigation predicate (`shouldNavigateToClaim`)
+     - Tests:
+       - `apps/player/test/join_link_debounce_test.dart` (new)
+       - `apps/player/test/connect_screen_navigation_guard_test.dart` (new)
+       - `apps/player/test/player_bridge_test.dart`
+       - latest run: PASS (`23 passed, 0 failed` across targeted tests)
+
+28) Operator Next Steps (Unblocked Sequence)
+1. Install/repair Visual Studio C++ Desktop toolchain required by Flutter Windows.
+2. Re-run host app locally: `cd apps/host ; flutter run -d windows`.
+3. Run player app on browser/device and execute checklist sections 15/19 end-to-end.
+4. Record PASS/FAIL outcomes per scenario directly under section 27.
+
+29) Runtime Workaround Verified (Latest)
+- Chrome attach path is still unreliable in this environment (`Failed to connect to Chrome instance` after DevTools endpoint appears).
+- Verified fallback: run both apps on Flutter `web-server` targets.
+  - Player: `cd apps/player ; flutter run -d web-server --web-port=5000`
+  - Host: `cd apps/host ; flutter run -d web-server --web-port=5001`
+- Health checks (executed):
+  - `http://localhost:5000` -> HTTP 200
+  - `http://localhost:5001` -> HTTP 200
+- Use this fallback for manual multiplayer UX checks when Windows desktop toolchain or Chrome attach are blocked.
+
+30) Manual Multiplayer Verification (Live Pass Started - Feb 17, 2026)
+- Preflight runtime status: PASS
+  - Player endpoint `http://localhost:5000` returned 200
+  - Host endpoint `http://localhost:5001` returned 200
+
+- Interactive scenarios (execute in browser windows and mark outcome):
+  1. Cloud join URL flow
+     - Generate cloud QR on Host
+     - Open URL in Player
+     - Expected: code prefilled, claim occurs once, lobby join succeeds
+     - Status: PENDING MANUAL
+
+  2. Local join URL flow
+     - Switch Host to local mode and generate local QR/URL
+     - Open URL in Player
+     - Expected: host endpoint auto-filled/decoded, join succeeds
+     - Status: PENDING MANUAL
+
+  3. Mode switch robustness
+     - With a joined player, toggle LOCAL -> CLOUD -> LOCAL in Host lobby
+     - Expected: no duplicate join events, no stale bridge updates
+     - Status: PENDING MANUAL
+
+  4. Deep-link duplicate suppression
+     - While Player app is open, trigger same join link multiple times quickly
+     - Expected: no stacked connect sheets, no duplicate claim navigation
+     - Status: PENDING MANUAL
+
+31) Automated Checklist Coverage Expansion (Feb 17, 2026)
+- Added shared host sync orchestration helper:
+  - `apps/host/lib/sync_mode_runtime.dart`
+  - `syncHostBridgesForMode(...)` enforces exclusive bridge transitions:
+    - cloud mode: stop local -> start cloud
+    - local mode: stop cloud -> start local
+- Host callsites now use shared helper:
+  - `apps/host/lib/screens/host_home_shell.dart`
+  - `apps/host/lib/widgets/lobby/lobby_config_tile.dart`
+- Added focused host unit tests:
+  - `apps/host/test/sync_mode_runtime_test.dart`
+  - verifies stop/start order for both cloud and local transitions
+
+- Latest targeted regression test run: PASS
+  - `apps/host/test/sync_mode_runtime_test.dart`
+  - `apps/player/test/join_link_debounce_test.dart`
+  - `apps/player/test/connect_screen_navigation_guard_test.dart`
+  - Result: 10 passed, 0 failed
+
+- Remaining truly manual checks are now narrowed to browser/device interaction UX only
+  (QR scan flow and in-session repeated-link behavior under real user interaction).
+
+32) Join URL Parser Coverage Added (Feb 17, 2026)
+- Extracted pure parser/normalizer helpers in player connect flow:
+  - `apps/player/lib/screens/connect_screen.dart`
+  - `parseJoinUrlPayload(raw)`
+  - `normalizeJoinCode(value)`
+- `ConnectScreen._tryApplyJoinUrl(...)` now consumes parsed payload (behavior preserved, testable).
+
+- Added focused parser tests:
+  - `apps/player/test/join_url_parser_test.dart`
+  - Covers:
+    - cloud URL parsing + code normalization
+    - local URL parsing + host decode
+    - invalid/missing-code URL rejection
+    - unknown mode behavior (parse code, mode unset)
+
+- Latest targeted player regression run: PASS
+  - `apps/player/test/join_url_parser_test.dart`
+  - `apps/player/test/join_link_debounce_test.dart`
+  - `apps/player/test/connect_screen_navigation_guard_test.dart`
+  - Result: 15 passed, 0 failed
+
+33) Consolidated Targeted Verification + Commit Prep (Feb 17, 2026)
+- Consolidated targeted host+player run: PASS
+  - `apps/host/test/sync_mode_runtime_test.dart`
+  - `apps/host/test/host_bridge_test.dart`
+  - `apps/player/test/join_url_parser_test.dart`
+  - `apps/player/test/join_link_debounce_test.dart`
+  - `apps/player/test/connect_screen_navigation_guard_test.dart`
+  - Result: 25 passed, 0 failed
+
+- Commit split helper updated and verified in dry-run:
+  - file: `scripts/commit_split.ps1`
+  - Group 1 now includes `apps/player/test/join_url_parser_test.dart`
+  - Group 3 now includes host sync runtime files/tests:
+    - `apps/host/lib/screens/host_home_shell.dart`
+    - `apps/host/lib/widgets/lobby/lobby_config_tile.dart`
+    - `apps/host/lib/sync_mode_runtime.dart`
+    - `apps/host/test/sync_mode_runtime_test.dart`
+  - Dry-run completed successfully and repository state remained unchanged.

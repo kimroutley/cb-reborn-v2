@@ -1,6 +1,6 @@
 # Club Blackout Reborn: Developer Handbook
 
-> **Last Updated:** February 13, 2026 (Documentation Update & Tech Context)
+> **Last Updated:** February 17, 2026 (Stabilization + CI/Release Hardening)
 > **Project Location:** `C:\Club Blackout Reborn\`
 > **Technical Reference:** See [`AGENT_CONTEXT.md`](./AGENT_CONTEXT.md) for deep technical details, build order, and known issues.
 
@@ -102,13 +102,21 @@ cd ../../apps/host ; dart run build_runner build --delete-conflicting-outputs
 - [x] **Club Bible Polish**: Updated "Operatives" list to use high-fidelity ID Cards.
 - [x] **Antagonistic AI Overhaul**: 5 selectable pragmatic host personalities.
 - [x] **Unified Auth**: Google Sign-In + Moniker Gate implemented for Host & Player.
+- [x] **Manual Setup UX**: Host manual role assignment upgraded to drag-and-drop in Lobby setup.
+- [x] **Release Hardening**: Host Android signing template + CI host release artifact path added.
+- [x] **CI Optimization**: Workflow concurrency/caching/action-version refresh to reduce pipeline runtime.
 
-### Build Status (Feb 13, 2026)
+### Build Status (Feb 17, 2026)
 
 | App | Status | Notes |
 | :--- | :--- | :--- |
 | **Host** | ✅ Verified | 0 Analyzer errors. Build successful. |
 | **Player** | ✅ Verified | Auth parity with Host. 0 Analyzer errors. |
+
+### Remaining Manual Validation
+
+- [ ] Real-device multiplayer checklist execution (QR scan, deep-link runtime, local/cloud switching under active lobby)
+- [ ] Release-signing secret provisioning in GitHub environment for `main` branch enforcement
 
 ---
 
