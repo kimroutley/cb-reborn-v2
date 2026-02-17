@@ -8,6 +8,8 @@ import 'join_link_state.dart';
 
 import 'firebase_options.dart';
 import 'screens/game_router.dart';
+import 'screens/stats_screen.dart';
+import 'screens/hall_of_fame_screen.dart';
 import 'widgets/effects_overlay.dart';
 
 Future<void> main() async {
@@ -38,41 +40,43 @@ Future<void> main() async {
     runApp(MaterialApp(
       theme: theme,
       debugShowCheckedModeBanner: false,
-      home: CBPrismScaffold(
-        title: '',
-        showAppBar: false,
-        body: Center(
-          child: Padding(
-            padding: CBInsets.panel,
-            child: CBPanel(
-              borderColor: scheme.error,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.error_outline, color: scheme.error, size: 48),
-                  const SizedBox(height: CBSpace.x4),
-                  Text(
-                    'Club Blackout Failed to Load',
-                    style: CBTypography.h2.copyWith(color: scheme.onSurface),
-                    textAlign: TextAlign.center,
+      home: Scaffold(
+        body: CBNeonBackground(
+          child: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: CBInsets.panel,
+                child: CBPanel(
+                  borderColor: scheme.error,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error_outline, color: scheme.error, size: 48),
+                      const SizedBox(height: CBSpace.x4),
+                      Text(
+                        'Club Blackout Failed to Load',
+                        style: CBTypography.h2.copyWith(color: scheme.onSurface),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: CBSpace.x2),
+                      Text(
+                        'Error: $e',
+                        style: CBTypography.body.copyWith(
+                          color: scheme.error,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: CBSpace.x6),
+                      Text(
+                        "Troubleshooting:\n1. Ensure Google authentication is enabled in Firebase Console.\n2. Verify Firestore rules allow user_profiles/{uid} create/read.",
+                        style: CBTypography.body.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: CBSpace.x2),
-                  Text(
-                    'Error: $e',
-                    style: CBTypography.body.copyWith(
-                      color: scheme.error,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: CBSpace.x6),
-                  Text(
-                    "Troubleshooting:\n1. Ensure Google authentication is enabled in Firebase Console.\n2. Verify Firestore rules allow user_profiles/{uid} create/read.",
-                    style: CBTypography.body.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.7),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -106,6 +110,10 @@ class PlayerApp extends ConsumerWidget {
           return MaterialApp(
             title: 'Club Blackout: PLAYER',
             theme: CBTheme.buildTheme(scheme),
+            routes: {
+              '/stats': (context) => const StatsScreen(),
+              '/hall-of-fame': (context) => const HallOfFameScreen(),
+            },
             home: PlayerAuthScreen(
               child: const EffectsOverlay(child: GameRouter()),
             ),

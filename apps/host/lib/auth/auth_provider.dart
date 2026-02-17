@@ -6,7 +6,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'auth_service.dart';
 import 'user_repository.dart';
 
@@ -46,9 +45,6 @@ enum AuthStatus {
 }
 
 class AuthNotifier extends Notifier<AuthState> {
-  late final FirebaseAuth _auth;
-  late final FirebaseFirestore _firestore;
-  GoogleSignIn? _googleSignIn;
   late final AppLinks _appLinks;
   late final FlutterSecureStorage _storage;
   late final AuthService _authService;
@@ -64,8 +60,6 @@ class AuthNotifier extends Notifier<AuthState> {
 
   @override
   AuthState build() {
-    _auth = ref.watch(firebaseAuthProvider);
-    _firestore = ref.watch(firestoreProvider);
     _appLinks = ref.watch(appLinksProvider);
     _storage = ref.watch(secureStorageProvider);
     _authService = ref.watch(authServiceProvider);
@@ -213,8 +207,10 @@ class AuthNotifier extends Notifier<AuthState> {
     }
 
     try {
-      final userCredential =
-          await _auth.signInWithEmailLink(email: email, emailLink: link);
+      final userCredential = await _authService.signInWithEmailLink(
+        email: email,
+        emailLink: link,
+      );
       await _storage.delete(key: _pendingEmailKey);
       if (userCredential.user != null) {
         final hasProfile =

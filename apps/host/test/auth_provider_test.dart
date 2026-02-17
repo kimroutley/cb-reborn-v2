@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:cb_host/auth/auth_provider.dart';
+import 'package:cb_host/auth/auth_service.dart';
+import 'package:cb_host/auth/user_repository.dart';
 
 // ignore_for_file: subtype_of_sealed_class
 
@@ -90,6 +92,62 @@ class FakeFirebaseAuth extends Fake implements FirebaseAuth {
   User? get currentUser => null;
 }
 
+class FakeAuthService extends Fake implements AuthService {
+  final StreamController<User?> _authStateController =
+      StreamController<User?>.broadcast();
+
+  @override
+  Stream<User?> get authStateChanges => _authStateController.stream;
+
+  @override
+  User? get currentUser => null;
+
+  @override
+  Future<void> sendSignInLinkToEmail({
+    required String email,
+    required ActionCodeSettings actionCodeSettings,
+  }) async {}
+
+  @override
+  bool isSignInWithEmailLink(String link) {
+    return link.contains('signIn');
+  }
+
+  @override
+  Future<UserCredential> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  }) async {
+    return FakeUserCredential();
+  }
+
+  @override
+  Future<UserCredential> signInWithGoogle() async {
+    return FakeUserCredential();
+  }
+
+  @override
+  Future<void> signOut() async {
+    await _authStateController.close();
+  }
+
+  void dispose() {
+    _authStateController.close();
+  }
+}
+
+class FakeUserRepository extends Fake implements UserRepository {
+  @override
+  Future<bool> hasProfile(String uid) async => false;
+
+  @override
+  Future<void> createProfile({
+    required String uid,
+    required String username,
+    required String? email,
+  }) async {}
+}
+
 class FakeUserCredential extends Fake implements UserCredential {
   @override
   User? get user => FakeUser();
@@ -155,12 +213,20 @@ void main() {
   late FakeFirebaseAuth mockAuth;
   late FakeFirebaseFirestore mockFirestore;
   late FakeAppLinks mockAppLinks;
+  late FakeAuthService fakeAuthService;
+  late FakeUserRepository fakeUserRepository;
 
   setUp(() {
     mockStorage = FakeFlutterSecureStorage();
     mockAuth = FakeFirebaseAuth();
     mockFirestore = FakeFirebaseFirestore();
     mockAppLinks = FakeAppLinks();
+    fakeAuthService = FakeAuthService();
+    fakeUserRepository = FakeUserRepository();
+  });
+
+  tearDown(() {
+    fakeAuthService.dispose();
   });
 
   test('sendSignInLink writes email to secure storage', () async {
@@ -170,6 +236,8 @@ void main() {
         firebaseAuthProvider.overrideWithValue(mockAuth),
         firestoreProvider.overrideWithValue(mockFirestore),
         appLinksProvider.overrideWithValue(mockAppLinks),
+        authServiceProvider.overrideWithValue(fakeAuthService),
+        userRepositoryProvider.overrideWithValue(fakeUserRepository),
       ],
     );
     addTearDown(container.dispose);
@@ -194,6 +262,8 @@ void main() {
         firebaseAuthProvider.overrideWithValue(mockAuth),
         firestoreProvider.overrideWithValue(mockFirestore),
         appLinksProvider.overrideWithValue(mockAppLinks),
+        authServiceProvider.overrideWithValue(fakeAuthService),
+        userRepositoryProvider.overrideWithValue(fakeUserRepository),
       ],
     );
     addTearDown(container.dispose);

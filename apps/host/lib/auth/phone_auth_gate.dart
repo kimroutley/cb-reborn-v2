@@ -275,120 +275,126 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
           final isSignInLink =
               FirebaseAuth.instance.isSignInWithEmailLink(currentLink);
 
-          return CBPrismScaffold(
-            title: 'HOST COMMAND',
-            body: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    CBFadeSlide(
-                      key: const ValueKey('host_login_header'),
-                      child: Column(
-                        children: [
-                          Icon(Icons.vpn_key_rounded,
-                              color: scheme.primary, size: 64),
-                          const SizedBox(height: 24),
-                          Text(
-                            'ESTABLISH IDENTITY',
-                            style: textTheme.displaySmall!.copyWith(
-                              color: scheme.primary,
-                              letterSpacing: 4,
-                              fontWeight: FontWeight.w900,
-                              shadows: CBColors.textGlow(scheme.primary),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'SECURE SIGN-IN REQUIRED FOR ${_selectedStyle!.label}',
-                            style: textTheme.labelSmall!.copyWith(
-                              color: scheme.onSurface.withValues(alpha: 0.4),
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    CBFadeSlide(
-                      key: const ValueKey('host_login_form'),
-                      delay: const Duration(milliseconds: 200),
-                      child: CBPanel(
-                        borderColor: scheme.primary.withValues(alpha: 0.4),
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('HOST COMMAND'),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
+            body: CBNeonBackground(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      CBFadeSlide(
+                        key: const ValueKey('host_login_header'),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            CBTextField(
-                              controller: _emailController,
-                              hintText: 'SECURE EMAIL ADDRESS',
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
-                                prefixIcon: Icon(Icons.email_outlined,
-                                    color: scheme.primary),
-                              ),
-                            ),
+                            Icon(Icons.vpn_key_rounded,
+                                color: scheme.primary, size: 64),
                             const SizedBox(height: 24),
-                            CBPrimaryButton(
-                              label: _isSendingLink
-                                  ? 'SENDING ENCRYPTED LINK...'
-                                  : (_isLinkSent
-                                      ? 'RESEND ACCESS LINK'
-                                      : 'SEND SIGN-IN LINK'),
-                              onPressed: (_isSendingLink || _isCompletingLink)
-                                  ? null
-                                  : _sendEmailLink,
+                            Text(
+                              'ESTABLISH IDENTITY',
+                              style: textTheme.displaySmall!.copyWith(
+                                color: scheme.primary,
+                                letterSpacing: 4,
+                                fontWeight: FontWeight.w900,
+                                shadows: CBColors.textGlow(scheme.primary),
+                              ),
                             ),
-                            if (isSignInLink) ...[
-                              const SizedBox(height: 16),
-                              CBGhostButton(
-                                label: 'COMPLETE AUTHENTICATION',
-                                onPressed: _isCompletingLink
-                                    ? null
-                                    : () => _completeEmailLinkSignIn(
-                                        currentLink, _emailController.text),
-                                color: scheme.tertiary,
+                            const SizedBox(height: 8),
+                            Text(
+                              'SECURE SIGN-IN REQUIRED FOR ${_selectedStyle!.label}',
+                              style: textTheme.labelSmall!.copyWith(
+                                color: scheme.onSurface.withValues(alpha: 0.4),
+                                letterSpacing: 1.5,
                               ),
-                            ],
-                            if (_isLinkSent) ...[
-                              const SizedBox(height: 16),
-                              Text(
-                                'SIGN-IN LINK SENT. CHECK YOUR EMAIL AND OPEN IT HERE.',
-                                textAlign: TextAlign.center,
-                                style: textTheme.bodySmall!.copyWith(
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.72),
-                                ),
-                              ),
-                            ],
-                            if (_error != null) ...[
-                              const SizedBox(height: 16),
-                              Text(
-                                _error!,
-                                textAlign: TextAlign.center,
-                                style: textTheme.bodySmall!
-                                    .copyWith(color: scheme.error),
-                              ),
-                            ],
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                    CBFadeSlide(
-                      key: const ValueKey('host_login_back'),
-                      delay: const Duration(milliseconds: 400),
-                      child: TextButton(
-                        onPressed: () => setState(() => _selectedStyle = null),
-                        child: Text(
-                          "CHANGE HOSTING PERSONALITY",
-                          style: textTheme.labelSmall!.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.3),
-                            letterSpacing: 1.0,
+                      const SizedBox(height: 48),
+                      CBFadeSlide(
+                        key: const ValueKey('host_login_form'),
+                        delay: const Duration(milliseconds: 200),
+                        child: CBPanel(
+                          borderColor: scheme.primary.withValues(alpha: 0.4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              CBTextField(
+                                controller: _emailController,
+                                hintText: 'SECURE EMAIL ADDRESS',
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(Icons.email_outlined,
+                                      color: scheme.primary),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              CBPrimaryButton(
+                                label: _isSendingLink
+                                    ? 'SENDING ENCRYPTED LINK...'
+                                    : (_isLinkSent
+                                        ? 'RESEND ACCESS LINK'
+                                        : 'SEND SIGN-IN LINK'),
+                                onPressed: (_isSendingLink || _isCompletingLink)
+                                    ? null
+                                    : _sendEmailLink,
+                              ),
+                              if (isSignInLink) ...[
+                                const SizedBox(height: 16),
+                                CBGhostButton(
+                                  label: 'COMPLETE AUTHENTICATION',
+                                  onPressed: _isCompletingLink
+                                      ? null
+                                      : () => _completeEmailLinkSignIn(
+                                          currentLink, _emailController.text),
+                                  color: scheme.tertiary,
+                                ),
+                              ],
+                              if (_isLinkSent) ...[
+                                const SizedBox(height: 16),
+                                Text(
+                                  'SIGN-IN LINK SENT. CHECK YOUR EMAIL AND OPEN IT HERE.',
+                                  textAlign: TextAlign.center,
+                                  style: textTheme.bodySmall!.copyWith(
+                                    color:
+                                        scheme.onSurface.withValues(alpha: 0.72),
+                                  ),
+                                ),
+                              ],
+                              if (_error != null) ...[
+                                const SizedBox(height: 16),
+                                Text(
+                                  _error!,
+                                  textAlign: TextAlign.center,
+                                  style: textTheme.bodySmall!
+                                      .copyWith(color: scheme.error),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 32),
+                      CBFadeSlide(
+                        key: const ValueKey('host_login_back'),
+                        delay: const Duration(milliseconds: 400),
+                        child: TextButton(
+                          onPressed: () => setState(() => _selectedStyle = null),
+                          child: Text(
+                            "CHANGE HOSTING PERSONALITY",
+                            style: textTheme.labelSmall!.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.3),
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -399,10 +405,10 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
           future: _loadProfile(user),
           builder: (context, profileSnapshot) {
             if (profileSnapshot.connectionState != ConnectionState.done) {
-              return const CBPrismScaffold(
-                title: '',
-                showAppBar: false,
-                body: Center(child: CBBreathingSpinner()),
+              return Scaffold(
+                body: CBNeonBackground(
+                  child: Center(child: CBBreathingSpinner()),
+                ),
               );
             }
 
@@ -412,60 +418,66 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
               return widget.child;
             }
 
-            return CBPrismScaffold(
-              title: 'IDENTITY REGISTRATION',
-              body: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: CBPanel(
-                    borderColor: scheme.secondary,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text('WELCOME, AGENT',
-                            style: textTheme.headlineSmall!
-                                .copyWith(color: scheme.secondary)),
-                        const SizedBox(height: 16),
-                        Text(
-                          'CHOOSE YOUR HOST MONIKER. THIS WILL BE YOUR PUBLIC IDENTITY IN THE CLUB.',
-                          style: textTheme.bodySmall!.copyWith(
-                              color: scheme.onSurface.withValues(alpha: 0.7)),
-                        ),
-                        const SizedBox(height: 32),
-                        CBTextField(
-                          controller: _usernameController,
-                          hintText: 'HOST USERNAME',
-                          decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.person_outline,
-                                color: scheme.secondary),
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-                        CBPrimaryButton(
-                          label: _isSavingUsername
-                              ? 'ENCRYPTING...'
-                              : 'SAVE IDENTITY',
-                          onPressed: _isSavingUsername
-                              ? null
-                              : () => _saveUsername(user),
-                        ),
-                        const SizedBox(height: 12),
-                        CBGhostButton(
-                          label: 'USE DIFFERENT ACCOUNT',
-                          onPressed: _signOut,
-                          color: scheme.tertiary,
-                        ),
-                        if (_error != null) ...[
-                          const SizedBox(height: 12),
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('IDENTITY REGISTRATION'),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+              ),
+              body: CBNeonBackground(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: CBPanel(
+                      borderColor: scheme.secondary,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text('WELCOME, AGENT',
+                              style: textTheme.headlineSmall!
+                                  .copyWith(color: scheme.secondary)),
+                          const SizedBox(height: 16),
                           Text(
-                            _error!,
-                            textAlign: TextAlign.center,
-                            style: textTheme.bodySmall!
-                                .copyWith(color: scheme.error),
+                            'CHOOSE YOUR HOST MONIKER. THIS WILL BE YOUR PUBLIC IDENTITY IN THE CLUB.',
+                            style: textTheme.bodySmall!.copyWith(
+                                color: scheme.onSurface.withValues(alpha: 0.7)),
                           ),
+                          const SizedBox(height: 32),
+                          CBTextField(
+                            controller: _usernameController,
+                            hintText: 'HOST USERNAME',
+                            decoration: InputDecoration(
+                              prefixIcon: Icon(Icons.person_outline,
+                                  color: scheme.secondary),
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          CBPrimaryButton(
+                            label: _isSavingUsername
+                                ? 'ENCRYPTING...'
+                                : 'SAVE IDENTITY',
+                            onPressed: _isSavingUsername
+                                ? null
+                                : () => _saveUsername(user),
+                          ),
+                          const SizedBox(height: 12),
+                          CBGhostButton(
+                            label: 'USE DIFFERENT ACCOUNT',
+                            onPressed: _signOut,
+                            color: scheme.tertiary,
+                          ),
+                          if (_error != null) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              _error!,
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodySmall!
+                                  .copyWith(color: scheme.error),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -482,103 +494,67 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return CBPrismScaffold(
-      title: "",
-      showAppBar: false,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CBFadeSlide(
-                key: const ValueKey('style_header'),
-                child: Column(
-                  children: [
-                    const CBRoleAvatar(
-                        color: CBColors.neonPurple, size: 80, pulsing: true),
-                    const SizedBox(height: 24),
-                    Text(
-                      'HOST COMMAND',
-                      style: textTheme.displayMedium!.copyWith(
-                        color: scheme.primary,
-                        letterSpacing: 6,
-                        fontWeight: FontWeight.w900,
-                        shadows: CBColors.textGlow(scheme.primary),
+    return Scaffold(
+      body: CBNeonBackground(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CBFadeSlide(
+                  key: const ValueKey('style_header'),
+                  child: Column(
+                    children: [
+                      const CBRoleAvatar(
+                          color: CBColors.neonPurple, size: 80, pulsing: true),
+                      const SizedBox(height: 24),
+                      Text(
+                        'SELECT HOSTING PERSONALITY',
+                        textAlign: TextAlign.center,
+                        style: textTheme.displaySmall!.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w900,
+                          shadows: CBColors.textGlow(scheme.primary),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'HOW MESSY DO YOU WANT TO BE TONIGHT?',
-                      style: textTheme.labelSmall!.copyWith(
-                        color: scheme.secondary,
-                        letterSpacing: 2,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: 16),
+                      Text(
+                        'YOUR CHOICE INFLUENCES THE NARRATIVE STYLE OF THE GAME.',
+                        textAlign: TextAlign.center,
+                        style: textTheme.labelSmall!.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.5),
+                          letterSpacing: 1.5,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 48),
-              _styleCard(
-                context,
-                style: GameStyle.offensive,
-                icon: Icons.local_fire_department_rounded,
-                color: scheme.primary,
-                desc:
-                    "THE CHAOS BRINGER. High stakes, more kills, less protection. A bloodbath in the VIP.",
-              ),
-              const SizedBox(height: 16),
-              _styleCard(
-                context,
-                style: GameStyle.defensive,
-                icon: Icons.shield_rounded,
-                color: scheme.secondary,
-                desc:
-                    "THE GUARDIAN. Focused on longevity and strategy. A slow burn match of wits.",
-              ),
-              const SizedBox(height: 16),
-              _styleCard(
-                context,
-                style: GameStyle.reactive,
-                icon: Icons.remove_red_eye_rounded,
-                color: scheme.tertiary,
-                desc:
-                    "THE ORCHESTSTRATOR. Balanced and investigative. Every move is a calculated chess play.",
-              ),
-            ],
+                const SizedBox(height: 48),
+                CBFadeSlide(
+                  key: const ValueKey('style_options'),
+                  delay: const Duration(milliseconds: 200),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: GameStyle.values
+                        .map((style) => Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: CBGlassTile(
+                                isSelected: _selectedStyle == style,
+                                onTap: () =>
+                                    setState(() => _selectedStyle = style),
+                                child: ListTile(
+                                  title: Text(style.label),
+                                  subtitle: Text(style.description),
+                                ),
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _styleCard(BuildContext context,
-      {required GameStyle style,
-      required IconData icon,
-      required Color color,
-      required String desc}) {
-    return CBFadeSlide(
-      key: ValueKey('style_${style.name}'),
-      delay: Duration(milliseconds: 100 * style.index),
-      child: CBGlassTile(
-        title: style.label,
-        accentColor: color,
-        isPrismatic: true,
-        icon: Icon(icon, color: color, size: 24),
-        onTap: () {
-          HapticService.heavy();
-          setState(() => _selectedStyle = style);
-        },
-        content: Text(
-          desc,
-          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.7),
-                height: 1.4,
-              ),
         ),
       ),
     );

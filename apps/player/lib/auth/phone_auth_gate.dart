@@ -42,10 +42,10 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
     return ActionCodeSettings(
       url: 'https://cb-reborn.web.app/email-link-signin?app=player',
       handleCodeInApp: true,
-      androidPackageName: 'com.clubblackout.player',
+      androidPackageName: 'com.clubblackout.cb_player',
       androidInstallApp: true,
       androidMinimumVersion: '1',
-      iOSBundleId: 'com.clubblackout.player',
+      iOSBundleId: 'com.clubblackout.cbPlayer',
     );
   }
 
@@ -246,87 +246,93 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
           final isSignInLink =
               FirebaseAuth.instance.isSignInWithEmailLink(currentLink);
 
-          return CBPrismScaffold(
-            title: 'PLAYER LOGIN',
-            body: Center(
-              child: SingleChildScrollView(
-                padding: CBInsets.panel,
-                child: CBPanel(
-                  borderColor: scheme.primary,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Player Sign In',
-                        style: CBTypography.h3,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: CBSpace.x2),
-                      Text(
-                        'We\'ll email you a secure sign-in link.',
-                        style: CBTypography.body,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: CBSpace.x4),
-                      CBTextField(
-                        controller: _emailController,
-                        hintText: 'Email',
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      const SizedBox(height: CBSpace.x3),
-                      CBPrimaryButton(
-                        label: _isSendingLink
-                            ? 'Sending Link...'
-                            : (_isLinkSent
-                                ? 'Resend Link'
-                                : 'Send Sign-In Link'),
-                        onPressed: (_isSendingLink || _isCompletingLink)
-                            ? null
-                            : _sendEmailLink,
-                      ),
-                      if (isSignInLink) ...[
-                        const SizedBox(height: CBSpace.x2),
-                        CBGhostButton(
-                          label: _isCompletingLink
-                              ? 'Completing Sign-In...'
-                              : 'Complete Sign-In With This Link',
-                          onPressed: _isCompletingLink
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('PLAYER LOGIN'),
+            ),
+            body: CBNeonBackground(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: CBPanel(
+                    borderColor: scheme.primary,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Player Sign In',
+                          style: Theme.of(context).textTheme.headlineMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'We\'ll email you a secure sign-in link.',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        CBTextField(
+                          controller: _emailController,
+                          hintText: 'Email',
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                        const SizedBox(height: 12),
+                        CBPrimaryButton(
+                          label: _isSendingLink
+                              ? 'Sending Link...'
+                              : (_isLinkSent
+                                  ? 'Resend Link'
+                                  : 'Send Sign-In Link'),
+                          onPressed: (_isSendingLink || _isCompletingLink)
                               ? null
-                              : () {
-                                  final email = _emailController.text.trim();
-                                  if (email.isEmpty || !email.contains('@')) {
-                                    setState(() {
-                                      _error =
-                                          'Enter your email to complete sign-in.';
-                                    });
-                                    return;
-                                  }
-                                  _completeEmailLinkSignIn(currentLink, email);
-                                },
-                          color: scheme.tertiary,
+                              : _sendEmailLink,
                         ),
-                      ],
-                      if (_isLinkSent) ...[
-                        const SizedBox(height: CBSpace.x3),
-                        Text(
-                          'Check your inbox and open the sign-in link on this device.',
-                          textAlign: TextAlign.center,
-                          style: CBTypography.body.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.75),
+                        if (isSignInLink) ...[
+                          const SizedBox(height: 8),
+                          CBTextButton(
+                            label: _isCompletingLink
+                                ? 'Completing Sign-In...'
+                                : 'Complete Sign-In With This Link',
+                            onPressed: _isCompletingLink
+                                ? null
+                                : () {
+                                    final email = _emailController.text.trim();
+                                    if (email.isEmpty || !email.contains('@')) {
+                                      setState(() {
+                                        _error =
+                                            'Enter your email to complete sign-in.';
+                                      });
+                                      return;
+                                    }
+                                    _completeEmailLinkSignIn(currentLink, email);
+                                  },
                           ),
-                        ),
+                        ],
+                        if (_isLinkSent) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            'Check your inbox and open the sign-in link on this device.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                  color:
+                                      scheme.onSurface.withAlpha((255 * 0.75).round()),
+                                ),
+                          ),
+                        ],
+                        if (_error != null) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge!
+                                .copyWith(color: scheme.error),
+                          ),
+                        ],
                       ],
-                      if (_error != null) ...[
-                        const SizedBox(height: CBSpace.x3),
-                        Text(
-                          _error!,
-                          textAlign: TextAlign.center,
-                          style:
-                              CBTypography.body.copyWith(color: scheme.error),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -338,9 +344,7 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
           future: _loadProfile(user),
           builder: (context, profileSnapshot) {
             if (profileSnapshot.connectionState != ConnectionState.done) {
-              return const CBPrismScaffold(
-                title: '',
-                showAppBar: false,
+              return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
@@ -351,53 +355,58 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
               return widget.child;
             }
 
-            return CBPrismScaffold(
-              title: 'CREATE USERNAME',
-              body: Center(
-                child: SingleChildScrollView(
-                  padding: CBInsets.panel,
-                  child: CBPanel(
-                    borderColor: scheme.secondary,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text('Welcome ${_maskEmail(user.email)}',
-                            style: CBTypography.h3),
-                        const SizedBox(height: CBSpace.x2),
-                        Text(
-                          'Choose a unique username linked to this account.',
-                          style: CBTypography.body,
-                        ),
-                        const SizedBox(height: CBSpace.x4),
-                        CBTextField(
-                          controller: _usernameController,
-                          hintText: 'Username',
-                        ),
-                        const SizedBox(height: CBSpace.x3),
-                        CBPrimaryButton(
-                          label:
-                              _isSavingUsername ? 'Saving...' : 'Save Username',
-                          onPressed: _isSavingUsername
-                              ? null
-                              : () => _saveUsername(user),
-                        ),
-                        const SizedBox(height: CBSpace.x2),
-                        CBGhostButton(
-                          label: 'Use different account',
-                          onPressed: _signOut,
-                          color: scheme.tertiary,
-                        ),
-                        if (_error != null) ...[
-                          const SizedBox(height: CBSpace.x3),
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('CREATE USERNAME'),
+              ),
+              body: CBNeonBackground(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: CBPanel(
+                      borderColor: scheme.secondary,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text('Welcome ${_maskEmail(user.email)}',
+                              style: Theme.of(context).textTheme.headlineMedium),
+                          const SizedBox(height: 8),
                           Text(
-                            _error!,
-                            textAlign: TextAlign.center,
-                            style:
-                                CBTypography.body.copyWith(color: scheme.error),
+                            'Choose a unique username linked to this account.',
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
+                          const SizedBox(height: 16),
+                          CBTextField(
+                            controller: _usernameController,
+                            hintText: 'Username',
+                          ),
+                          const SizedBox(height: 12),
+                          CBPrimaryButton(
+                            label:
+                                _isSavingUsername ? 'Saving...' : 'Save Username',
+                            onPressed: _isSavingUsername
+                                ? null
+                                : () => _saveUsername(user),
+                          ),
+                          const SizedBox(height: 8),
+                          CBTextButton(
+                            label: 'Use different account',
+                            onPressed: _signOut,
+                          ),
+                          if (_error != null) ...[
+                            const SizedBox(height: 12),
+                            Text(
+                              _error!,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(color: scheme.error),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),

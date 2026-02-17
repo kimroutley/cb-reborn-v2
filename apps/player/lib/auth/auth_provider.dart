@@ -33,8 +33,8 @@ enum AuthStatus {
 }
 
 class AuthNotifier extends Notifier<AuthState> {
-  final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
+  FirebaseAuth? _auth;
+  FirebaseFirestore? _firestore;
   GoogleSignIn? _googleSignIn;
   StreamSubscription? _userSub;
 
@@ -42,8 +42,12 @@ class AuthNotifier extends Notifier<AuthState> {
 
   @override
   AuthState build() {
+    if (!_ensureFirebaseServices()) {
+      return const AuthState(AuthStatus.unauthenticated);
+    }
+
     _userSub?.cancel();
-    _userSub = _auth.authStateChanges().listen((user) async {
+    _userSub = _auth!.authStateChanges().listen((user) async {
       if (user != null) {
         final profile = await _loadProfile(user);
         if (profile.exists) {
@@ -65,10 +69,18 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> signInWithGoogle() async {
+    if (!_ensureFirebaseServices()) {
+      state = const AuthState(
+        AuthStatus.error,
+        error: 'Authentication services are unavailable.',
+      );
+      return;
+    }
+
     state = state.copyWith(status: AuthStatus.loading);
     try {
       if (kIsWeb) {
-        await _auth.signInWithPopup(GoogleAuthProvider());
+        await _auth!.signInWithPopup(GoogleAuthProvider());
         return;
       }
 
@@ -82,7 +94,7 @@ class AuthNotifier extends Notifier<AuthState> {
         idToken: googleAuth.idToken,
       );
 
-      await _auth.signInWithCredential(credential);
+      await _auth!.signInWithCredential(credential);
     } catch (e) {
       state = AuthState(AuthStatus.error,
           error: 'Terminal link failed. Biometric interference detected.');
@@ -90,7 +102,15 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> saveUsername() async {
-    final user = _auth.currentUser;
+    if (!_ensureFirebaseServices()) {
+      state = const AuthState(
+        AuthStatus.error,
+        error: 'Authentication services are unavailable.',
+      );
+      return;
+    }
+
+    final user = _auth!.currentUser;
     final username = usernameController.text.trim();
     if (user == null) return;
     if (username.length < 3) {
@@ -103,7 +123,7 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(status: AuthStatus.loading);
 
     try {
-      final profileRef = _firestore.collection('user_profiles').doc(user.uid);
+      final profileRef = _firestore!.collection('user_profiles').doc(user.uid);
       await profileRef.set({
         'username': username,
         'email': user.email,
@@ -118,16 +138,35 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<DocumentSnapshot<Map<String, dynamic>>> _loadProfile(User user) {
-    return _firestore.collection('user_profiles').doc(user.uid).get();
+    return _firestore!.collection('user_profiles').doc(user.uid).get();
   }
 
   Future<void> signOut() async {
+    if (!_ensureFirebaseServices()) {
+      state = const AuthState(AuthStatus.unauthenticated);
+      return;
+    }
+
     if (!kIsWeb) {
       _googleSignIn ??= GoogleSignIn.instance;
       await _googleSignIn?.signOut();
     }
-    await _auth.signOut();
+    await _auth!.signOut();
     state = const AuthState(AuthStatus.unauthenticated);
+  }
+
+  bool _ensureFirebaseServices() {
+    if (_auth != null && _firestore != null) {
+      return true;
+    }
+
+    try {
+      _auth = FirebaseAuth.instance;
+      _firestore = FirebaseFirestore.instance;
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 }
 

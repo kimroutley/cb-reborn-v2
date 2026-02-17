@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'auth_provider.dart';
@@ -12,16 +13,32 @@ class PlayerAuthScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final scheme = Theme.of(context).colorScheme;
+    final isLoading = authState.status == AuthStatus.loading;
 
-    return CBPrismScaffold(
-      title: '', // No AppBar title for immersive feel
-      showAppBar: false,
-      showBackgroundRadiance: true,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 600),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        child: _buildUIForState(context, ref, authState, scheme),
+    final loadingTitle = authState.user == null
+        ? 'VERIFYING VIP PASS...'
+        : 'PRINTING YOUR ID CARD...';
+    final loadingSubtitle = authState.user == null
+        ? 'Please wait while we validate your invite.'
+        : 'Setting up your player identity.';
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          CBNeonBackground(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 600),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              child: _buildUIForState(context, ref, authState, scheme),
+            ),
+          ),
+          if (isLoading)
+            _AuthLoadingDialog(
+              title: loadingTitle,
+              subtitle: loadingSubtitle,
+            ),
+        ],
       ),
     );
   }
@@ -32,25 +49,9 @@ class PlayerAuthScreen extends ConsumerWidget {
       case AuthStatus.needsProfile:
         return _ProfileSetupForm(key: const ValueKey('profile'));
       case AuthStatus.loading:
-        return Center(
-          key: const ValueKey('loading'),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CBBreathingSpinner(size: 64),
-              const SizedBox(height: 32),
-              Text(
-                'CHECKING GUEST LIST...',
-                style: CBTypography.labelSmall.copyWith(
-                  color: scheme.primary,
-                  letterSpacing: 3.0,
-                  fontWeight: FontWeight.bold,
-                  shadows: CBColors.textGlow(scheme.primary),
-                ),
-              ),
-            ],
-          ),
-        );
+        return authState.user != null
+            ? _ProfileSetupForm(key: const ValueKey('profile_loading'))
+            : _AuthSplash(key: const ValueKey('auth_splash_loading'));
       case AuthStatus.error:
         return _AuthSplash(
           key: const ValueKey('auth_error'),
@@ -61,6 +62,59 @@ class PlayerAuthScreen extends ConsumerWidget {
       default:
         return const _AuthSplash(key: ValueKey('auth_splash'));
     }
+  }
+}
+
+class _AuthLoadingDialog extends StatelessWidget {
+  const _AuthLoadingDialog({
+    required this.title,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return AbsorbPointer(
+      absorbing: true,
+      child: Container(
+        color: Colors.black.withValues(alpha: 0.58),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: CBPanel(
+            borderColor: scheme.primary.withValues(alpha: 0.45),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CBBreathingLoader(size: 56),
+                const SizedBox(height: 20),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: textTheme.labelLarge!.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -91,15 +145,15 @@ class _AuthSplash extends ConsumerWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      scheme.primary.withValues(alpha: 0.2),
-                      scheme.primary.withValues(alpha: 0.0),
+                      scheme.primary.withAlpha(51),
+                      scheme.primary.withAlpha(0),
                     ],
                   ),
                   border: Border.all(
-                      color: scheme.primary.withValues(alpha: 0.5), width: 2),
+                      color: scheme.primary.withAlpha(128), width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: scheme.primary.withValues(alpha: 0.2),
+                      color: scheme.primary.withAlpha(51),
                       blurRadius: 40,
                       spreadRadius: 10,
                     ),
@@ -145,11 +199,10 @@ class _AuthSplash extends ConsumerWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     decoration: BoxDecoration(
-                      color: scheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(99),
-                      border: Border.all(
-                          color: scheme.primary.withValues(alpha: 0.3)),
-                    ),
+                        color: scheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(
+                            color: scheme.primary.withValues(alpha: 0.3))),
                     child: Text(
                       'MEMBERS ONLY',
                       style: textTheme.labelSmall?.copyWith(
@@ -166,7 +219,7 @@ class _AuthSplash extends ConsumerWidget {
                       "Tonight is the night. The music is loud, the lights are low, and everyone has a secret.\n\nCan you survive until the lights come on?",
                       textAlign: TextAlign.center,
                       style: textTheme.bodyLarge?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.8),
+                        color: scheme.onSurfaceVariant,
                         height: 1.6,
                         letterSpacing: 0.5,
                       ),
@@ -181,17 +234,19 @@ class _AuthSplash extends ConsumerWidget {
             // ── LOGIN SECTION ──
             CBFadeSlide(
               delay: const Duration(milliseconds: 400),
-              child: CBGlassTile(
-                title: 'GUEST LIST CHECK',
-                accentColor: scheme.secondary, // Contrast color
-                isPrismatic: true,
-                content: Column(
+              child: CBPanel(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
+                      'GUEST LIST CHECK',
+                      style: textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
                       'Show your invite to the Bouncer.',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.6),
+                        color: scheme.onSurface.withAlpha(153),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -205,11 +260,10 @@ class _AuthSplash extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: scheme.error.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: scheme.error.withValues(alpha: 0.4)),
-                        ),
+                            color: scheme.error.withAlpha(25),
+                            borderRadius: BorderRadius.circular(12),
+                            border:
+                                Border.all(color: scheme.error.withAlpha(102))),
                         child: Row(
                           children: [
                             Icon(Icons.gpp_bad_rounded,
@@ -238,7 +292,7 @@ class _AuthSplash extends ConsumerWidget {
             Text(
               'SECURED BY BLACKOUT-NET',
               style: textTheme.labelSmall?.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.2),
+                color: scheme.onSurface.withAlpha(51),
                 fontSize: 10,
                 letterSpacing: 2,
               ),
@@ -253,19 +307,19 @@ class _AuthSplash extends ConsumerWidget {
       BuildContext context, AuthNotifier notifier, ColorScheme scheme) {
     return InkWell(
       onTap: () {
-        HapticService.heavy();
+        HapticFeedback.heavyImpact();
         notifier.signInWithGoogle();
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: scheme.surface.withValues(alpha: 0.8),
+          color: scheme.surface.withAlpha(204),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: scheme.primary.withValues(alpha: 0.6)),
+          border: Border.all(color: scheme.primary.withAlpha(153)),
           boxShadow: [
             BoxShadow(
-              color: scheme.primary.withValues(alpha: 0.15),
+              color: scheme.primary.withAlpha(38),
               blurRadius: 12,
               spreadRadius: 2,
             ),
@@ -283,11 +337,12 @@ class _AuthSplash extends ConsumerWidget {
             const SizedBox(width: 16),
             Text(
               'SHOW VIP PASS (GOOGLE)',
-              style: CBTypography.bodyBold.copyWith(
-                letterSpacing: 1.5,
-                fontSize: 14,
-                color: scheme.onSurface,
-              ),
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                    letterSpacing: 1.5,
+                    fontSize: 14,
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ],
         ),
@@ -305,6 +360,7 @@ class _ProfileSetupForm extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final notifier = ref.read(authProvider.notifier);
     final authState = ref.watch(authProvider);
+    final isLoading = authState.status == AuthStatus.loading;
 
     return Center(
       child: SingleChildScrollView(
@@ -324,7 +380,13 @@ class _ProfileSetupForm extends ConsumerWidget {
                 color: scheme.secondary,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,
-                shadows: CBColors.textGlow(scheme.secondary),
+                shadows: [
+                  BoxShadow(
+                    color: scheme.secondary.withAlpha(128),
+                    blurRadius: 24,
+                    spreadRadius: 12,
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 12),
@@ -332,17 +394,19 @@ class _ProfileSetupForm extends ConsumerWidget {
               'What do they call you on the dance floor?',
               textAlign: TextAlign.center,
               style: textTheme.bodyLarge?.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.7),
+                color: scheme.onSurface.withAlpha(179),
               ),
             ),
             const SizedBox(height: 64),
-            CBGlassTile(
-              title: 'NEW PATRON REGISTRATION',
-              accentColor: scheme.secondary,
-              isPrismatic: true,
-              content: Column(
+            CBPanel(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Text(
+                    'NEW PATRON REGISTRATION',
+                    style: textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 16),
                   CBTextField(
                     controller: notifier.usernameController,
                     hintText: 'YOUR MONIKER',
@@ -356,18 +420,19 @@ class _ProfileSetupForm extends ConsumerWidget {
                   ),
                   const SizedBox(height: 32),
                   CBPrimaryButton(
-                    label: 'PAY COVER CHARGE & ENTER',
-                    backgroundColor: scheme.secondary,
-                    onPressed: () {
-                      HapticService.heavy();
-                      notifier.saveUsername();
-                    },
+                    label:
+                        isLoading ? 'SETTING UP...' : 'PAY COVER CHARGE & ENTER',
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            HapticFeedback.heavyImpact();
+                            notifier.saveUsername();
+                          },
                   ),
                   const SizedBox(height: 16),
-                  CBGhostButton(
+                  CBTextButton(
                     label: 'WALK AWAY',
-                    onPressed: () => notifier.signOut(),
-                    color: scheme.error,
+                    onPressed: isLoading ? null : () => notifier.signOut(),
                   ),
                   if (authState.error != null) ...[
                     const SizedBox(height: 20),

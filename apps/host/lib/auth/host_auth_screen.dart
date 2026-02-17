@@ -13,15 +13,15 @@ class HostAuthScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final scheme = Theme.of(context).colorScheme;
 
-    return CBPrismScaffold(
-      title: '', // No App bar title
-      showAppBar: false,
-      showBackgroundRadiance: true,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 600),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        child: _buildUIForState(context, ref, authState, scheme),
+    return Scaffold(
+      body: CBNeonBackground(
+        showRadiance: true,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 600),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          child: _buildUIForState(context, ref, authState, scheme),
+        ),
       ),
     );
   }
@@ -184,11 +184,9 @@ class _AuthSplash extends ConsumerWidget {
             // ── AUTH PANEL ──
             CBFadeSlide(
               delay: const Duration(milliseconds: 400),
-              child: CBGlassTile(
-                title: 'BIOMETRIC SECURITY',
-                accentColor: scheme.primary,
-                isPrismatic: true,
-                content: Column(
+              child: CBPanel(
+                borderColor: scheme.primary,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
@@ -456,11 +454,9 @@ class _ProfileSetupForm extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 64),
-            CBGlassTile(
-              title: 'MANAGEMENT REGISTRATION',
-              accentColor: scheme.secondary,
-              isPrismatic: true,
-              content: Column(
+            CBPanel(
+              borderColor: scheme.secondary,
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   CBTextField(

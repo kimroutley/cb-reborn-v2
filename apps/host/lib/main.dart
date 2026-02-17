@@ -1,5 +1,6 @@
 import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_theme/cb_theme.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +20,11 @@ Future<void> main() async {
   await PersistenceService.init();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Initialize analytics provider
+  AnalyticsService.setProvider(
+    FirebaseAnalyticsProvider(FirebaseAnalytics.instance),
   );
 
   runApp(const ProviderScope(
