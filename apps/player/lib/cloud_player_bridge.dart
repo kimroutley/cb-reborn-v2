@@ -17,6 +17,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   FirebaseBridge? _firebase;
   StreamSubscription? _gameSub;
   StreamSubscription? _privateSub;
+  String? _pendingClaimName;
   // Removed String? _claimedPlayerId; as it's now in PlayerGameState.myPlayerId
 
   @override
@@ -77,6 +78,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   Future<void> joinGame(String joinCode, String playerName) async {
     final resolvedName =
         playerName.trim().isEmpty ? 'Player' : playerName.trim();
+    _pendingClaimName = resolvedName;
     await joinWithCode(joinCode);
     await sendJoinRequest(resolvedName);
   }
@@ -183,6 +185,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     _gameSub = null;
     _privateSub = null;
     _firebase = null;
+    _pendingClaimName = null;
     state = const PlayerGameState(); // Reset to initial state
     debugPrint('[CloudPlayerBridge] Disconnected');
   }
@@ -255,6 +258,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       myPlayerId: updatedMyPlayerId, // Set updated ID
       myPlayerSnapshot: updatedMyPlayerSnapshot, // Set updated snapshot
     );
+
+    _attemptAutoClaim(state);
   }
 
   /// Merge private state (role, alliance, etc.) into the existing
@@ -319,6 +324,33 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   List<String> _toStringList(dynamic value) {
     if (value is List) return value.map((e) => e.toString()).toList();
     return [];
+  }
+
+  void _attemptAutoClaim(PlayerGameState nextState) {
+    if (!nextState.joinAccepted || nextState.myPlayerId != null) {
+      return;
+    }
+
+    final pendingName = _pendingClaimName?.trim();
+    if (pendingName == null || pendingName.isEmpty) {
+      return;
+    }
+
+    PlayerSnapshot? candidate;
+    for (final player in nextState.players) {
+      final alreadyClaimed = nextState.claimedPlayerIds.contains(player.id);
+      final sameName =
+          player.name.trim().toLowerCase() == pendingName.toLowerCase();
+      if (!alreadyClaimed && sameName) {
+        candidate = player;
+        break;
+      }
+    }
+
+    if (candidate != null) {
+      _pendingClaimName = null;
+      claimPlayer(candidate.id);
+    }
   }
 }
 

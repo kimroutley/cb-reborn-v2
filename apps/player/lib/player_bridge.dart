@@ -227,6 +227,7 @@ class StepSnapshot {
 class PlayerBridge extends Notifier<PlayerGameState>
     implements PlayerBridgeActions {
   static const Duration _connectTimeout = Duration(seconds: 8);
+  String? _pendingClaimName;
 
   /// Testing injection point for PlayerClient
   @visibleForTesting
@@ -313,6 +314,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
   Future<void> disconnect() async {
     await _client?.disconnect();
     _client = null;
+    _pendingClaimName = null;
     state = const PlayerGameState(); // Reset to initial state
   }
 
@@ -337,6 +339,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
 
     final resolvedName =
         playerName.trim().isEmpty ? 'Player' : playerName.trim();
+    _pendingClaimName = resolvedName;
     joinWithCode(joinCode, playerName: resolvedName, authUid: uid);
   }
 
@@ -578,6 +581,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
     );
 
     state = nextState;
+    _attemptAutoClaim(nextState);
 
     // Refresh active player stats view once when the game ends.
     if (prevPhase != 'endGame' && nextState.isEndGame) {
@@ -610,6 +614,33 @@ class PlayerBridge extends Notifier<PlayerGameState>
   List<String> _toStringList(dynamic value) {
     if (value is List) return value.map((e) => e.toString()).toList();
     return [];
+  }
+
+  void _attemptAutoClaim(PlayerGameState nextState) {
+    if (!nextState.joinAccepted || nextState.myPlayerId != null) {
+      return;
+    }
+
+    final pendingName = _pendingClaimName?.trim();
+    if (pendingName == null || pendingName.isEmpty) {
+      return;
+    }
+
+    PlayerSnapshot? candidate;
+    for (final player in nextState.players) {
+      final alreadyClaimed = nextState.claimedPlayerIds.contains(player.id);
+      final sameName =
+          player.name.trim().toLowerCase() == pendingName.toLowerCase();
+      if (!alreadyClaimed && sameName) {
+        candidate = player;
+        break;
+      }
+    }
+
+    if (candidate != null) {
+      _pendingClaimName = null;
+      claimPlayer(candidate.id);
+    }
   }
 }
 
