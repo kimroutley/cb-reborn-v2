@@ -2,7 +2,7 @@ import 'package:cb_models/cb_models.dart';
 import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
-class MessyBitchKillAction implements NightActionStrategy {
+class MessyBitchAction implements NightActionStrategy {
   @override
   String get roleId => RoleIds.messyBitch;
 
@@ -13,23 +13,21 @@ class MessyBitchKillAction implements NightActionStrategy {
 
     for (final bitch in messyBitches) {
       if (context.redirectedActions.containsKey(bitch.id) ||
-          context.silencedPlayerIds.contains(bitch.id) ||
-          bitch.messyBitchKillUsed) {
+          context.silencedPlayerIds.contains(bitch.id)) {
         continue;
       }
 
-      final actionKey =
-          '${RoleIds.messyBitch}_kill_${bitch.id}_${context.dayCount}';
+      final actionKey = '${roleId}_act_${bitch.id}_${context.dayCount}';
       final targetId = context.log[actionKey];
 
       if (targetId != null) {
         final target = context.getPlayer(targetId);
-        context.killedPlayerIds.add(targetId);
         context.addPrivateMessage(
-            bitch.id, 'Score settled with ${target.name}.');
-        context.addTeaser('Score settled.');
-        context.addReport('MB killed ${target.name}.');
-        context.updatePlayer(bitch.copyWith(messyBitchKillUsed: true));
+            bitch.id, 'You leaked info on ${target.name}.');
+        context.addReport('MB spread rumor on ${target.name}.');
+        context.addTeaser(
+            'Juicy rumors about ${target.name}...');
+        context.updatePlayer(target.copyWith(hasRumour: true));
       }
     }
   }

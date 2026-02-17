@@ -1,25 +1,34 @@
 import 'package:cb_models/cb_models.dart';
-import '../night_action.dart';
+import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
-class BouncerAction extends NightAction {
+class BouncerAction implements NightActionStrategy {
   @override
-  ActionPhase get phase => ActionPhase.investigation;
+  String get roleId => RoleIds.bouncer;
 
   @override
   void execute(NightResolutionContext context) {
-    for (final p in context.players.where((p) => p.isAlive && p.role.id == RoleIds.bouncer)) {
-      if (context.blockedIds.contains(p.id)) continue;
+    final bouncers =
+        context.players.where((p) => p.isAlive && p.role.id == roleId);
 
-      final targetId = getTargetId(context, p.id, 'bouncer');
-      if (targetId != null) {
-        final target = context.getPlayer(targetId);
-        final isStaff = target.alliance == Team.clubStaff;
-
-        context.addPrivateMessage(p.id, 'ID CHECK: ${target.name} is ${isStaff ? "STAFF" : "NOT STAFF"}.');
-        context.report.add('${p.name} checked ${target.name}\'s ID.');
-        context.teasers.add('Someone\'s ID was carefully scrutinized by the Bouncer.');
+    for (final bouncer in bouncers) {
+      if (context.redirectedActions.containsKey(bouncer.id) ||
+          context.silencedPlayerIds.contains(bouncer.id)) {
+        continue;
       }
+
+      final actionKey = '${roleId}_act_${bouncer.id}_${context.dayCount}';
+      final targetId = context.log[actionKey];
+      if (targetId == null) {
+        continue;
+      }
+
+      final target = context.getPlayer(targetId);
+      final isStaff = target.alliance == Team.clubStaff;
+
+      final msg = '${target.name} is ${isStaff ? "STAFF" : "PARTY ANIMAL"}.';
+      context.addPrivateMessage(bouncer.id, msg);
+      context.addReport('Bouncer checked ${target.name}.');
     }
   }
 }

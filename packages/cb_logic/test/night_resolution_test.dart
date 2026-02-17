@@ -115,8 +115,9 @@ void main() {
       );
 
       final updatedVictim = result.players.firstWhere((p) => p.id == victim.id);
-      expect(updatedVictim.isAlive, false); // Roofi now silences, not blocks kill
+      expect(updatedVictim.isAlive, true);
       expect(result.report.any((s) => s.contains('silenced Dealer')), true);
+      expect(result.report.any((s) => s.contains('blocked Dealer\'s kill on Victim')), true);
 
       final updatedDealer = result.players.firstWhere((p) => p.id == dealer.id);
       expect(updatedDealer.silencedDay, 1);
@@ -250,6 +251,28 @@ void main() {
        expect(result.report.any((s) => s.contains('Second Wind triggered')), true);
     });
 
+    test('Second Wind does not trigger on non-dealer kill', () {
+       final messy = _player('Messy', _role(RoleIds.messyBitch, alliance: Team.neutral));
+       final sw = _player('SW', _role(RoleIds.secondWind));
+       final players = [messy, sw];
+
+       final log = {
+         '${RoleIds.messyBitch}_kill_${messy.id}_1': sw.id,
+       };
+
+       final result = GameResolutionLogic.resolveNightActions(
+         players,
+         log,
+         1,
+         {},
+       );
+
+       final updatedSW = result.players.firstWhere((p) => p.id == sw.id);
+       expect(updatedSW.isAlive, false);
+       expect(updatedSW.secondWindPendingConversion, false);
+       expect(result.report.any((s) => s.contains('Second Wind triggered')), false);
+    });
+
     test('Seasoned Drinker loses life', () {
        final dealer = _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
        final sd = _player('SD', _role(RoleIds.seasonedDrinker)).copyWith(lives: 2);
@@ -290,6 +313,113 @@ void main() {
 
        final updatedSD = result.players.firstWhere((p) => p.id == sd.id);
        expect(updatedSD.isAlive, false);
+    });
+
+    test('Clinger is freed as Attack Dog when partner is murdered by Dealer', () {
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final partner = _player('Partner', _role(RoleIds.partyAnimal));
+      final clinger = _player('Clinger', _role(RoleIds.clinger)).copyWith(
+        clingerPartnerId: partner.id,
+      );
+      final players = [dealer, partner, clinger];
+
+      final log = {
+        'dealer_act_${dealer.id}_1': partner.id,
+      };
+
+      final result = GameResolutionLogic.resolveNightActions(
+        players,
+        log,
+        1,
+        {},
+      );
+
+      final updatedPartner =
+          result.players.firstWhere((p) => p.id == partner.id);
+      final updatedClinger =
+          result.players.firstWhere((p) => p.id == clinger.id);
+
+      expect(updatedPartner.isAlive, false);
+      expect(updatedClinger.isAlive, true);
+      expect(updatedClinger.clingerFreedAsAttackDog, true);
+      expect(
+        result.report
+            .any((s) => s.contains('has snapped! They are now an Attack Dog')),
+        true,
+      );
+    });
+
+    test('Clinger dies of broken heart when partner dies from non-dealer kill',
+        () {
+      final messy =
+          _player('Messy', _role(RoleIds.messyBitch, alliance: Team.neutral));
+      final partner = _player('Partner', _role(RoleIds.partyAnimal));
+      final clinger = _player('Clinger', _role(RoleIds.clinger)).copyWith(
+        clingerPartnerId: partner.id,
+      );
+      final players = [messy, partner, clinger];
+
+      final log = {
+        '${RoleIds.messyBitch}_kill_${messy.id}_1': partner.id,
+      };
+
+      final result = GameResolutionLogic.resolveNightActions(
+        players,
+        log,
+        1,
+        {},
+      );
+
+      final updatedPartner =
+          result.players.firstWhere((p) => p.id == partner.id);
+      final updatedClinger =
+          result.players.firstWhere((p) => p.id == clinger.id);
+
+      expect(updatedPartner.isAlive, false);
+      expect(updatedClinger.isAlive, false);
+      expect(updatedClinger.clingerFreedAsAttackDog, false);
+      expect(
+        result.report.any((s) => s.contains('could not live without')),
+        true,
+      );
+    });
+
+    test('Creep inherits target role when target dies during night resolution', () {
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final targetRole = _role(RoleIds.bouncer, alliance: Team.partyAnimals);
+      final target = _player('Target', targetRole);
+      final creep = _player('Creep', _role(RoleIds.creep, alliance: Team.neutral))
+          .copyWith(creepTargetId: target.id);
+      final players = [dealer, target, creep];
+
+      final log = {
+        'dealer_act_${dealer.id}_1': target.id,
+      };
+
+      final result = GameResolutionLogic.resolveNightActions(
+        players,
+        log,
+        1,
+        {},
+      );
+
+      final updatedTarget =
+          result.players.firstWhere((p) => p.id == target.id);
+      final updatedCreep = result.players.firstWhere((p) => p.id == creep.id);
+
+      expect(updatedTarget.isAlive, false);
+      expect(updatedCreep.isAlive, true);
+      expect(updatedCreep.role.id, targetRole.id);
+      expect(updatedCreep.role.name, targetRole.name);
+      expect(updatedCreep.alliance, targetRole.alliance);
+      expect(updatedCreep.creepTargetId, isNull);
+      expect(
+        result.report
+            .any((s) => s.contains('The Creep Creep inherited the role of BOUNCER.')),
+        true,
+      );
     });
   });
 }

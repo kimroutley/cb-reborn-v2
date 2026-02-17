@@ -21,10 +21,11 @@ class DealerAction implements NightActionStrategy {
       final targetId = context.log[actionKey];
 
       if (targetId != null) {
+        final target = context.getPlayer(targetId);
         context.killedPlayerIds.add(targetId);
         context.dealerAttacks[dealer.id] = targetId;
-        context.addReport(
-            '${dealer.name} made a move on ${context.getPlayer(targetId).name}.');
+        context.addPrivateMessage(dealer.id, 'Target acquired.');
+        context.addReport('Dealer target: ${target.name}.');
       }
     }
   }

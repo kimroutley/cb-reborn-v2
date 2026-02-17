@@ -1,25 +1,30 @@
 import 'package:cb_models/cb_models.dart';
-import '../night_action.dart';
+import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
-class SoberAction extends NightAction {
+class SoberAction implements NightActionStrategy {
   @override
-  ActionPhase get phase => ActionPhase.preemptive;
+  String get roleId => RoleIds.sober;
 
   @override
   void execute(NightResolutionContext context) {
-    for (final p in context.players.where((p) => p.isAlive && p.role.id == RoleIds.sober)) {
-      final targetId = getTargetId(context, p.id, 'sober');
+    final sobers =
+        context.players.where((p) => p.isAlive && p.role.id == roleId);
+
+    for (final sober in sobers) {
+      // Pre-emptive actions cannot be blocked or redirected in the same night
+      final actionKey =
+          '${roleId}_act_${sober.id}_${context.dayCount}';
+      final targetId = context.log[actionKey];
+
       if (targetId != null) {
-        context.blockedIds.add(targetId);
-        context.protectedIds.add(targetId);
+        // Sober both blocks and protects
+        context.redirectedActions[targetId] = 'none';
+        context.protectedPlayerIds.add(targetId);
 
         final target = context.getPlayer(targetId);
-        context.report.add('${p.name} sent ${target.name} home.');
-        context.teasers.add('${target.name} was seen leaving the club early.');
-
-        // Also update player state if needed (e.g. soberAbilityUsed)
-        // Original code didn't update soberAbilityUsed, so I won't either unless needed.
+        context.addPrivateMessage(sober.id, 'You blocked ${target.name}.');
+        context.addReport('Sober blocked ${target.name}.');
       }
     }
   }

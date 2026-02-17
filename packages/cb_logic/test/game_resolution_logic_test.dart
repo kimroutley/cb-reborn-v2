@@ -1,4 +1,4 @@
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_logic/src/game_resolution_logic.dart';
 
@@ -126,6 +126,58 @@ void main() {
         ];
         final result = GameResolutionLogic.checkWinCondition(players);
         expect(result, isNull);
+    });
+
+    test('returns Neutral win when living Messy Bitch has spread rumor to all living players', () {
+      final messyBitchRole = roleCatalogMap[RoleIds.messyBitch]!;
+      final players = [
+        createPlayer(
+          id: '1',
+          alliance: Team.neutral,
+          role: messyBitchRole,
+        ).copyWith(hasRumour: true),
+        createPlayer(id: '2', alliance: Team.clubStaff).copyWith(hasRumour: true),
+        createPlayer(id: '3', alliance: Team.partyAnimals).copyWith(hasRumour: true),
+      ];
+
+      final result = GameResolutionLogic.checkWinCondition(players);
+      expect(result, isNotNull);
+      expect(result!.winner, Team.neutral);
+    });
+
+    test('does not return Neutral win if not all living players have rumor', () {
+      final messyBitchRole = roleCatalogMap[RoleIds.messyBitch]!;
+      final players = [
+        createPlayer(
+          id: '1',
+          alliance: Team.neutral,
+          role: messyBitchRole,
+        ).copyWith(hasRumour: true),
+        createPlayer(id: '2', alliance: Team.clubStaff).copyWith(hasRumour: true),
+        createPlayer(id: '3', alliance: Team.partyAnimals).copyWith(hasRumour: false),
+      ];
+
+      final result = GameResolutionLogic.checkWinCondition(players);
+      expect(result, isNotNull);
+      expect(result!.winner, isNot(Team.neutral));
+    });
+
+    test('does not return Neutral win when Messy Bitch is dead even if all living have rumor', () {
+      final messyBitchRole = roleCatalogMap[RoleIds.messyBitch]!;
+      final players = [
+        createPlayer(
+          id: '1',
+          alliance: Team.neutral,
+          role: messyBitchRole,
+          isAlive: false,
+        ).copyWith(hasRumour: true),
+        createPlayer(id: '2', alliance: Team.clubStaff).copyWith(hasRumour: true),
+        createPlayer(id: '3', alliance: Team.partyAnimals).copyWith(hasRumour: true),
+      ];
+
+      final result = GameResolutionLogic.checkWinCondition(players);
+      expect(result, isNotNull);
+      expect(result!.winner, isNot(Team.neutral));
     });
   });
 }

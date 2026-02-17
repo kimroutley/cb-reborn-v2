@@ -24,9 +24,11 @@ class WhoreAction implements NightActionStrategy {
           '${roleId}_act_${whore.id}_${context.dayCount}';
       final targetId = context.log[actionKey];
 
-      if (targetId != null) {
+      if (targetId != null && targetId != whore.id) {
+        final target = context.getPlayer(targetId);
         context.updatePlayer(whore.copyWith(whoreDeflectionTargetId: targetId));
-        context.addReport('The Whore chose a scapegoat for the day.');
+        context.addPrivateMessage(whore.id, 'Scapegoat set: ${target.name}.');
+        context.addReport('Whore set scapegoat: ${target.name}.');
       }
     }
   }

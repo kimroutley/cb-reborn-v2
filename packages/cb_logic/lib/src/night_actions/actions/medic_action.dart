@@ -1,20 +1,35 @@
 import 'package:cb_models/cb_models.dart';
-import '../night_action.dart';
+import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
-class MedicAction extends NightAction {
+class MedicAction implements NightActionStrategy {
   @override
-  ActionPhase get phase => ActionPhase.protection;
+  String get roleId => RoleIds.medic;
 
   @override
   void execute(NightResolutionContext context) {
-    for (final p in context.players.where((p) => p.isAlive && p.role.id == RoleIds.medic)) {
-      if (context.blockedIds.contains(p.id)) continue;
+    final medics =
+        context.players.where((p) => p.isAlive && p.role.id == roleId);
 
-      final targetId = getTargetId(context, p.id, 'medic');
-      // Only protect if chosen 'PROTECT_DAILY'
-      if (targetId != null && p.medicChoice == 'PROTECT_DAILY') {
-        context.protectedIds.add(targetId);
+    for (final medic in medics) {
+      if (context.redirectedActions.containsKey(medic.id) ||
+          context.silencedPlayerIds.contains(medic.id)) {
+        continue;
+      }
+
+      // Revive logic is handled in DeathResolutionStrategy
+      if (medic.medicChoice == 'REVIVE') {
+        continue;
+      }
+
+      final actionKey = '${roleId}_act_${medic.id}_${context.dayCount}';
+      final targetId = context.log[actionKey];
+
+      if (targetId != null) {
+        final target = context.getPlayer(targetId);
+        context.protectedPlayerIds.add(targetId);
+        context.addPrivateMessage(medic.id, 'You healed ${target.name}.');
+        context.addReport('Medic protected ${target.name}.');
       }
     }
   }

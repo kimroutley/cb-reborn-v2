@@ -18,9 +18,31 @@ class RoofiAction implements NightActionStrategy {
       final targetId = context.log[actionKey];
 
       if (targetId != null) {
+        final target = context.getPlayer(targetId);
         context.silencedPlayerIds.add(targetId);
-        context.addReport('${roofi.name} silenced ${context.getPlayer(targetId).name}.');
-        context.addTeaser('${context.getPlayer(targetId).name} looks a bit dazed.');
+
+        // Special rule: if Roofi targets the only living Dealer,
+        // the Dealer kill is blocked for this night.
+        final livingDealers = context.players
+            .where((p) => p.isAlive && p.role.id == RoleIds.dealer)
+            .toList();
+        if (target.role.id == RoleIds.dealer &&
+            livingDealers.length == 1 &&
+            livingDealers.first.id == targetId) {
+          final blockedVictimId = context.dealerAttacks[targetId];
+          if (blockedVictimId != null) {
+            context.dealerAttacks.remove(targetId);
+            if (!context.dealerAttacks.values.contains(blockedVictimId)) {
+              context.killedPlayerIds.remove(blockedVictimId);
+            }
+            final blockedVictim = context.getPlayer(blockedVictimId);
+            context.addReport(
+                'Roofi blocked ${target.name}\'s kill on ${blockedVictim.name}.');
+          }
+        }
+
+        context.addPrivateMessage(roofi.id, 'You silenced ${target.name}.');
+        context.addReport('Roofi silenced ${target.name}.');
       }
     }
   }
