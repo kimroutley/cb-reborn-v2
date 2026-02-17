@@ -29,3 +29,4 @@ export 'widgets/cb_status_rail.dart';
 export 'widgets/cb_prism_scaffold.dart';
 export 'widgets/cb_alliance_graph.dart';
 export 'widgets/cb_phase_timeline.dart';
+export 'widgets/handbook_content.dart';
