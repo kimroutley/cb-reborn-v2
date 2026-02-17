@@ -152,12 +152,15 @@ Following the success of the Night Resolution engine, the Day Resolution logic h
 
 * **`DayResolutionStrategy`**: Coordinates a sequence of `DayResolutionHandler` objects.
 * **Handlers**: Specialized logic for `DeadPool`, `TeaSpiller`, `DramaQueen`, and `Predator`.
+* **`day_resolution.dart` barrel**: Prefer importing `src/day_actions/resolution/day_resolution.dart` when consuming strategy + context types to avoid scattered low-level imports.
 * **Wallflower Framework**: The Wallflower role now has a specialized "Host Observation" step. The Host observes if the Wallflower "Peeked" or "Gawked" during the murder, leading to state-driven exposure (`isExposed`) and night report entries.
+* **Reactive Choice Steps**: Exiled reactive roles may now insert scoped day prompts before final day resolution. `TeaSpiller` uses `tea_spiller_reveal_{playerId}_{day}`, `DramaQueen` uses `drama_queen_vendetta_{playerId}_{day}`, and `Predator` uses `predator_retaliation_{playerId}_{day}`; selections are collected from `actionLog` and fed into `DayResolutionContext`.
 
 ### ⚠️ Implementation Guidelines
 
 1. **State Cleanliness**: Handlers should return a `DayResolutionResult` that explicitly signals if auxiliary state (like `deadPoolBets`) should be cleared.
 2. **Chaining**: The order of handlers in `DayResolutionStrategy` matters. Drama Queen swaps should happen before Predator retaliation to ensure the correct "new" roles are targeted.
+3. **Order Contract**: Keep handler-order behavior documented in `day_resolution_strategy.dart` and protected by `test/day_resolution_strategy_test.dart` when adding/reordering handlers.
 
 ---
 
