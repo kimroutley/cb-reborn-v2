@@ -8,6 +8,7 @@ import '../cloud_host_bridge.dart';
 import '../host_bridge.dart';
 import '../host_destinations.dart';
 import '../host_navigation.dart';
+import '../sync_mode_runtime.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import 'about_screen.dart';
@@ -34,14 +35,13 @@ class _HostHomeShellState extends ConsumerState<HostHomeShell> {
     final localBridge = ref.read(hostBridgeProvider);
     final cloudBridge = ref.read(cloudHostBridgeProvider);
 
-    if (mode == SyncMode.cloud) {
-      await localBridge.stop();
-      await cloudBridge.start();
-      return;
-    }
-
-    await cloudBridge.stop();
-    await localBridge.start();
+    await syncHostBridgesForMode(
+      mode: mode,
+      stopLocal: localBridge.stop,
+      startLocal: localBridge.start,
+      stopCloud: cloudBridge.stop,
+      startCloud: cloudBridge.start,
+    );
   }
 
   @override
@@ -105,16 +105,21 @@ class _HostHomeShellState extends ConsumerState<HostHomeShell> {
     final child = _screenFor(destination);
 
     // If destination is Home, wrap in Scaffold because HomeScreen is just content.
-    // For other destinations (Lobby, Game, etc.), they provide their own CBPrismScaffold.
+    // For other destinations (Lobby, Game, etc.), they provide their own Scaffold.
     if (destination == HostDestination.home) {
-      return CBPrismScaffold(
-        title: '',
-        showAppBar: true,
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(''),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: const [SimulationModeBadgeAction()],
+        ),
         drawer: const CustomDrawer(),
-        actions: const [SimulationModeBadgeAction()],
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 400),
-          child: child,
+        body: CBNeonBackground(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            child: child,
+          ),
         ),
       );
     }

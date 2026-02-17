@@ -8,20 +8,145 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../cloud_host_bridge.dart';
 import '../../host_bridge.dart';
+import '../../sync_mode_runtime.dart';
 
 class LobbyConfigTile extends ConsumerWidget {
-  final GameState gameState;
-  final Game controller;
-  final Color primaryColor;
-  final Color secondaryColor;
-
   const LobbyConfigTile({
     super.key,
     required this.gameState,
     required this.controller,
-    required this.primaryColor,
-    required this.secondaryColor,
+    required this.onManualAssign,
   });
+
+  final GameState gameState;
+  final Game controller;
+  final VoidCallback onManualAssign;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final session = ref.watch(sessionProvider);
+    final sessionController = ref.read(sessionProvider.notifier);
+    final requiredConfirmations =
+        gameState.players.where((p) => !p.isBot).length;
+    final confirmedCount = session.roleConfirmedPlayerIds
+        .where((id) => gameState.players.any((p) => p.id == id && !p.isBot))
+        .length;
+    final allConfirmed =
+        requiredConfirmations > 0 && confirmedCount >= requiredConfirmations;
+
+    return CBGlassTile(
+      borderColor: scheme.onSurface,
+      isPrismatic: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.settings_input_component_rounded,
+                  color: scheme.onSurface),
+              const SizedBox(width: 10),
+              Text('PROTOCOL SETTINGS', style: theme.textTheme.titleMedium),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildConfigOption(
+                  context, "SYNC", gameState.syncMode.name, scheme.primary, () {
+                HapticService.selection();
+                final newMode = gameState.syncMode == SyncMode.local
+                    ? SyncMode.cloud
+                    : SyncMode.local;
+                unawaited(_setSyncMode(ref, controller, newMode));
+              }),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'GAME STYLE',
+            style: CBTypography.labelSmall.copyWith(
+              fontSize: 8,
+              color: scheme.onSurface.withValues(alpha: 0.5),
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildStyleChip(context, GameStyle.offensive, scheme.secondary),
+              _buildStyleChip(context, GameStyle.defensive, scheme.secondary),
+              _buildStyleChip(context, GameStyle.reactive, scheme.secondary),
+              _buildStyleChip(context, GameStyle.manual, scheme.secondary),
+            ],
+          ),
+          if (gameState.gameStyle == GameStyle.manual) ...[
+            const SizedBox(height: 12),
+            CBPrimaryButton(
+              label: 'MANUAL ROLE ASSIGNMENT',
+              icon: Icons.tune_rounded,
+              backgroundColor: scheme.secondary,
+              onPressed: onManualAssign,
+            ),
+          ],
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.verified_user_rounded, color: scheme.tertiary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'SETUP CONFIRMATIONS: $confirmedCount/$requiredConfirmations',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: allConfirmed ? scheme.tertiary : scheme.onSurface,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SwitchListTile.adaptive(
+            value: session.forceStartOverride,
+            onChanged: sessionController.setForceStartOverride,
+            activeTrackColor: scheme.error,
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              'FORCE START OVERRIDE',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: scheme.error,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.6,
+              ),
+            ),
+            subtitle: Text(
+              'Allow setup to advance without all confirmations.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStyleChip(BuildContext context, GameStyle style, Color color) {
+    final selected = gameState.gameStyle == style;
+    return CBFilterChip(
+      label: style.label,
+      selected: selected,
+      color: color,
+      onSelected: () {
+        HapticService.selection();
+        controller.setGameStyle(style);
+      },
+    );
+  }
 
   Future<void> _setSyncMode(
     WidgetRef ref,
@@ -29,44 +154,15 @@ class LobbyConfigTile extends ConsumerWidget {
     SyncMode newMode,
   ) async {
     controller.setSyncMode(newMode);
+    final localBridge = ref.read(hostBridgeProvider);
+    final cloudBridge = ref.read(cloudHostBridgeProvider);
 
-    if (newMode == SyncMode.cloud) {
-      await ref.read(hostBridgeProvider).stop();
-      await ref.read(cloudHostBridgeProvider).start();
-      return;
-    }
-
-    await ref.read(cloudHostBridgeProvider).stop();
-    await ref.read(hostBridgeProvider).start();
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return CBGlassTile(
-      title: "PROTOCOL SETTINGS",
-      accentColor: secondaryColor,
-      isPrismatic: true,
-      icon: Icon(Icons.settings_input_component_rounded, color: secondaryColor),
-      content: Row(
-        children: [
-          _buildConfigOption(
-              context, "SYNC", gameState.syncMode.name, primaryColor, () {
-            HapticService.selection();
-            final newMode = gameState.syncMode == SyncMode.local
-                ? SyncMode.cloud
-                : SyncMode.local;
-            unawaited(_setSyncMode(ref, controller, newMode));
-          }),
-          const SizedBox(width: 12),
-          _buildConfigOption(
-              context, "STYLE", gameState.gameStyle.label, secondaryColor, () {
-            HapticService.selection();
-            controller.setGameStyle(gameState.gameStyle == GameStyle.chaos
-                ? GameStyle.offensive
-                : GameStyle.chaos);
-          }),
-        ],
-      ),
+    await syncHostBridgesForMode(
+      mode: newMode,
+      stopLocal: localBridge.stop,
+      startLocal: localBridge.start,
+      stopCloud: cloudBridge.stop,
+      startCloud: cloudBridge.start,
     );
   }
 
