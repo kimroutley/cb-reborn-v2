@@ -2,8 +2,11 @@ import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'lobby_screen.dart';
-import 'save_load_screen.dart';
+
+import '../host_destinations.dart';
+import '../host_navigation.dart';
+import '../widgets/custom_drawer.dart';
+import '../widgets/simulation_mode_badge_action.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -19,16 +22,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scheme = theme.colorScheme;
     final stats = PersistenceService.instance.computeStats();
 
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: CBSpace.x6,
-          vertical: CBSpace.x10,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(''),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: const [SimulationModeBadgeAction()],
+      ),
+      drawer: const CustomDrawer(),
+      body: CBNeonBackground(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: CBSpace.x6,
+              vertical: CBSpace.x10,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
             // ── LOGO / TITLE AREA ──
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.0, end: 1.0),
@@ -115,10 +127,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     icon: Icons.add_circle_outline,
                     onPressed: () {
                       HapticService.heavy();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => const LobbyScreen()),
-                      );
+                      ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.lobby);
                     },
                   ),
                   const SizedBox(height: CBSpace.x4),
@@ -126,10 +135,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     label: 'RESTORE SESSION',
                     onPressed: () {
                       HapticService.light();
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => const SaveLoadScreen()),
-                      );
+                      ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.saveLoad);
                     },
                   ),
                 ],
@@ -151,8 +157,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildQuickStatTile(
     BuildContext context,

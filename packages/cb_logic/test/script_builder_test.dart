@@ -154,7 +154,7 @@ void main() {
         expect(script.any((s) => s.id.startsWith('messy_bitch_kill_')), isFalse);
       });
 
-      test('Wallflower witness step is inserted after Dealer step', () {
+      test('Wallflower observation step is inserted after Dealer step', () {
         final players = [
           makePlayer('1', RoleIds.dealer, nightPriority: 10),
           makePlayer('2', RoleIds.wallflower, nightPriority: 100), // Wallflower is passive usually but has a notice
@@ -164,21 +164,21 @@ void main() {
 
         final dealerIndex = script.indexWhere((s) => s.id.startsWith('dealer_act_'));
         final wallflowerIndex =
-          script.indexWhere((s) => s.id.startsWith('wallflower_witness_'));
+          script.indexWhere((s) => s.id.startsWith('wallflower_observe_'));
 
         expect(dealerIndex, isNot(-1));
         expect(wallflowerIndex, isNot(-1));
         expect(wallflowerIndex, equals(dealerIndex + 1));
       });
 
-      test('Wallflower witness step is NOT inserted if no Dealer step', () {
+      test('Wallflower observation step is NOT inserted if no Dealer step', () {
         final players = [
            makePlayer('2', RoleIds.wallflower),
            // No dealer
         ];
 
         final script = ScriptBuilder.buildNightScript(players, 1);
-        expect(script.any((s) => s.id.startsWith('wallflower_witness_')), isFalse);
+        expect(script.any((s) => s.id.startsWith('wallflower_observe_')), isFalse);
       });
     });
 

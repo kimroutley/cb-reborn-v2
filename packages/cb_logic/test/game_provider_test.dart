@@ -138,6 +138,32 @@ void main() {
       }
       // If we never got a Seasoned Drinker in 100 attempts, skip gracefully
     });
+
+    test(
+        'setup gate blocks repeated advancePhase without feed emission or script index increment',
+        () {
+      _addMockPlayers(game, 4);
+      game.startGame();
+
+      final initialState = container.read(gameProvider);
+      expect(initialState.phase, GamePhase.setup);
+      expect(initialState.scriptQueue, isNotEmpty);
+
+      final firstPlayerId = initialState.players.first.id;
+      final session = container.read(sessionProvider.notifier);
+      session.claimPlayer(firstPlayerId);
+
+      final initialFeedCount = initialState.feedEvents.length;
+      final initialScriptIndex = initialState.scriptIndex;
+
+      game.advancePhase();
+      game.advancePhase();
+
+      final updatedState = container.read(gameProvider);
+      expect(updatedState.phase, GamePhase.setup);
+      expect(updatedState.feedEvents.length, initialFeedCount);
+      expect(updatedState.scriptIndex, initialScriptIndex);
+    });
   });
 
   group('Day Vote Resolution', () {
@@ -272,6 +298,48 @@ void main() {
 
       final updated = container.read(gameProvider);
       expect(updated.players[0].whoreDeflectionTargetId, scapegoatId);
+    });
+  });
+
+  group('Wallflower Observation', () {
+    test('PEEKED keeps wallflower hidden and does not set gawked player', () {
+      final wallflowerRole = _role(RoleIds.wallflower);
+      final otherRole = _role(RoleIds.partyAnimal);
+
+      final wallflower = _player('Wallflower', wallflowerRole);
+      final other = _player('Other', otherRole);
+
+      game.state = container.read(gameProvider).copyWith(
+            players: [wallflower, other],
+            phase: GamePhase.night,
+            scriptQueue: [
+              ScriptStep(
+                id: 'wallflower_observe_${wallflower.id}_1',
+                title: 'HOST OBSERVATION',
+                readAloudText: '',
+                instructionText:
+                    'Observe ${wallflower.name}, how did they witness the murder?',
+                actionType: ScriptActionType.binaryChoice,
+                options: const ['PEEKED', 'GAWKED'],
+                roleId: RoleIds.wallflower,
+              ),
+            ],
+            scriptIndex: 0,
+            actionLog: const {},
+            gawkedPlayerId: null,
+          );
+
+      game.handleInteraction(
+        stepId: 'wallflower_observe_${wallflower.id}_1',
+        targetId: 'PEEKED',
+      );
+
+      final updated = container.read(gameProvider);
+      final updatedWallflower =
+          updated.players.firstWhere((p) => p.id == wallflower.id);
+
+      expect(updated.gawkedPlayerId, isNull);
+      expect(updatedWallflower.isExposed, isFalse);
     });
   });
 
@@ -581,16 +649,16 @@ void main() {
       expect(steps.any((s) => s.id.startsWith('dealer_act_')), true);
     });
 
-    test('night script includes wallflower witness after dealer', () {
+    test('night script includes wallflower observation after dealer', () {
       final dealer = _player(
         'D',
-        _role('dealer', alliance: Team.clubStaff, priority: 10),
+        _role(RoleIds.dealer, alliance: Team.clubStaff, priority: 10),
       );
-      final wf = _player('WF', _role('wallflower', priority: 100));
+      final wf = _player('WF', _role(RoleIds.wallflower, priority: 100));
       final steps = ScriptBuilder.buildNightScript([dealer, wf], 1);
       final dealerIdx = steps.indexWhere((s) => s.id.startsWith('dealer_act_'));
-      final wfIdx =
-          steps.indexWhere((s) => s.id.startsWith('wallflower_witness_'));
+        final wfIdx =
+          steps.indexWhere((s) => s.id.startsWith('wallflower_observe_'));
       expect(dealerIdx, greaterThanOrEqualTo(0));
       expect(wfIdx, dealerIdx + 1);
     });
@@ -1385,19 +1453,7 @@ void main() {
 }
 
 void _addMockPlayers(Game game, int count) {
-  final names = [
-    'Alice',
-    'Bob',
-    'Charlie',
-    'Diana',
-    'Eve',
-    'Frank',
-    'Grace',
-    'Hank',
-    'Ivy',
-    'Jack',
-  ];
-  for (var i = 0; i < count && i < names.length; i++) {
-    game.addPlayer(names[i]);
+  for (var i = 0; i < count; i++) {
+    game.addPlayer('P$i');
   }
 }

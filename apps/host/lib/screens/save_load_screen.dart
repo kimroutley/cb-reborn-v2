@@ -4,9 +4,10 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../host_destinations.dart';
+import '../host_navigation.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
-import 'game_screen.dart';
 
 class SaveLoadScreen extends ConsumerStatefulWidget {
   const SaveLoadScreen({super.key});
@@ -88,9 +89,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
     );
     await _refresh();
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const GameScreen()),
-    );
+    ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.game);
   }
 
   Future<void> _loadGameSlot(ColorScheme scheme, String slotId) async {
@@ -126,9 +125,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
         'Loaded game from $slotLabel.',
         accentColor: scheme.tertiary,
       );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const GameScreen()),
-      );
+      ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.game);
       return;
     }
 

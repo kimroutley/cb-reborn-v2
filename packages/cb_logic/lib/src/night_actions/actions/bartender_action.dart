@@ -1,4 +1,5 @@
 import 'package:cb_models/cb_models.dart';
+import '../../scripting/step_key.dart';
 import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
@@ -17,7 +18,11 @@ class BartenderAction implements NightActionStrategy {
         continue;
       }
 
-      final actionKey = '${roleId}_act_${bartender.id}_${context.dayCount}';
+      final actionKey = StepKey.roleAction(
+        roleId: roleId,
+        playerId: bartender.id,
+        dayCount: context.dayCount,
+      );
       final selection = context.log[actionKey];
       if (selection == null || !selection.contains(',')) {
         continue;

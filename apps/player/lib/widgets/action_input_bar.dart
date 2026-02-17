@@ -42,7 +42,7 @@ class _ActionInputBarState extends State<ActionInputBar> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isVoting = widget.gameState.currentStep?.id == 'day_vote';
+    final isVoting = widget.gameState.currentStep?.isVote ?? false;
     final isNightAction = _isMyNightAction();
     final isDead = !widget.gameState.players
         .firstWhere((p) => p.id == widget.playerId,

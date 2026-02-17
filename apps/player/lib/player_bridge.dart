@@ -16,6 +16,10 @@ export 'package:cb_models/cb_models.dart' show PlayerSnapshot;
 /// Constant for the 'day_vote' step ID.
 const String kDayVoteStepId = 'day_vote';
 
+/// Returns true for day-vote step IDs, including scoped variants
+/// such as `day_vote_1`.
+bool isDayVoteStepId(String stepId) => stepId.startsWith(kDayVoteStepId);
+
 const Object _undefined = Object();
 
 /// Lightweight local state mirrored from Host via WebSocket.
@@ -209,7 +213,7 @@ class StepSnapshot {
     );
   }
 
-  bool get isVote => id == kDayVoteStepId;
+  bool get isVote => isDayVoteStepId(id);
 }
 
 /// Bridges the PlayerClient WebSocket to a Riverpod state notifier.

@@ -9,8 +9,6 @@ import '../host_bridge.dart';
 import '../host_destinations.dart';
 import '../host_navigation.dart';
 import '../sync_mode_runtime.dart';
-import '../widgets/custom_drawer.dart';
-import '../widgets/simulation_mode_badge_action.dart';
 import 'about_screen.dart';
 import 'game_screen.dart';
 import 'games_night_screen.dart';
@@ -104,27 +102,6 @@ class _HostHomeShellState extends ConsumerState<HostHomeShell> {
     final destination = ref.watch(hostNavigationProvider);
     final child = _screenFor(destination);
 
-    // If destination is Home, wrap in Scaffold because HomeScreen is just content.
-    // For other destinations (Lobby, Game, etc.), they provide their own Scaffold.
-    if (destination == HostDestination.home) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text(''),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          actions: const [SimulationModeBadgeAction()],
-        ),
-        drawer: const CustomDrawer(),
-        body: CBNeonBackground(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            child: child,
-          ),
-        ),
-      );
-    }
-
-    // For other screens, just return the child (which includes its own Scaffold).
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 400),
       child: child,

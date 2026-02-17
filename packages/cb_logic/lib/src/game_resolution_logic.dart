@@ -113,11 +113,13 @@ class GameResolutionLogic {
   }
 
   static NightResolution resolveNightActions(
-    List<Player> players,
-    Map<String, String> log,
-    int dayCount,
-    Map<String, List<String>> currentPrivateMessages,
+    GameState gameState,
   ) {
+    final players = gameState.players;
+    final log = gameState.actionLog;
+    final dayCount = gameState.dayCount;
+    final currentPrivateMessages = gameState.privateMessages;
+
     final context = NightResolutionContext(
       players: players,
       log: log,
@@ -169,6 +171,14 @@ class GameResolutionLogic {
     for (final id in context.silencedPlayerIds) {
       final p = context.getPlayer(id);
       context.updatePlayer(p.copyWith(silencedDay: dayCount));
+    }
+
+    // Announce Gawked Wallflower
+    if (gameState.gawkedPlayerId != null) {
+      final player = context.getPlayer(gameState.gawkedPlayerId!);
+      context.addReport(
+        '${player.name} was caught gawking at the murder! Their identity as the Wallflower has been exposed.',
+      );
     }
 
     return context.toNightResolution();

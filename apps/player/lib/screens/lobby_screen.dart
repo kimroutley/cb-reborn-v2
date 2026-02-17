@@ -2,7 +2,7 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/custom_drawer.dart';
-import '../player_bridge.dart';
+import '../active_bridge.dart';
 
 class LobbyScreen extends ConsumerWidget {
   const LobbyScreen({super.key});
@@ -11,7 +11,7 @@ class LobbyScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final gameState = ref.watch(playerBridgeProvider);
+    final gameState = ref.watch(activeBridgeProvider).state;
 
     return Scaffold(
       drawer: const CustomDrawer(),

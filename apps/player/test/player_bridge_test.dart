@@ -118,6 +118,38 @@ void main() {
     container.dispose();
   });
 
+  group('StepSnapshot.isVote', () {
+    test('is true for unscoped day vote id', () {
+      const step = StepSnapshot(
+        id: 'day_vote',
+        title: 'Vote',
+        readAloudText: 'Vote now',
+      );
+
+      expect(step.isVote, isTrue);
+    });
+
+    test('is true for scoped day vote id', () {
+      const step = StepSnapshot(
+        id: 'day_vote_3',
+        title: 'Vote',
+        readAloudText: 'Vote now',
+      );
+
+      expect(step.isVote, isTrue);
+    });
+
+    test('is false for unrelated id', () {
+      const step = StepSnapshot(
+        id: 'dealer_act_alice_3',
+        title: 'Dealer Action',
+        readAloudText: 'Choose target',
+      );
+
+      expect(step.isVote, isFalse);
+    });
+  });
+
   test('Initial state is disconnected', () {
     final bridge = container.read(playerBridgeProvider);
     expect(bridge.isConnected, isFalse);

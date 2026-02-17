@@ -1,4 +1,5 @@
 import 'package:cb_models/cb_models.dart';
+import '../../scripting/step_key.dart';
 import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
@@ -18,8 +19,12 @@ class MessyBitchKillAction implements NightActionStrategy {
         continue;
       }
 
-      final actionKey =
-          '${RoleIds.messyBitch}_kill_${bitch.id}_${context.dayCount}';
+      final actionKey = StepKey.roleVerbAction(
+        roleId: roleId,
+        verb: 'kill',
+        playerId: bitch.id,
+        dayCount: context.dayCount,
+      );
       final targetId = context.log[actionKey];
 
       if (targetId != null) {

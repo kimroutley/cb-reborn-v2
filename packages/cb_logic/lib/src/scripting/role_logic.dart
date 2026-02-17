@@ -30,7 +30,7 @@ class DealerStrategy extends RoleStrategy {
     return ScriptStep(
       id: 'dealer_act_${player.id}_$dayCount',
       title: 'THE DEALER',
-      readAloudText: 'Dealer, wake up and choose your target.',
+      readAloudText: 'Dealers and associates, wake up and choose a player to eliminate.',
       instructionText: 'Select the player to eliminate.',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
@@ -81,7 +81,7 @@ class WhoreStrategy extends RoleStrategy {
     return ScriptStep(
       id: 'whore_act_${player.id}_$dayCount',
       title: 'THE WHORE',
-      readAloudText: 'Whore, wake up and choose your scapegoat.',
+      readAloudText: 'Dealers and associates, wake up and choose your target.',
       instructionText:
           'If a Dealer is voted out, this player takes their place. One use.',
       actionType: ScriptActionType.selectPlayer,

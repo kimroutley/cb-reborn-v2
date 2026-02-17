@@ -1,4 +1,5 @@
 import 'package:cb_models/cb_models.dart';
+import '../../scripting/step_key.dart';
 import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
@@ -17,8 +18,11 @@ class SilverFoxAction implements NightActionStrategy {
         continue;
       }
 
-      final actionKey =
-          '${roleId}_act_${fox.id}_${context.dayCount}';
+      final actionKey = StepKey.roleAction(
+        roleId: roleId,
+        playerId: fox.id,
+        dayCount: context.dayCount,
+      );
       final targetId = context.log[actionKey];
 
       if (targetId != null) {

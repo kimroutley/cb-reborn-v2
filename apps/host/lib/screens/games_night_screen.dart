@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../host_destinations.dart';
+import '../host_navigation.dart';
 import '../widgets/common_dialogs.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import 'games_night_recap_screen.dart';
-import 'lobby_screen.dart';
 
 class GamesNightScreen extends ConsumerStatefulWidget {
   const GamesNightScreen({super.key});
@@ -203,10 +204,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   onPressed: () {
                     // Ensure the lobby is clean for the next round.
                     ref.read(gameProvider.notifier).returnToLobby();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LobbyScreen()),
-                    );
+                    ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.lobby);
                   },
                 ),
               ),

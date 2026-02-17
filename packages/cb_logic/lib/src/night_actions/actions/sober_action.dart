@@ -1,4 +1,5 @@
 import 'package:cb_models/cb_models.dart';
+import '../../scripting/step_key.dart';
 import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
@@ -13,8 +14,11 @@ class SoberAction implements NightActionStrategy {
 
     for (final sober in sobers) {
       // Pre-emptive actions cannot be blocked or redirected in the same night
-      final actionKey =
-          '${roleId}_act_${sober.id}_${context.dayCount}';
+      final actionKey = StepKey.roleAction(
+        roleId: roleId,
+        playerId: sober.id,
+        dayCount: context.dayCount,
+      );
       final targetId = context.log[actionKey];
 
       if (targetId != null) {

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../host_bridge.dart';
+import '../host_destinations.dart';
+import '../host_navigation.dart';
 import '../providers/lobby_profiles_provider.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/lobby/lobby_access_code_tile.dart';
@@ -12,7 +14,6 @@ import '../widgets/lobby/lobby_config_tile.dart';
 import '../widgets/lobby/lobby_games_night_banner.dart';
 import '../widgets/lobby/lobby_player_list.dart';
 import '../widgets/simulation_mode_badge_action.dart';
-import 'game_screen.dart';
 
 class LobbyScreen extends ConsumerWidget {
   const LobbyScreen({super.key});
@@ -201,9 +202,7 @@ class LobbyScreen extends ConsumerWidget {
                 HapticService.heavy();
                 final started = controller.startGame();
                 if (started) {
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const GameScreen()),
-                  );
+                  ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.game);
                 } else {
                   HapticService.error();
                 }

@@ -1,4 +1,5 @@
 import 'package:cb_models/cb_models.dart';
+import '../../scripting/step_key.dart';
 import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
@@ -17,7 +18,11 @@ class MessyBitchAction implements NightActionStrategy {
         continue;
       }
 
-      final actionKey = '${roleId}_act_${bitch.id}_${context.dayCount}';
+      final actionKey = StepKey.roleAction(
+        roleId: roleId,
+        playerId: bitch.id,
+        dayCount: context.dayCount,
+      );
       final targetId = context.log[actionKey];
 
       if (targetId != null) {
@@ -25,8 +30,7 @@ class MessyBitchAction implements NightActionStrategy {
         context.addPrivateMessage(
             bitch.id, 'You leaked info on ${target.name}.');
         context.addReport('MB spread rumor on ${target.name}.');
-        context.addTeaser(
-            'Juicy rumors about ${target.name}...');
+        context.addTeaser('Juicy rumors about ${target.name}...');
         context.updatePlayer(target.copyWith(hasRumour: true));
       }
     }

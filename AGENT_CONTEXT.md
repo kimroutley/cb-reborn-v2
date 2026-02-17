@@ -144,9 +144,47 @@ The game logic now uses a **Priority-Based Strategy Pattern** for resolving nigh
 
 ---
 
-## 7. Agent Directives
+## 8. Day Resolution Strategy & Wallflower Framework (Feb 18, 2026)
+
+Following the success of the Night Resolution engine, the Day Resolution logic has been refactored into a **Strategy Pattern** to handle complex role interactions like Predator Retaliation and Drama Queen Swaps.
+
+### Key Components
+
+* **`DayResolutionStrategy`**: Coordinates a sequence of `DayResolutionHandler` objects.
+* **Handlers**: Specialized logic for `DeadPool`, `TeaSpiller`, `DramaQueen`, and `Predator`.
+* **Wallflower Framework**: The Wallflower role now has a specialized "Host Observation" step. The Host observes if the Wallflower "Peeked" or "Gawked" during the murder, leading to state-driven exposure (`isExposed`) and night report entries.
+
+### ⚠️ Implementation Guidelines
+
+1. **State Cleanliness**: Handlers should return a `DayResolutionResult` that explicitly signals if auxiliary state (like `deadPoolBets`) should be cleared.
+2. **Chaining**: The order of handlers in `DayResolutionStrategy` matters. Drama Queen swaps should happen before Predator retaliation to ensure the correct "new" roles are targeted.
+
+---
+
+## 9. Navigation & Shell Architecture (Feb 18, 2026)
+
+Both Host and Player apps have migrated from imperative `Navigator.push` calls to a **State-Driven Shell Architecture**.
+
+### The "Shell" Pattern
+
+* **`HostHomeShell` / `PlayerHomeShell`**: These root widgets wrap a single `Scaffold` and `Drawer`.
+* **Navigation Provider**: An enum-based StateNotifier (`HostNavigation` / `PlayerNavigation`) determines the active screen.
+* **Reactive Transitions**: Screens switch automatically using `AnimatedSwitcher` when the navigation state or game phase changes.
+* **Drawer Integration**: The `NavigationDrawer` (Host) and `CustomDrawer` (Player) now update the provider state instead of calling `Navigator`.
+
+### The "ActiveBridge" Utility (Player App)
+
+To simplify cross-mode development, the Player app uses `activeBridgeProvider`.
+
+* **Abstraction**: It automatically watches either `cloudPlayerBridgeProvider` (Firestore) or `playerBridgeProvider` (WebSocket) and provides a unified interface.
+* **Usage**: Screens like `GameScreen` and `LobbyScreen` should watch `activeBridgeProvider` to avoid redundant logic for checking connection modes.
+
+---
+
+## 10. Agent Directives
 
 1. **Read Context First**: Before starting any task, verify your understanding against this document.
 2. **Verify, Don't Assume**: After editing code, run `flutter test` in the relevant package.
+
 3. **Respect the Architecture**: Do not bypass `RoleIds` or direct Firestore calls outside the Bridges.
 4. **Update This Doc**: If you discover a new pattern or fix a critical bug, update this file.

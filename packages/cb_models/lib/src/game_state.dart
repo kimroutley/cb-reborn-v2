@@ -54,6 +54,9 @@ abstract class GameState with _$GameState {
     // Chat-style feed events for the Host ScriptView
     @Default([]) List<FeedEvent> feedEvents,
 
+    // Role Specific - Wallflower
+    String? gawkedPlayerId,
+
     // Host configuration
     @Default(300) int discussionTimerSeconds,
     @Default(SyncMode.local) SyncMode syncMode,

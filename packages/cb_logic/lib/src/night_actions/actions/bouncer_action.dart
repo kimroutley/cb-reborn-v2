@@ -1,4 +1,5 @@
 import 'package:cb_models/cb_models.dart';
+import '../../scripting/step_key.dart';
 import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 
@@ -17,7 +18,11 @@ class BouncerAction implements NightActionStrategy {
         continue;
       }
 
-      final actionKey = '${roleId}_act_${bouncer.id}_${context.dayCount}';
+      final actionKey = StepKey.roleAction(
+        roleId: roleId,
+        playerId: bouncer.id,
+        dayCount: context.dayCount,
+      );
       final targetId = context.log[actionKey];
       if (targetId == null) {
         continue;

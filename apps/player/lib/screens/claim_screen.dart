@@ -2,17 +2,10 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../cloud_player_bridge.dart';
-import '../player_bridge.dart';
-import '../player_bridge_actions.dart';
+import '../active_bridge.dart';
 
 class ClaimScreen extends ConsumerStatefulWidget {
-  final bool isCloud;
-
-  const ClaimScreen({
-    super.key,
-    required this.isCloud,
-  });
+  const ClaimScreen({super.key});
 
   @override
   ConsumerState<ClaimScreen> createState() => _ClaimScreenState();
@@ -24,9 +17,8 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final gameState = widget.isCloud
-        ? ref.watch(cloudPlayerBridgeProvider)
-        : ref.watch(playerBridgeProvider);
+    final activeBridge = ref.watch(activeBridgeProvider);
+    final gameState = activeBridge.state;
 
     final availablePlayers = gameState.players
         .where((p) => p.isAlive && !gameState.claimedPlayerIds.contains(p.id))
@@ -102,10 +94,7 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                 onPressed: _selectedId == null
                     ? null
                     : () {
-                        final PlayerBridgeActions bridge = widget.isCloud
-                            ? ref.read(cloudPlayerBridgeProvider.notifier)
-                            : ref.read(playerBridgeProvider.notifier);
-                        bridge.claimPlayer(_selectedId!); // Trigger the claim
+                        activeBridge.actions.claimPlayer(_selectedId!); // Trigger the claim
                         // Navigator.pop is not needed because GameRouter listens to state
                       },
               ),

@@ -1,19 +1,18 @@
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
-import '../screens/games_night_screen.dart';
-import '../screens/guides_screen.dart';
-import '../screens/home_screen.dart';
-import '../screens/lobby_screen.dart';
-import '../screens/stats_screen.dart';
-import '../screens/hall_of_fame_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../player_destinations.dart';
+import '../player_navigation.dart';
 
-class CustomDrawer extends StatelessWidget {
+class CustomDrawer extends ConsumerWidget {
   const CustomDrawer({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final currentDestination = ref.watch(playerNavigationProvider);
+
     return Drawer(
       backgroundColor: scheme.surfaceContainerLow,
       child: ListView(
@@ -21,79 +20,19 @@ class CustomDrawer extends StatelessWidget {
         children: [
           _buildDrawerHeader(context),
 
-          _DrawerTile(
-            icon: Icons.home_rounded,
-            title: 'Home',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (route) => false,
-              );
-            },
-          ),
-          _DrawerTile(
-            icon: Icons.group_rounded,
-            title: 'Club Lobby',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LobbyScreen()),
-              );
-            },
-          ),
-          _DrawerTile(
-            icon: Icons.menu_book_rounded,
-            title: 'Game Bible',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const GuidesScreen()),
-              );
-            },
-          ),
-          _DrawerTile(
-            icon: Icons.wine_bar_rounded,
-            title: 'Games Night',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const GamesNightScreen(),
-                ),
-              );
-            },
-          ),
-          _DrawerTile(
-            icon: Icons.show_chart_rounded,
-            title: 'Career Stats',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const StatsScreen(),
-                ),
-              );
-            },
-          ),
-          _DrawerTile(
-            icon: Icons.emoji_events_rounded,
-            title: 'Hall of Fame',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const HallOfFameScreen(),
-                ),
-              );
-            },
-          ),
+          ...PlayerDestinationConfig.all.map((config) {
+            final isSelected = currentDestination == config.destination;
+
+            return _DrawerTile(
+              icon: config.icon,
+              title: config.label,
+              isSelected: isSelected,
+              onTap: () {
+                Navigator.pop(context); // Close drawer
+                ref.read(playerNavigationProvider.notifier).setDestination(config.destination);
+              },
+            );
+          }),
 
           Divider(color: scheme.outlineVariant.withValues(alpha: 0.25)),
 
@@ -191,11 +130,13 @@ class _DrawerTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final VoidCallback onTap;
+  final bool isSelected;
 
   const _DrawerTile({
     required this.icon,
     required this.title,
     required this.onTap,
+    this.isSelected = false,
   });
 
   @override
@@ -203,16 +144,21 @@ class _DrawerTile extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return ListTile(
-      leading:
-          Icon(icon, color: scheme.primary.withValues(alpha: 0.75), size: 20),
+      leading: Icon(
+        icon,
+        color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
+        size: 20,
+      ),
       title: Text(
         title.toUpperCase(),
         style: textTheme.labelSmall!.copyWith(
-          color: scheme.onSurface.withValues(alpha: 0.85),
+          color: isSelected ? scheme.primary : scheme.onSurface.withValues(alpha: 0.85),
           letterSpacing: 1.5,
-          fontWeight: FontWeight.bold,
+          fontWeight: isSelected ? FontWeight.black : FontWeight.bold,
+          shadows: isSelected ? CBColors.textGlow(scheme.primary, intensity: 0.3) : null,
         ),
       ),
+      selected: isSelected,
       onTap: onTap,
     );
   }

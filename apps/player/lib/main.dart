@@ -7,7 +7,7 @@ import 'auth/player_auth_screen.dart';
 import 'join_link_state.dart';
 
 import 'firebase_options.dart';
-import 'screens/game_router.dart';
+import 'screens/player_home_shell.dart';
 import 'screens/stats_screen.dart';
 import 'screens/hall_of_fame_screen.dart';
 import 'widgets/effects_overlay.dart';
@@ -115,7 +115,7 @@ class PlayerApp extends ConsumerWidget {
               '/hall-of-fame': (context) => const HallOfFameScreen(),
             },
             home: PlayerAuthScreen(
-              child: const EffectsOverlay(child: GameRouter()),
+              child: const EffectsOverlay(child: PlayerHomeShell()),
             ),
             debugShowCheckedModeBanner: false,
           );

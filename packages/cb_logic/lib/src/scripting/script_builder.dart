@@ -95,10 +95,11 @@ class ScriptBuilder {
       for (final wallflower in wallflowers) {
         steps.add(ScriptStep(
           id: 'wallflower_info_${wallflower.id}',
-          title: 'WALLFLOWER NOTICE',
+          title: 'WALLFLOWER IN PLAY',
           readAloudText:
-              'There is a Wallflower in tonight\'s game. They may open their eyes during the murder.',
-          instructionText: 'Reminder: Wallflower can peek during Dealer phase.',
+              'A heads-up for everyone: a Wallflower is in play. During the night\'s murder, they will be allowed to briefly open their eyes.',
+          instructionText:
+              'Announce that the Wallflower ability is active. The actual peek happens after the Dealer action at night.',
           actionType: ScriptActionType.info,
         ));
       }
@@ -129,6 +130,10 @@ class ScriptBuilder {
       ..sort((a, b) => a.role.nightPriority.compareTo(b.role.nightPriority));
 
     for (final player in activePlayers) {
+      // Wallflower is handled separately now
+      if (player.role.id == RoleIds.wallflower) {
+        continue;
+      }
       final strategy = roleStrategies[player.role.id];
       if (strategy == null) {
         continue;
@@ -159,25 +164,29 @@ class ScriptBuilder {
       }
     }
 
-    // ── Wallflower reminder (between Dealer step and end) ──
-    final hasWallflower =
-        players.any((p) => p.role.id == RoleIds.wallflower && p.isAlive);
-    final hasDealerStep = steps.any((s) => s.id.startsWith('dealer_act_'));
-    if (hasWallflower && hasDealerStep) {
-      // Insert Wallflower witness step right after the Dealer step
-      final dealerIdx = steps.indexWhere((s) => s.id.startsWith('dealer_act_'));
-      if (dealerIdx >= 0) {
+    // ── Wallflower Host Observation ──
+    final wallflowers = players
+        .where((p) => p.role.id == RoleIds.wallflower && p.isAlive)
+        .toList();
+    final dealerStepIndex =
+        steps.indexWhere((s) => s.id.startsWith('dealer_act_'));
+
+    if (wallflowers.isNotEmpty && dealerStepIndex != -1) {
+      for (final wallflower in wallflowers) {
+        // This step is for the HOST, not the player. It happens after the murder.
         steps.insert(
-            dealerIdx + 1,
-            ScriptStep(
-              id: 'wallflower_witness_$dayCount',
-              title: 'WALLFLOWER',
-              readAloudText: 'Wallflower, you may briefly open your eyes.',
-              instructionText:
-                  'Show the murder result. Wallflower closes eyes.',
-              actionType: ScriptActionType.info,
-              roleId: RoleIds.wallflower,
-            ));
+          dealerStepIndex + 1, // Place it right after the dealer's action
+          ScriptStep(
+            id: 'wallflower_observe_${wallflower.id}_$dayCount',
+            title: 'HOST OBSERVATION',
+            readAloudText: '', // No read-aloud text for this host-only action
+            instructionText:
+                'Observe ${wallflower.name}, how did they witness the murder?',
+            actionType: ScriptActionType.binaryChoice,
+            roleId: RoleIds.wallflower,
+            options: const ['PEEKED', 'GAWKED'],
+          ),
+        );
       }
     }
 
