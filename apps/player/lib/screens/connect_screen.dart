@@ -10,6 +10,75 @@ import 'claim_screen.dart';
 /// Connection mode for the player app.
 enum PlayerSyncMode { local, cloud }
 
+@immutable
+class ParsedJoinUrl {
+  const ParsedJoinUrl({
+    required this.normalizedCode,
+    required this.mode,
+    required this.hostUrl,
+  });
+
+  final String normalizedCode;
+  final PlayerSyncMode? mode;
+  final String? hostUrl;
+}
+
+@visibleForTesting
+String normalizeJoinCode(String value) {
+  final compact = value.toUpperCase().replaceAll('-', '').trim();
+  if (compact.length != 10) {
+    return value.toUpperCase();
+  }
+  return '${compact.substring(0, 4)}-${compact.substring(4)}';
+}
+
+@visibleForTesting
+ParsedJoinUrl? parseJoinUrlPayload(String raw) {
+  final trimmed = raw.trim();
+  if (trimmed.isEmpty || !trimmed.contains('://')) {
+    return null;
+  }
+
+  final uri = Uri.tryParse(trimmed);
+  if (uri == null) {
+    return null;
+  }
+
+  final codeParam = uri.queryParameters['code'];
+  if (codeParam == null || codeParam.trim().isEmpty) {
+    return null;
+  }
+
+  final modeParam = uri.queryParameters['mode']?.toLowerCase();
+  final hostParam = uri.queryParameters['host'];
+
+  PlayerSyncMode? mode;
+  if (modeParam == 'local') {
+    mode = PlayerSyncMode.local;
+  } else if (modeParam == 'cloud') {
+    mode = PlayerSyncMode.cloud;
+  }
+
+  final decodedHost =
+      hostParam != null && hostParam.trim().isNotEmpty
+          ? Uri.decodeComponent(hostParam.trim())
+          : null;
+
+  return ParsedJoinUrl(
+    normalizedCode: normalizeJoinCode(codeParam),
+    mode: mode,
+    hostUrl: decodedHost,
+  );
+}
+
+@visibleForTesting
+bool shouldNavigateToClaim({
+  required bool isNavigating,
+  required bool mounted,
+}) {
+  return mounted && !isNavigating;
+}
+
 class ConnectScreen extends ConsumerStatefulWidget {
   const ConnectScreen({super.key, this.initialJoinUrl});
 
@@ -26,6 +95,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   final TextEditingController joinCodeController = TextEditingController();
   final TextEditingController joinUrlController = TextEditingController();
   String? localError;
+  bool _navigatingToClaim = false;
 
   Future<void> _switchMode(PlayerSyncMode nextMode) async {
     if (_mode == nextMode) {
@@ -74,42 +144,24 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   }
 
   String _normalizeJoinCode(String value) {
-    final compact = value.toUpperCase().replaceAll('-', '').trim();
-    if (compact.length != 10) {
-      return value.toUpperCase();
-    }
-    return '${compact.substring(0, 4)}-${compact.substring(4)}';
+    return normalizeJoinCode(value);
   }
 
   bool _tryApplyJoinUrl(String raw) {
-    final trimmed = raw.trim();
-    if (trimmed.isEmpty || !trimmed.contains('://')) {
+    final parsed = parseJoinUrlPayload(raw);
+    if (parsed == null) {
       return false;
     }
 
-    final uri = Uri.tryParse(trimmed);
-    if (uri == null) {
-      return false;
-    }
-
-    final modeParam = uri.queryParameters['mode']?.toLowerCase();
-    final codeParam = uri.queryParameters['code'];
-    final hostParam = uri.queryParameters['host'];
-
-    if (codeParam == null || codeParam.trim().isEmpty) {
-      return false;
-    }
-
-    final normalizedCode = _normalizeJoinCode(codeParam);
     setState(() {
-      joinCodeController.text = normalizedCode;
+      joinCodeController.text = parsed.normalizedCode;
 
-      if (modeParam == 'local') {
+      if (parsed.mode == PlayerSyncMode.local) {
         _mode = PlayerSyncMode.local;
-        if (hostParam != null && hostParam.trim().isNotEmpty) {
-          hostIpController.text = Uri.decodeComponent(hostParam.trim());
+        if (parsed.hostUrl != null) {
+          hostIpController.text = parsed.hostUrl!;
         }
-      } else if (modeParam == 'cloud') {
+      } else if (parsed.mode == PlayerSyncMode.cloud) {
         _mode = PlayerSyncMode.cloud;
       }
     });
@@ -264,7 +316,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         const SizedBox(height: CBSpace.x2),
         Align(
           alignment: Alignment.centerRight,
-          child: CBGhostButton(
+          child: CBTextButton(
             label: 'PARSE URL',
             onPressed: () {
               final ok = _tryApplyJoinUrl(joinUrlController.text);
@@ -300,7 +352,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         CBTextField(
           controller: joinCodeController,
           hintText: 'NEON-ABCDEF',
-          textStyle: CBTypography.code,
+          textStyle: textTheme.bodyMedium?.copyWith(fontFamily: 'RobotoMono'),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
             _JoinCodeFormatter(),
@@ -329,6 +381,14 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   }
 
   void _navigateToClaim(bool isCloud) {
+    if (!shouldNavigateToClaim(
+      isNavigating: _navigatingToClaim,
+      mounted: mounted,
+    )) {
+      return;
+    }
+    _navigatingToClaim = true;
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -336,7 +396,11 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
           isCloud: isCloud,
         ),
       ),
-    );
+    ).then((_) {
+      if (mounted) {
+        _navigatingToClaim = false;
+      }
+    });
   }
 }
 
@@ -359,17 +423,19 @@ class _ModeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
     final activeColor = isSelected
         ? color
-        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3);
+        : scheme.onSurface.withValues(alpha: 0.3);
 
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
         borderRadius: BorderRadius.circular(CBRadius.sm),
         onTap: () {
-          HapticService.selection();
+          HapticFeedback.selectionClick();
           onTap();
         },
         child: Ink(
@@ -394,7 +460,7 @@ class _ModeButton extends StatelessWidget {
               ),
               Text(
                 desc,
-                style: CBTypography.micro.copyWith(
+                style: textTheme.labelSmall?.copyWith(
                   color: activeColor.withValues(alpha: 0.7),
                 ),
               ),
