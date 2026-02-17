@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../settings_provider.dart';
-import '../widgets/custom_drawer.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -23,8 +22,6 @@ class SettingsScreen extends ConsumerWidget {
         ),
         centerTitle: true,
       ),
-      drawer:
-          const CustomDrawer(), // Keep as const for now, revisit drawer integration later
       body: CBNeonBackground(
         child: SafeArea(
           child: ListView(
@@ -74,9 +71,9 @@ class SettingsScreen extends ConsumerWidget {
           Text(
             title,
             style: textTheme.headlineSmall!.copyWith(
-                  color: accentColor,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: accentColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: CBSpace.x3),
           Row(

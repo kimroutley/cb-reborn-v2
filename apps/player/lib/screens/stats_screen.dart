@@ -2,7 +2,6 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../widgets/custom_drawer.dart';
 import '../player_stats.dart';
 
 class StatsScreen extends ConsumerWidget {
@@ -25,8 +24,6 @@ class StatsScreen extends ConsumerWidget {
         ),
         centerTitle: true,
       ),
-      drawer:
-          const CustomDrawer(), // Keep as const for now, revisit drawer integration later
       body: CBNeonBackground(
         child: SafeArea(
           child: Center(

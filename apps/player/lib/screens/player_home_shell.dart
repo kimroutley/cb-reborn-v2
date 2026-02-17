@@ -11,6 +11,7 @@ import 'guides_screen.dart';
 import 'games_night_screen.dart';
 import 'hall_of_fame_screen.dart';
 import 'stats_screen.dart';
+import '../widgets/custom_drawer.dart';
 
 class PlayerHomeShell extends ConsumerWidget {
   const PlayerHomeShell({super.key});
@@ -26,18 +27,26 @@ class PlayerHomeShell extends ConsumerWidget {
       final nextConnected = next.state.isConnected;
 
       if (!nextConnected) {
-        ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.home);
+        ref
+            .read(playerNavigationProvider.notifier)
+            .setDestination(PlayerDestination.home);
       } else if (nextPhase != prevPhase) {
         switch (nextPhase) {
           case 'lobby':
-            ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.lobby);
+            ref
+                .read(playerNavigationProvider.notifier)
+                .setDestination(PlayerDestination.lobby);
             break;
           case 'setup':
-            ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.claim);
+            ref
+                .read(playerNavigationProvider.notifier)
+                .setDestination(PlayerDestination.claim);
             break;
           case 'active':
           case 'recap':
-            ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.game);
+            ref
+                .read(playerNavigationProvider.notifier)
+                .setDestination(PlayerDestination.game);
             break;
         }
       }
@@ -71,26 +80,46 @@ class PlayerHomeShell extends ConsumerWidget {
         break;
     }
 
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 500),
-      transitionBuilder: (Widget child, Animation<double> animation) {
-        return FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.05, 0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            )),
-            child: child,
+    return Scaffold(
+      drawer: const CustomDrawer(),
+      body: Stack(
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.05, 0),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  )),
+                  child: child,
+                ),
+              );
+            },
+            child: KeyedSubtree(
+              key: ValueKey(destination),
+              child: activeWidget,
+            ),
           ),
-        );
-      },
-      child: KeyedSubtree(
-        key: ValueKey(destination),
-        child: activeWidget,
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Builder(
+                builder: (context) => IconButton(
+                  key: const ValueKey('player_shell_menu_button'),
+                  tooltip: 'Open menu',
+                  icon: const Icon(Icons.menu_rounded),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

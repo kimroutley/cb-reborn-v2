@@ -4,8 +4,6 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'custom_drawer.dart';
-
 class GhostLoungeContent extends StatelessWidget {
   final PlayerGameState gameState;
   final PlayerSnapshot player;
@@ -30,7 +28,6 @@ class GhostLoungeContent extends StatelessWidget {
       appBar: AppBar(
         title: const Text("GHOST LOUNGE"),
       ),
-      drawer: const CustomDrawer(),
       body: CBNeonBackground(
         child: Center(
           child: Column(

@@ -72,4 +72,44 @@ void main() {
     await tester.pump();
     expect(container.read(playerNavigationProvider), PlayerDestination.game);
   });
+
+  testWidgets('Menu button remains accessible across shell destinations',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          cloudPlayerBridgeProvider.overrideWith(() => _TestCloudBridge()),
+          playerBridgeProvider.overrideWith(() => _TestLocalBridge()),
+          playerNavigationProvider
+              .overrideWith(() => _LobbyFirstNavigationNotifier()),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(body: PlayerHomeShell()),
+        ),
+      ),
+    );
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlayerHomeShell)),
+    );
+
+    expect(
+        find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
+
+    container
+        .read(playerNavigationProvider.notifier)
+        .setDestination(PlayerDestination.claim);
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(
+        find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
+
+    container
+        .read(playerNavigationProvider.notifier)
+        .setDestination(PlayerDestination.game);
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(
+        find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
+  });
 }

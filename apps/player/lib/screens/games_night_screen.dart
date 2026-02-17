@@ -4,8 +4,6 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
-import '../widgets/custom_drawer.dart';
 import 'games_night_recap_screen.dart';
 
 class GamesNightScreen extends ConsumerStatefulWidget {
@@ -57,8 +55,6 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
         ),
         centerTitle: true,
       ),
-      drawer:
-          const CustomDrawer(), // Keep as const for now, revisit drawer integration later
       body: CBNeonBackground(
         child: SafeArea(
           child: _isLoading
@@ -67,25 +63,31 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   onRefresh: _loadData,
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 24, horizontal: 20),
                     children: [
                       CBSectionHeader(
-                          title: 'YOUR SESSION HISTORY', color: scheme.tertiary),
+                          title: 'YOUR SESSION HISTORY',
+                          color: scheme.tertiary),
                       const SizedBox(height: 16),
                       if (_sessions.isEmpty)
                         CBPanel(
                           padding: const EdgeInsets.all(16),
                           child: Text(
                             'No game sessions found. Play a game to see your history here.',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: scheme.onSurface.withValues(alpha: 0.75)),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                    color: scheme.onSurface
+                                        .withValues(alpha: 0.75)),
                           ),
                         )
                       else
                         ..._sessions
                             .map((s) => _buildSessionEntry(context, s, scheme)),
-                      const SizedBox(height: 120), // Provide some bottom padding
+                      const SizedBox(
+                          height: 120), // Provide some bottom padding
                     ],
                   ),
                 ),
