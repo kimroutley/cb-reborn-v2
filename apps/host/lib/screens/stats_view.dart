@@ -62,6 +62,7 @@ class _StatsViewState extends State<StatsView> {
               if (_records.isNotEmpty)
                 CBGhostButton(
                   label: 'PURGE DATA',
+                  fullWidth: false,
                   color: scheme.error, // Migrated from CBColors.dead
                   onPressed: _confirmClearAll,
                 ),

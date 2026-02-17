@@ -80,10 +80,25 @@ class LobbyPlayerList extends ConsumerWidget {
 
         // ── PLAYER JOIN FEED ──
         if (gameState.players.isEmpty)
-          const Center(
+          Center(
             child: Padding(
-              padding: EdgeInsets.all(32.0),
-              child: CBBreathingSpinner(),
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CBBreathingSpinner(),
+                  const SizedBox(height: CBSpace.x3),
+                  Text(
+                    'WAITING FOR PLAYERS TO JOIN...',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.tertiary,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
