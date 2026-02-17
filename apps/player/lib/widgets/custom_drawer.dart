@@ -20,7 +20,7 @@ class CustomDrawer extends ConsumerWidget {
         children: [
           _buildDrawerHeader(context),
 
-          ...PlayerDestinationConfig.all.map((config) {
+          ...playerDestinations.map((config) {
             final isSelected = currentDestination == config.destination;
 
             return _DrawerTile(
@@ -154,7 +154,7 @@ class _DrawerTile extends StatelessWidget {
         style: textTheme.labelSmall!.copyWith(
           color: isSelected ? scheme.primary : scheme.onSurface.withValues(alpha: 0.85),
           letterSpacing: 1.5,
-          fontWeight: isSelected ? FontWeight.black : FontWeight.bold,
+          fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
           shadows: isSelected ? CBColors.textGlow(scheme.primary, intensity: 0.3) : null,
         ),
       ),

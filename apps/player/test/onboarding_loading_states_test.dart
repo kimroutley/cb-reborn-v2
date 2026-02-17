@@ -137,12 +137,17 @@ void main() {
         ProviderScope(
           overrides: [
             cloudPlayerBridgeProvider.overrideWith(
-              () => _SeededCloudBridge(const PlayerGameState(players: [])),
+              () => _SeededCloudBridge(
+                const PlayerGameState(
+                  players: [],
+                  joinAccepted: true,
+                ),
+              ),
             ),
           ],
           child: MaterialApp(
             theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
-            home: const ClaimScreen(isCloud: true),
+            home: const ClaimScreen(),
           ),
         ),
       );
@@ -181,13 +186,14 @@ void main() {
                 const PlayerGameState(
                   players: players,
                   claimedPlayerIds: ['p1', 'p2'],
+                  joinAccepted: true,
                 ),
               ),
             ),
           ],
           child: MaterialApp(
             theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
-            home: const ClaimScreen(isCloud: true),
+            home: const ClaimScreen(),
           ),
         ),
       );

@@ -217,12 +217,12 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     // Listen for successful join
     ref.listen(cloudPlayerBridgeProvider, (prev, next) {
       if (prev != null && !prev.joinAccepted && next.joinAccepted) {
-        _navigateToClaim(true);
+        _navigateToClaim();
       }
     });
     ref.listen(playerBridgeProvider, (prev, next) {
       if (prev != null && !prev.joinAccepted && next.joinAccepted) {
-        _navigateToClaim(false);
+        _navigateToClaim();
       }
     });
 
@@ -380,7 +380,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     );
   }
 
-  void _navigateToClaim(bool isCloud) {
+  void _navigateToClaim() {
     if (!shouldNavigateToClaim(
       isNavigating: _navigatingToClaim,
       mounted: mounted,
@@ -392,9 +392,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ClaimScreen(
-          isCloud: isCloud,
-        ),
+        builder: (context) => const ClaimScreen(),
       ),
     ).then((_) {
       if (mounted) {
