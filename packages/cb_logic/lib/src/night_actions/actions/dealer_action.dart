@@ -31,16 +31,6 @@ class DealerAction implements NightActionStrategy {
         context.dealerAttacks[dealer.id] = targetId;
         context.addPrivateMessage(dealer.id, 'Target acquired.');
 
-        final wallflowers = context.players.where(
-          (p) => p.isAlive && p.role.id == RoleIds.wallflower,
-        );
-        for (final wallflower in wallflowers) {
-          context.addPrivateMessage(
-            wallflower.id,
-            'You witnessed Dealer target ${target.name}.',
-          );
-        }
-
         context.addReport('Dealer target: ${target.name}.');
       }
     }

@@ -37,6 +37,39 @@ Player _player(
 
 void main() {
   group('resolvePredatorRetaliation', () {
+    test('uses explicit retaliation choice when valid', () {
+      final predatorRole = _role(RoleIds.predator);
+      final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);
+      final buddyRole = _role(RoleIds.partyAnimal);
+
+      final players = [
+        _player('pred', 'Predator', predatorRole,
+            isAlive: false, deathReason: 'exile', deathDay: 1),
+        _player('dealer', 'Dealer', dealerRole),
+        _player('buddy', 'Buddy', buddyRole),
+      ];
+
+      final votesByVoter = {
+        'dealer': 'pred',
+        'buddy': 'pred',
+      };
+
+      final result = resolvePredatorRetaliation(
+        players: players,
+        votesByVoter: votesByVoter,
+        dayCount: 1,
+        retaliationChoices: const {'pred': 'buddy'},
+      );
+
+      final dealer = result.players.firstWhere((p) => p.id == 'dealer');
+      final buddy = result.players.firstWhere((p) => p.id == 'buddy');
+
+      expect(dealer.isAlive, isTrue);
+      expect(buddy.isAlive, isFalse);
+      expect(buddy.deathReason, 'predator_retaliation');
+      expect(result.victimIds.single, 'buddy');
+    });
+
     test('exiled predator retaliates against first alive voter', () {
       final predatorRole = _role(RoleIds.predator);
       final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);

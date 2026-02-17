@@ -10,6 +10,7 @@ class PredatorRetaliationHandler implements DayResolutionHandler {
       players: context.players,
       votesByVoter: context.votesByVoter,
       dayCount: context.dayCount,
+      retaliationChoices: context.predatorRetaliationChoices,
     );
 
     return DayResolutionResult(

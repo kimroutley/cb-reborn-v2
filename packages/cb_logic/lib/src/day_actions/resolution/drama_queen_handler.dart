@@ -9,6 +9,7 @@ class DramaQueenHandler implements DayResolutionHandler {
     final resolution = resolveDramaQueenSwaps(
       players: context.players,
       votesByVoter: context.votesByVoter,
+      dramaQueenSwapChoices: context.dramaQueenSwapChoices,
     );
 
     return DayResolutionResult(

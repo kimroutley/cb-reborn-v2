@@ -76,5 +76,30 @@ void main() {
 
       expect(lines, isEmpty);
     });
+
+    test('honors explicit selected reveal target when valid', () {
+      final teaSpillerRole = _role(RoleIds.teaSpiller);
+      final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);
+      final buddyRole = _role(RoleIds.partyAnimal);
+
+      final players = [
+        _player('tea', 'Tea', teaSpillerRole,
+            isAlive: false, deathReason: 'exile'),
+        _player('dealer', 'Dealer', dealerRole),
+        _player('buddy', 'Buddy', buddyRole),
+      ];
+
+      final lines = resolveTeaSpillerReveals(
+        players: players,
+        votesByVoter: {
+          'dealer': 'tea',
+          'buddy': 'tea',
+        },
+        teaSpillerRevealChoices: const {'tea': 'buddy'},
+      );
+
+      expect(lines.length, 1);
+      expect(lines.single, 'Tea Spiller exposed Buddy: party_animal.');
+    });
   });
 }

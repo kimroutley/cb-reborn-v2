@@ -329,8 +329,11 @@ class Game extends _$Game {
     'creep_setup_',
     'clinger_setup_',
     'drama_queen_setup_',
+    'drama_queen_vendetta_',
     'minor_id_',
     'second_wind_convert_',
+    'tea_spiller_reveal_',
+    'predator_retaliation_',
   ];
 
   String? _extractActorId(String stepId) {
@@ -354,6 +357,236 @@ class Game extends _$Game {
       if (p.id == id) return p;
     }
     return null;
+  }
+
+  List<ScriptStep> _buildPredatorRetaliationSteps({
+    required List<Player> players,
+    required Map<String, String> votesByVoter,
+    required int dayCount,
+    required String? exiledPlayerId,
+  }) {
+    if (exiledPlayerId == null || exiledPlayerId.isEmpty) {
+      return const [];
+    }
+
+    final exiledMatches = players.where((p) => p.id == exiledPlayerId).toList();
+    if (exiledMatches.isEmpty) {
+      return const [];
+    }
+
+    final exiled = exiledMatches.first;
+    if (exiled.role.id != RoleIds.predator || exiled.deathReason != 'exile') {
+      return const [];
+    }
+
+    final eligibleVoterIds = votesByVoter.entries
+        .where((entry) => entry.value == exiled.id)
+        .map((entry) => entry.key)
+        .where((voterId) => voterId != exiled.id)
+        .where((voterId) => players.any((p) => p.id == voterId && p.isAlive))
+        .toList();
+
+    if (eligibleVoterIds.isEmpty) {
+      return const [];
+    }
+
+    return [
+      ScriptStep(
+        id: 'predator_retaliation_${exiled.id}_$dayCount',
+        title: 'PREDATOR RETALIATION',
+        readAloudText:
+            '${exiled.name}, choose one voter to take down with you.',
+        instructionText:
+            'Select one player who voted against ${exiled.name}. That player dies immediately.',
+        actionType: ScriptActionType.selectPlayer,
+        roleId: RoleIds.predator,
+      ),
+    ];
+  }
+
+  List<ScriptStep> _buildTeaSpillerRevealSteps({
+    required List<Player> players,
+    required Map<String, String> votesByVoter,
+    required int dayCount,
+    required String? exiledPlayerId,
+  }) {
+    if (exiledPlayerId == null || exiledPlayerId.isEmpty) {
+      return const [];
+    }
+
+    final exiledMatches = players.where((p) => p.id == exiledPlayerId).toList();
+    if (exiledMatches.isEmpty) {
+      return const [];
+    }
+
+    final exiled = exiledMatches.first;
+    if (exiled.role.id != RoleIds.teaSpiller || exiled.deathReason != 'exile') {
+      return const [];
+    }
+
+    final eligibleVoterIds = votesByVoter.entries
+        .where((entry) => entry.value == exiled.id)
+        .map((entry) => entry.key)
+        .where((voterId) => voterId != exiled.id)
+        .where((voterId) => players.any((p) => p.id == voterId))
+        .toList();
+
+    if (eligibleVoterIds.isEmpty) {
+      return const [];
+    }
+
+    return [
+      ScriptStep(
+        id: 'tea_spiller_reveal_${exiled.id}_$dayCount',
+        title: 'TEA SPILLER REVEAL',
+        readAloudText:
+            '${exiled.name}, choose one voter to expose before you leave.',
+        instructionText:
+            'Select one player who voted against ${exiled.name}. Their role will be revealed publicly.',
+        actionType: ScriptActionType.selectPlayer,
+        roleId: RoleIds.teaSpiller,
+      ),
+    ];
+  }
+
+  List<ScriptStep> _buildDramaQueenVendettaSteps({
+    required List<Player> players,
+    required int dayCount,
+    required String? exiledPlayerId,
+  }) {
+    if (exiledPlayerId == null || exiledPlayerId.isEmpty) {
+      return const [];
+    }
+
+    final exiledMatches = players.where((p) => p.id == exiledPlayerId).toList();
+    if (exiledMatches.isEmpty) {
+      return const [];
+    }
+
+    final exiled = exiledMatches.first;
+    if (exiled.role.id != RoleIds.dramaQueen || exiled.deathReason != 'exile') {
+      return const [];
+    }
+
+    final eligibleTargets = players
+        .where((p) => p.isAlive && p.id != exiled.id)
+        .map((p) => p.id)
+        .toList();
+
+    if (eligibleTargets.length < 2) {
+      return const [];
+    }
+
+    return [
+      ScriptStep(
+        id: 'drama_queen_vendetta_${exiled.id}_$dayCount',
+        title: 'DRAMA QUEEN VENDETTA',
+        readAloudText: '${exiled.name}, choose two players to swap roles.',
+        instructionText:
+            'Select two alive players. Their roles and alliances will be swapped immediately.',
+        actionType: ScriptActionType.selectTwoPlayers,
+        roleId: RoleIds.dramaQueen,
+      ),
+    ];
+  }
+
+  Map<String, String> _predatorRetaliationChoicesFromActionLog(int dayCount) {
+    final result = <String, String>{};
+
+    for (final entry in state.actionLog.entries) {
+      final stepId = entry.key;
+      if (!stepId.startsWith('predator_retaliation_') ||
+          !stepId.endsWith('_$dayCount')) {
+        continue;
+      }
+
+      final predatorId = _extractScopedPlayerId(
+        stepId: stepId,
+        prefix: 'predator_retaliation_',
+      );
+      if (predatorId == null || predatorId.isEmpty) {
+        continue;
+      }
+
+      if (entry.value.isEmpty) {
+        continue;
+      }
+      result[predatorId] = entry.value;
+    }
+
+    return result;
+  }
+
+  Map<String, String> _teaSpillerRevealChoicesFromActionLog(int dayCount) {
+    final result = <String, String>{};
+
+    for (final entry in state.actionLog.entries) {
+      final stepId = entry.key;
+      if (!stepId.startsWith('tea_spiller_reveal_') ||
+          !stepId.endsWith('_$dayCount')) {
+        continue;
+      }
+
+      final teaSpillerId = _extractScopedPlayerId(
+        stepId: stepId,
+        prefix: 'tea_spiller_reveal_',
+      );
+      if (teaSpillerId == null || teaSpillerId.isEmpty) {
+        continue;
+      }
+
+      if (entry.value.isEmpty) {
+        continue;
+      }
+      result[teaSpillerId] = entry.value;
+    }
+
+    return result;
+  }
+
+  Map<String, String> _dramaQueenSwapChoicesFromActionLog(int dayCount) {
+    final result = <String, String>{};
+
+    for (final entry in state.actionLog.entries) {
+      final stepId = entry.key;
+      if (!stepId.startsWith('drama_queen_vendetta_') ||
+          !stepId.endsWith('_$dayCount')) {
+        continue;
+      }
+
+      final dramaQueenId = _extractScopedPlayerId(
+        stepId: stepId,
+        prefix: 'drama_queen_vendetta_',
+      );
+      if (dramaQueenId == null || dramaQueenId.isEmpty) {
+        continue;
+      }
+
+      if (entry.value.isEmpty) {
+        continue;
+      }
+      result[dramaQueenId] = entry.value;
+    }
+
+    return result;
+  }
+
+  String? _findLatestDealerTargetIdForDay(int dayCount) {
+    final daySuffix = '_$dayCount';
+    final dealerActions = state.actionLog.entries
+        .where(
+          (entry) =>
+              entry.key.startsWith('dealer_act_') &&
+              entry.key.endsWith(daySuffix) &&
+              entry.value.isNotEmpty,
+        )
+        .toList();
+
+    if (dealerActions.isEmpty) {
+      return null;
+    }
+
+    return dealerActions.last.value;
   }
 
   List<Player> _eligibleTargetsForStep(ScriptStep step) {
@@ -990,7 +1223,27 @@ class Game extends _$Game {
         prefix: 'wallflower_observe_',
       );
       if (wallflowerId == null) return;
-      if (targetId == 'GAWKED') {
+      if (targetId == 'PEEKED') {
+        state = state.copyWith(gawkedPlayerId: null);
+        final dealerTargetId = _findLatestDealerTargetIdForDay(state.dayCount);
+        if (dealerTargetId != null) {
+          final target = _findPlayerById(dealerTargetId);
+          if (target != null) {
+            final updatedPrivates = <String, List<String>>{
+              ...state.privateMessages,
+            };
+            final existing = updatedPrivates[wallflowerId] ?? const <String>[];
+            final intelLine =
+                'You discreetly witnessed Dealer target ${target.name}.';
+            final shouldAppend = existing.isEmpty || existing.last != intelLine;
+            updatedPrivates[wallflowerId] =
+                shouldAppend ? [...existing, intelLine] : existing;
+            state = state.copyWith(
+              privateMessages: updatedPrivates,
+            );
+          }
+        }
+      } else if (targetId == 'GAWKED') {
         state = state.copyWith(
           gawkedPlayerId: wallflowerId,
           players: state.players.map((p) {
@@ -1703,6 +1956,7 @@ class Game extends _$Game {
           lastNightReport: res.report,
           lastNightTeasers: res.teasers,
           privateMessages: res.privateMessages,
+          gawkedPlayerId: null,
           gameHistory: [
             ...state.gameHistory,
             '── NIGHT ${state.dayCount} RESOLVED ──',
@@ -1729,6 +1983,24 @@ class Game extends _$Game {
         _checkAndResolveWinCondition(state.players);
         break;
       case GamePhase.day:
+        final reactiveChoiceStepsInQueue = state.scriptQueue
+            .where(
+              (step) =>
+                  step.id.startsWith('predator_retaliation_') ||
+                  step.id.startsWith('tea_spiller_reveal_') ||
+                  step.id.startsWith('drama_queen_vendetta_'),
+            )
+            .toList();
+        if (reactiveChoiceStepsInQueue.isNotEmpty) {
+          final hasAllChoices = reactiveChoiceStepsInQueue.every((step) {
+            final selected = state.actionLog[step.id];
+            return selected != null && selected.isNotEmpty;
+          });
+          if (!hasAllChoices) {
+            return;
+          }
+        }
+
         final dayVotesSnapshot =
             Map<String, String>.from(state.dayVotesByVoter);
         final res = GameResolutionLogic.resolveDayVote(
@@ -1752,12 +2024,63 @@ class Game extends _$Game {
               ),
             )
             .id;
+
+        final predatorRetaliationSteps = _buildPredatorRetaliationSteps(
+          players: state.players,
+          votesByVoter: dayVotesSnapshot,
+          dayCount: state.dayCount,
+          exiledPlayerId: exiledPlayerId.isEmpty ? null : exiledPlayerId,
+        );
+        final teaSpillerRevealSteps = _buildTeaSpillerRevealSteps(
+          players: state.players,
+          votesByVoter: dayVotesSnapshot,
+          dayCount: state.dayCount,
+          exiledPlayerId: exiledPlayerId.isEmpty ? null : exiledPlayerId,
+        );
+        final dramaQueenVendettaSteps = _buildDramaQueenVendettaSteps(
+          players: state.players,
+          dayCount: state.dayCount,
+          exiledPlayerId: exiledPlayerId.isEmpty ? null : exiledPlayerId,
+        );
+
+        final reactiveChoiceSteps = [
+          ...teaSpillerRevealSteps,
+          ...dramaQueenVendettaSteps,
+          ...predatorRetaliationSteps,
+        ];
+
+        final missingReactiveChoice = reactiveChoiceSteps.any((step) {
+          final selected = state.actionLog[step.id];
+          return selected == null || selected.isEmpty;
+        });
+
+        if (reactiveChoiceSteps.isNotEmpty && missingReactiveChoice) {
+          state = state.copyWith(
+            players: state.players,
+            lastDayReport: [...res.report],
+            scriptQueue: reactiveChoiceSteps,
+            scriptIndex: 0,
+            actionLog: const {},
+          );
+          return;
+        }
+
+        final predatorRetaliationChoices =
+            _predatorRetaliationChoicesFromActionLog(state.dayCount);
+        final teaSpillerRevealChoices =
+            _teaSpillerRevealChoicesFromActionLog(state.dayCount);
+        final dramaQueenSwapChoices =
+            _dramaQueenSwapChoicesFromActionLog(state.dayCount);
+
         final dayResolution = DayResolutionStrategy().execute(
           DayResolutionContext(
             players: state.players,
             votesByVoter: dayVotesSnapshot,
             dayCount: state.dayCount,
             exiledPlayerId: exiledPlayerId.isEmpty ? null : exiledPlayerId,
+            predatorRetaliationChoices: predatorRetaliationChoices,
+            teaSpillerRevealChoices: teaSpillerRevealChoices,
+            dramaQueenSwapChoices: dramaQueenSwapChoices,
           ),
         );
         state = state.copyWith(players: dayResolution.players);
@@ -1794,18 +2117,6 @@ class Game extends _$Game {
               dayResolution.clearDeadPoolBets ? const {} : state.deadPoolBets,
         );
 
-        // Check triggers for the exiled player
-        final deadInDay = res.players
-            .where(
-              (p) =>
-                  !p.isAlive &&
-                  p.deathDay == state.dayCount - 1 &&
-                  p.deathReason == 'exile',
-            )
-            .toList();
-        for (final victim in deadInDay) {
-          _handleDeathTriggers(victim.id);
-        }
         for (final victimId in dayResolution.deathTriggerVictimIds) {
           _handleDeathTriggers(victimId);
         }

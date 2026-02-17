@@ -69,7 +69,8 @@ void main() {
 
       expect(dealer.role.id, RoleIds.partyAnimal);
       expect(buddy.role.id, RoleIds.dealer);
-      expect(result.lines, contains('Drama Queen chaos: Dealer and Buddy swapped roles.'));
+      expect(result.lines,
+          contains('Drama Queen chaos: Dealer and Buddy swapped roles.'));
       expect(
         result.lines,
         contains(
@@ -104,6 +105,115 @@ void main() {
       expect(dealer.role.id, RoleIds.partyAnimal);
       expect(buddy.role.id, RoleIds.dealer);
       expect(result.lines, isNotEmpty);
+    });
+
+    test('honors explicit selected swap pair when valid', () {
+      final dramaRole = _role(RoleIds.dramaQueen);
+      final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);
+      final buddyRole = _role(RoleIds.partyAnimal);
+      final soberRole = _role(RoleIds.sober);
+
+      final players = [
+        _player('drama', 'Drama', dramaRole,
+            isAlive: false, deathReason: 'exile'),
+        _player('dealer', 'Dealer', dealerRole),
+        _player('buddy', 'Buddy', buddyRole),
+        _player('sober', 'Sober', soberRole),
+      ];
+
+      final result = resolveDramaQueenSwaps(
+        players: players,
+        votesByVoter: {
+          'dealer': 'drama',
+          'buddy': 'drama',
+        },
+        dramaQueenSwapChoices: const {'drama': 'dealer,sober'},
+      );
+
+      final dealer = result.players.firstWhere((p) => p.id == 'dealer');
+      final buddy = result.players.firstWhere((p) => p.id == 'buddy');
+      final sober = result.players.firstWhere((p) => p.id == 'sober');
+
+      expect(dealer.role.id, RoleIds.sober);
+      expect(sober.role.id, RoleIds.dealer);
+      expect(buddy.role.id, RoleIds.partyAnimal);
+      expect(result.lines,
+          contains('Drama Queen chaos: Dealer and Sober swapped roles.'));
+    });
+
+    test('ignores duplicate explicit swap choice and falls back safely', () {
+      final dramaRole = _role(RoleIds.dramaQueen);
+      final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);
+      final buddyRole = _role(RoleIds.partyAnimal);
+      final soberRole = _role(RoleIds.sober);
+
+      final players = [
+        _player('drama', 'Drama', dramaRole,
+            isAlive: false,
+            deathReason: 'exile',
+            targetA: 'dealer',
+            targetB: 'buddy'),
+        _player('dealer', 'Dealer', dealerRole),
+        _player('buddy', 'Buddy', buddyRole),
+        _player('sober', 'Sober', soberRole),
+      ];
+
+      final result = resolveDramaQueenSwaps(
+        players: players,
+        votesByVoter: {
+          'dealer': 'drama',
+          'buddy': 'drama',
+        },
+        dramaQueenSwapChoices: const {'drama': 'dealer,dealer'},
+      );
+
+      final dealer = result.players.firstWhere((p) => p.id == 'dealer');
+      final buddy = result.players.firstWhere((p) => p.id == 'buddy');
+      final sober = result.players.firstWhere((p) => p.id == 'sober');
+
+      // Falls back to setup targets (dealer <-> buddy), not the invalid duplicate pair.
+      expect(dealer.role.id, RoleIds.partyAnimal);
+      expect(buddy.role.id, RoleIds.dealer);
+      expect(sober.role.id, RoleIds.sober);
+      expect(result.lines,
+          contains('Drama Queen chaos: Dealer and Buddy swapped roles.'));
+    });
+
+    test('ignores invalid explicit swap choice containing dead target', () {
+      final dramaRole = _role(RoleIds.dramaQueen);
+      final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);
+      final buddyRole = _role(RoleIds.partyAnimal);
+      final soberRole = _role(RoleIds.sober);
+
+      final players = [
+        _player('drama', 'Drama', dramaRole,
+            isAlive: false,
+            deathReason: 'exile',
+            targetA: 'dealer',
+            targetB: 'buddy'),
+        _player('dealer', 'Dealer', dealerRole),
+        _player('buddy', 'Buddy', buddyRole),
+        _player('sober', 'Sober', soberRole,
+            isAlive: false, deathReason: 'exile'),
+      ];
+
+      final result = resolveDramaQueenSwaps(
+        players: players,
+        votesByVoter: {
+          'dealer': 'drama',
+          'buddy': 'drama',
+        },
+        dramaQueenSwapChoices: const {'drama': 'dealer,sober'},
+      );
+
+      final dealer = result.players.firstWhere((p) => p.id == 'dealer');
+      final buddy = result.players.firstWhere((p) => p.id == 'buddy');
+
+      // Dead target makes explicit choice invalid; fallback still resolves deterministically.
+      expect(dealer.role.id, RoleIds.partyAnimal);
+      expect(buddy.role.id, RoleIds.dealer);
+      expect(result.lines,
+          contains('Drama Queen chaos: Dealer and Buddy swapped roles.'));
     });
   });
 }

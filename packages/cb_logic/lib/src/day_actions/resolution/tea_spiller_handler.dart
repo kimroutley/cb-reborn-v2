@@ -9,6 +9,7 @@ class TeaSpillerHandler implements DayResolutionHandler {
     final lines = resolveTeaSpillerReveals(
       players: context.players,
       votesByVoter: context.votesByVoter,
+      teaSpillerRevealChoices: context.teaSpillerRevealChoices,
     );
 
     return DayResolutionResult(players: context.players, lines: lines);

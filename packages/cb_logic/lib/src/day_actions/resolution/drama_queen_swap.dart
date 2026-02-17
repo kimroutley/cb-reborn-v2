@@ -8,6 +8,7 @@ typedef DramaQueenSwapResolution = ({
 DramaQueenSwapResolution resolveDramaQueenSwaps({
   required List<Player> players,
   required Map<String, String> votesByVoter,
+  Map<String, String> dramaQueenSwapChoices = const {},
 }) {
   final lines = <String>[];
   var updatedPlayers = List<Player>.from(players);
@@ -18,12 +19,25 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
       p.role.id == RoleIds.dramaQueen);
 
   for (final dramaQueen in exiledDramaQueens) {
-    final aliveTargets =
-        updatedPlayers.where((p) => p.isAlive && p.id != dramaQueen.id).toList();
+    final aliveTargets = updatedPlayers
+        .where((p) => p.isAlive && p.id != dramaQueen.id)
+        .toList();
 
     if (aliveTargets.length < 2) {
       continue;
     }
+
+    final rawSelectedSwapIds = (dramaQueenSwapChoices[dramaQueen.id] ?? '')
+        .split(',')
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty && id != dramaQueen.id)
+        .where((id) => aliveTargets.any((p) => p.id == id))
+        .toList();
+
+    final selectedSwapIds = rawSelectedSwapIds.length == 2 &&
+            rawSelectedSwapIds[0] != rawSelectedSwapIds[1]
+        ? rawSelectedSwapIds
+        : const <String>[];
 
     final preferredTargets = [
       dramaQueen.dramaQueenTargetAId,
@@ -43,6 +57,7 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
         .toList();
 
     final candidateIds = [
+      ...selectedSwapIds,
       ...preferredTargets,
       ...votersAgainst,
       ...aliveTargets.map((p) => p.id),

@@ -3,6 +3,7 @@ import 'package:cb_models/cb_models.dart';
 List<String> resolveTeaSpillerReveals({
   required List<Player> players,
   required Map<String, String> votesByVoter,
+  Map<String, String> teaSpillerRevealChoices = const {},
 }) {
   final lines = <String>[];
 
@@ -21,8 +22,12 @@ List<String> resolveTeaSpillerReveals({
       continue;
     }
 
-    // Deterministic reveal: first voter recorded against Tea Spiller.
-    final revealedVoterId = votersAgainst.first;
+    var revealedVoterId = votersAgainst.first;
+    final selectedRevealId = teaSpillerRevealChoices[teaSpiller.id];
+    if (selectedRevealId != null && votersAgainst.contains(selectedRevealId)) {
+      revealedVoterId = selectedRevealId;
+    }
+
     final revealedVoterMatches =
         players.where((p) => p.id == revealedVoterId).toList();
     if (revealedVoterMatches.isEmpty) {

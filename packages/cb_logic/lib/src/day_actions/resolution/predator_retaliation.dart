@@ -11,6 +11,7 @@ PredatorRetaliationResolution resolvePredatorRetaliation({
   required List<Player> players,
   required Map<String, String> votesByVoter,
   required int dayCount,
+  Map<String, String> retaliationChoices = const {},
 }) {
   var updatedPlayers = List<Player>.from(players);
   final retaliationLines = <String>[];
@@ -18,9 +19,7 @@ PredatorRetaliationResolution resolvePredatorRetaliation({
   final retaliationVictimIds = <String>[];
 
   final exiledPredators = updatedPlayers.where((p) =>
-      !p.isAlive &&
-      p.deathReason == 'exile' &&
-      p.role.id == RoleIds.predator);
+      !p.isAlive && p.deathReason == 'exile' && p.role.id == RoleIds.predator);
 
   for (final predator in exiledPredators) {
     final votersAgainst = votesByVoter.entries
@@ -28,8 +27,23 @@ PredatorRetaliationResolution resolvePredatorRetaliation({
         .map((e) => e.key)
         .toList();
 
-    String? retaliationTargetId;
-    for (final voterId in votersAgainst) {
+    final eligibleVoterIds = votersAgainst
+        .where((voterId) => voterId != predator.id)
+        .where(
+          (voterId) => updatedPlayers.any((p) => p.id == voterId && p.isAlive),
+        )
+        .toList();
+
+    String? retaliationTargetId = retaliationChoices[predator.id];
+    if (retaliationTargetId != null &&
+        !eligibleVoterIds.contains(retaliationTargetId)) {
+      retaliationTargetId = null;
+    }
+
+    for (final voterId in eligibleVoterIds) {
+      if (retaliationTargetId != null) {
+        break;
+      }
       if (voterId == predator.id) {
         continue;
       }

@@ -341,6 +341,107 @@ void main() {
       expect(updated.gawkedPlayerId, isNull);
       expect(updatedWallflower.isExposed, isFalse);
     });
+
+    test('PEEKED stores private intel for wallflower from dealer target', () {
+      final wallflowerRole = _role(RoleIds.wallflower);
+      final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);
+      final partyRole = _role(RoleIds.partyAnimal);
+
+      final wallflower = _player('Wallflower', wallflowerRole);
+      final dealer = _player('Dealer', dealerRole, alliance: Team.clubStaff);
+      final target = _player('Target', partyRole);
+
+      game.state = container.read(gameProvider).copyWith(
+            players: [wallflower, dealer, target],
+            phase: GamePhase.night,
+            scriptQueue: [
+              ScriptStep(
+                id: 'wallflower_observe_${wallflower.id}_1',
+                title: 'HOST OBSERVATION',
+                readAloudText: '',
+                instructionText:
+                    'Observe ${wallflower.name}, how did they witness the murder?',
+                actionType: ScriptActionType.binaryChoice,
+                options: const ['PEEKED', 'GAWKED'],
+                roleId: RoleIds.wallflower,
+              ),
+            ],
+            scriptIndex: 0,
+            actionLog: {
+              StepKey.roleAction(
+                roleId: RoleIds.dealer,
+                playerId: dealer.id,
+                dayCount: 1,
+              ): target.id,
+            },
+            gawkedPlayerId: null,
+          );
+
+      game.handleInteraction(
+        stepId: 'wallflower_observe_${wallflower.id}_1',
+        targetId: 'PEEKED',
+      );
+
+      final updated = container.read(gameProvider);
+      final messages =
+          updated.privateMessages[wallflower.id] ?? const <String>[];
+
+      expect(
+        messages.any(
+          (m) => m.contains('You discreetly witnessed Dealer target Target.'),
+        ),
+        isTrue,
+      );
+      expect(updated.gawkedPlayerId, isNull);
+    });
+
+    test('GAWKED report is emitted once and cleared for next night', () {
+      final wallflowerRole = _role(RoleIds.wallflower);
+      final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);
+      final partyRole = _role(RoleIds.partyAnimal);
+
+      final wallflower = _player('Wallflower', wallflowerRole);
+      final dealer = _player('Dealer', dealerRole, alliance: Team.clubStaff);
+      final target = _player('Target', partyRole);
+
+      game.state = container.read(gameProvider).copyWith(
+            players: [wallflower, dealer, target],
+            phase: GamePhase.night,
+            dayCount: 1,
+            scriptQueue: const [],
+            scriptIndex: 0,
+            actionLog: const {},
+            gawkedPlayerId: wallflower.id,
+          );
+
+      game.advancePhase(); // Resolve night -> day
+
+      var updated = container.read(gameProvider);
+      expect(
+        updated.lastNightReport.any(
+          (line) => line.contains('was caught gawking at the murder'),
+        ),
+        isTrue,
+      );
+      expect(updated.gawkedPlayerId, isNull);
+
+      updated = updated.copyWith(
+        phase: GamePhase.night,
+        scriptQueue: const [],
+        scriptIndex: 0,
+        actionLog: const {},
+      );
+      game.state = updated;
+
+      game.advancePhase(); // Next night -> day; should not re-report
+      final secondDay = container.read(gameProvider);
+      expect(
+        secondDay.lastNightReport.any(
+          (line) => line.contains('was caught gawking at the murder'),
+        ),
+        isFalse,
+      );
+    });
   });
 
   group('Day Vote Tally', () {
@@ -426,14 +527,14 @@ void main() {
       final target = initial.players[1];
 
       container.read(gameProvider.notifier).state = initial.copyWith(
-            players: initial.players
-                .map(
-                  (p) => p.id == voter.id
-                      ? p.copyWith(silencedDay: initial.dayCount)
-                      : p,
-                )
-                .toList(),
-          );
+        players: initial.players
+            .map(
+              (p) => p.id == voter.id
+                  ? p.copyWith(silencedDay: initial.dayCount)
+                  : p,
+            )
+            .toList(),
+      );
 
       game.handleInteraction(
         stepId: 'day_vote',
@@ -657,7 +758,7 @@ void main() {
       final wf = _player('WF', _role(RoleIds.wallflower, priority: 100));
       final steps = ScriptBuilder.buildNightScript([dealer, wf], 1);
       final dealerIdx = steps.indexWhere((s) => s.id.startsWith('dealer_act_'));
-        final wfIdx =
+      final wfIdx =
           steps.indexWhere((s) => s.id.startsWith('wallflower_observe_'));
       expect(dealerIdx, greaterThanOrEqualTo(0));
       expect(wfIdx, dealerIdx + 1);
@@ -788,47 +889,42 @@ void main() {
 
   // ── Wallflower / Ally Cat Private Messages ──
   group('Wallflower Witness', () {
-    test('wallflower receives private message about dealer target', () {
-      _addMockPlayers(game, 8);
-      game.startGame();
-      // Advance through all setup steps to reach night
-      while (container.read(gameProvider).phase == GamePhase.setup) {
-        game.advancePhase();
-      }
-      if (container.read(gameProvider).phase != GamePhase.night) return;
+    test('wallflower intel is delivered from host observation step', () {
+      final wallflowerRole = _role(RoleIds.wallflower);
+      final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);
+      final partyRole = _role(RoleIds.partyAnimal);
 
-      final state = container.read(gameProvider);
-      final dealer = state.players.firstWhere(
-        (p) => p.alliance == Team.clubStaff,
-      );
-      final target = state.players.firstWhere(
-        (p) => p.alliance == Team.partyAnimals,
-      );
+      final wallflower = _player('Wallflower', wallflowerRole);
+      final dealer = _player('Dealer', dealerRole, alliance: Team.clubStaff);
+      final target = _player('Target', partyRole);
+
+      game.state = container.read(gameProvider).copyWith(
+            players: [wallflower, dealer, target],
+            phase: GamePhase.night,
+            scriptQueue: const [],
+            scriptIndex: 0,
+            actionLog: {
+              StepKey.roleAction(
+                roleId: RoleIds.dealer,
+                playerId: dealer.id,
+                dayCount: 1,
+              ): target.id,
+            },
+          );
+
       game.handleInteraction(
-        stepId: 'dealer_act_${dealer.id}',
-        targetId: target.id,
+        stepId: 'wallflower_observe_${wallflower.id}_1',
+        targetId: 'PEEKED',
       );
 
-      // Advance through night steps to day (or endGame if win triggered)
-      while (container.read(gameProvider).phase == GamePhase.night) {
-        game.advancePhase();
-      }
-
-      final dayState = container.read(gameProvider);
-      if (dayState.phase == GamePhase.endGame) {
-        return; // Win triggered mid-night
-      }
-
-      final wallflower =
-          dayState.players.where((p) => p.role.id == 'wallflower').toList();
-      if (wallflower.isNotEmpty) {
-        final wfMessages = dayState.privateMessages[wallflower.first.id];
-        if (wfMessages == null) {
-          return; // Messages may not be present depending on role assignment
-        }
-        expect(wfMessages.any((m) => m.contains('witnessed')), true);
-      }
-      // If no wallflower was assigned, test passes vacuously
+      final updated = container.read(gameProvider);
+      final wfMessages =
+          updated.privateMessages[wallflower.id] ?? const <String>[];
+      expect(
+        wfMessages.any(
+            (m) => m.contains('discreetly witnessed Dealer target Target')),
+        isTrue,
+      );
     });
   });
 
@@ -1077,7 +1173,8 @@ void main() {
       expect(gs.phase, GamePhase.endGame);
       expect(gs.winner, Team.clubStaff);
       expect(
-        gs.endGameReport.any((line) => line.contains('Club Manager survived and wins with the house')),
+        gs.endGameReport.any((line) =>
+            line.contains('Club Manager survived and wins with the house')),
         true,
       );
       expect(gs.endGameReport.any((line) => line.contains('Manager')), true);
@@ -1269,7 +1366,9 @@ void main() {
   });
 
   group('Tea Spiller Reactive Reveal', () {
-    test('exiled Tea Spiller reveals one voter role in day report/history', () {
+    test(
+        'exiled Tea Spiller prompts for reveal target and applies selected expose',
+        () {
       game.addPlayer('Tea');
       game.addPlayer('Dealer');
       game.addPlayer('Buddy');
@@ -1305,22 +1404,39 @@ void main() {
 
       game.advancePhase();
 
-      final updated = container.read(gameProvider);
+      var updated = container.read(gameProvider);
+      expect(updated.phase, GamePhase.day);
+      expect(updated.scriptQueue, isNotEmpty);
       expect(
-        updated.gameHistory
-            .any((line) => line.contains('Tea Spiller exposed Dealer: The Dealer.')),
+        updated.scriptQueue.first.id,
+        'tea_spiller_reveal_${teaId}_1',
+      );
+
+      game.handleInteraction(
+        stepId: 'tea_spiller_reveal_${teaId}_1',
+        targetId: buddyId,
+      );
+
+      game.advancePhase();
+
+      updated = container.read(gameProvider);
+      expect(
+        updated.gameHistory.any((line) =>
+            line.contains('Tea Spiller exposed Buddy: The Party Animal.')),
         true,
       );
       expect(
-        updated.lastDayReport
-            .any((line) => line.contains('Tea Spiller exposed Dealer: The Dealer.')),
+        updated.lastDayReport.any((line) =>
+            line.contains('Tea Spiller exposed Buddy: The Party Animal.')),
         true,
       );
     });
   });
 
   group('Predator Retaliation', () {
-    test('exiled Predator kills one voter in retaliation', () {
+    test(
+        'exiled Predator prompts for retaliation target and applies selected kill',
+        () {
       game.addPlayer('Predator');
       game.addPlayer('Dealer');
       game.addPlayer('Buddy');
@@ -1341,7 +1457,7 @@ void main() {
             scriptIndex: 0,
           );
 
-      // Exile Predator; first voter (Dealer) should be retaliated against.
+      // Exile Predator, then host selects who gets retaliated against.
       game.handleInteraction(
         stepId: 'day_vote',
         targetId: predatorId,
@@ -1355,26 +1471,44 @@ void main() {
 
       game.advancePhase();
 
-      final updated = container.read(gameProvider);
-      final dealer = updated.players.firstWhere((p) => p.id == dealerId);
-
-      expect(dealer.isAlive, false);
-      expect(dealer.deathReason, 'predator_retaliation');
+      var updated = container.read(gameProvider);
+      expect(updated.phase, GamePhase.day);
+      expect(updated.scriptQueue, isNotEmpty);
       expect(
-        updated.gameHistory
-            .any((line) => line.contains('Predator struck back: Dealer was taken down in retaliation.')),
+        updated.scriptQueue.first.id,
+        'predator_retaliation_${predatorId}_1',
+      );
+
+      game.handleInteraction(
+        stepId: 'predator_retaliation_${predatorId}_1',
+        targetId: buddyId,
+      );
+
+      game.advancePhase();
+
+      updated = container.read(gameProvider);
+      final dealer = updated.players.firstWhere((p) => p.id == dealerId);
+      final buddy = updated.players.firstWhere((p) => p.id == buddyId);
+
+      expect(dealer.isAlive, true);
+      expect(buddy.isAlive, false);
+      expect(buddy.deathReason, 'predator_retaliation');
+      expect(
+        updated.gameHistory.any((line) => line.contains(
+            'Predator struck back: Buddy was taken down in retaliation.')),
         true,
       );
       expect(
-        updated.lastDayReport
-            .any((line) => line.contains('Predator struck back: Dealer was taken down in retaliation.')),
+        updated.lastDayReport.any((line) => line.contains(
+            'Predator struck back: Buddy was taken down in retaliation.')),
         true,
       );
     });
   });
 
   group('Drama Queen Vendetta', () {
-    test('exiled Drama Queen swaps two remaining player roles', () {
+    test('exiled Drama Queen prompts for two targets and swaps selected roles',
+        () {
       game.addPlayer('Drama');
       game.addPlayer('Dealer');
       game.addPlayer('Buddy');
@@ -1398,7 +1532,7 @@ void main() {
             scriptIndex: 0,
           );
 
-      // Exile Drama Queen; first two voters become deterministic swap targets.
+      // Exile Drama Queen, then select explicit swap targets.
       game.handleInteraction(
         stepId: 'day_vote',
         targetId: dramaId,
@@ -1412,23 +1546,291 @@ void main() {
 
       game.advancePhase();
 
-      final updated = container.read(gameProvider);
+      var updated = container.read(gameProvider);
+      expect(updated.phase, GamePhase.day);
+      expect(updated.scriptQueue, isNotEmpty);
+      expect(
+        updated.scriptQueue.first.id,
+        'drama_queen_vendetta_${dramaId}_1',
+      );
+
+      game.handleInteraction(
+        stepId: 'drama_queen_vendetta_${dramaId}_1',
+        targetId: '$dealerId,$soberId',
+      );
+
+      game.advancePhase();
+
+      updated = container.read(gameProvider);
       final dealer = updated.players.firstWhere((p) => p.id == dealerId);
       final buddy = updated.players.firstWhere((p) => p.id == buddyId);
+      final sober = updated.players.firstWhere((p) => p.id == soberId);
 
-      expect(dealer.role.id, RoleIds.partyAnimal);
-      expect(buddy.role.id, RoleIds.dealer);
+      expect(dealer.role.id, RoleIds.sober);
+      expect(sober.role.id, RoleIds.dealer);
+      expect(buddy.role.id, RoleIds.partyAnimal);
       expect(
         updated.gameHistory.any(
-          (line) => line.contains('Drama Queen chaos: Dealer and Buddy swapped roles.'),
+          (line) => line
+              .contains('Drama Queen chaos: Dealer and Sober swapped roles.'),
         ),
         true,
       );
       expect(
         updated.lastDayReport.any(
-          (line) => line.contains('Drama Queen reveal: Dealer is now The Party Animal, Buddy is now The Dealer.'),
+          (line) => line.contains(
+              'Drama Queen reveal: Dealer is now The Sober, Sober is now The Dealer.'),
         ),
         true,
+      );
+    });
+
+    test('malformed vendetta payload falls back to deterministic swap', () {
+      game.addPlayer('Drama');
+      game.addPlayer('Dealer');
+      game.addPlayer('Buddy');
+      game.addPlayer('Sober');
+
+      final state = container.read(gameProvider);
+      final dramaId = state.players[0].id;
+      final dealerId = state.players[1].id;
+      final buddyId = state.players[2].id;
+
+      game.assignRole(dramaId, RoleIds.dramaQueen);
+      game.assignRole(dealerId, RoleIds.dealer);
+      game.assignRole(buddyId, RoleIds.partyAnimal);
+
+      game.state = container.read(gameProvider).copyWith(
+            phase: GamePhase.day,
+            dayCount: 1,
+            scriptQueue: const [],
+            scriptIndex: 0,
+          );
+
+      game.handleInteraction(
+        stepId: 'day_vote',
+        targetId: dramaId,
+        voterId: dealerId,
+      );
+      game.handleInteraction(
+        stepId: 'day_vote',
+        targetId: dramaId,
+        voterId: buddyId,
+      );
+
+      game.advancePhase();
+
+      var updated = container.read(gameProvider);
+      expect(
+        updated.scriptQueue.first.id,
+        'drama_queen_vendetta_${dramaId}_1',
+      );
+
+      // Invalid duplicate pair should not be honored.
+      game.handleInteraction(
+        stepId: 'drama_queen_vendetta_${dramaId}_1',
+        targetId: '$dealerId,$dealerId',
+      );
+
+      game.advancePhase();
+
+      updated = container.read(gameProvider);
+      final dealer = updated.players.firstWhere((p) => p.id == dealerId);
+      final buddy = updated.players.firstWhere((p) => p.id == buddyId);
+
+      // Fallback path swaps first deterministic valid pair (dealer <-> buddy).
+      expect(dealer.role.id, RoleIds.partyAnimal);
+      expect(buddy.role.id, RoleIds.dealer);
+      expect(
+        updated.lastDayReport.any(
+          (line) => line
+              .contains('Drama Queen chaos: Dealer and Buddy swapped roles.'),
+        ),
+        true,
+      );
+    });
+
+    test('vendetta payload with nonexistent/dead target falls back safely', () {
+      game.addPlayer('Drama');
+      game.addPlayer('Dealer');
+      game.addPlayer('Buddy');
+      game.addPlayer('Sober');
+
+      final state = container.read(gameProvider);
+      final dramaId = state.players[0].id;
+      final dealerId = state.players[1].id;
+      final buddyId = state.players[2].id;
+      final soberId = state.players[3].id;
+
+      game.assignRole(dramaId, RoleIds.dramaQueen);
+      game.assignRole(dealerId, RoleIds.dealer);
+      game.assignRole(buddyId, RoleIds.partyAnimal);
+      game.assignRole(soberId, RoleIds.sober);
+
+      // Make one potential vendetta target dead to simulate stale/malformed UI input.
+      game.forceKillPlayer(soberId, reason: 'test_setup');
+
+      game.state = container.read(gameProvider).copyWith(
+            phase: GamePhase.day,
+            dayCount: 1,
+            scriptQueue: const [],
+            scriptIndex: 0,
+          );
+
+      game.handleInteraction(
+        stepId: 'day_vote',
+        targetId: dramaId,
+        voterId: dealerId,
+      );
+      game.handleInteraction(
+        stepId: 'day_vote',
+        targetId: dramaId,
+        voterId: buddyId,
+      );
+
+      game.advancePhase();
+
+      var updated = container.read(gameProvider);
+      expect(
+        updated.scriptQueue.first.id,
+        'drama_queen_vendetta_${dramaId}_1',
+      );
+
+      // Invalid pair: one ID is dead/non-eligible and the other is unknown.
+      game.handleInteraction(
+        stepId: 'drama_queen_vendetta_${dramaId}_1',
+        targetId: '$soberId,ghost_not_real',
+      );
+
+      game.advancePhase();
+
+      updated = container.read(gameProvider);
+      final dealer = updated.players.firstWhere((p) => p.id == dealerId);
+      final buddy = updated.players.firstWhere((p) => p.id == buddyId);
+      final sober = updated.players.firstWhere((p) => p.id == soberId);
+
+      // Fallback path should still resolve deterministically for alive valid pair.
+      expect(dealer.role.id, RoleIds.partyAnimal);
+      expect(buddy.role.id, RoleIds.dealer);
+      expect(sober.isAlive, false);
+      expect(
+        updated.lastDayReport.any(
+          (line) => line
+              .contains('Drama Queen chaos: Dealer and Buddy swapped roles.'),
+        ),
+        true,
+      );
+    });
+  });
+
+  group('Dead Pool Day Resolution', () {
+    // Dead Pool outcome matrix:
+    // - WIN  (bettor chose exiled player) => drinksOwed - 1 (clamped at 0)
+    // - LOSS (bettor chose different player) => drinksOwed + 1
+    test('clears deadPoolBets and settles bettor after exile', () {
+      game.addPlayer('Ghost');
+      game.addPlayer('Exiled');
+      game.addPlayer('Voter A');
+      game.addPlayer('Voter B');
+
+      var state = container.read(gameProvider);
+      final ghostId = state.players[0].id;
+      final exiledId = state.players[1].id;
+      final voterAId = state.players[2].id;
+      final voterBId = state.players[3].id;
+
+      // Make Ghost eligible for Dead Pool bets.
+      game.forceKillPlayer(ghostId, reason: 'test_setup');
+
+      // Place a winning Dead Pool bet on the soon-to-be exiled player.
+      game.placeDeadPoolBet(playerId: ghostId, targetPlayerId: exiledId);
+      state = container.read(gameProvider);
+      expect(state.deadPoolBets[ghostId], exiledId);
+
+      // Enter day phase with no pending script steps so advancePhase resolves vote.
+      game.state = state.copyWith(
+        phase: GamePhase.day,
+        dayCount: 1,
+        scriptQueue: const [],
+        scriptIndex: 0,
+      );
+
+      // Two votes exile the chosen target.
+      game.handleInteraction(
+        stepId: 'day_vote',
+        targetId: exiledId,
+        voterId: voterAId,
+      );
+      game.handleInteraction(
+        stepId: 'day_vote',
+        targetId: exiledId,
+        voterId: voterBId,
+      );
+
+      game.advancePhase();
+
+      final updated = container.read(gameProvider);
+      final ghost = updated.players.firstWhere((p) => p.id == ghostId);
+
+      expect(updated.deadPoolBets, isEmpty);
+      expect(ghost.currentBetTargetId, isNull);
+      expect(
+        ghost.penalties.any((p) => p.contains('[DEAD POOL] WON')),
+        isTrue,
+      );
+    });
+
+    test('records LOSING dead pool outcome when bet target is not exiled', () {
+      game.addPlayer('Ghost');
+      game.addPlayer('Bet Target');
+      game.addPlayer('Actual Exiled');
+      game.addPlayer('Voter A');
+      game.addPlayer('Voter B');
+
+      var state = container.read(gameProvider);
+      final ghostId = state.players[0].id;
+      final betTargetId = state.players[1].id;
+      final actualExiledId = state.players[2].id;
+      final voterAId = state.players[3].id;
+      final voterBId = state.players[4].id;
+
+      game.forceKillPlayer(ghostId, reason: 'test_setup');
+      game.placeDeadPoolBet(playerId: ghostId, targetPlayerId: betTargetId);
+
+      state = container.read(gameProvider);
+      final drinksBefore =
+          state.players.firstWhere((p) => p.id == ghostId).drinksOwed;
+      expect(state.deadPoolBets[ghostId], betTargetId);
+
+      game.state = state.copyWith(
+        phase: GamePhase.day,
+        dayCount: 1,
+        scriptQueue: const [],
+        scriptIndex: 0,
+      );
+
+      game.handleInteraction(
+        stepId: 'day_vote',
+        targetId: actualExiledId,
+        voterId: voterAId,
+      );
+      game.handleInteraction(
+        stepId: 'day_vote',
+        targetId: actualExiledId,
+        voterId: voterBId,
+      );
+
+      game.advancePhase();
+
+      final updated = container.read(gameProvider);
+      final ghost = updated.players.firstWhere((p) => p.id == ghostId);
+
+      expect(updated.deadPoolBets, isEmpty);
+      expect(ghost.currentBetTargetId, isNull);
+      expect(ghost.drinksOwed, drinksBefore + 1);
+      expect(
+        ghost.penalties.any((p) => p.contains('[DEAD POOL] LOST')),
+        isTrue,
       );
     });
   });

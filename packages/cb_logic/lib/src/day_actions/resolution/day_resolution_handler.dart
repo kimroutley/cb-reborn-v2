@@ -6,24 +6,39 @@ class DayResolutionContext {
     required this.votesByVoter,
     required this.dayCount,
     this.exiledPlayerId,
+    this.predatorRetaliationChoices = const {},
+    this.teaSpillerRevealChoices = const {},
+    this.dramaQueenSwapChoices = const {},
   });
 
   final List<Player> players;
   final Map<String, String> votesByVoter;
   final int dayCount;
   final String? exiledPlayerId;
+  final Map<String, String> predatorRetaliationChoices;
+  final Map<String, String> teaSpillerRevealChoices;
+  final Map<String, String> dramaQueenSwapChoices;
 
   DayResolutionContext copyWith({
     List<Player>? players,
     Map<String, String>? votesByVoter,
     int? dayCount,
     String? exiledPlayerId,
+    Map<String, String>? predatorRetaliationChoices,
+    Map<String, String>? teaSpillerRevealChoices,
+    Map<String, String>? dramaQueenSwapChoices,
   }) {
     return DayResolutionContext(
       players: players ?? this.players,
       votesByVoter: votesByVoter ?? this.votesByVoter,
       dayCount: dayCount ?? this.dayCount,
       exiledPlayerId: exiledPlayerId ?? this.exiledPlayerId,
+      predatorRetaliationChoices:
+          predatorRetaliationChoices ?? this.predatorRetaliationChoices,
+      teaSpillerRevealChoices:
+          teaSpillerRevealChoices ?? this.teaSpillerRevealChoices,
+      dramaQueenSwapChoices:
+          dramaQueenSwapChoices ?? this.dramaQueenSwapChoices,
     );
   }
 }
