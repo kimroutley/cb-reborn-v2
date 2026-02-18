@@ -184,6 +184,8 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> signOut() async {
+    await const PlayerSessionCacheRepository().clear();
+
     if (!_ensureFirebaseServices()) {
       state = const AuthState(AuthStatus.unauthenticated);
       return;
@@ -194,7 +196,6 @@ class AuthNotifier extends Notifier<AuthState> {
       await _googleSignIn?.signOut();
     }
     await _auth!.signOut();
-    await const PlayerSessionCacheRepository().clear();
     state = const AuthState(AuthStatus.unauthenticated);
   }
 

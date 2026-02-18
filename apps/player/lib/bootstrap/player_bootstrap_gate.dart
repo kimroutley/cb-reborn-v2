@@ -15,9 +15,15 @@ class PlayerBootstrapGate extends ConsumerStatefulWidget {
   const PlayerBootstrapGate({
     super.key,
     required this.child,
+    this.skipPersistenceInit = false,
+    this.skipFirestoreCacheConfig = false,
+    this.skipAssetWarmup = false,
   });
 
   final Widget child;
+  final bool skipPersistenceInit;
+  final bool skipFirestoreCacheConfig;
+  final bool skipAssetWarmup;
 
   @override
   ConsumerState<PlayerBootstrapGate> createState() => _PlayerBootstrapGateState();
@@ -35,16 +41,22 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
 
   Future<void> _runBootstrap() async {
     await _setStatus('PREPARING OFFLINE VAULT...');
-    await _initPersistence();
+    if (!widget.skipPersistenceInit) {
+      await _initPersistence();
+    }
 
     await _setStatus('CONFIGURING CLOUD CACHE...');
-    await _configureFirestoreCache();
+    if (!widget.skipFirestoreCacheConfig) {
+      await _configureFirestoreCache();
+    }
 
     await _setStatus('RESTORING LAST SESSION...');
     await _restoreCachedSession();
 
     await _setStatus('WARMING VISUAL ASSETS...');
-    await _warmCriticalAssets();
+    if (!widget.skipAssetWarmup) {
+      await _warmCriticalAssets();
+    }
 
     if (!mounted) {
       return;
