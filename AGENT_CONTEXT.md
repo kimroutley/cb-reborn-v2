@@ -242,6 +242,7 @@ Phase 0/1 scaffolding for Role Awards is now in place.
 * `packages/cb_models/lib/src/data/role_award_placeholders.dart` provides the canonical `Awards Coming Soon` placeholder registry for all canonical roles.
 * `packages/cb_models/lib/src/persistence/role_awards.dart` defines the shared role-award domain models (`RoleAwardDefinition`, `PlayerRoleAwardProgress`, enums).
 * `packages/cb_models/lib/src/data/role_award_catalog.dart` now provides generated baseline ladders for all canonical roles plus helper lookups (`roleAwardsForRoleId`, `hasFinalizedRoleAwards`, `roleAwardDefinitionById`).
+* Role ladders now use deterministic **role-specific unlock profiles** (still based on currently supported aggregate metrics: `gamesPlayed`, `wins`, `survivals`) instead of one global threshold pattern.
 * `PersistenceService` now supports role-award progress rebuild + query flows (`rebuildRoleAwardProgresses`, by-player/by-role/by-tier, recent unlocks).
 * Host + Player Hall of Fame screens render Role Award cards for every role and show finalized-role coverage + unlock counters.
 

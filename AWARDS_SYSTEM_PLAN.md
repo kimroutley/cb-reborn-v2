@@ -2,7 +2,7 @@
 
 This document captures a merge-ready implementation plan for a role-based awards ladder across Host + Player apps.
 
-> Status: Phase 1 role-specific ladders implemented and validated across models, logic, host, and player.
+> Status: Phase 1 role-specific ladders implemented and validated across models, logic, host, and player (including Hall of Fame role/tier filters and role-specific deterministic unlock profiles).
 > Last updated: Feb 18, 2026
 
 ## 1) Goal
@@ -174,6 +174,8 @@ Use these sections to merge alternate details without conflict:
 - [x] award domain models and catalog committed
 - [x] persistence computation + query paths implemented and tested
 - [x] host/player Hall of Fame award views render from shared data
+- [x] host/player Hall of Fame role/tier filters implemented
+- [x] role-specific deterministic unlock profiles implemented
 - [x] all canonical roles have Rookie/Pro/Legend + bonus definitions
 - [x] existing recap awards (`mvp`, `ghost`, etc.) still function
 

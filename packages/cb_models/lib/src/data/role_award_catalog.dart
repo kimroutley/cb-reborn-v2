@@ -59,21 +59,83 @@ List<RoleAwardDefinition> _awardDefinitionsForRole(Role role) {
     seeds.length,
     (index) {
       final seed = seeds[index];
+      final unlockRule = _unlockRuleForRoleAward(
+        role.id,
+        index,
+        seed.tier,
+      );
+      final iconMetadata = _iconMetadataForSeed(seed);
       return RoleAwardDefinition(
         awardId:
             '${role.id}_${seed.tier.name}_${_sanitizeAwardSlug(seed.title)}',
         roleId: role.id,
         tier: seed.tier,
         title: seed.title,
-        description: _defaultDescription(role, seed.tier, index),
-        unlockRule: _defaultUnlockRule(seed.tier, index),
+        description: _descriptionForRule(role, unlockRule),
+        unlockRule: unlockRule,
         iconKey: seed.iconKey,
         iconSource: seed.iconSource,
         iconLicense: seed.iconLicense,
+        iconAuthor: iconMetadata.iconAuthor,
+        attributionText: iconMetadata.attributionText,
+        iconUrl: iconMetadata.iconUrl,
       );
     },
     growable: false,
   );
+}
+
+_ResolvedIconMetadata _iconMetadataForSeed(_RoleAwardSeed seed) {
+  final normalizedSource = seed.iconSource.trim();
+  final normalizedLicense = seed.iconLicense.trim();
+  final sourceUrl = _iconSourceUrls[normalizedSource];
+
+  final requiresAttribution = normalizedLicense.toLowerCase().contains('cc by');
+  final iconAuthor = requiresAttribution ? (seed.iconAuthor ?? 'Unknown') : null;
+  final attributionText = requiresAttribution
+      ? (seed.attributionText ??
+          'Icon by ${iconAuthor!} via $normalizedSource ($normalizedLicense)')
+      : null;
+
+  return _ResolvedIconMetadata(
+    iconAuthor: iconAuthor,
+    attributionText: attributionText,
+    iconUrl: seed.iconUrl ?? sourceUrl,
+  );
+}
+
+Map<String, dynamic> _unlockRuleForRoleAward(
+  String roleId,
+  int index,
+  RoleAwardTier tier,
+) {
+  final profile = _unlockProfilesByRoleId[roleId];
+  if (profile != null && index >= 0 && index < profile.length) {
+    final rule = profile[index];
+    return <String, dynamic>{
+      'metric': rule.metric,
+      'minimum': rule.minimum,
+    };
+  }
+  return _defaultUnlockRule(tier, index);
+}
+
+String _descriptionForRule(Role role, Map<String, dynamic> unlockRule) {
+  final minimumRaw = unlockRule['minimum'];
+  final minimum = minimumRaw is num ? minimumRaw.toInt() : 1;
+  final metric = (unlockRule['metric'] as String? ?? 'gamesPlayed').trim();
+
+  switch (metric) {
+    case 'wins':
+    case 'gamesWon':
+      return 'Win $minimum games as ${role.name}.';
+    case 'survivals':
+    case 'gamesSurvived':
+      return 'Survive $minimum games as ${role.name}.';
+    case 'gamesPlayed':
+    default:
+      return 'Play $minimum games as ${role.name}.';
+  }
 }
 
 Map<String, dynamic> _defaultUnlockRule(RoleAwardTier tier, int index) {
@@ -107,80 +169,227 @@ Map<String, dynamic> _defaultUnlockRule(RoleAwardTier tier, int index) {
   }
 }
 
-String _defaultDescription(Role role, RoleAwardTier tier, int index) {
-  switch (tier) {
-    case RoleAwardTier.rookie:
-      return 'Play 1 game as ${role.name}.';
-    case RoleAwardTier.pro:
-      return 'Play 3 games as ${role.name}.';
-    case RoleAwardTier.legend:
-      return 'Win 1 game as ${role.name}.';
-    case RoleAwardTier.bonus:
-      return index == 3
-          ? 'Play 5 games as ${role.name}.'
-          : 'Survive 3 games as ${role.name}.';
-  }
-}
-
 List<RoleAwardDefinition> _defaultRoleAwardLadder(Role role) {
+  final rookieRule =
+      _unlockRuleForRoleAward(role.id, 0, RoleAwardTier.rookie);
+  final proRule = _unlockRuleForRoleAward(role.id, 1, RoleAwardTier.pro);
+  final legendRule =
+      _unlockRuleForRoleAward(role.id, 2, RoleAwardTier.legend);
+  final bonusOneRule =
+      _unlockRuleForRoleAward(role.id, 3, RoleAwardTier.bonus);
+  final bonusTwoRule =
+      _unlockRuleForRoleAward(role.id, 4, RoleAwardTier.bonus);
+
   return <RoleAwardDefinition>[
     RoleAwardDefinition(
       awardId: '${role.id}_rookie_first_shift',
       roleId: role.id,
       tier: RoleAwardTier.rookie,
       title: '${role.name}: First Shift',
-      description: 'Play 1 game as ${role.name}.',
-      unlockRule: const <String, dynamic>{
-        'metric': 'gamesPlayed',
-        'minimum': 1,
-      },
+      description: _descriptionForRule(role, rookieRule),
+      unlockRule: rookieRule,
     ),
     RoleAwardDefinition(
       awardId: '${role.id}_pro_clocked_in',
       roleId: role.id,
       tier: RoleAwardTier.pro,
       title: '${role.name}: Clocked In',
-      description: 'Play 3 games as ${role.name}.',
-      unlockRule: const <String, dynamic>{
-        'metric': 'gamesPlayed',
-        'minimum': 3,
-      },
+      description: _descriptionForRule(role, proRule),
+      unlockRule: proRule,
     ),
     RoleAwardDefinition(
       awardId: '${role.id}_legend_house_legend',
       roleId: role.id,
       tier: RoleAwardTier.legend,
       title: '${role.name}: House Legend',
-      description: 'Win 1 game as ${role.name}.',
-      unlockRule: const <String, dynamic>{
-        'metric': 'wins',
-        'minimum': 1,
-      },
+      description: _descriptionForRule(role, legendRule),
+      unlockRule: legendRule,
     ),
     RoleAwardDefinition(
       awardId: '${role.id}_bonus_overtime',
       roleId: role.id,
       tier: RoleAwardTier.bonus,
       title: '${role.name}: Overtime',
-      description: 'Play 5 games as ${role.name}.',
-      unlockRule: const <String, dynamic>{
-        'metric': 'gamesPlayed',
-        'minimum': 5,
-      },
+      description: _descriptionForRule(role, bonusOneRule),
+      unlockRule: bonusOneRule,
     ),
     RoleAwardDefinition(
       awardId: '${role.id}_bonus_after_hours',
       roleId: role.id,
       tier: RoleAwardTier.bonus,
       title: '${role.name}: After Hours',
-      description: 'Survive 3 games as ${role.name}.',
-      unlockRule: const <String, dynamic>{
-        'metric': 'survivals',
-        'minimum': 3,
-      },
+      description: _descriptionForRule(role, bonusTwoRule),
+      unlockRule: bonusTwoRule,
     ),
   ];
 }
+
+class _UnlockRuleSeed {
+  const _UnlockRuleSeed({
+    required this.metric,
+    required this.minimum,
+  });
+
+  final String metric;
+  final int minimum;
+}
+
+const Map<String, List<_UnlockRuleSeed>> _unlockProfilesByRoleId = {
+  RoleIds.dealer: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 4),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 6),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+  ],
+  RoleIds.whore: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 7),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 4),
+  ],
+  RoleIds.silverFox: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 5),
+  ],
+  RoleIds.partyAnimal: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 4),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 9),
+  ],
+  RoleIds.medic: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 7),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 5),
+  ],
+  RoleIds.bouncer: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 7),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 4),
+  ],
+  RoleIds.roofi: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 4),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+  ],
+  RoleIds.sober: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 5),
+  ],
+  RoleIds.wallflower: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 7),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 5),
+  ],
+  RoleIds.allyCat: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 6),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 4),
+  ],
+  RoleIds.minor: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 5),
+  ],
+  RoleIds.seasonedDrinker: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 9),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 6),
+  ],
+  RoleIds.lightweight: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 4),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+  ],
+  RoleIds.teaSpiller: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 4),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 7),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 4),
+  ],
+  RoleIds.predator: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 4),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+  ],
+  RoleIds.dramaQueen: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 4),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 4),
+  ],
+  RoleIds.bartender: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 7),
+    _UnlockRuleSeed(metric: 'wins', minimum: 5),
+  ],
+  RoleIds.messyBitch: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 4),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 9),
+  ],
+  RoleIds.clubManager: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 5),
+  ],
+  RoleIds.clinger: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 4),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+  ],
+  RoleIds.secondWind: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'wins', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 7),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 5),
+  ],
+  RoleIds.creep: <_UnlockRuleSeed>[
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 1),
+    _UnlockRuleSeed(metric: 'wins', minimum: 2),
+    _UnlockRuleSeed(metric: 'wins', minimum: 4),
+    _UnlockRuleSeed(metric: 'survivals', minimum: 3),
+    _UnlockRuleSeed(metric: 'gamesPlayed', minimum: 8),
+  ],
+};
 
 class _RoleAwardSeed {
   const _RoleAwardSeed({
@@ -189,6 +398,9 @@ class _RoleAwardSeed {
     required this.iconKey,
     required this.iconSource,
     required this.iconLicense,
+    this.iconAuthor,
+    this.attributionText,
+    this.iconUrl,
   });
 
   final RoleAwardTier tier;
@@ -196,7 +408,30 @@ class _RoleAwardSeed {
   final String iconKey;
   final String iconSource;
   final String iconLicense;
+  final String? iconAuthor;
+  final String? attributionText;
+  final String? iconUrl;
 }
+
+class _ResolvedIconMetadata {
+  const _ResolvedIconMetadata({
+    this.iconAuthor,
+    this.attributionText,
+    this.iconUrl,
+  });
+
+  final String? iconAuthor;
+  final String? attributionText;
+  final String? iconUrl;
+}
+
+const Map<String, String> _iconSourceUrls = {
+  'Phosphor': 'https://phosphoricons.com/',
+  'Tabler': 'https://tabler.io/icons',
+  'Heroicons': 'https://heroicons.com/',
+  'Material Symbols': 'https://fonts.google.com/icons',
+  'Game-Icons': 'https://game-icons.net/',
+};
 
 const Map<String, List<_RoleAwardSeed>> _awardSeedsByRoleId = {
   RoleIds.dealer: <_RoleAwardSeed>[
