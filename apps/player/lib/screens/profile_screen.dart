@@ -4,15 +4,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProfileScreen extends StatefulWidget {
+import '../profile_edit_guard.dart';
+import '../widgets/profile_action_buttons.dart';
+
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+enum _FeedbackTone { info, success, error }
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   static const List<String> _preferredStyles = <String>[
     'auto',
     'neon',
@@ -31,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   bool _loadingProfile = true;
   bool _saving = false;
+  bool _allowImmediatePop = false;
   String? _usernameError;
   String? _publicIdError;
   String _selectedAvatar = clubAvatarEmojis.first;
@@ -63,6 +70,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
+    ref.read(playerProfileDirtyProvider.notifier).reset();
     _usernameController.removeListener(_onInputChanged);
     _publicIdController.removeListener(_onInputChanged);
     _usernameController.dispose();
@@ -70,6 +78,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _usernameFocusNode.dispose();
     _publicIdFocusNode.dispose();
     super.dispose();
+  }
+
+  void _syncDirtyFlag() {
+    ref.read(playerProfileDirtyProvider.notifier).setDirty(_hasChanges);
   }
 
   void _onInputChanged() {
@@ -82,9 +94,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _usernameError = null;
         _publicIdError = null;
       });
+      _syncDirtyFlag();
       return;
     }
     setState(() {});
+    _syncDirtyFlag();
   }
 
   void _normalizePublicIdField() {
@@ -99,12 +113,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _handleAttemptPop() async {
+    if (!_hasChanges) {
+      return;
+    }
+    final discard = await _confirmDiscardChanges();
+    if (!discard || !mounted) {
+      return;
+    }
+    ref.read(playerProfileDirtyProvider.notifier).reset();
+    setState(() => _allowImmediatePop = true);
+    Navigator.of(context).maybePop();
+  }
+
+  Future<bool> _confirmDiscardChanges() async {
+    if (!_hasChanges) {
+      return true;
+    }
+    final decision = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Discard Changes?'),
+          content: const Text(
+            'You have unsaved profile edits. Leave without saving?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Discard'),
+            ),
+          ],
+        );
+      },
+    );
+    return decision ?? false;
+  }
+
   void _captureInitialSnapshot() {
     _initialUsername = _usernameController.text.trim();
     _initialPublicId =
         ProfileFormValidation.sanitizePublicPlayerId(_publicIdController.text);
     _initialAvatar = _selectedAvatar;
     _initialPreferredStyle = _selectedPreferredStyle;
+    _syncDirtyFlag();
   }
 
   DateTime? _dateFromFirestore(dynamic value) {
@@ -140,6 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         setState(() => _loadingProfile = false);
       }
+      _syncDirtyFlag();
       return;
     }
 
@@ -174,18 +231,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         setState(() => _loadingProfile = false);
       }
+      _syncDirtyFlag();
     }
   }
 
   Future<void> _saveProfile() async {
     final user = _user;
     if (user == null) {
-      _showSnack('Sign in required to edit your profile.');
+      _showFeedback(
+        'Sign in required to edit your profile.',
+        tone: _FeedbackTone.error,
+      );
       return;
     }
 
     if (!_hasChanges) {
-      _showSnack('No profile changes to save.');
+      _showFeedback('No profile changes to save.');
       return;
     }
 
@@ -202,6 +263,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _usernameError = usernameValidation;
         _publicIdError = publicIdValidation;
       });
+      _syncDirtyFlag();
       return;
     }
 
@@ -262,13 +324,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _updatedAt = DateTime.now();
       });
       _captureInitialSnapshot();
-      _showSnack('Profile saved.');
+      _showFeedback('Profile saved.', tone: _FeedbackTone.success);
     } catch (_) {
-      _showSnack('Could not save profile right now.');
+      _showFeedback(
+        'Could not save profile right now.',
+        tone: _FeedbackTone.error,
+      );
     } finally {
       if (mounted) {
         setState(() => _saving = false);
       }
+      _syncDirtyFlag();
     }
   }
 
@@ -281,15 +347,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _usernameError = null;
       _publicIdError = null;
     });
+    _syncDirtyFlag();
   }
 
-  void _showSnack(String message) {
+  void _showFeedback(String message,
+      {_FeedbackTone tone = _FeedbackTone.info}) {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    final scheme = Theme.of(context).colorScheme;
+    final (Color iconColor, IconData icon) = switch (tone) {
+      _FeedbackTone.success => (scheme.primary, Icons.check_circle_outline),
+      _FeedbackTone.error => (scheme.error, Icons.error_outline),
+      _FeedbackTone.info => (scheme.secondary, Icons.info_outline),
+    };
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: scheme.surfaceContainerHigh,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: iconColor.withValues(alpha: 0.65),
+            ),
+          ),
+          content: Row(
+            children: [
+              Icon(icon, color: iconColor, size: 18),
+              const SizedBox(width: CBSpace.x2),
+              Expanded(child: Text(message)),
+            ],
+          ),
+        ),
+      );
   }
 
   @override
@@ -300,293 +393,290 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final normalizedPublicId =
         ProfileFormValidation.sanitizePublicPlayerId(_publicIdController.text);
 
-    return CBPrismScaffold(
-      title: 'Profile',
-      body: Column(
-        children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: _saving
-                ? const LinearProgressIndicator(key: ValueKey('save-progress'))
-                : const SizedBox(
-                    key: ValueKey('idle-progress'),
-                    height: 4,
-                  ),
-          ),
-          Expanded(
-            child: _loadingProfile
-                ? const Center(child: CircularProgressIndicator())
-                : AnimatedOpacity(
-                    opacity: _saving ? 0.7 : 1,
-                    duration: const Duration(milliseconds: 250),
-                    child: IgnorePointer(
-                      ignoring: _saving,
-                      child: SingleChildScrollView(
-                        padding: CBInsets.screen,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CBSectionHeader(
-                              title: 'PLAYER PROFILE',
-                              icon: Icons.badge_outlined,
-                              color: scheme.primary,
-                            ),
-                            const SizedBox(height: CBSpace.x2),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 250),
-                              child: _hasChanges
-                                  ? CBGlassTile(
-                                      key: const ValueKey('dirty-banner'),
-                                      isPrismatic: true,
-                                      borderColor: scheme.tertiary
-                                          .withValues(alpha: 0.6),
-                                      borderRadius: BorderRadius.circular(14),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.auto_awesome_rounded,
-                                            color: scheme.tertiary,
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: CBSpace.x2),
-                                          Expanded(
-                                            child: Text(
-                                              'Unsaved changes in progress.',
-                                              style: theme.textTheme.bodySmall
-                                                  ?.copyWith(
-                                                color: scheme.onSurface,
-                                                fontWeight: FontWeight.w700,
+    return PopScope(
+      canPop: _allowImmediatePop || !_hasChanges,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || _allowImmediatePop || !_hasChanges) {
+          return;
+        }
+        _handleAttemptPop();
+      },
+      child: CBPrismScaffold(
+        title: 'Profile',
+        body: Column(
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              child: _saving
+                  ? const LinearProgressIndicator(
+                      key: ValueKey('save-progress'))
+                  : const SizedBox(
+                      key: ValueKey('idle-progress'),
+                      height: 4,
+                    ),
+            ),
+            Expanded(
+              child: _loadingProfile
+                  ? const Center(child: CircularProgressIndicator())
+                  : AnimatedOpacity(
+                      opacity: _saving ? 0.7 : 1,
+                      duration: const Duration(milliseconds: 250),
+                      child: IgnorePointer(
+                        ignoring: _saving,
+                        child: SingleChildScrollView(
+                          padding: CBInsets.screen,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CBSectionHeader(
+                                title: 'PLAYER PROFILE',
+                                icon: Icons.badge_outlined,
+                                color: scheme.primary,
+                              ),
+                              const SizedBox(height: CBSpace.x2),
+                              AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 250),
+                                child: _hasChanges
+                                    ? CBGlassTile(
+                                        key: const ValueKey('dirty-banner'),
+                                        isPrismatic: true,
+                                        borderColor: scheme.tertiary
+                                            .withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(14),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.auto_awesome_rounded,
+                                              color: scheme.tertiary,
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: CBSpace.x2),
+                                            Expanded(
+                                              child: Text(
+                                                'Unsaved changes in progress.',
+                                                style: theme.textTheme.bodySmall
+                                                    ?.copyWith(
+                                                  color: scheme.onSurface,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
+                                      )
+                                    : const SizedBox(
+                                        key: ValueKey('clean-banner'),
+                                        height: 0,
                                       ),
-                                    )
-                                  : const SizedBox(
-                                      key: ValueKey('clean-banner'),
-                                      height: 0,
-                                    ),
-                            ),
-                            const SizedBox(height: CBSpace.x4),
-                            CBPanel(
-                              borderColor:
-                                  scheme.primary.withValues(alpha: 0.35),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'ACCOUNT',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: scheme.primary,
-                                      letterSpacing: 1.2,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: CBSpace.x3),
-                                  _ReadonlyRow(
-                                    label: 'UID',
-                                    value: user?.uid ?? 'N/A',
-                                  ),
-                                  const SizedBox(height: CBSpace.x2),
-                                  _ReadonlyRow(
-                                    label: 'EMAIL',
-                                    value: user?.email ?? 'No email on account',
-                                  ),
-                                  const SizedBox(height: CBSpace.x2),
-                                  _ReadonlyRow(
-                                    label: 'CREATED',
-                                    value: _formatDateTime(_createdAt),
-                                  ),
-                                  const SizedBox(height: CBSpace.x2),
-                                  _ReadonlyRow(
-                                    label: 'UPDATED',
-                                    value: _formatDateTime(_updatedAt),
-                                  ),
-                                ],
                               ),
-                            ),
-                            const SizedBox(height: CBSpace.x4),
-                            CBPanel(
-                              borderColor:
-                                  scheme.secondary.withValues(alpha: 0.35),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'PUBLIC PROFILE',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: scheme.secondary,
-                                      letterSpacing: 1.2,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: CBSpace.x3),
-                                  CBTextField(
-                                    controller: _usernameController,
-                                    focusNode: _usernameFocusNode,
-                                    textCapitalization:
-                                        TextCapitalization.words,
-                                    textInputAction: TextInputAction.next,
-                                    maxLength:
-                                        ProfileFormValidation.usernameMaxLength,
-                                    errorText: _usernameError,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.allow(
-                                        RegExp(r'[A-Za-z0-9 _-]'),
+                              const SizedBox(height: CBSpace.x4),
+                              CBPanel(
+                                borderColor:
+                                    scheme.primary.withValues(alpha: 0.35),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'ACCOUNT',
+                                      style:
+                                          theme.textTheme.labelSmall?.copyWith(
+                                        color: scheme.primary,
+                                        letterSpacing: 1.2,
+                                        fontWeight: FontWeight.w800,
                                       ),
-                                    ],
-                                    onSubmitted: (_) {
-                                      FocusScope.of(context)
-                                          .requestFocus(_publicIdFocusNode);
-                                    },
-                                    decoration: const InputDecoration(
-                                      labelText: 'Username *',
-                                      hintText: '3-24 characters',
                                     ),
-                                  ),
-                                  const SizedBox(height: CBSpace.x1),
-                                  Text(
-                                    'This is what other players see in lobbies and recaps.',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: scheme.onSurface
-                                          .withValues(alpha: 0.7),
+                                    const SizedBox(height: CBSpace.x3),
+                                    _ReadonlyRow(
+                                      label: 'UID',
+                                      value: user?.uid ?? 'N/A',
                                     ),
-                                  ),
-                                  const SizedBox(height: CBSpace.x3),
-                                  CBTextField(
-                                    controller: _publicIdController,
-                                    focusNode: _publicIdFocusNode,
-                                    textInputAction: TextInputAction.done,
-                                    maxLength:
-                                        ProfileFormValidation.publicIdMaxLength,
-                                    errorText: _publicIdError,
-                                    inputFormatters: <TextInputFormatter>[
-                                      FilteringTextInputFormatter.allow(
-                                        RegExp(r'[A-Za-z0-9_-]'),
+                                    const SizedBox(height: CBSpace.x2),
+                                    _ReadonlyRow(
+                                      label: 'EMAIL',
+                                      value:
+                                          user?.email ?? 'No email on account',
+                                    ),
+                                    const SizedBox(height: CBSpace.x2),
+                                    _ReadonlyRow(
+                                      label: 'CREATED',
+                                      value: _formatDateTime(_createdAt),
+                                    ),
+                                    const SizedBox(height: CBSpace.x2),
+                                    _ReadonlyRow(
+                                      label: 'UPDATED',
+                                      value: _formatDateTime(_updatedAt),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: CBSpace.x4),
+                              CBPanel(
+                                borderColor:
+                                    scheme.secondary.withValues(alpha: 0.35),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'PUBLIC PROFILE',
+                                      style:
+                                          theme.textTheme.labelSmall?.copyWith(
+                                        color: scheme.secondary,
+                                        letterSpacing: 1.2,
+                                        fontWeight: FontWeight.w800,
                                       ),
-                                    ],
-                                    onSubmitted: (_) {
-                                      if (_hasChanges && !_saving) {
-                                        _saveProfile();
-                                      }
-                                    },
-                                    decoration: const InputDecoration(
-                                      labelText: 'Public Player ID (optional)',
-                                      hintText: 'night_fox',
                                     ),
-                                  ),
-                                  if (normalizedPublicId.isNotEmpty) ...[
+                                    const SizedBox(height: CBSpace.x3),
+                                    CBTextField(
+                                      controller: _usernameController,
+                                      focusNode: _usernameFocusNode,
+                                      textCapitalization:
+                                          TextCapitalization.words,
+                                      textInputAction: TextInputAction.next,
+                                      maxLength: ProfileFormValidation
+                                          .usernameMaxLength,
+                                      errorText: _usernameError,
+                                      inputFormatters: <TextInputFormatter>[
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'[A-Za-z0-9 _-]'),
+                                        ),
+                                      ],
+                                      onSubmitted: (_) {
+                                        FocusScope.of(context)
+                                            .requestFocus(_publicIdFocusNode);
+                                      },
+                                      decoration: const InputDecoration(
+                                        labelText: 'Username *',
+                                        hintText: '3-24 characters',
+                                      ),
+                                    ),
                                     const SizedBox(height: CBSpace.x1),
                                     Text(
-                                      'Share link key: $normalizedPublicId',
+                                      'This is what other players see in lobbies and recaps.',
                                       style:
                                           theme.textTheme.bodySmall?.copyWith(
                                         color: scheme.onSurface
-                                            .withValues(alpha: 0.75),
+                                            .withValues(alpha: 0.7),
                                       ),
                                     ),
-                                  ],
-                                  const SizedBox(height: CBSpace.x4),
-                                  Text(
-                                    'PROFILE STYLE',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: scheme.tertiary,
-                                      letterSpacing: 1.2,
-                                      fontWeight: FontWeight.w800,
+                                    const SizedBox(height: CBSpace.x3),
+                                    CBTextField(
+                                      controller: _publicIdController,
+                                      focusNode: _publicIdFocusNode,
+                                      textInputAction: TextInputAction.done,
+                                      maxLength: ProfileFormValidation
+                                          .publicIdMaxLength,
+                                      errorText: _publicIdError,
+                                      inputFormatters: <TextInputFormatter>[
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'[A-Za-z0-9_-]'),
+                                        ),
+                                      ],
+                                      onSubmitted: (_) {
+                                        if (_hasChanges && !_saving) {
+                                          _saveProfile();
+                                        }
+                                      },
+                                      decoration: const InputDecoration(
+                                        labelText:
+                                            'Public Player ID (optional)',
+                                        hintText: 'night_fox',
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: CBSpace.x2),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: _preferredStyles.map((style) {
-                                      final selected =
-                                          style == _selectedPreferredStyle;
-                                      return _PreferenceChip(
-                                        label: _styleLabel(style),
-                                        selected: selected,
-                                        enabled: !_saving,
-                                        onTap: () {
-                                          setState(
-                                            () =>
-                                                _selectedPreferredStyle = style,
-                                          );
-                                        },
-                                      );
-                                    }).toList(growable: false),
-                                  ),
-                                  const SizedBox(height: CBSpace.x4),
-                                  Text(
-                                    'AVATAR EMOJI',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: scheme.tertiary,
-                                      letterSpacing: 1.2,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                  const SizedBox(height: CBSpace.x2),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: clubAvatarEmojis.map((emoji) {
-                                      final selected = emoji == _selectedAvatar;
-                                      return _AvatarChip(
-                                        emoji: emoji,
-                                        selected: selected,
-                                        enabled: !_saving,
-                                        onTap: () {
-                                          setState(
-                                              () => _selectedAvatar = emoji);
-                                        },
-                                      );
-                                    }).toList(growable: false),
-                                  ),
-                                  const SizedBox(height: CBSpace.x5),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: CBPrimaryButton(
-                                          label: _saving
-                                              ? 'Saving...'
-                                              : 'Save Profile',
-                                          icon: Icons.save_outlined,
-                                          onPressed: _saving ||
-                                                  user == null ||
-                                                  !_hasChanges
-                                              ? null
-                                              : _saveProfile,
+                                    if (normalizedPublicId.isNotEmpty) ...[
+                                      const SizedBox(height: CBSpace.x1),
+                                      Text(
+                                        'Share link key: $normalizedPublicId',
+                                        style:
+                                            theme.textTheme.bodySmall?.copyWith(
+                                          color: scheme.onSurface
+                                              .withValues(alpha: 0.75),
                                         ),
                                       ),
-                                      const SizedBox(width: CBSpace.x2),
-                                      CBTextButton(
-                                        label: 'Discard',
-                                        onPressed: _saving || !_hasChanges
-                                            ? null
-                                            : _discardChanges,
-                                      ),
                                     ],
-                                  ),
-                                  const SizedBox(height: CBSpace.x2),
-                                  CBTextButton(
-                                    label: 'Reload From Cloud',
-                                    onPressed: _saving
-                                        ? null
-                                        : () async {
-                                            setState(
-                                                () => _loadingProfile = true);
-                                            await _loadProfile();
+                                    const SizedBox(height: CBSpace.x4),
+                                    Text(
+                                      'PROFILE STYLE',
+                                      style:
+                                          theme.textTheme.labelSmall?.copyWith(
+                                        color: scheme.tertiary,
+                                        letterSpacing: 1.2,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: CBSpace.x2),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: _preferredStyles.map((style) {
+                                        final selected =
+                                            style == _selectedPreferredStyle;
+                                        return _PreferenceChip(
+                                          label: _styleLabel(style),
+                                          selected: selected,
+                                          enabled: !_saving,
+                                          onTap: () {
+                                            setState(() {
+                                              _selectedPreferredStyle = style;
+                                            });
+                                            _syncDirtyFlag();
                                           },
-                                  ),
-                                ],
+                                        );
+                                      }).toList(growable: false),
+                                    ),
+                                    const SizedBox(height: CBSpace.x4),
+                                    Text(
+                                      'AVATAR EMOJI',
+                                      style:
+                                          theme.textTheme.labelSmall?.copyWith(
+                                        color: scheme.tertiary,
+                                        letterSpacing: 1.2,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: CBSpace.x2),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: clubAvatarEmojis.map((emoji) {
+                                        final selected =
+                                            emoji == _selectedAvatar;
+                                        return _AvatarChip(
+                                          emoji: emoji,
+                                          selected: selected,
+                                          enabled: !_saving,
+                                          onTap: () {
+                                            setState(
+                                                () => _selectedAvatar = emoji);
+                                            _syncDirtyFlag();
+                                          },
+                                        );
+                                      }).toList(growable: false),
+                                    ),
+                                    const SizedBox(height: CBSpace.x5),
+                                    ProfileActionButtons(
+                                      saving: _saving,
+                                      canSave: !_saving &&
+                                          user != null &&
+                                          _hasChanges,
+                                      canDiscard: !_saving && _hasChanges,
+                                      onSave: _saveProfile,
+                                      onDiscard: _discardChanges,
+                                      onReload: () async {
+                                        setState(() => _loadingProfile = true);
+                                        await _loadProfile();
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
