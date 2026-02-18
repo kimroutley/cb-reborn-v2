@@ -2,6 +2,8 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../player_destinations.dart';
+import '../player_navigation.dart';
 import '../player_stats.dart';
 
 class StatsScreen extends ConsumerWidget {
@@ -77,7 +79,9 @@ class StatsScreen extends ConsumerWidget {
                   CBPrimaryButton(
                     label: 'VIEW HALL OF FAME',
                     onPressed: () {
-                      Navigator.pushNamed(context, '/hall-of-fame');
+                      ref
+                          .read(playerNavigationProvider.notifier)
+                          .setDestination(PlayerDestination.hallOfFame);
                     },
                   ),
                 ],
