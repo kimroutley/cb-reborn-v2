@@ -1,85 +1,74 @@
-# 🎭 Day Resolution Pipeline + Player Shell Navigation Guard
+# 🏆 Role Awards Filters + Player Bootstrap/Auth/About UX Polish
 
 ## Summary
 
-This PR continues the role-mechanics parity hardening by moving more day-phase behavior into modular strategy handlers, adding explicit reactive-choice support for exiled reactive roles, and strengthening navigation regression coverage on the Player app shell.
+This PR ships the follow-up iteration after the role-awards foundation:
+
+- adds **Role/Tier filters** to Host + Player Hall of Fame role-award views,
+- introduces **role-specific deterministic unlock profiles** for award ladders,
+- improves Player startup UX with a **neutral auth boot state** and **bootstrap progress meter**,
+- adds shared **About + release notes** surfaces for Host and Player,
+- and finalizes a small awards metadata refactor for cleaner catalog seeding.
 
 ## What Changed
 
-### 1) Day resolution strategy and handler contracts (cb_logic)
+### 1) Role Awards: filtering + profile-based progression
 
-- Expanded `DayResolutionContext` to carry explicit choice maps:
+- Host and Player Hall of Fame now support:
+  - role filter (`All roles` or a specific role),
+  - tier filter (`All tiers`, `Rookie`, `Pro`, `Legend`, `Bonus`),
+  - filtered role counts and filtered unlock counts.
+- Role award cards now reflect current filter state (including a no-match message).
+- `packages/cb_models/lib/src/data/role_award_catalog.dart` now uses per-role unlock profiles (metric + threshold) instead of one global threshold pattern.
+- Rule-driven descriptions are generated from the unlock metric (`gamesPlayed`, `wins`, `survivals`) to remain deterministic and consistent.
 
-  - `predatorRetaliationChoices`
-  - `teaSpillerRevealChoices`
-  - `dramaQueenSwapChoices`
+### 2) Player startup/auth UX hardening
 
-- Updated handlers/resolvers to consume these explicit host selections.
-- `DayResolutionStrategy` now:
+- `AuthNotifier` now returns/loading-transitions through a clearer startup sequence when an authenticated user already exists.
+- `PlayerAuthScreen` now has a neutral **boot splash state** (`SYNCING SESSION...`) for `AuthStatus.initial`, avoiding login UI flash.
+- `PlayerBootstrapGate` now tracks bootstrap progress with:
+  - total/completed unit accounting,
+  - visual progress bar + percentage,
+  - incremental asset warmup progress text.
 
-  - always includes the exile victim in `deathTriggerVictimIds`
-  - deduplicates returned death-trigger IDs
-  - preserves ordered handler execution with documented order contract
+### 3) Shared About + release notes experience
 
-### 2) Provider orchestration cleanup (cb_logic)
+- Added shared release-notes model + parser:
+  - `packages/cb_models/lib/src/app_release_notes.dart`
+  - `packages/cb_models/lib/src/data/app_recent_builds.json`
+- Added shared themed About content widget:
+  - `packages/cb_theme/lib/src/widgets/cb_about_content.dart`
+- Integrated About screens:
+  - Host `about_screen` now uses shared content + dynamic package/release data.
+  - Player now has an About destination/screen with the same shared content pattern.
 
-- `game_provider.dart` now builds scoped reactive day steps for exiled:
+### 4) Small awards metadata refactor
 
-  - Tea Spiller reveal
-  - Drama Queen vendetta
-  - Predator retaliation
+- Simplified icon metadata seeding path in role-award catalog:
+  - removed unused optional seed-level icon author/attribution/url fields,
+  - normalized source URL usage,
+  - kept attribution behavior deterministic for license-driven paths.
 
-- Choices are collected from `actionLog` and fed into `DayResolutionContext`.
-- Removed duplicate in-provider exiled death-trigger scan and now relies on strategy output.
-- Wallflower observation flow updated so:
+## Commits Included
 
-  - `PEEKED` stores private dealer-target intel to Wallflower
-  - `GAWKED` behavior remains state-driven and clears appropriately after resolution
-
-### 3) Regression test expansion
-
-- Added/updated tests for:
-
-  - day strategy aggregation and handler order
-  - explicit reactive target selection behavior (Tea Spiller / Drama Queen / Predator)
-  - dead-pool settlement clear + win/loss outcomes
-  - exiled player inclusion in death-trigger propagation
-  - Wallflower observation intel and gawked reset behavior
-
-### 4) Player app navigation guard
-
-- Added `apps/player/test/player_home_shell_navigation_test.dart` to verify
-
-  phase-driven destination syncing in `PlayerHomeShell` via active bridge state transitions.
-
-### 5) Agent context docs
-
-- Updated `AGENT_CONTEXT.md` with:
-
-  - day-resolution barrel import guidance
-  - reactive day choice step conventions
-  - handler-order testing contract
-
-## Commits Included (origin/main..HEAD)
-
-- `cb3ab74` chore(cb_theme): clear remaining analyzer infos
-- `4b8f0eb` feat: migrate host/player shell navigation and modularize day resolution engine
-- `d65f1c5` fix(player): stabilize shell navigation and active bridge tests
-- `987c235` refactor(cb_logic): modularize day resolution handlers
-- `a64971a` test(player): add home shell phase-to-destination navigation coverage
-- `fefe386` docs(agent): update context with day-resolution and shell architecture notes
+- `d7bd7d7` feat(awards): add role/tier filters and role-specific unlock profiles
+- `64ee509` feat(player): improve bootstrap/auth loading and add shared about release notes
+- `7880314` refactor(awards): simplify icon metadata seed handling
 
 ## Validation
 
-- Focused cb_logic suite: **85 passed, 0 failed**
-- Full cb_logic suite: **305 passed, 0 failed**
-- Additional local build checks (from session):
-
-  - `apps/player` web build completed successfully
-  - `apps/host` release APK build completed successfully
+- `apps/player`: `flutter analyze .` → **No issues found**
+- `apps/host`: `flutter analyze .` → **No issues found**
+- `apps/player` tests:
+  - `test/onboarding_loading_states_test.dart` ✅
+  - `test/player_home_shell_navigation_test.dart` ✅
+- `packages/cb_models` tests:
+  - `test/role_award_catalog_test.dart` ✅
+  - `test/app_release_notes_test.dart` ✅
 
 ## Why This Matters
 
-- Reduces provider-level brittleness by centralizing day-resolution behavior in dedicated strategy handlers.
-- Makes reactive exiled-role outcomes explicit, testable, and easier to extend for future roles.
-- Adds UI navigation guardrails to prevent regression in state-driven Player shell transitions.
+- Gives Host/Player operators practical ways to inspect award progression by role and difficulty tier.
+- Makes award progression more expressive without sacrificing deterministic replay/rebuild behavior.
+- Removes startup/auth jank in Player by replacing transient UI flashes with explicit loading intent.
+- Centralizes About/release-note rendering in shared packages, reducing future drift between Host and Player.

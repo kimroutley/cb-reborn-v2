@@ -99,6 +99,11 @@ Compatibility requirements:
 - `apps/player/lib/screens/stats_screen.dart`
   - entry point card into role awards
 
+Access status:
+
+- [x] Host can open Hall of Fame from drawer and Home quick action.
+- [x] Player can open Hall of Fame from drawer and Stats screen action.
+
 Consistency requirement:
 
 - host/player Hall of Fame sort logic is normalized and shared semantically
@@ -176,6 +181,8 @@ Use these sections to merge alternate details without conflict:
 - [x] host/player Hall of Fame award views render from shared data
 - [x] host/player Hall of Fame role/tier filters implemented
 - [x] role-specific deterministic unlock profiles implemented
+- [x] icon metadata completeness automation implemented (`iconUrl` + attribution policy guard)
+- [x] strict icon-source guardrail added (tests fail on unknown sources)
 - [x] all canonical roles have Rookie/Pro/Legend + bonus definitions
 - [x] existing recap awards (`mvp`, `ghost`, etc.) still function
 

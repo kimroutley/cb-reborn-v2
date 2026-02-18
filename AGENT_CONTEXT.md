@@ -243,6 +243,7 @@ Phase 0/1 scaffolding for Role Awards is now in place.
 * `packages/cb_models/lib/src/persistence/role_awards.dart` defines the shared role-award domain models (`RoleAwardDefinition`, `PlayerRoleAwardProgress`, enums).
 * `packages/cb_models/lib/src/data/role_award_catalog.dart` now provides generated baseline ladders for all canonical roles plus helper lookups (`roleAwardsForRoleId`, `hasFinalizedRoleAwards`, `roleAwardDefinitionById`).
 * Role ladders now use deterministic **role-specific unlock profiles** (still based on currently supported aggregate metrics: `gamesPlayed`, `wins`, `survivals`) instead of one global threshold pattern.
+* Icon metadata is now auto-populated for finalized awards: `iconUrl` is derived by icon source, and attribution fields are enforced for any future CC-BY licensed icon entries.
 * `PersistenceService` now supports role-award progress rebuild + query flows (`rebuildRoleAwardProgresses`, by-player/by-role/by-tier, recent unlocks).
 * Host + Player Hall of Fame screens render Role Award cards for every role and show finalized-role coverage + unlock counters.
 
@@ -252,3 +253,4 @@ Phase 0/1 scaffolding for Role Awards is now in place.
 2. If new roles are added to `role_catalog`, update both placeholder and finalized catalog coverage helpers.
 3. Preserve fallback behavior: unresolved roles must display exactly `Awards Coming Soon` until finalized definitions are added.
 4. Prefer adding finalized role ladders in `role_award_catalog.dart` incrementally without changing model contracts.
+5. If adding a new icon source, update the icon-source URL map in `role_award_catalog.dart`; metadata tests now fail on unknown icon sources.

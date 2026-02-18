@@ -108,4 +108,16 @@ void main() {
               '${definition.awardId} has empty attributionText for CC-BY icon');
     }
   });
+
+  test('icon source guard recognizes known sources', () {
+    expect(isKnownRoleAwardIconSource('Phosphor'), true);
+    expect(isKnownRoleAwardIconSource('Tabler'), true);
+    expect(isKnownRoleAwardIconSource('Unknown Pack'), false);
+  });
+
+  test('catalog contains no unknown icon sources', () {
+    final unknownAwardIds = roleAwardDefinitionsWithUnknownIconSource();
+    expect(unknownAwardIds, isEmpty,
+        reason: 'Unknown icon sources in awards: $unknownAwardIds');
+  });
 }

@@ -21,6 +21,19 @@ List<RoleAwardDefinition> allRoleAwardDefinitions() {
       .toList(growable: false);
 }
 
+bool isKnownRoleAwardIconSource(String source) {
+  return _iconSourceUrls.containsKey(source.trim());
+}
+
+List<String> roleAwardDefinitionsWithUnknownIconSource() {
+  return allRoleAwardDefinitions()
+      .where(
+        (definition) => !isKnownRoleAwardIconSource(definition.iconSource ?? ''),
+      )
+      .map((definition) => definition.awardId)
+      .toList(growable: false);
+}
+
 RoleAwardDefinition? roleAwardDefinitionById(String awardId) {
   for (final definition in allRoleAwardDefinitions()) {
     if (definition.awardId == awardId) {
@@ -88,7 +101,8 @@ List<RoleAwardDefinition> _awardDefinitionsForRole(Role role) {
 _ResolvedIconMetadata _iconMetadataForSeed(_RoleAwardSeed seed) {
   final normalizedSource = seed.iconSource.trim();
   final normalizedLicense = seed.iconLicense.trim();
-  final sourceUrl = _iconSourceUrls[normalizedSource];
+  final sourceUrl =
+      isKnownRoleAwardIconSource(normalizedSource) ? _iconSourceUrls[normalizedSource] : null;
 
   final requiresAttribution = normalizedLicense.toLowerCase().contains('cc by');
   final iconAuthor = requiresAttribution ? 'Unknown' : null;
