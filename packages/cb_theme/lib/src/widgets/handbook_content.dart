@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cb_models/cb_models.dart';
-import '../colors.dart';
 import '../widgets.dart'; // Import to get CBPanel, CBSectionHeader, CBAllianceGraph, etc.
 
 class CBIndexedHandbook extends StatefulWidget {
