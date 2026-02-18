@@ -9,6 +9,7 @@ enum PlayerDestination {
   guides,
   gamesNight,
   hallOfFame,
+  profile,
   stats,
 }
 
@@ -55,6 +56,11 @@ const playerDestinations = <PlayerDestinationConfig>[
     destination: PlayerDestination.gamesNight,
     label: 'Games Night',
     icon: Icons.wine_bar_outlined,
+  ),
+  PlayerDestinationConfig(
+    destination: PlayerDestination.profile,
+    label: 'Profile',
+    icon: Icons.badge_outlined,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.stats,

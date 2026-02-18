@@ -9,6 +9,7 @@ enum HostDestination {
   hallOfFame,
   saveLoad,
   settings,
+  profile,
   about,
 }
 
@@ -65,6 +66,11 @@ const hostDestinations = <HostDestinationConfig>[
     destination: HostDestination.settings,
     label: 'Settings',
     icon: Icons.settings_outlined,
+  ),
+  HostDestinationConfig(
+    destination: HostDestination.profile,
+    label: 'Profile',
+    icon: Icons.badge_outlined,
   ),
   HostDestinationConfig(
     destination: HostDestination.about,

@@ -6,6 +6,7 @@ import '../active_bridge.dart';
 import '../player_onboarding_provider.dart';
 import 'home_screen.dart';
 import 'lobby_screen.dart';
+import 'profile_screen.dart';
 import 'claim_screen.dart';
 import 'game_screen.dart';
 import 'start_transition_screen.dart';
@@ -127,8 +128,8 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
             child: AlertDialog(
               title: const Text('GAME STARTED'),
               content: Text(
-                'The host started the game. Confirm to join now. '
-                'Auto-join in ${timeoutSeconds}s.',
+                'The host started the game. Confirm and enter the session now. '
+                'Auto-join starts in ${timeoutSeconds}s.',
               ),
               actions: [
                 TextButton(
@@ -219,6 +220,9 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         break;
       case PlayerDestination.hallOfFame:
         activeWidget = const HallOfFameScreen();
+        break;
+      case PlayerDestination.profile:
+        activeWidget = const ProfileScreen();
         break;
       case PlayerDestination.stats:
         activeWidget = const StatsScreen();

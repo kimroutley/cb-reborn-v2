@@ -16,6 +16,7 @@ import 'guides_screen.dart';
 import 'hall_of_fame_screen.dart';
 import 'home_screen.dart';
 import 'lobby_screen.dart';
+import 'profile_screen.dart';
 import 'save_load_screen.dart';
 import 'settings_screen.dart';
 
@@ -92,6 +93,8 @@ class _HostHomeShellState extends ConsumerState<HostHomeShell> {
         return const SaveLoadScreen();
       case HostDestination.settings:
         return const SettingsScreen();
+      case HostDestination.profile:
+        return const ProfileScreen();
       case HostDestination.about:
         return const AboutScreen();
     }

@@ -17,12 +17,41 @@ class CustomDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeDestination = currentDestination ?? ref.watch(hostNavigationProvider);
+    final activeDestination =
+        currentDestination ?? ref.watch(hostNavigationProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    const coreGroup = <HostDestination>{
+      HostDestination.home,
+      HostDestination.lobby,
+      HostDestination.game,
+    };
+    const managementGroup = <HostDestination>{
+      HostDestination.guides,
+      HostDestination.gamesNight,
+      HostDestination.hallOfFame,
+    };
+    const systemGroup = <HostDestination>{
+      HostDestination.saveLoad,
+      HostDestination.settings,
+      HostDestination.profile,
+      HostDestination.about,
+    };
+
+    List<HostDestinationConfig> configsFor(Set<HostDestination> group) {
+      return hostDestinations
+          .where((config) => group.contains(config.destination))
+          .toList(growable: false);
+    }
+
+    final coreDestinations = configsFor(coreGroup);
+    final managementDestinations = configsFor(managementGroup);
+    final systemDestinations = configsFor(systemGroup);
+
     // Calculate selected index based on the full list of destinations
-    final selectedIndex = hostDestinations.indexWhere((d) => d.destination == activeDestination);
+    final selectedIndex =
+        hostDestinations.indexWhere((d) => d.destination == activeDestination);
 
     return NavigationDrawer(
       backgroundColor: colorScheme.surface,
@@ -30,7 +59,7 @@ class CustomDrawer extends ConsumerWidget {
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) {
         final destination = hostDestinations[index].destination;
-        
+
         if (onDrawerItemTap != null) {
           onDrawerItemTap!(destination);
         } else {
@@ -75,10 +104,10 @@ class CustomDrawer extends ConsumerWidget {
         const SizedBox(height: 12),
 
         // Group 1: Core (Home, Lobby, Game)
-        ...hostDestinations.sublist(0, 3).map((dest) => NavigationDrawerDestination(
-          icon: Icon(dest.icon),
-          label: Text(dest.label),
-        )),
+        ...coreDestinations.map((dest) => NavigationDrawerDestination(
+              icon: Icon(dest.icon),
+              label: Text(dest.label),
+            )),
 
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 28, vertical: 12),
@@ -86,21 +115,21 @@ class CustomDrawer extends ConsumerWidget {
         ),
 
         // Group 2: Management (Guides, Games Night, HoF)
-        ...hostDestinations.sublist(3, 6).map((dest) => NavigationDrawerDestination(
-          icon: Icon(dest.icon),
-          label: Text(dest.label),
-        )),
+        ...managementDestinations.map((dest) => NavigationDrawerDestination(
+              icon: Icon(dest.icon),
+              label: Text(dest.label),
+            )),
 
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 28, vertical: 12),
           child: Divider(),
         ),
 
-        // Group 3: System (Save/Load, Settings, About)
-        ...hostDestinations.sublist(6).map((dest) => NavigationDrawerDestination(
-          icon: Icon(dest.icon),
-          label: Text(dest.label),
-        )),
+        // Group 3: System (Save/Load, Settings, Profile, About)
+        ...systemDestinations.map((dest) => NavigationDrawerDestination(
+              icon: Icon(dest.icon),
+              label: Text(dest.label),
+            )),
 
         const SizedBox(height: 24),
       ],
