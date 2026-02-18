@@ -53,6 +53,7 @@ class _CBGlassTileState extends State<CBGlassTile>
         _controller.repeat(reverse: true);
       } else {
         _controller.stop();
+        _controller.reset();
       }
     }
   }
@@ -86,31 +87,52 @@ class _CBGlassTileState extends State<CBGlassTile>
               child: AnimatedBuilder(
                 animation: _controller,
                 builder: (context, child) {
-                  final shimmerDecoration = widget.isPrismatic
-                      ? BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              scheme.primary,
-                              scheme.secondary,
-                              scheme.primary,
-                            ],
-                            transform: GradientRotation(
-                                _controller.value * 2 * 3.14159),
-                          ),
-                        )
-                      : const BoxDecoration();
+                  final baseDecoration = BoxDecoration(
+                    color: widget.isSelected
+                        ? scheme.primary.withValues(alpha: 0.25)
+                        : scheme.surface.withValues(alpha: 0.15),
+                    borderRadius: effectiveRadius,
+                    border: Border.all(
+                      color: effectiveBorderColor,
+                      width: widget.isSelected ? 2.5 : 1.5,
+                    ),
+                  );
+
+                  if (!widget.isPrismatic) {
+                    return Container(
+                      padding: widget.padding,
+                      decoration: baseDecoration,
+                      child: child,
+                    );
+                  }
+
+                  final shimmerDecoration = BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        scheme.primary.withValues(alpha: 0.4),
+                        scheme.secondary.withValues(alpha: 0.4),
+                        scheme.primary.withValues(alpha: 0.4),
+                      ],
+                      transform: GradientRotation(
+                        _controller.value * 2 * 3.14159,
+                      ),
+                    ),
+                    borderRadius: effectiveRadius,
+                    border: Border.all(
+                      color: scheme.tertiary.withValues(alpha: 0.5),
+                      width: widget.isSelected ? 2.5 : 1.5,
+                    ),
+                  );
+
+                  final decoration = BoxDecoration.lerp(
+                    baseDecoration,
+                    shimmerDecoration,
+                    _controller.value,
+                  );
 
                   return Container(
                     padding: widget.padding,
-                    decoration: BoxDecoration(
-                      color: widget.isSelected
-                          ? scheme.primary.withValues(alpha: 0.25)
-                          : scheme.surface.withValues(alpha: 0.15),
-                      borderRadius: effectiveRadius,
-                      border: Border.all(
-                          color: effectiveBorderColor,
-                          width: widget.isSelected ? 2.5 : 1.5),
-                    ).lerpTo(shimmerDecoration, _controller.value),
+                    decoration: decoration,
                     child: child,
                   );
                 },

@@ -160,6 +160,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return 'Player';
   }
 
+  Future<void> _performConnection() async {
+    final playerName = await _resolveJoinIdentity();
+    final code = _joinCodeController.text;
+
+    if (_mode == PlayerSyncMode.local) {
+      final host = _hostIpController.text.trim();
+      if (host.isEmpty) {
+        throw 'HOST IP/ADDRESS CANNOT BE EMPTY';
+      }
+      final normalizedHost = host.toLowerCase();
+      if (!normalizedHost.startsWith('ws://') &&
+          !normalizedHost.startsWith('wss://')) {
+        throw 'LOCAL HOST MUST START WITH WS:// OR WSS:// (E.G. WS://192.168.1.100)';
+      }
+      await ref
+          .read(cloudPlayerBridgeProvider.notifier)
+          .disconnect()
+          .timeout(_connectAttemptTimeout);
+      await ref
+          .read(playerBridgeProvider.notifier)
+          .connect(host)
+          .timeout(_connectAttemptTimeout);
+      await ref
+          .read(playerBridgeProvider.notifier)
+          .joinGame(code, playerName)
+          .timeout(_connectAttemptTimeout);
+    } else {
+      await ref
+          .read(playerBridgeProvider.notifier)
+          .disconnect()
+          .timeout(_connectAttemptTimeout);
+      await ref
+          .read(cloudPlayerBridgeProvider.notifier)
+          .joinGame(code, playerName)
+          .timeout(_connectAttemptTimeout);
+    }
+  }
+
   Future<void> _connect() async {
     setState(() {
       _connectionError = null;
@@ -181,47 +219,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     // Attempt connection
     try {
-      final playerName = await _resolveJoinIdentity();
-
-      if (_mode == PlayerSyncMode.local) {
-        final host = _hostIpController.text.trim();
-        if (host.isEmpty) {
-          setState(() {
-            _connectionError = 'HOST IP/ADDRESS CANNOT BE EMPTY';
-          });
-          return;
-        }
-        final normalizedHost = host.toLowerCase();
-        if (!normalizedHost.startsWith('ws://') &&
-            !normalizedHost.startsWith('wss://')) {
-          setState(() {
-            _connectionError =
-                'LOCAL HOST MUST START WITH WS:// OR WSS:// (E.G. WS://192.168.1.100)';
-          });
-          return;
-        }
-        await ref
-            .read(cloudPlayerBridgeProvider.notifier)
-            .disconnect()
-            .timeout(_connectAttemptTimeout);
-        await ref
-            .read(playerBridgeProvider.notifier)
-            .connect(host)
-            .timeout(_connectAttemptTimeout);
-        await ref
-            .read(playerBridgeProvider.notifier)
-            .joinGame(code, playerName)
-            .timeout(_connectAttemptTimeout);
-      } else {
-        await ref
-            .read(playerBridgeProvider.notifier)
-            .disconnect()
-            .timeout(_connectAttemptTimeout);
-        await ref
-            .read(cloudPlayerBridgeProvider.notifier)
-            .joinGame(code, playerName)
-            .timeout(_connectAttemptTimeout);
-      }
+      await _performConnection();
     } on TimeoutException {
       setState(() {
         _connectionError =
@@ -366,22 +364,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Row(
       children: [
         Expanded(
-          child: CBFilterChip(
-            label: 'CLOUD',
-            icon: Icons.cloud,
-            selected: _mode == PlayerSyncMode.cloud,
-            onSelected: () => setState(() => _mode = PlayerSyncMode.cloud),
-            color: _mode == PlayerSyncMode.cloud ? scheme.primary : null,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: CBFilterChip(
+              label: 'CLOUD',
+              icon: Icons.cloud,
+              selected: _mode == PlayerSyncMode.cloud,
+              onSelected: () => setState(() => _mode = PlayerSyncMode.cloud),
+              color: _mode == PlayerSyncMode.cloud ? scheme.primary : null,
+              dense: false,
+            ),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: CBFilterChip(
-            label: 'LOCAL',
-            icon: Icons.wifi,
-            selected: _mode == PlayerSyncMode.local,
-            onSelected: () => setState(() => _mode = PlayerSyncMode.local),
-            color: _mode == PlayerSyncMode.local ? scheme.primary : null,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: CBFilterChip(
+              label: 'LOCAL',
+              icon: Icons.wifi,
+              selected: _mode == PlayerSyncMode.local,
+              onSelected: () => setState(() => _mode = PlayerSyncMode.local),
+              color: _mode == PlayerSyncMode.local ? scheme.primary : null,
+              dense: false,
+            ),
           ),
         ),
       ],
