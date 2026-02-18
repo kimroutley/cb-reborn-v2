@@ -31,11 +31,14 @@ class LobbyConfigTile extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final isCloudReady = authState.status == AuthStatus.authenticated;
     final isCloudChecking = authState.status == AuthStatus.loading;
+    final isBadgeTappable = !isCloudReady && !isCloudChecking;
     final badgeLabel = isCloudChecking
         ? 'CLOUD: CHECKING...'
         : isCloudReady
             ? 'CLOUD: SIGNED IN'
             : 'CLOUD: SIGN-IN REQUIRED';
+    final badgeDisplayLabel =
+        isBadgeTappable ? '$badgeLabel • TAP TO SIGN IN' : badgeLabel;
     final badgeColor = isCloudChecking
         ? scheme.secondary
         : isCloudReady
@@ -79,32 +82,37 @@ class LobbyConfigTile extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: badgeColor.withValues(alpha: 0.35)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.cloud_done_rounded,
-                  size: 14,
-                  color: badgeColor,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  badgeLabel,
-                  style: CBTypography.labelSmall.copyWith(
-                    fontSize: 8,
+          InkWell(
+            onTap:
+                isBadgeTappable ? () => _promptCloudSignIn(context, ref) : null,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: badgeColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: badgeColor.withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.cloud_done_rounded,
+                    size: 14,
                     color: badgeColor,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 6),
+                  Text(
+                    badgeDisplayLabel,
+                    style: CBTypography.labelSmall.copyWith(
+                      fontSize: 8,
+                      color: badgeColor,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -190,6 +198,38 @@ class LobbyConfigTile extends ConsumerWidget {
         controller.setGameStyle(style);
       },
     );
+  }
+
+  Future<void> _promptCloudSignIn(BuildContext context, WidgetRef ref) async {
+    final scheme = Theme.of(context).colorScheme;
+    final authState = ref.read(authProvider);
+    final isCloudReady = authState.status == AuthStatus.authenticated;
+    final isCloudChecking = authState.status == AuthStatus.loading;
+
+    if (isCloudReady || isCloudChecking) {
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const HostAuthScreen()),
+    );
+
+    if (!context.mounted) return;
+
+    final refreshedState = ref.read(authProvider);
+    if (refreshedState.status == AuthStatus.authenticated) {
+      showThemedSnackBar(
+        context,
+        'Cloud access ready.',
+        accentColor: scheme.tertiary,
+      );
+    } else {
+      showThemedSnackBar(
+        context,
+        'Sign-in not completed. Staying offline-ready.',
+        accentColor: scheme.onSurface,
+      );
+    }
   }
 
   Future<void> _setSyncMode(
