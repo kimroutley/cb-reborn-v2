@@ -184,7 +184,8 @@ class HostServer {
   Future<void> stop() async {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
-    for (final client in _clients) {
+    final clientsToClose = List<WebSocket>.from(_clients);
+    for (final client in clientsToClose) {
       await client.close();
     }
     _clients.clear();
