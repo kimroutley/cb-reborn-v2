@@ -8,7 +8,8 @@ void main() {
       final now = DateTime(2026, 2, 17, 10, 0, 0);
 
       final accepted = shouldAcceptJoinUrlEvent(
-        incomingUrl: 'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
+        incomingUrl:
+            'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
         lastHandledUrl: null,
         lastHandledAt: null,
         now: now,
@@ -22,8 +23,10 @@ void main() {
       final second = first.add(const Duration(milliseconds: 900));
 
       final accepted = shouldAcceptJoinUrlEvent(
-        incomingUrl: 'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
-        lastHandledUrl: 'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
+        incomingUrl:
+            'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
+        lastHandledUrl:
+            'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
         lastHandledAt: first,
         now: second,
       );
@@ -36,8 +39,10 @@ void main() {
       final second = first.add(const Duration(seconds: 3));
 
       final accepted = shouldAcceptJoinUrlEvent(
-        incomingUrl: 'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
-        lastHandledUrl: 'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
+        incomingUrl:
+            'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
+        lastHandledUrl:
+            'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
         lastHandledAt: first,
         now: second,
       );
@@ -50,8 +55,10 @@ void main() {
       final second = first.add(const Duration(milliseconds: 500));
 
       final accepted = shouldAcceptJoinUrlEvent(
-        incomingUrl: 'https://cb-reborn.web.app/join?mode=local&code=NEON-XYZ123',
-        lastHandledUrl: 'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
+        incomingUrl:
+            'https://cb-reborn.web.app/join?mode=local&code=NEON-XYZ123',
+        lastHandledUrl:
+            'https://cb-reborn.web.app/join?mode=cloud&code=NEON-ABCDEF',
         lastHandledAt: first,
         now: second,
       );

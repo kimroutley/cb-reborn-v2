@@ -65,8 +65,8 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                 onRefresh: _loadData,
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 24, horizontal: 20),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                   children: [
                     CBSectionHeader(
                       title: 'ACTIVE SESSION',
@@ -86,9 +86,12 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                         padding: const EdgeInsets.all(16),
                         child: Text(
                           'No sessions yet. Start a Games Night to begin tracking rounds.',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  scheme.onSurface.withValues(alpha: 0.75)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(
+                                  color:
+                                      scheme.onSurface.withValues(alpha: 0.75)),
                         ),
                       )
                     else
@@ -163,9 +166,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
           Row(
             children: [
               if (session.isActive)
-                CBBadge(
-                  text: 'ACTIVE',
-                  color: scheme.tertiary),
+                CBBadge(text: 'ACTIVE', color: scheme.tertiary),
               if (!session.isActive)
                 Icon(Icons.check_circle, color: scheme.primary, size: 18),
               const SizedBox(width: 10),
@@ -204,7 +205,9 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   onPressed: () {
                     // Ensure the lobby is clean for the next round.
                     ref.read(gameProvider.notifier).returnToLobby();
-                    ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.lobby);
+                    ref
+                        .read(hostNavigationProvider.notifier)
+                        .setDestination(HostDestination.lobby);
                   },
                 ),
               ),
@@ -280,8 +283,8 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
           color: scheme.error.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(12),
         ),
-        child:
-            Icon(Icons.delete_forever, color: scheme.error.withValues(alpha: 0.7)),
+        child: Icon(Icons.delete_forever,
+            color: scheme.error.withValues(alpha: 0.7)),
       ),
       confirmDismiss: (direction) async {
         return await showConfirmationDialog(

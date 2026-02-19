@@ -59,7 +59,9 @@ class LobbyScreen extends ConsumerWidget {
                 HapticService.heavy();
                 final started = controller.startGame();
                 if (started) {
-                  ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.game);
+                  ref
+                      .read(hostNavigationProvider.notifier)
+                      .setDestination(HostDestination.game);
                 } else {
                   HapticService.error();
                 }

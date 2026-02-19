@@ -454,8 +454,8 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
           children: [
             Hero(
               tag: 'auth_icon',
-              child: Icon(Icons.badge_rounded,
-                  color: scheme.secondary, size: 100),
+              child:
+                  Icon(Icons.badge_rounded, color: scheme.secondary, size: 100),
             ),
             const SizedBox(height: 48),
             Text(
@@ -498,8 +498,8 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                     controller: _publicPlayerIdController,
                     hintText: 'PUBLIC PLAYER ID (OPTIONAL)',
                     decoration: InputDecoration(
-                      prefixIcon:
-                          Icon(Icons.alternate_email_rounded, color: scheme.secondary),
+                      prefixIcon: Icon(Icons.alternate_email_rounded,
+                          color: scheme.secondary),
                     ),
                   ),
                   const SizedBox(height: 20),

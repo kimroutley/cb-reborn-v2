@@ -480,8 +480,8 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                     controller: _publicPlayerIdController,
                     hintText: 'PUBLIC PLAYER ID (OPTIONAL)',
                     decoration: InputDecoration(
-                      prefixIcon:
-                          Icon(Icons.alternate_email_rounded, color: scheme.secondary),
+                      prefixIcon: Icon(Icons.alternate_email_rounded,
+                          color: scheme.secondary),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -508,8 +508,9 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                   ),
                   const SizedBox(height: 32),
                   CBPrimaryButton(
-                    label:
-                        isLoading ? 'SETTING UP...' : 'PAY COVER CHARGE & ENTER',
+                    label: isLoading
+                        ? 'SETTING UP...'
+                        : 'PAY COVER CHARGE & ENTER',
                     onPressed: isLoading
                         ? null
                         : () {

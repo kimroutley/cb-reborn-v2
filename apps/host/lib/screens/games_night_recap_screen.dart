@@ -477,8 +477,8 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text("SPICIEST MOMENT",
-              style: textTheme.headlineMedium!
-                  .copyWith(color: scheme.error)), // Previously CBColors.bloodOrange
+              style: textTheme.headlineMedium!.copyWith(
+                  color: scheme.error)), // Previously CBColors.bloodOrange
           const SizedBox(height: 48),
           CBPanel(
             borderColor: scheme.error,
@@ -493,9 +493,9 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                       child: Text(
                         "RECORDED DATA",
                         style: textTheme.headlineSmall!.copyWith(
-                              color: scheme.error,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          color: scheme.error,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],

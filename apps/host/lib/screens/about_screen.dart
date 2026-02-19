@@ -37,7 +37,8 @@ class AboutScreen extends StatelessWidget {
             }
 
             final packageInfo = snapshot.data?.packageInfo;
-            final releases = snapshot.data?.releases ?? const <AppBuildUpdate>[];
+            final releases =
+                snapshot.data?.releases ?? const <AppBuildUpdate>[];
             final releaseDate = releases.isNotEmpty
                 ? DateFormat.yMMMd().format(releases.first.releaseDate)
                 : 'Unknown release date';

@@ -50,14 +50,16 @@ class PlayerStatsNotifier extends Notifier<PlayerStats> {
   @override
   PlayerStats build() {
     // Watch the player bridge for ID changes
-    final activePlayerId = ref.watch(playerBridgeProvider.select((s) => s.myPlayerId)) ?? 'player_1';
-    
+    final activePlayerId =
+        ref.watch(playerBridgeProvider.select((s) => s.myPlayerId)) ??
+            'player_1';
+
     // Initial state
     final stats = PlayerStats(playerId: activePlayerId);
-    
+
     // Schedule loading
     Future.microtask(() => _loadStats(activePlayerId));
-    
+
     return stats;
   }
 

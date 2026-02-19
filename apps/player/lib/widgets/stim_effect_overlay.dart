@@ -89,7 +89,8 @@ class _StimEffectOverlayState extends State<StimEffectOverlay>
             animation: _flashAnimation,
             builder: (context, child) {
               return Container(
-                color: _flashColor.withAlpha((_flashAnimation.value * 0.3 * 255).toInt()),
+                color: _flashColor
+                    .withAlpha((_flashAnimation.value * 0.3 * 255).toInt()),
               );
             },
           ),

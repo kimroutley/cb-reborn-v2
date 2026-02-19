@@ -127,7 +127,8 @@ void main() {
             ),
             playerBridgeProvider.overrideWith(() => _NoopPlayerBridge()),
             authProvider.overrideWith(
-              () => _StubAuthNotifier(const AuthState(AuthStatus.unauthenticated)),
+              () => _StubAuthNotifier(
+                  const AuthState(AuthStatus.unauthenticated)),
             ),
           ],
           child: MaterialApp(
@@ -145,7 +146,8 @@ void main() {
       await tester.pump();
 
       expect(find.text('CONNECTING TO HOST...'), findsOneWidget);
-      expect(find.text('Hang tight while we sync your invite.'), findsOneWidget);
+      expect(
+          find.text('Hang tight while we sync your invite.'), findsOneWidget);
       expect(find.text('CONNECTING...'), findsOneWidget);
 
       joinCompleter.complete();

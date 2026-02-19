@@ -431,7 +431,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               label: _isConnecting
                                   ? 'CONNECTING...'
                                   : 'CONNECT TO HOST',
-                              onPressed: _isConnecting ? null : _connectFromButton,
+                              onPressed:
+                                  _isConnecting ? null : _connectFromButton,
                             ),
                             if (_connectionError != null) ...[
                               const SizedBox(height: 16),

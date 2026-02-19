@@ -157,7 +157,8 @@ class LobbyPlayerList extends ConsumerWidget {
                           if (renamed == null || renamed.trim().isEmpty) {
                             return;
                           }
-                          controller.updatePlayerName(player.id, renamed.trim());
+                          controller.updatePlayerName(
+                              player.id, renamed.trim());
                         },
                       ),
                       if (gameState.players.length > 1)

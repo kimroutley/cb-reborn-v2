@@ -117,12 +117,14 @@ class PlayerGameState {
           endGameReport.take(_cacheReportLimit).toList(growable: false),
       'voteTally': voteTally,
       'votesByVoter': votesByVoter,
-      'nightReport': nightReport.take(_cacheReportLimit).toList(growable: false),
+      'nightReport':
+          nightReport.take(_cacheReportLimit).toList(growable: false),
       'dayReport': dayReport.take(_cacheReportLimit).toList(growable: false),
       'privateMessages': privateMessages,
       'claimedPlayerIds': claimedPlayerIds,
       'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
-      'gameHistory': gameHistory.take(_cacheHistoryLimit).toList(growable: false),
+      'gameHistory':
+          gameHistory.take(_cacheHistoryLimit).toList(growable: false),
       'deadPoolBets': deadPoolBets,
       'ghostChatMessages': ghostChatMessages
           .take(_cacheGhostMessageLimit)

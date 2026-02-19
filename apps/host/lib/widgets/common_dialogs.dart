@@ -43,8 +43,7 @@ Future<String?> showStartSessionDialog(BuildContext context) async {
                 .copyWith(color: scheme.onSurface.withValues(alpha: 0.2)),
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(
-                  color:
-                      scheme.tertiary), // Migrated from CBColors.matrixGreen
+                  color: scheme.tertiary), // Migrated from CBColors.matrixGreen
             ),
           ),
         ),

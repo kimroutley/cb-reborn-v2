@@ -86,13 +86,11 @@ class RosterTile extends ConsumerWidget {
           // Status badges
           if (player.hasRumour && player.isAlive) ...[
             const SizedBox(width: 4),
-            MiniTag(
-                text: 'R', color: scheme.secondary, tooltip: 'Rumour'),
+            MiniTag(text: 'R', color: scheme.secondary, tooltip: 'Rumour'),
           ],
           if (player.alibiDay != null && player.isAlive) ...[
             const SizedBox(width: 4),
-            MiniTag(
-                text: 'A', color: scheme.tertiary, tooltip: 'Alibi'),
+            MiniTag(text: 'A', color: scheme.tertiary, tooltip: 'Alibi'),
           ],
           if (player.creepTargetId != null && player.isAlive) ...[
             const SizedBox(width: 4),
@@ -100,8 +98,7 @@ class RosterTile extends ConsumerWidget {
           ],
           if (player.clingerPartnerId != null && player.isAlive) ...[
             const SizedBox(width: 4),
-            MiniTag(
-                text: 'L', color: scheme.primary, tooltip: 'Clinger'),
+            MiniTag(text: 'L', color: scheme.primary, tooltip: 'Clinger'),
           ],
           const SizedBox(width: 8),
           Container(
@@ -138,8 +135,7 @@ class RosterTile extends ConsumerWidget {
                 ref.read(sessionProvider.notifier).releasePlayer(player.id);
                 Navigator.pop(context);
               },
-              child: Icon(Icons.link_off,
-                  size: 16, color: scheme.error),
+              child: Icon(Icons.link_off, size: 16, color: scheme.error),
             ),
           ],
           if (showKill && !isDead) ...[
@@ -202,7 +198,7 @@ class RosterTile extends ConsumerWidget {
                   ),
                 );
               },
-                child: Icon(Icons.dangerous,
+              child: Icon(Icons.dangerous,
                   size: 18, color: theme.colorScheme.error),
             ),
           ],
