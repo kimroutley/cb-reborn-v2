@@ -8,10 +8,10 @@ These are high-level feature requests and architectural improvements prioritized
 
 -   **👻 Ghost Lounge + Dead Pool**
     -   **Task:** Implement a full player + host experience for eliminated players.
-    -   **Status:** Pending. Dead players currently have limited interaction. Needs UI and logic.
+    -   **Status (Updated 2026-02-19):** Core flow implemented. Player dead-state now routes into a shared Ghost Lounge view with Dead Pool betting + live bet visibility, and Host dashboard surfaces active Dead Pool bets.
 -   **💾 Multi-slot Save System**
     -   **Task:** Expand persistence beyond a single active recovery save.
-    -   **Status:** Pending. Backend requirement in `cb_logic`.
+    -   **Status (Updated):** Backend support appears implemented in `cb_logic` persistence layer; remaining work is UX surfacing/validation, not core storage.
 -   **🧪 Real-device Multiplayer Validation**
     -   **Task:** Execute a validation checklist for local/cloud mode switching, deep-linking, and QR scanning on physical devices.
     -   **Status:** Manual validation required.
@@ -45,9 +45,9 @@ Potential issues identified during code exploration.
 Minor tasks to improve code hygiene.
 
 -   **Package Boilerplate**:
-    -   `packages/cb_logic/README.md`: Contains default "TODO: List prerequisites" text.
-    -   `packages/cb_theme/CHANGELOG.md`: Contains "TODO: Describe initial release".
-    -   **Action:** Update or remove these placeholders.
+    -   `packages/cb_logic/README.md`: ✅ Updated with concrete package guidance and usage.
+    -   `packages/cb_theme/CHANGELOG.md`: ✅ Initial release notes added.
+    -   **Action:** Complete.
 
 ## 5. Implicit Tasks
 

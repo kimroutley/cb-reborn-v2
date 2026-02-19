@@ -69,7 +69,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (!player.isAlive) {
       return GhostLoungeContent(
         gameState: gameState,
-        player: player,
         playerId: playerId,
         bridge: bridge,
       );
