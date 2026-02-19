@@ -186,13 +186,9 @@ class LobbyScreen extends ConsumerWidget {
         (gameState.gameStyle != GameStyle.manual || allManuallyAssigned);
     ref.watch(lobbyProfilesProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('LOBBY'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [SimulationModeBadgeAction()],
-      ),
+    return CBPrismScaffold(
+      title: 'LOBBY',
+      actions: const [SimulationModeBadgeAction()],
       drawer: const CustomDrawer(),
       floatingActionButton: canStart
           ? CBPrimaryButton(
@@ -210,62 +206,60 @@ class LobbyScreen extends ConsumerWidget {
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: CBNeonBackground(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(
-            vertical: CBSpace.x6,
-            horizontal: CBSpace.x5,
-          ),
-          children: [
-            // ── SYSTEM: SESSION CREATED ──
-            CBMessageBubble(
-              isSystemMessage: true,
-              sender: 'System',
-              message: "SESSION BROADCAST ACTIVE. STANDBY FOR HANDSHAKE.",
-              color: theme.colorScheme.primary,
-            ),
-
-            const SizedBox(height: 16),
-
-            // ── ACCESS CODE TILE ──
-            LobbyAccessCodeTile(
-              bridge: bridge,
-              isCloud: isCloud,
-              session: session,
-              primaryColor: theme.colorScheme.primary,
-            ),
-
-            const SizedBox(height: 24),
-
-            // ── SYSTEM: CONFIGURATION ──
-            CBSectionHeader(
-              title: "NETWORK PROTOCOLS",
-              color: theme
-                  .colorScheme.secondary, // Migrated from CBColors.neonPurple
-            ),
-
-            const SizedBox(height: 12),
-
-            LobbyConfigTile(
-              gameState: gameState,
-              controller: controller,
-              onManualAssign: () =>
-                  _showManualRoleAssignmentSheet(context, ref),
-            ),
-
-            const SizedBox(height: 32),
-
-            // ── GAMES NIGHT BANNER ──
-            const LobbyGamesNightBanner(),
-
-            const SizedBox(height: 32),
-
-            // ── SYSTEM: ROSTER STATUS & PLAYER LIST ──
-            const LobbyPlayerList(),
-
-            const SizedBox(height: 120),
-          ],
+      body: ListView(
+        padding: const EdgeInsets.symmetric(
+          vertical: CBSpace.x6,
+          horizontal: CBSpace.x5,
         ),
+        children: [
+          // ── SYSTEM: SESSION CREATED ──
+          CBMessageBubble(
+            isSystemMessage: true,
+            sender: 'System',
+            message: "SESSION BROADCAST ACTIVE. STANDBY FOR HANDSHAKE.",
+            color: theme.colorScheme.primary,
+          ),
+
+          const SizedBox(height: 16),
+
+          // ── ACCESS CODE TILE ──
+          LobbyAccessCodeTile(
+            bridge: bridge,
+            isCloud: isCloud,
+            session: session,
+            primaryColor: theme.colorScheme.primary,
+          ),
+
+          const SizedBox(height: 24),
+
+          // ── SYSTEM: CONFIGURATION ──
+          CBSectionHeader(
+            title: "NETWORK PROTOCOLS",
+            color: theme
+                .colorScheme.secondary, // Migrated from CBColors.neonPurple
+          ),
+
+          const SizedBox(height: 12),
+
+          LobbyConfigTile(
+            gameState: gameState,
+            controller: controller,
+            onManualAssign: () =>
+                _showManualRoleAssignmentSheet(context, ref),
+          ),
+
+          const SizedBox(height: 32),
+
+          // ── GAMES NIGHT BANNER ──
+          const LobbyGamesNightBanner(),
+
+          const SizedBox(height: 32),
+
+          // ── SYSTEM: ROSTER STATUS & PLAYER LIST ──
+          const LobbyPlayerList(),
+
+          const SizedBox(height: 120),
+        ],
       ),
     );
   }

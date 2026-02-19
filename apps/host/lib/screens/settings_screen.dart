@@ -73,38 +73,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final notifier = ref.read(hostSettingsProvider.notifier);
     final scheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SETTINGS'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [SimulationModeBadgeAction()],
-      ),
+    return CBPrismScaffold(
+      title: 'SETTINGS',
+      actions: const [SimulationModeBadgeAction()],
       drawer: const CustomDrawer(),
-      body: CBNeonBackground(
-        child: SingleChildScrollView(
-          padding: CBInsets.screen,
-          child: Column(
-            children: [
-              _buildSectionHeader(context, 'Audio'),
-              _buildAudioSettings(context, settings, notifier, scheme),
-              const SizedBox(height: 24),
-              _buildSectionHeader(context, 'AI & Narration'),
-              _buildNarrationSettings(context, settings, notifier, scheme),
-              const SizedBox(height: 24),
-              _buildSectionHeader(context, 'Display'),
-              _buildDisplaySettings(context, settings, notifier, scheme),
-              const SizedBox(height: 24),
-              _buildSectionHeader(context, 'Cloud Access'),
-              _buildCloudAccessSettings(context, scheme),
-              const SizedBox(height: 24),
-              _buildSectionHeader(context, 'Game Data'),
-              _buildDataSettings(context, scheme),
-              const SizedBox(height: 24),
-              _buildAboutSection(scheme, _packageInfo),
-              const SizedBox(height: 40),
-            ],
-          ),
+      body: SingleChildScrollView(
+        padding: CBInsets.screen,
+        child: Column(
+          children: [
+            _buildSectionHeader(context, 'Audio'),
+            _buildAudioSettings(context, settings, notifier, scheme),
+            const SizedBox(height: 24),
+            _buildSectionHeader(context, 'AI & Narration'),
+            _buildNarrationSettings(context, settings, notifier, scheme),
+            const SizedBox(height: 24),
+            _buildSectionHeader(context, 'Display'),
+            _buildDisplaySettings(context, settings, notifier, scheme),
+            const SizedBox(height: 24),
+            _buildSectionHeader(context, 'Cloud Access'),
+            _buildCloudAccessSettings(context, scheme),
+            const SizedBox(height: 24),
+            _buildSectionHeader(context, 'Game Data'),
+            _buildDataSettings(context, scheme),
+            const SizedBox(height: 24),
+            _buildAboutSection(scheme, _packageInfo),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );

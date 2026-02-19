@@ -11,6 +11,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../widgets/custom_drawer.dart';
+
 enum PlayerSyncMode { local, cloud }
 
 @visibleForTesting
@@ -265,88 +267,80 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       }
     });
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text(
-          'JOIN A GAME',
-          style: textTheme.titleLarge!,
-        ),
-        centerTitle: true,
-      ),
+    return CBPrismScaffold(
+      title: 'JOIN A GAME',
+      drawer: const CustomDrawer(),
       body: Stack(
         children: [
-          CBNeonBackground(
-            child: SafeArea(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'CLUB BLACKOUT',
-                        textAlign: TextAlign.center,
-                        style: textTheme.displayMedium!.copyWith(
-                          color: scheme.primary,
-                          letterSpacing: 4,
-                          fontWeight: FontWeight.w900,
-                          shadows: CBColors.textGlow(scheme.primary),
-                        ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'CLUB BLACKOUT',
+                      textAlign: TextAlign.center,
+                      style: textTheme.displayMedium!.copyWith(
+                        color: scheme.primary,
+                        letterSpacing: 4,
+                        fontWeight: FontWeight.w900,
+                        shadows: CBColors.textGlow(scheme.primary),
                       ),
-                      const SizedBox(height: 48),
-                      CBPanel(
-                        borderColor: scheme.primary.withValues(alpha: 0.4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            _buildSyncModeSelector(context),
-                            const SizedBox(height: 24),
+                    ),
+                    const SizedBox(height: 48),
+                    CBPanel(
+                      borderColor: scheme.primary.withValues(alpha: 0.4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildSyncModeSelector(context),
+                          const SizedBox(height: 24),
+                          CBTextField(
+                            controller: _joinCodeController,
+                            hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
+                            textCapitalization: TextCapitalization.characters,
+                          ),
+                          if (_mode == PlayerSyncMode.local) ...[
+                            const SizedBox(height: 16),
                             CBTextField(
-                              controller: _joinCodeController,
-                              hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
-                              textCapitalization: TextCapitalization.characters,
+                              controller: _hostIpController,
+                              hintText:
+                                  'HOST IP ADDRESS (E.G. WS://192.168.1.100)',
+                              keyboardType: TextInputType.url,
                             ),
-                            if (_mode == PlayerSyncMode.local) ...[
-                              const SizedBox(height: 16),
-                              CBTextField(
-                                controller: _hostIpController,
-                                hintText:
-                                    'HOST IP ADDRESS (E.G. WS://192.168.1.100)',
-                                keyboardType: TextInputType.url,
+                            const SizedBox(height: 12),
+                            Text(
+                              'LOCAL MODE TIP: HOST + PLAYER MUST BE ON THE SAME NETWORK AND THE HOST APP MUST BE RUNNING. IF YOU ARE UNSURE, USE CLOUD MODE.',
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodySmall!.copyWith(
+                                color: scheme.primary.withValues(alpha: 0.9),
+                                fontWeight: FontWeight.w600,
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'LOCAL MODE TIP: HOST + PLAYER MUST BE ON THE SAME NETWORK AND THE HOST APP MUST BE RUNNING. IF YOU ARE UNSURE, USE CLOUD MODE.',
-                                textAlign: TextAlign.center,
-                                style: textTheme.bodySmall!.copyWith(
-                                  color: scheme.primary.withValues(alpha: 0.9),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 24),
-                            CBPrimaryButton(
-                              label: _isConnecting
-                                  ? 'CONNECTING...'
-                                  : 'CONNECT TO HOST',
-                              onPressed: _isConnecting ? null : _connect,
                             ),
-                            if (_connectionError != null) ...[
-                              const SizedBox(height: 16),
-                              Text(
-                                _connectionError!,
-                                textAlign: TextAlign.center,
-                                style: textTheme.bodySmall!
-                                    .copyWith(color: scheme.error),
-                              ),
-                            ],
                           ],
-                        ),
+                          const SizedBox(height: 24),
+                          CBPrimaryButton(
+                            label: _isConnecting
+                                ? 'CONNECTING...'
+                                : 'CONNECT TO HOST',
+                            onPressed: _isConnecting ? null : _connect,
+                          ),
+                          if (_connectionError != null) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                              _connectionError!,
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodySmall!
+                                  .copyWith(color: scheme.error),
+                            ),
+                          ],
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -14,6 +14,7 @@ class CBPrismScaffold extends StatelessWidget {
   final Widget? drawer;
   final String? backgroundAsset;
   final bool showBackgroundRadiance;
+  final PreferredSizeWidget? appBarBottom;
 
   const CBPrismScaffold({
     super.key,
@@ -28,6 +29,7 @@ class CBPrismScaffold extends StatelessWidget {
     this.drawer,
     this.backgroundAsset,
     this.showBackgroundRadiance = false,
+    this.appBarBottom,
   });
 
   @override
@@ -42,6 +44,7 @@ class CBPrismScaffold extends StatelessWidget {
               ),
               centerTitle: true,
               actions: actions,
+              bottom: appBarBottom,
             )
           : null,
       drawer: drawer,
@@ -56,4 +59,3 @@ class CBPrismScaffold extends StatelessWidget {
     );
   }
 }
-

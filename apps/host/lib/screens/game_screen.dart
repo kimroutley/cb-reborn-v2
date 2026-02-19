@@ -73,66 +73,54 @@ class _GameScreenState extends ConsumerState<GameScreen>
     final step = gameState.currentStep;
 
     if (step == null && gameState.feedEvents.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('GAME CONTROL'),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          actions: const [SimulationModeBadgeAction()],
-        ),
+      return CBPrismScaffold(
+        title: 'GAME CONTROL',
+        actions: const [SimulationModeBadgeAction()],
         drawer: const CustomDrawer(currentDestination: HostDestination.game),
-        body: CBNeonBackground(
-          child: Center(
-            child: Text('NO SCRIPT', style: textTheme.labelMedium!),
-          ),
+        body: Center(
+          child: Text('NO SCRIPT', style: textTheme.labelMedium!),
         ),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('GAME CONTROL'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          const SimulationModeBadgeAction(),
-          IconButton(
-            tooltip: hostSettings.geminiNarrationEnabled
-                ? 'Gemini narration is ON'
-                : 'Gemini narration is OFF',
-            icon: Icon(
-              hostSettings.geminiNarrationEnabled
-                  ? Icons.auto_awesome_rounded
-                  : Icons.auto_awesome_outlined,
-            ),
-            onPressed: () {
-              hostSettingsNotifier.toggleGeminiNarration();
-            },
+    return CBPrismScaffold(
+      title: 'GAME CONTROL',
+      actions: [
+        const SimulationModeBadgeAction(),
+        IconButton(
+          tooltip: hostSettings.geminiNarrationEnabled
+              ? 'Gemini narration is ON'
+              : 'Gemini narration is OFF',
+          icon: Icon(
+            hostSettings.geminiNarrationEnabled
+                ? Icons.auto_awesome_rounded
+                : Icons.auto_awesome_outlined,
           ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'FEED', icon: Icon(Icons.dynamic_feed_rounded)),
-            Tab(text: 'DASHBOARD', icon: Icon(Icons.dashboard_rounded)),
-          ],
+          onPressed: () {
+            hostSettingsNotifier.toggleGeminiNarration();
+          },
         ),
+      ],
+      appBarBottom: TabBar(
+        controller: _tabController,
+        tabs: const [
+          Tab(text: 'FEED', icon: Icon(Icons.dynamic_feed_rounded)),
+          Tab(text: 'DASHBOARD', icon: Icon(Icons.dashboard_rounded)),
+        ],
       ),
       drawer: const CustomDrawer(currentDestination: HostDestination.game),
-      body: CBNeonBackground(
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildGameFeed(
-              context,
-              gameState,
-              step,
-              controller,
-              hostSettings.geminiNarrationEnabled,
-            ),
-            DashboardView(gameState: gameState),
-          ],
-        ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildGameFeed(
+            context,
+            gameState,
+            step,
+            controller,
+            hostSettings.geminiNarrationEnabled,
+          ),
+          DashboardView(gameState: gameState),
+        ],
       ),
     );
   }

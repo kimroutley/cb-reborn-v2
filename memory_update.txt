@@ -1,0 +1,1 @@
+Polished UI for apps/host and apps/player using CBPrismScaffold. Updated CBPrismScaffold to support appBarBottom. Regenerated cb_models and cb_logic to fix build errors.

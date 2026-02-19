@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../active_bridge.dart';
 import '../widgets/biometric_identity_header.dart';
+import '../widgets/custom_drawer.dart';
 import '../widgets/game_action_tile.dart';
 import '../widgets/ghost_lounge_content.dart';
 
@@ -48,7 +49,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final playerId = gameState.myPlayerId;
 
     if (player == null || playerId == null) {
-      return const Scaffold(
+      return const CBPrismScaffold(
+        title: 'CONNECTING...',
         body: Center(child: CBBreathingLoader()),
       );
     }
@@ -81,8 +83,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
     return Theme(
       data: CBTheme.buildTheme(CBTheme.buildColorScheme(roleColor)),
-      child: CBNeonBackground(
-        child: Column(
+      child: CBPrismScaffold(
+        title: 'GAME TERMINAL',
+        drawer: const CustomDrawer(),
+        body: Column(
           children: [
             BiometricIdentityHeader(
               player: player,

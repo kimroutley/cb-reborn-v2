@@ -50,55 +50,49 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
     final activeSession = ref.watch(gamesNightProvider);
     final scheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('GAMES NIGHT'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [SimulationModeBadgeAction()],
-      ),
+    return CBPrismScaffold(
+      title: 'GAMES NIGHT',
+      actions: const [SimulationModeBadgeAction()],
       drawer: const CustomDrawer(),
-      body: CBNeonBackground(
-        child: _isLoading
-            ? const Center(child: CBBreathingSpinner())
-            : RefreshIndicator(
-                onRefresh: _loadData,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 24, horizontal: 20),
-                  children: [
-                    CBSectionHeader(
-                      title: 'ACTIVE SESSION',
-                      color:
-                          scheme.tertiary, // Migrated from CBColors.matrixGreen
-                    ),
-                    const SizedBox(height: 12),
-                    _buildActiveSessionPanel(context, activeSession, scheme),
-                    const SizedBox(height: 28),
-                    CBSectionHeader(
-                      title: 'RECENT SESSIONS',
-                      color: scheme.primary, // Migrated from CBColors.neonBlue
-                    ),
-                    const SizedBox(height: 12),
-                    if (_sessions.isEmpty)
-                      CBPanel(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          'No sessions yet. Start a Games Night to begin tracking rounds.',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color:
-                                  scheme.onSurface.withValues(alpha: 0.75)),
-                        ),
-                      )
-                    else
-                      ..._sessions.map((s) =>
-                          _buildSessionDismissibleTile(context, s, scheme)),
-                    const SizedBox(height: 120),
-                  ],
-                ),
+      body: _isLoading
+          ? const Center(child: CBBreathingSpinner())
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 24, horizontal: 20),
+                children: [
+                  CBSectionHeader(
+                    title: 'ACTIVE SESSION',
+                    color:
+                        scheme.tertiary, // Migrated from CBColors.matrixGreen
+                  ),
+                  const SizedBox(height: 12),
+                  _buildActiveSessionPanel(context, activeSession, scheme),
+                  const SizedBox(height: 28),
+                  CBSectionHeader(
+                    title: 'RECENT SESSIONS',
+                    color: scheme.primary, // Migrated from CBColors.neonBlue
+                  ),
+                  const SizedBox(height: 12),
+                  if (_sessions.isEmpty)
+                    CBPanel(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'No sessions yet. Start a Games Night to begin tracking rounds.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color:
+                                scheme.onSurface.withValues(alpha: 0.75)),
+                      ),
+                    )
+                  else
+                    ..._sessions.map((s) =>
+                        _buildSessionDismissibleTile(context, s, scheme)),
+                  const SizedBox(height: 120),
+                ],
               ),
-      ),
+            ),
     );
   }
 

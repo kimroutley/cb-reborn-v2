@@ -22,25 +22,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scheme = theme.colorScheme;
     final stats = PersistenceService.instance.computeStats();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(''),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [SimulationModeBadgeAction()],
-      ),
+    return CBPrismScaffold(
+      title: '',
+      actions: const [SimulationModeBadgeAction()],
       drawer: const CustomDrawer(),
-      body: CBNeonBackground(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: CBSpace.x6,
-              vertical: CBSpace.x10,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: CBSpace.x6,
+            vertical: CBSpace.x10,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             // ── LOGO / TITLE AREA ──
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.0, end: 1.0),
@@ -158,8 +153,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     ),
-  ),
-);
+  );
 }
 
   Widget _buildQuickStatTile(

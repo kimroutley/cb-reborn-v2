@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../active_bridge.dart';
 import '../player_onboarding_provider.dart';
+import '../widgets/custom_drawer.dart';
 
 class LobbyScreen extends ConsumerStatefulWidget {
   const LobbyScreen({super.key});
@@ -144,141 +145,140 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
       phase: gameState.phase,
     );
 
-    return CBNeonBackground(
-      child: Stack(
-        children: [
-          ListView(
-            padding: const EdgeInsets.symmetric(vertical: 48),
+    return CBPrismScaffold(
+      title: 'LOBBY',
+      drawer: const CustomDrawer(),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: scheme.surface.withValues(alpha: 0.9),
+          border: Border(
+            top: BorderSide(
+              color: scheme.primary.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // ── SYSTEM: CONNECTED ──
-              CBMessageBubble(
-                sender: 'SYSTEM',
-                message: "SECURE CONNECTION ESTABLISHED",
-                isSystemMessage: true,
-              ),
-
-              // ── WELCOME MESSAGE ──
-              CBMessageBubble(
-                sender: 'CLUB MANAGER',
-                message:
-                    "Welcome to Club Blackout. You're on the list. Find a seat and wait for the music to drop.",
-                color: scheme.secondary,
-              ),
-
-              // ── PLAYER STATUS ──
-              if (gameState.myPlayerSnapshot != null)
-                CBMessageBubble(
-                  sender: 'RESULT',
-                  message:
-                      "IDENTIFIED AS: ${gameState.myPlayerSnapshot!.name.toUpperCase()}",
-                  isSystemMessage: true,
-                ),
-
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: CBPanel(
-                  borderColor: scheme.primary.withValues(alpha: 0.35),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'PROFILE HANDLE',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      CBTextField(
-                        controller: _nameController,
-                        hintText: 'Enter username',
-                      ),
-                      const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: CBPrimaryButton(
-                          label: _savingName ? 'SAVING...' : 'SAVE USERNAME',
-                          onPressed: _savingName ? null : _saveUsername,
-                        ),
-                      ),
-                    ],
-                  ),
+              const CBBreathingLoader(size: 32),
+              const SizedBox(height: 20),
+              Text(
+                status.title,
+                textAlign: TextAlign.center,
+                style: textTheme.labelSmall!.copyWith(
+                  color: scheme.onSurface,
+                  letterSpacing: 2.5,
+                  fontWeight: FontWeight.bold,
+                  shadows: [
+                    BoxShadow(
+                      color: scheme.primary.withValues(alpha: 0.5),
+                      blurRadius: 24,
+                      spreadRadius: 12,
+                    ),
+                  ],
                 ),
               ),
-
-              // ── ROSTER FEED ──
-              CBMessageBubble(
-                sender: 'SYSTEM',
-                message: "PATRONS ENTERING: ${gameState.players.length}",
-                isSystemMessage: true,
+              const SizedBox(height: 8),
+              Text(
+                status.detail,
+                textAlign: TextAlign.center,
+                style: textTheme.labelSmall!.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.3),
+                  fontSize: 8,
+                  letterSpacing: 1.0,
+                ),
               ),
-
-              ...gameState.players.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final p = entry.value;
-                final isMe = p.id == gameState.myPlayerId;
-                return CBFadeSlide(
-                  key: ValueKey('lobby_join_${p.id}'),
-                  delay: Duration(milliseconds: 24 * idx.clamp(0, 10)),
-                  child: CBMessageBubble(
-                    sender: 'SECURITY',
-                    message: "${p.name.toUpperCase()} has entered the lounge.",
-                    color: isMe ? scheme.primary : scheme.tertiary,
-                  ),
-                );
-              }),
-
-              // ── SPACING FOR LOADING ──
-              const SizedBox(height: 120),
             ],
           ),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        children: [
+          // ── SYSTEM: CONNECTED ──
+          CBMessageBubble(
+            sender: 'SYSTEM',
+            message: "SECURE CONNECTION ESTABLISHED",
+            isSystemMessage: true,
+          ),
 
-          // ── DYNAMIC FOOTER: WAITING STATUS ──
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: scheme.surface.withValues(alpha: 0.9),
-              ),
+          // ── WELCOME MESSAGE ──
+          CBMessageBubble(
+            sender: 'CLUB MANAGER',
+            message:
+                "Welcome to Club Blackout. You're on the list. Find a seat and wait for the music to drop.",
+            color: scheme.secondary,
+          ),
+
+          // ── PLAYER STATUS ──
+          if (gameState.myPlayerSnapshot != null)
+            CBMessageBubble(
+              sender: 'RESULT',
+              message:
+                  "IDENTIFIED AS: ${gameState.myPlayerSnapshot!.name.toUpperCase()}",
+              isSystemMessage: true,
+            ),
+
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: CBPanel(
+              borderColor: scheme.primary.withValues(alpha: 0.35),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CBBreathingLoader(size: 32),
-                  const SizedBox(height: 20),
                   Text(
-                    status.title,
-                    textAlign: TextAlign.center,
-                    style: textTheme.labelSmall!.copyWith(
-                      color: scheme.onSurface,
-                      letterSpacing: 2.5,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        BoxShadow(
-                          color: scheme.primary.withValues(alpha: 0.5),
-                          blurRadius: 24,
-                          spreadRadius: 12,
-                        ),
-                      ],
+                    'PROFILE HANDLE',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    status.detail,
-                    textAlign: TextAlign.center,
-                    style: textTheme.labelSmall!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.3),
-                      fontSize: 8,
-                      letterSpacing: 1.0,
+                  const SizedBox(height: 10),
+                  CBTextField(
+                    controller: _nameController,
+                    hintText: 'Enter username',
+                  ),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: CBPrimaryButton(
+                      label: _savingName ? 'SAVING...' : 'SAVE USERNAME',
+                      onPressed: _savingName ? null : _saveUsername,
                     ),
                   ),
                 ],
               ),
             ),
           ),
+
+          // ── ROSTER FEED ──
+          CBMessageBubble(
+            sender: 'SYSTEM',
+            message: "PATRONS ENTERING: ${gameState.players.length}",
+            isSystemMessage: true,
+          ),
+
+          ...gameState.players.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final p = entry.value;
+            final isMe = p.id == gameState.myPlayerId;
+            return CBFadeSlide(
+              key: ValueKey('lobby_join_${p.id}'),
+              delay: Duration(milliseconds: 24 * idx.clamp(0, 10)),
+              child: CBMessageBubble(
+                sender: 'SECURITY',
+                message: "${p.name.toUpperCase()} has entered the lounge.",
+                color: isMe ? scheme.primary : scheme.tertiary,
+              ),
+            );
+          }),
+
+          // ── SPACING FOR LOADING ──
+          const SizedBox(height: 24),
         ],
       ),
     );
