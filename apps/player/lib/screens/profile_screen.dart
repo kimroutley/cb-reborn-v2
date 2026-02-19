@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cb_comms/cb_comms_player.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,10 +16,14 @@ class ProfileScreen extends ConsumerStatefulWidget {
     super.key,
     this.repository,
     this.currentUserResolver,
+    this.profileStreamFactory,
+    this.authStateChangesResolver,
   });
 
   final ProfileRepository? repository;
   final User? Function()? currentUserResolver;
+  final Stream<Map<String, dynamic>?> Function(String uid)? profileStreamFactory;
+  final Stream<User?> Function()? authStateChangesResolver;
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
@@ -54,6 +60,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _initialPreferredStyle = _preferredStyles.first;
   DateTime? _createdAt;
   DateTime? _updatedAt;
+  StreamSubscription<Map<String, dynamic>?>? _profileSubscription;
+  StreamSubscription<User?>? _authSubscription;
+  String? _listeningUid;
+  Map<String, dynamic>? _queuedRemoteProfile;
+  bool _remoteUpdatePending = false;
+  bool _isApplyingRemoteUpdate = false;
 
   ProfileRepository get _profileRepository {
     return _repository ??= widget.repository ??
@@ -86,11 +98,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.initState();
     _usernameController.addListener(_onInputChanged);
     _publicIdController.addListener(_onInputChanged);
+    _startAuthListener();
+    _ensureProfileListener();
     _loadProfile();
   }
 
   @override
   void dispose() {
+    _profileSubscription?.cancel();
+    _authSubscription?.cancel();
     _usernameController.removeListener(_onInputChanged);
     _publicIdController.removeListener(_onInputChanged);
     _usernameController.dispose();
@@ -137,6 +153,134 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       text: normalized,
       selection: TextSelection.collapsed(offset: normalized.length),
     );
+  }
+
+  Stream<Map<String, dynamic>?> _profileStreamForUid(String uid) {
+    final override = widget.profileStreamFactory;
+    if (override != null) {
+      return override(uid);
+    }
+    return _profileRepository.watchProfile(uid);
+  }
+
+  Stream<User?>? _authChangesStream() {
+    final override = widget.authStateChangesResolver;
+    if (override != null) {
+      return override();
+    }
+    try {
+      return FirebaseAuth.instance.authStateChanges();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _startAuthListener() {
+    final stream = _authChangesStream();
+    if (stream == null) {
+      return;
+    }
+    _authSubscription?.cancel();
+    _authSubscription = stream.listen((_) {
+      if (!mounted) {
+        return;
+      }
+      _ensureProfileListener();
+      if (!_loadingProfile) {
+        setState(() => _loadingProfile = true);
+      }
+      unawaited(_loadProfile());
+    });
+  }
+
+  void _ensureProfileListener() {
+    final user = _user;
+    final uid = user?.uid;
+
+    if (uid == null) {
+      _listeningUid = null;
+      _profileSubscription?.cancel();
+      _profileSubscription = null;
+      _queuedRemoteProfile = null;
+      _remoteUpdatePending = false;
+      return;
+    }
+
+    if (_listeningUid == uid && _profileSubscription != null) {
+      return;
+    }
+
+    _listeningUid = uid;
+    _profileSubscription?.cancel();
+    _profileSubscription = _profileStreamForUid(uid).listen(
+      (profileData) {
+        if (!mounted || _listeningUid != uid) {
+          return;
+        }
+
+        if (_saving || _hasChanges || _isApplyingRemoteUpdate) {
+          _queuedRemoteProfile = profileData;
+          if (!_remoteUpdatePending) {
+            setState(() {
+              _remoteUpdatePending = true;
+            });
+          }
+          return;
+        }
+
+        _applyProfileData(profileData, user!);
+      },
+      onError: (_) {
+        if (!mounted) {
+          return;
+        }
+        _showFeedback(
+          'Live profile sync temporarily unavailable.',
+          tone: _FeedbackTone.error,
+        );
+      },
+    );
+  }
+
+  void _applyQueuedRemoteProfileIfAny() {
+    final user = _user;
+    final queued = _queuedRemoteProfile;
+    if (user == null || queued == null || _saving || _hasChanges) {
+      return;
+    }
+    _queuedRemoteProfile = null;
+    _applyProfileData(queued, user);
+  }
+
+  void _applyProfileData(Map<String, dynamic>? profile, User user) {
+    _isApplyingRemoteUpdate = true;
+    try {
+      final username =
+          (profile?['username'] as String?)?.trim() ?? user.displayName?.trim();
+      final publicId = (profile?['publicPlayerId'] as String?)?.trim();
+      final avatar = (profile?['avatarEmoji'] as String?)?.trim();
+      final preferredStyle = (profile?['preferredStyle'] as String?)?.trim();
+
+      setState(() {
+        _usernameController.text = username ?? '';
+        _publicIdController.text = publicId == null
+            ? ''
+            : ProfileFormValidation.sanitizePublicPlayerId(publicId);
+        _selectedAvatar = clubAvatarEmojis.contains(avatar)
+            ? avatar!
+            : clubAvatarEmojis.first;
+        _selectedPreferredStyle =
+            _preferredStyles.contains(preferredStyle?.toLowerCase())
+                ? preferredStyle!.toLowerCase()
+                : _preferredStyles.first;
+        _createdAt = _dateFromFirestore(profile?['createdAt']);
+        _updatedAt = _dateFromFirestore(profile?['updatedAt']) ?? DateTime.now();
+        _remoteUpdatePending = false;
+      });
+      _captureInitialSnapshot();
+    } finally {
+      _isApplyingRemoteUpdate = false;
+    }
   }
 
   Future<void> _handleAttemptPop() async {
@@ -204,6 +348,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
+    _ensureProfileListener();
     final user = _user;
     if (user == null) {
       if (mounted) {
@@ -219,27 +364,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         return;
       }
 
-      final username =
-          (profile?['username'] as String?)?.trim() ?? user.displayName?.trim();
-      final publicId = (profile?['publicPlayerId'] as String?)?.trim();
-      final avatar = (profile?['avatarEmoji'] as String?)?.trim();
-      final preferredStyle = (profile?['preferredStyle'] as String?)?.trim();
-
-      _usernameController.text = username ?? '';
-      _publicIdController.text = publicId == null
-          ? ''
-          : ProfileFormValidation.sanitizePublicPlayerId(publicId);
-      _selectedAvatar =
-          clubAvatarEmojis.contains(avatar) ? avatar! : clubAvatarEmojis.first;
-      _selectedPreferredStyle =
-          _preferredStyles.contains(preferredStyle?.toLowerCase())
-              ? preferredStyle!.toLowerCase()
-              : _preferredStyles.first;
-      _createdAt = _dateFromFirestore(profile?['createdAt']);
-      _updatedAt = _dateFromFirestore(profile?['updatedAt']);
-      _captureInitialSnapshot();
+      _applyProfileData(profile, user);
     } catch (_) {
-      // Ignore load failure and keep editable defaults.
+      _showFeedback(
+        'Could not load profile right now. Showing local defaults.',
+        tone: _FeedbackTone.error,
+      );
     } finally {
       if (mounted) {
         setState(() => _loadingProfile = false);
@@ -338,6 +468,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         _updatedAt = DateTime.now();
       });
       _captureInitialSnapshot();
+      _applyQueuedRemoteProfileIfAny();
       _showFeedback('Profile saved.', tone: _FeedbackTone.success);
     } catch (_) {
       _showFeedback(
@@ -348,6 +479,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         setState(() => _saving = false);
       }
+      _applyQueuedRemoteProfileIfAny();
       _syncDirtyFlag();
     }
   }
@@ -362,6 +494,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _publicIdError = null;
     });
     _syncDirtyFlag();
+    _applyQueuedRemoteProfileIfAny();
   }
 
   void _showFeedback(String message,
@@ -450,7 +583,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               const SizedBox(height: CBSpace.x2),
                               AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 250),
-                                child: _hasChanges
+                                child: (_hasChanges || _remoteUpdatePending)
                                     ? CBGlassTile(
                                         key: const ValueKey('dirty-banner'),
                                         isPrismatic: true,
@@ -467,7 +600,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                             const SizedBox(width: CBSpace.x2),
                                             Expanded(
                                               child: Text(
-                                                'Unsaved changes in progress.',
+                                                _remoteUpdatePending
+                                                    ? 'Cloud profile update detected. Save/discard to sync latest values.'
+                                                    : 'Unsaved changes in progress.',
                                                 style: theme.textTheme.bodySmall
                                                     ?.copyWith(
                                                   color: scheme.onSurface,

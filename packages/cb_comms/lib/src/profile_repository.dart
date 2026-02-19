@@ -18,6 +18,10 @@ class ProfileRepository {
     return snap.data();
   }
 
+  Stream<Map<String, dynamic>?> watchProfile(String uid) {
+    return _profiles.doc(uid).snapshots().map((snapshot) => snapshot.data());
+  }
+
   Future<bool> hasProfile(String uid) async {
     final doc = await getProfile(uid);
     return doc.exists;
