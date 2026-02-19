@@ -9,13 +9,15 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
   required List<Player> players,
   required Map<String, String> votesByVoter,
   Map<String, String> dramaQueenSwapChoices = const {},
+  Set<String> triggeringDeathReasons = const {'exile'},
 }) {
   final lines = <String>[];
   var updatedPlayers = [...players];
 
   final exiledDramaQueens = updatedPlayers.where((p) =>
       !p.isAlive &&
-      p.deathReason == 'exile' &&
+      p.deathReason != null &&
+      triggeringDeathReasons.contains(p.deathReason) &&
       p.role.id == RoleIds.dramaQueen);
 
   for (final dramaQueen in exiledDramaQueens) {

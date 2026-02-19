@@ -17,4 +17,5 @@ export 'resolution/death_resolution_strategy.dart';
 export 'resolution/death_handler.dart';
 export 'resolution/second_wind_handler.dart';
 export 'resolution/seasoned_drinker_handler.dart';
+export 'resolution/drama_queen_death_handler.dart';
 export 'resolution/default_death_handler.dart';

@@ -57,6 +57,37 @@ void main() {
       expect(result.report.any((s) => s.contains('butchered')), true);
     });
 
+    test('Drama Queen swaps stored targets when killed at night', () {
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final sober = _player('Sober', _role(RoleIds.sober));
+      final buddy = _player('Buddy', _role(RoleIds.partyAnimal));
+      final drama = _player('Drama', _role(RoleIds.dramaQueen)).copyWith(
+        dramaQueenTargetAId: sober.id,
+        dramaQueenTargetBId: buddy.id,
+      );
+      final players = [dealer, sober, buddy, drama];
+
+      final log = {
+        'dealer_act_${dealer.id}_1': drama.id,
+      };
+
+      final result = _resolveNight(players, log);
+
+      final updatedDrama = result.players.firstWhere((p) => p.id == drama.id);
+      final updatedSober = result.players.firstWhere((p) => p.id == sober.id);
+      final updatedBuddy = result.players.firstWhere((p) => p.id == buddy.id);
+
+      expect(updatedDrama.isAlive, false);
+      expect(updatedDrama.deathReason, 'murder');
+      expect(updatedSober.role.id, RoleIds.partyAnimal);
+      expect(updatedBuddy.role.id, RoleIds.sober);
+      expect(
+        result.report.any((line) => line.contains('Drama Queen chaos')),
+        true,
+      );
+    });
+
     test('Gawked wallflower is exposed in report', () {
       final dealer =
           _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
