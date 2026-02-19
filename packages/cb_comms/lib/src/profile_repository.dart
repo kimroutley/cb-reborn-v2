@@ -102,14 +102,21 @@ class ProfileRepository {
         if (normalizedPublicId.isNotEmpty) {
           payload['publicPlayerIdLower'] = normalizedPublicId;
         }
+      } else {
+        payload['publicPlayerId'] = FieldValue.delete();
+        payload['publicPlayerIdLower'] = FieldValue.delete();
       }
 
       if (trimmedAvatarEmoji != null && trimmedAvatarEmoji.isNotEmpty) {
         payload['avatarEmoji'] = trimmedAvatarEmoji;
+      } else {
+        payload['avatarEmoji'] = FieldValue.delete();
       }
 
       if (trimmedPreferredStyle != null && trimmedPreferredStyle.isNotEmpty) {
         payload['preferredStyle'] = trimmedPreferredStyle;
+      } else {
+        payload['preferredStyle'] = FieldValue.delete();
       }
 
       if (!snapshot.exists) {

@@ -11,6 +11,7 @@ enum PlayerDestination {
   hallOfFame,
   profile,
   stats,
+  about,
 }
 
 @immutable
@@ -71,5 +72,10 @@ const playerDestinations = <PlayerDestinationConfig>[
     destination: PlayerDestination.hallOfFame,
     label: 'Hall of Fame',
     icon: Icons.emoji_events_outlined,
+  ),
+  PlayerDestinationConfig(
+    destination: PlayerDestination.about,
+    label: 'About',
+    icon: Icons.info_outline,
   ),
 ];

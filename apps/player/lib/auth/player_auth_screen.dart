@@ -47,6 +47,8 @@ class PlayerAuthScreen extends ConsumerWidget {
   Widget _buildUIForState(BuildContext context, WidgetRef ref,
       AuthState authState, ColorScheme scheme) {
     switch (authState.status) {
+      case AuthStatus.initial:
+        return const _AuthBootScreen(key: ValueKey('auth_boot'));
       case AuthStatus.needsProfile:
         return _ProfileSetupForm(key: const ValueKey('profile'));
       case AuthStatus.loading:
@@ -63,6 +65,38 @@ class PlayerAuthScreen extends ConsumerWidget {
       default:
         return const _AuthSplash(key: ValueKey('auth_splash'));
     }
+  }
+}
+
+class _AuthBootScreen extends StatelessWidget {
+  const _AuthBootScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Center(
+      child: CBPanel(
+        borderColor: scheme.primary.withValues(alpha: 0.45),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CBBreathingLoader(size: 50),
+            const SizedBox(height: 16),
+            Text(
+              'SYNCING SESSION...',
+              textAlign: TextAlign.center,
+              style: textTheme.labelLarge?.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

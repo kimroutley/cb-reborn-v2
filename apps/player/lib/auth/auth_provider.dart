@@ -6,6 +6,7 @@ import 'package:cb_comms/cb_comms_player.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../player_session_cache.dart';
 
 @immutable
 class AuthState {
@@ -47,9 +48,12 @@ class AuthNotifier extends Notifier<AuthState> {
       return const AuthState(AuthStatus.unauthenticated);
     }
 
+    final currentUser = _auth!.currentUser;
+
     _userSub?.cancel();
     _userSub = _auth!.authStateChanges().listen((user) async {
       if (user != null) {
+        state = AuthState(AuthStatus.loading, user: user);
         final profile = await _loadProfile(user);
         if (profile.exists) {
           state = AuthState(AuthStatus.authenticated, user: user);
@@ -65,6 +69,10 @@ class AuthNotifier extends Notifier<AuthState> {
       _userSub?.cancel();
       usernameController.dispose();
     });
+
+    if (currentUser != null) {
+      return AuthState(AuthStatus.loading, user: currentUser);
+    }
 
     return const AuthState(AuthStatus.initial);
   }
@@ -183,6 +191,8 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> signOut() async {
+    await const PlayerSessionCacheRepository().clear();
+
     if (!_ensureFirebaseServices()) {
       state = const AuthState(AuthStatus.unauthenticated);
       return;

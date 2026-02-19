@@ -138,6 +138,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.saveLoad);
                     },
                   ),
+                  const SizedBox(height: CBSpace.x3),
+                  CBGhostButton(
+                    label: 'VIEW HALL OF FAME',
+                    onPressed: () {
+                      HapticService.light();
+                      ref
+                          .read(hostNavigationProvider.notifier)
+                          .setDestination(HostDestination.hallOfFame);
+                    },
+                  ),
                 ],
               ),
             ),

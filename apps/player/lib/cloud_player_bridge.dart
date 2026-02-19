@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'firebase_options.dart';
 import 'player_bridge.dart'; // re-use PlayerGameState, PlayerSnapshot, StepSnapshot, kDayVoteStepId
 import 'player_bridge_actions.dart';
+import 'player_session_cache.dart';
 
 /// Cloud-mode player bridge using Firebase Firestore.
 ///
@@ -18,6 +19,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   StreamSubscription? _gameSub;
   StreamSubscription? _privateSub;
   String? _pendingClaimName;
+  String? _cachedJoinCode;
+  String? _cachedPlayerName;
   // Removed String? _claimedPlayerId; as it's now in PlayerGameState.myPlayerId
 
   @override
@@ -26,11 +29,19 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     return const PlayerGameState();
   }
 
+  void restoreFromCache(PlayerSessionCacheEntry entry) {
+    _cachedJoinCode = entry.joinCode;
+    _cachedPlayerName = entry.playerName;
+    state = PlayerGameState.fromCacheMap(entry.state);
+  }
+
   /// Join a cloud game by code.
   ///
   /// 1. Sends a join request doc to Firestore.
   /// 2. Subscribes to the public game doc.
   Future<void> joinWithCode(String code) async {
+    _cachedJoinCode = code.trim().toUpperCase();
+
     // Reset connection errors before attempting to connect
     state = state.copyWith(
         joinError: null, myPlayerId: null, myPlayerSnapshot: null);
@@ -61,6 +72,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         joinAccepted: true,
         joinError: null,
       );
+      _persistSessionCache();
 
       debugPrint('[CloudPlayerBridge] Subscribed to game $code');
     } catch (e) {
@@ -79,8 +91,10 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     final resolvedName =
         playerName.trim().isEmpty ? 'Player' : playerName.trim();
     _pendingClaimName = resolvedName;
+    _cachedPlayerName = resolvedName;
     await joinWithCode(joinCode);
     await sendJoinRequest(resolvedName);
+    _persistSessionCache();
   }
 
   /// Send a join request (player name → joins subcollection).
@@ -111,6 +125,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       myPlayerId: playerId,
       myPlayerSnapshot: claimedPlayer,
     );
+    _persistSessionCache();
 
     debugPrint('[CloudPlayerBridge] Claimed player $playerId');
   }
@@ -175,6 +190,9 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   /// Leave: just disconnect.
   @override
   Future<void> leave() async {
+    await ref.read(playerSessionCacheRepositoryProvider).clear();
+    _cachedJoinCode = null;
+    _cachedPlayerName = null;
     await disconnect();
   }
 
@@ -260,6 +278,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     );
 
     _attemptAutoClaim(state);
+    _persistSessionCache();
   }
 
   /// Merge private state (role, alliance, etc.) into the existing
@@ -319,11 +338,30 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       ghostChatMessages: ghostMessages,
       myPlayerSnapshot: updatedMyPlayerSnapshot,
     );
+    _persistSessionCache();
   }
 
   List<String> _toStringList(dynamic value) {
     if (value is List) return value.map((e) => e.toString()).toList();
     return [];
+  }
+
+  void _persistSessionCache() {
+    final joinCode = _cachedJoinCode;
+    if (joinCode == null || joinCode.isEmpty) {
+      return;
+    }
+
+    final entry = PlayerSessionCacheEntry(
+      joinCode: joinCode,
+      mode: CachedSyncMode.cloud,
+      playerName: _cachedPlayerName,
+      savedAt: DateTime.now(),
+      state: state.toCacheMap(),
+    );
+    unawaited(
+      ref.read(playerSessionCacheRepositoryProvider).saveSession(entry),
+    );
   }
 
   void _attemptAutoClaim(PlayerGameState nextState) {

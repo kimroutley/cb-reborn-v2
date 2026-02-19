@@ -1,85 +1,91 @@
-# 🎭 Day Resolution Pipeline + Player Shell Navigation Guard
+# 🏆 Role Awards + Profile UX + About Surface Consolidation
 
 ## Summary
 
-This PR continues the role-mechanics parity hardening by moving more day-phase behavior into modular strategy handlers, adding explicit reactive-choice support for exiled reactive roles, and strengthening navigation regression coverage on the Player app shell.
+This PR completes the role-awards follow-through and folds in adjacent UX hardening for Profile, About, and Hall-of-Fame access paths across Host + Player.
+
+Primary outcomes:
+
+- filterable Role Awards experience in Hall of Fame,
+- deterministic role-specific unlock profiles with icon-source guardrails,
+- improved Player startup/auth loading transitions,
+- upgraded Host/Player Profile forms with stronger validation and save semantics,
+- shared About/release-notes presentation with widget coverage,
+- direct Hall-of-Fame access actions verified by dedicated app tests.
 
 ## What Changed
 
-### 1) Day resolution strategy and handler contracts (cb_logic)
+### 1) Role Awards progression, filtering, and metadata guards
 
-- Expanded `DayResolutionContext` to carry explicit choice maps:
+- Host + Player Hall of Fame role-award views now support:
+  - role filter,
+  - tier filter,
+  - filtered count/unlock summaries.
+- Role ladders use role-specific deterministic unlock profiles (`gamesPlayed`, `wins`, `survivals`) instead of one global threshold profile.
+- Added icon-source guardrail helpers in `role_award_catalog`:
+  - known-source validation,
+  - test-failing detection for unknown icon sources.
+- Docs updated to reflect metadata automation and guard expectations.
 
-  - `predatorRetaliationChoices`
-  - `teaSpillerRevealChoices`
-  - `dramaQueenSwapChoices`
+### 2) Player startup/auth flow polish
 
-- Updated handlers/resolvers to consume these explicit host selections.
-- `DayResolutionStrategy` now:
+- `AuthNotifier` startup behavior now transitions through explicit loading for existing authenticated sessions.
+- `PlayerAuthScreen` includes a neutral boot state (`SYNCING SESSION...`) for `AuthStatus.initial`.
+- `PlayerBootstrapGate` adds visible progress (units, percentage, and incremental status updates).
 
-  - always includes the exile victim in `deathTriggerVictimIds`
-  - deduplicates returned death-trigger IDs
-  - preserves ordered handler execution with documented order contract
+### 3) Profile workflow hardening (Host + Player + comms)
 
-### 2) Provider orchestration cleanup (cb_logic)
+- Added shared form validation utility:
+  - `packages/cb_comms/lib/src/profile_form_validation.dart`
+- Exported validation utility from comms barrels.
+- Profile screens (Host + Player) now include:
+  - richer field validation and sanitization,
+  - dirty-state awareness with save/discard UX,
+  - better focus/input behavior,
+  - profile style/avatar interactions with enabled/disabled semantics while saving.
+- Repository updates in `ProfileRepository` now properly delete optional profile fields when cleared.
 
-- `game_provider.dart` now builds scoped reactive day steps for exiled:
+### 4) About/release-notes surface and test coverage
 
-  - Tea Spiller reveal
-  - Drama Queen vendetta
-  - Predator retaliation
+- Shared About content widget now uses expandable updates presentation.
+- Added widget test coverage for `CBAboutContent` behavior and update list constraints.
 
-- Choices are collected from `actionLog` and fed into `DayResolutionContext`.
-- Removed duplicate in-provider exiled death-trigger scan and now relies on strategy output.
-- Wallflower observation flow updated so:
+### 5) Hall-of-Fame entry-point access tests
 
-  - `PEEKED` stores private dealer-target intel to Wallflower
-  - `GAWKED` behavior remains state-driven and clears appropriately after resolution
+- Added app-level tests verifying Hall-of-Fame navigation entry points:
+  - Host Home quick action -> Hall of Fame destination
+  - Player Stats action -> Hall of Fame destination
 
-### 3) Regression test expansion
+## Commits Included
 
-- Added/updated tests for:
-
-  - day strategy aggregation and handler order
-  - explicit reactive target selection behavior (Tea Spiller / Drama Queen / Predator)
-  - dead-pool settlement clear + win/loss outcomes
-  - exiled player inclusion in death-trigger propagation
-  - Wallflower observation intel and gawked reset behavior
-
-### 4) Player app navigation guard
-
-- Added `apps/player/test/player_home_shell_navigation_test.dart` to verify
-
-  phase-driven destination syncing in `PlayerHomeShell` via active bridge state transitions.
-
-### 5) Agent context docs
-
-- Updated `AGENT_CONTEXT.md` with:
-
-  - day-resolution barrel import guidance
-  - reactive day choice step conventions
-  - handler-order testing contract
-
-## Commits Included (origin/main..HEAD)
-
-- `cb3ab74` chore(cb_theme): clear remaining analyzer infos
-- `4b8f0eb` feat: migrate host/player shell navigation and modularize day resolution engine
-- `d65f1c5` fix(player): stabilize shell navigation and active bridge tests
-- `987c235` refactor(cb_logic): modularize day resolution handlers
-- `a64971a` test(player): add home shell phase-to-destination navigation coverage
-- `fefe386` docs(agent): update context with day-resolution and shell architecture notes
+- `d7bd7d7` feat(awards): add role/tier filters and role-specific unlock profiles
+- `64ee509` feat(player): improve bootstrap/auth loading and add shared about release notes
+- `7880314` refactor(awards): simplify icon metadata seed handling
+- `2cef390` feat(profile): harden form validation and refresh host/player profile UX
+- `8553e0c` feat(theme): make about updates expandable and add widget coverage
+- `ffc379b` feat(awards): add icon-source guardrails and update rollout docs
 
 ## Validation
 
-- Focused cb_logic suite: **85 passed, 0 failed**
-- Full cb_logic suite: **305 passed, 0 failed**
-- Additional local build checks (from session):
+- Analyze
+  - `apps/player`: `flutter analyze .` -> **No issues found**
+  - `apps/host`: `flutter analyze .` -> **No issues found**
 
-  - `apps/player` web build completed successfully
-  - `apps/host` release APK build completed successfully
+- Focused tests
+  - `apps/player/test/onboarding_loading_states_test.dart` ✅
+  - `apps/player/test/player_home_shell_navigation_test.dart` ✅
+  - `apps/host/test/hall_of_fame_access_test.dart` ✅
+  - `apps/player/test/hall_of_fame_access_test.dart` ✅
+  - `packages/cb_models/test/role_award_catalog_test.dart` ✅
+  - `packages/cb_models/test/app_release_notes_test.dart` ✅
+  - `packages/cb_comms/test/profile_form_validation_test.dart` ✅
+  - `packages/cb_theme/test/widgets/cb_about_content_test.dart` ✅
 
 ## Why This Matters
 
-- Reduces provider-level brittleness by centralizing day-resolution behavior in dedicated strategy handlers.
-- Makes reactive exiled-role outcomes explicit, testable, and easier to extend for future roles.
-- Adds UI navigation guardrails to prevent regression in state-driven Player shell transitions.
+- Improves visibility and control over award progression while preserving deterministic computation.
+- Adds safety rails to prevent icon metadata drift as the catalog evolves.
+- Reduces startup/auth visual churn for players.
+- Strengthens profile data integrity and UX consistency across Host/Player.
+- Consolidates About/release-note rendering and testing in shared layers.
+
