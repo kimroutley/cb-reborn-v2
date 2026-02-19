@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -16,18 +18,30 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await PersistenceService.init();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // Initialize analytics provider
-  AnalyticsService.setProvider(
-    FirebaseAnalyticsProvider(FirebaseAnalytics.instance),
-  );
 
   runApp(const ProviderScope(
     child: HostApp(),
   ));
+
+  // Keep launch offline-first: do not block first frame on Firebase startup.
+  unawaited(_initializeFirebaseServices());
+}
+
+Future<void> _initializeFirebaseServices() async {
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+
+    AnalyticsService.setProvider(
+      FirebaseAnalyticsProvider(FirebaseAnalytics.instance),
+    );
+  } catch (e) {
+    // Startup must remain usable offline/local-mode even if Firebase init fails.
+    debugPrint('[HostApp] Firebase init deferred/failed: $e');
+  }
 }
 
 class HostApp extends ConsumerWidget {
