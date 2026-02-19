@@ -89,7 +89,8 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
     _completedUnits = 0;
   }
 
-  int get _criticalAssetCount => 1 + roleCatalog.length;
+  int get _criticalAssetCount =>
+      (1 + roleCatalog.length) + SoundService.coreAudioWarmupUnitCount;
 
   void _advanceProgress([int units = 1]) {
     if (!mounted) {
@@ -191,6 +192,10 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
       }
       _advanceProgress();
     }
+
+    await _setStatus('WARMING AUDIO CUES...');
+    await SoundService.warmupCoreAudioAssets();
+    _advanceProgress(SoundService.coreAudioWarmupUnitCount);
   }
 
   @override
