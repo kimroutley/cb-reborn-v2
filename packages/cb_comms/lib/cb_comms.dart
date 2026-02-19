@@ -1,5 +1,3 @@
-library cb_comms;
-
 export 'src/game_message.dart';
 export 'src/host_server.dart';
 export 'src/player_client.dart';

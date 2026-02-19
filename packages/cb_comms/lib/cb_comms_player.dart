@@ -1,7 +1,5 @@
-/// Player-safe exports — excludes `host_server.dart` which depends on `dart:io`
-/// and is not available on the web platform.
-library cb_comms_player;
-
+﻿// Player-safe exports: excludes `host_server.dart` which depends on `dart:io`
+// and is not available on the web platform.
 export 'src/firebase_bridge.dart';
 export 'src/game_message.dart';
 export 'src/player_client.dart';
