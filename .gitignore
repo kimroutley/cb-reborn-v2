@@ -67,3 +67,7 @@ analyze_host_output.txt
 # Logs
 full_build_log.txt
 build_log_*.txt
+
+# Local agent skill cache (extension-generated)
+.agents/skills/*
+.claude/skills/*

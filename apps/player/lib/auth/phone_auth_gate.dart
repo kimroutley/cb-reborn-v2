@@ -170,7 +170,8 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
     });
 
     try {
-      final repository = ProfileRepository(firestore: FirebaseFirestore.instance);
+      final repository =
+          ProfileRepository(firestore: FirebaseFirestore.instance);
       final isAvailable = await repository.isUsernameAvailable(
         username,
         excludingUid: user.uid,
@@ -281,7 +282,8 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                                       });
                                       return;
                                     }
-                                    _completeEmailLinkSignIn(currentLink, email);
+                                    _completeEmailLinkSignIn(
+                                        currentLink, email);
                                   },
                           ),
                         ],
@@ -290,10 +292,11 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                           Text(
                             'Check your inbox and open the sign-in link on this device.',
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                  color:
-                                      scheme.onSurface.withAlpha((255 * 0.75).round()),
-                                ),
+                            style:
+                                Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                      color: scheme.onSurface
+                                          .withAlpha((255 * 0.75).round()),
+                                    ),
                           ),
                         ],
                         if (_error != null) ...[
@@ -345,8 +348,10 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                            Text('Welcome ${ProfileRepository.maskEmail(user.email)}',
-                              style: Theme.of(context).textTheme.headlineMedium),
+                          Text(
+                              'Welcome ${ProfileRepository.maskEmail(user.email)}',
+                              style:
+                                  Theme.of(context).textTheme.headlineMedium),
                           const SizedBox(height: 8),
                           Text(
                             'Choose a unique username linked to this account.',
@@ -359,8 +364,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                           ),
                           const SizedBox(height: 12),
                           CBPrimaryButton(
-                            label:
-                                _isSavingUsername ? 'Saving...' : 'Save Username',
+                            label: _isSavingUsername
+                                ? 'Saving...'
+                                : 'Save Username',
                             onPressed: _isSavingUsername
                                 ? null
                                 : () => _saveUsername(user),

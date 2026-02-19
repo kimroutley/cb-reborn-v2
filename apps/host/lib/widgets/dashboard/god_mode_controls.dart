@@ -12,8 +12,7 @@ class GodModeControls extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    final alivePlayers =
-        gameState.players.where((p) => p.isAlive).toList();
+    final alivePlayers = gameState.players.where((p) => p.isAlive).toList();
 
     return CBPanel(
       borderColor: scheme.secondary.withValues(alpha: 0.7),
@@ -33,13 +32,15 @@ class GodModeControls extends ConsumerWidget {
                 ),
           ),
           const SizedBox(height: 16),
-          ...alivePlayers.map((player) => _buildPlayerControlTile(context, ref, player)),
+          ...alivePlayers
+              .map((player) => _buildPlayerControlTile(context, ref, player)),
         ],
       ),
     );
   }
 
-  Widget _buildPlayerControlTile(BuildContext context, WidgetRef ref, Player player) {
+  Widget _buildPlayerControlTile(
+      BuildContext context, WidgetRef ref, Player player) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return ExpansionTile(
@@ -117,16 +118,14 @@ class GodModeControls extends ConsumerWidget {
                   color: scheme.error,
                   letterSpacing: 1.6,
                   fontWeight: FontWeight.bold,
-                  shadows:
-                      CBColors.textGlow(scheme.error, intensity: 0.6),
+                  shadows: CBColors.textGlow(scheme.error, intensity: 0.6),
                 ),
           ),
           const SizedBox(height: 16),
           Text(
             'Force eliminate ${player.name}? This will trigger death effects.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface
-                      .withValues(alpha: 0.75),
+                  color: scheme.onSurface.withValues(alpha: 0.75),
                   height: 1.3,
                 ),
           ),
@@ -180,16 +179,14 @@ class GodModeControls extends ConsumerWidget {
                   color: scheme.primary,
                   letterSpacing: 1.6,
                   fontWeight: FontWeight.bold,
-                  shadows:
-                      CBColors.textGlow(scheme.primary, intensity: 0.6),
+                  shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
                 ),
           ),
           const SizedBox(height: 10),
           Text(
             'Grant temporary immunity to ${player.name}.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface
-                      .withValues(alpha: 0.7),
+                  color: scheme.onSurface.withValues(alpha: 0.7),
                 ),
           ),
           const SizedBox(height: 16),
@@ -256,8 +253,7 @@ class GodModeControls extends ConsumerWidget {
                 ? 'Remove shadow ban from ${player.name}?'
                 : 'Shadow ban ${player.name}? Their actions will be silently discarded without their knowledge.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface
-                      .withValues(alpha: 0.75),
+                  color: scheme.onSurface.withValues(alpha: 0.75),
                   height: 1.3,
                 ),
           ),
@@ -313,8 +309,7 @@ class GodModeControls extends ConsumerWidget {
           Text(
             'Permanently remove ${player.name} from the game?',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface
-                      .withValues(alpha: 0.75),
+                  color: scheme.onSurface.withValues(alpha: 0.75),
                   height: 1.3,
                 ),
           ),

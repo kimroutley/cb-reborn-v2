@@ -53,7 +53,8 @@ class GodModePanel extends ConsumerWidget {
             spacing: CBSpace.x3,
             runSpacing: CBSpace.x3,
             children: [
-              _buildCmdButton(context, "NEON FLICKER", Icons.lightbulb_outline, () {
+              _buildCmdButton(context, "NEON FLICKER", Icons.lightbulb_outline,
+                  () {
                 hostBridge.broadcast(GameMessage.effect(GodModeEffect.flicker));
               }),
               _buildCmdButton(context, "SYSTEM GLITCH", Icons.settings_ethernet,
@@ -113,7 +114,8 @@ class GodModePanel extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: CBSpace.x3),
       child: CBPanel(
-        borderColor: (player.isAlive ? roleColor : scheme.error).withValues(alpha: 0.4),
+        borderColor:
+            (player.isAlive ? roleColor : scheme.error).withValues(alpha: 0.4),
         child: InkWell(
           onTap: () => _showTacticalMenu(context, player),
           child: Column(
@@ -127,17 +129,25 @@ class GodModePanel extends ConsumerWidget {
                       children: [
                         Text(
                           player.name,
-                          style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                                color: player.isAlive ? roleColor : scheme.error,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall!
+                              .copyWith(
+                                color:
+                                    player.isAlive ? roleColor : scheme.error,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           player.role.name,
-                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                color: (player.isAlive ? roleColor : scheme.error)
-                                    .withValues(alpha: 0.7),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall!
+                              .copyWith(
+                                color:
+                                    (player.isAlive ? roleColor : scheme.error)
+                                        .withValues(alpha: 0.7),
                               ),
                         ),
                       ],
@@ -335,8 +345,7 @@ class GodModePanel extends ConsumerWidget {
                   color: scheme.primary,
                   letterSpacing: 1.6,
                   fontWeight: FontWeight.bold,
-                  shadows:
-                      CBColors.textGlow(scheme.primary, intensity: 0.6),
+                  shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
                 ),
           ),
           const SizedBox(height: 16),

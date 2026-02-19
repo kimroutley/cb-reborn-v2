@@ -27,6 +27,13 @@ class SoundService {
     GodModeSound.click: 'packages/cb_theme/assets/audio/click.mp3',
   };
 
+  static int get coreAudioWarmupUnitCount => _coreAudioAssets.length;
+
+  static List<String> get _coreAudioAssets => <String>[
+        _bgMusicAsset,
+        ..._soundAssetMap.values,
+      ];
+
   static void setEnabled(bool enabled) {
     _sfxEnabled = enabled;
     if (!enabled) {
@@ -124,6 +131,21 @@ class SoundService {
     }
   }
 
+  static Future<void> warmupCoreAudioAssets() async {
+    await _ensureAssetIndexLoaded();
+    for (final assetPath in _coreAudioAssets) {
+      if (!_availableAssets.contains(assetPath)) {
+        _warnMissingAssetOnce(assetPath);
+        continue;
+      }
+      try {
+        await rootBundle.load(assetPath);
+      } catch (_) {
+        // Best effort warmup.
+      }
+    }
+  }
+
   static void _warnMissingAssetOnce(String assetPath) {
     if (_missingAssetWarnings.add(assetPath)) {
       debugPrint('Missing audio asset: $assetPath');
@@ -135,7 +157,8 @@ class SoundService {
     await _musicPlayer.stop();
   }
 
-  static Future<void> playHeavyBass() => playSfx(GodModeSound.bassDrop, volume: 1.0);
+  static Future<void> playHeavyBass() =>
+      playSfx(GodModeSound.bassDrop, volume: 1.0);
   static Future<void> playClick() => playSfx(GodModeSound.click, volume: 0.7);
 
   /// Disposes the audio player when no longer needed.

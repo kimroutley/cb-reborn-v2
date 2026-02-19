@@ -143,7 +143,11 @@ class GameFeedList extends StatelessWidget {
     final eligiblePlayers = gameState.players.where((p) => p.isAlive).toList();
     final isMulti = step.actionType == ScriptActionType.selectTwoPlayers;
 
-    final currentPicks = gameState.actionLog[step.id]?.split(',').where((s) => s.isNotEmpty).toList() ?? [];
+    final currentPicks = gameState.actionLog[step.id]
+            ?.split(',')
+            .where((s) => s.isNotEmpty)
+            .toList() ??
+        [];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

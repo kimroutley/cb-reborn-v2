@@ -26,11 +26,8 @@ Player _player(String name, Role role, {Team? alliance}) => Player(
       alliance: alliance ?? role.alliance,
     );
 
-NightResolution _resolveNight(
-  List<Player> players,
-  Map<String, String> log,
-  {String? gawkedPlayerId}
-) =>
+NightResolution _resolveNight(List<Player> players, Map<String, String> log,
+        {String? gawkedPlayerId}) =>
     GameResolutionLogic.resolveNightActions(
       GameState(
         players: players,
@@ -43,7 +40,8 @@ NightResolution _resolveNight(
 void main() {
   group('NightResolutionLogic', () {
     test('Dealer kills target', () {
-      final dealer = _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
       final victim = _player('Victim', _role(RoleIds.partyAnimal));
       final players = [dealer, victim];
 
@@ -59,6 +57,37 @@ void main() {
       expect(result.report.any((s) => s.contains('butchered')), true);
     });
 
+    test('Drama Queen swaps stored targets when killed at night', () {
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final sober = _player('Sober', _role(RoleIds.sober));
+      final buddy = _player('Buddy', _role(RoleIds.partyAnimal));
+      final drama = _player('Drama', _role(RoleIds.dramaQueen)).copyWith(
+        dramaQueenTargetAId: sober.id,
+        dramaQueenTargetBId: buddy.id,
+      );
+      final players = [dealer, sober, buddy, drama];
+
+      final log = {
+        'dealer_act_${dealer.id}_1': drama.id,
+      };
+
+      final result = _resolveNight(players, log);
+
+      final updatedDrama = result.players.firstWhere((p) => p.id == drama.id);
+      final updatedSober = result.players.firstWhere((p) => p.id == sober.id);
+      final updatedBuddy = result.players.firstWhere((p) => p.id == buddy.id);
+
+      expect(updatedDrama.isAlive, false);
+      expect(updatedDrama.deathReason, 'murder');
+      expect(updatedSober.role.id, RoleIds.partyAnimal);
+      expect(updatedBuddy.role.id, RoleIds.sober);
+      expect(
+        result.report.any((line) => line.contains('Drama Queen chaos')),
+        true,
+      );
+    });
+
     test('Gawked wallflower is exposed in report', () {
       final dealer =
           _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
@@ -70,8 +99,7 @@ void main() {
         'dealer_act_${dealer.id}_1': victim.id,
       };
 
-      final result =
-          _resolveNight(players, log, gawkedPlayerId: wallflower.id);
+      final result = _resolveNight(players, log, gawkedPlayerId: wallflower.id);
 
       expect(
         result.report.any((m) => m.contains('caught gawking')),
@@ -80,8 +108,10 @@ void main() {
     });
 
     test('Medic protects target', () {
-      final dealer = _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
-      final medic = _player('Medic', _role(RoleIds.medic)).copyWith(medicChoice: 'PROTECT_DAILY');
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final medic = _player('Medic', _role(RoleIds.medic))
+          .copyWith(medicChoice: 'PROTECT_DAILY');
       final victim = _player('Victim', _role(RoleIds.partyAnimal));
       final players = [dealer, medic, victim];
 
@@ -98,7 +128,8 @@ void main() {
     });
 
     test('Sober blocks action', () {
-      final dealer = _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
       final sober = _player('Sober', _role(RoleIds.sober));
       final victim = _player('Victim', _role(RoleIds.partyAnimal));
       final players = [dealer, sober, victim];
@@ -112,11 +143,13 @@ void main() {
 
       final updatedVictim = result.players.firstWhere((p) => p.id == victim.id);
       expect(updatedVictim.isAlive, true); // Dealer blocked
-      expect(result.report.any((s) => s.contains('Sober blocked Dealer')), true);
+      expect(
+          result.report.any((s) => s.contains('Sober blocked Dealer')), true);
     });
 
     test('Roofi blocks single dealer', () {
-      final dealer = _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
       final roofi = _player('Roofi', _role(RoleIds.roofi));
       final victim = _player('Victim', _role(RoleIds.partyAnimal));
       final players = [dealer, roofi, victim];
@@ -131,15 +164,20 @@ void main() {
       final updatedVictim = result.players.firstWhere((p) => p.id == victim.id);
       expect(updatedVictim.isAlive, true);
       expect(result.report.any((s) => s.contains('silenced Dealer')), true);
-      expect(result.report.any((s) => s.contains('blocked Dealer\'s kill on Victim')), true);
+      expect(
+          result.report
+              .any((s) => s.contains('blocked Dealer\'s kill on Victim')),
+          true);
 
       final updatedDealer = result.players.firstWhere((p) => p.id == dealer.id);
       expect(updatedDealer.silencedDay, 1);
     });
 
     test('Roofi does NOT block if multiple dealers', () {
-      final dealer1 = _player('Dealer1', _role(RoleIds.dealer, alliance: Team.clubStaff));
-      final dealer2 = _player('Dealer2', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final dealer1 =
+          _player('Dealer1', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final dealer2 =
+          _player('Dealer2', _role(RoleIds.dealer, alliance: Team.clubStaff));
       final roofi = _player('Roofi', _role(RoleIds.roofi));
       final victim = _player('Victim', _role(RoleIds.partyAnimal));
       final players = [dealer1, dealer2, roofi, victim];
@@ -152,15 +190,18 @@ void main() {
       final result = _resolveNight(players, log);
 
       final updatedVictim = result.players.firstWhere((p) => p.id == victim.id);
-      expect(updatedVictim.isAlive, false); // Not blocked because another dealer exists
+      expect(updatedVictim.isAlive,
+          false); // Not blocked because another dealer exists
 
-      final updatedDealer1 = result.players.firstWhere((p) => p.id == dealer1.id);
+      final updatedDealer1 =
+          result.players.firstWhere((p) => p.id == dealer1.id);
       expect(updatedDealer1.silencedDay, 1);
     });
 
     test('Bouncer checks ID', () {
       final bouncer = _player('Bouncer', _role(RoleIds.bouncer));
-      final dealer = _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
       final players = [bouncer, dealer];
 
       final log = {
@@ -170,7 +211,8 @@ void main() {
       final result = _resolveNight(players, log);
 
       expect(result.privateMessages[bouncer.id]!.first, contains('STAFF'));
-      expect(result.report.any((s) => s.contains('Bouncer checked Dealer')), true);
+      expect(
+          result.report.any((s) => s.contains('Bouncer checked Dealer')), true);
     });
 
     test('Bouncer checking Minor marks identity as checked', () {
@@ -222,8 +264,11 @@ void main() {
 
       final updatedTarget = result.players.firstWhere((p) => p.id == target.id);
       expect(updatedTarget.sightedByClubManager, true);
-      expect(result.privateMessages[manager.id]!.first, contains(target.role.name));
-      expect(result.report.any((s) => s.contains('Manager file-checked Target')), true);
+      expect(result.privateMessages[manager.id]!.first,
+          contains(target.role.name));
+      expect(
+          result.report.any((s) => s.contains('Manager file-checked Target')),
+          true);
     });
 
     test('Lightweight applies taboo name to all alive players', () {
@@ -245,7 +290,8 @@ void main() {
       final updatedTarget = result.players.firstWhere((p) => p.id == target.id);
       final updatedBystander =
           result.players.firstWhere((p) => p.id == bystander.id);
-      final updatedDead = result.players.firstWhere((p) => p.id == deadPlayer.id);
+      final updatedDead =
+          result.players.firstWhere((p) => p.id == deadPlayer.id);
 
       expect(updatedLightweight.tabooNames, contains(target.name));
       expect(updatedTarget.tabooNames, contains(target.name));
@@ -254,75 +300,85 @@ void main() {
 
       expect(result.privateMessages[lightweight.id]!.first,
           contains('banned ${target.name}\'s name'));
-      expect(result.report.any((s) => s.contains('LW banned ${target.name}\'s name')),
+      expect(
+          result.report
+              .any((s) => s.contains('LW banned ${target.name}\'s name')),
           true);
       expect(result.teasers, contains('A name is now FORBIDDEN.'));
     });
 
     test('Second Wind survives once', () {
-       final dealer = _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
-       final sw = _player('SW', _role(RoleIds.secondWind));
-       final players = [dealer, sw];
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final sw = _player('SW', _role(RoleIds.secondWind));
+      final players = [dealer, sw];
 
-       final log = {
-         'dealer_act_${dealer.id}_1': sw.id,
-       };
+      final log = {
+        'dealer_act_${dealer.id}_1': sw.id,
+      };
 
-       final result = _resolveNight(players, log);
+      final result = _resolveNight(players, log);
 
-       final updatedSW = result.players.firstWhere((p) => p.id == sw.id);
-       expect(updatedSW.isAlive, true);
-       expect(updatedSW.secondWindPendingConversion, true);
-       expect(result.report.any((s) => s.contains('Second Wind triggered')), true);
+      final updatedSW = result.players.firstWhere((p) => p.id == sw.id);
+      expect(updatedSW.isAlive, true);
+      expect(updatedSW.secondWindPendingConversion, true);
+      expect(
+          result.report.any((s) => s.contains('Second Wind triggered')), true);
     });
 
     test('Second Wind does not trigger on non-dealer kill', () {
-       final messy = _player('Messy', _role(RoleIds.messyBitch, alliance: Team.neutral));
-       final sw = _player('SW', _role(RoleIds.secondWind));
-       final players = [messy, sw];
+      final messy =
+          _player('Messy', _role(RoleIds.messyBitch, alliance: Team.neutral));
+      final sw = _player('SW', _role(RoleIds.secondWind));
+      final players = [messy, sw];
 
-       final log = {
-         '${RoleIds.messyBitch}_kill_${messy.id}_1': sw.id,
-       };
+      final log = {
+        '${RoleIds.messyBitch}_kill_${messy.id}_1': sw.id,
+      };
 
-       final result = _resolveNight(players, log);
+      final result = _resolveNight(players, log);
 
-       final updatedSW = result.players.firstWhere((p) => p.id == sw.id);
-       expect(updatedSW.isAlive, false);
-       expect(updatedSW.secondWindPendingConversion, false);
-       expect(result.report.any((s) => s.contains('Second Wind triggered')), false);
+      final updatedSW = result.players.firstWhere((p) => p.id == sw.id);
+      expect(updatedSW.isAlive, false);
+      expect(updatedSW.secondWindPendingConversion, false);
+      expect(
+          result.report.any((s) => s.contains('Second Wind triggered')), false);
     });
 
     test('Seasoned Drinker loses life', () {
-       final dealer = _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
-       final sd = _player('SD', _role(RoleIds.seasonedDrinker)).copyWith(lives: 2);
-       final players = [dealer, sd];
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final sd =
+          _player('SD', _role(RoleIds.seasonedDrinker)).copyWith(lives: 2);
+      final players = [dealer, sd];
 
-       final log = {
-         'dealer_act_${dealer.id}_1': sd.id,
-       };
+      final log = {
+        'dealer_act_${dealer.id}_1': sd.id,
+      };
 
-       final result = _resolveNight(players, log);
+      final result = _resolveNight(players, log);
 
-       final updatedSD = result.players.firstWhere((p) => p.id == sd.id);
-       expect(updatedSD.isAlive, true);
-       expect(updatedSD.lives, 1);
-       expect(result.report.any((s) => s.contains('lost a life')), true);
+      final updatedSD = result.players.firstWhere((p) => p.id == sd.id);
+      expect(updatedSD.isAlive, true);
+      expect(updatedSD.lives, 1);
+      expect(result.report.any((s) => s.contains('lost a life')), true);
     });
 
     test('Seasoned Drinker dies if 1 life', () {
-       final dealer = _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
-       final sd = _player('SD', _role(RoleIds.seasonedDrinker)).copyWith(lives: 1);
-       final players = [dealer, sd];
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final sd =
+          _player('SD', _role(RoleIds.seasonedDrinker)).copyWith(lives: 1);
+      final players = [dealer, sd];
 
-       final log = {
-         'dealer_act_${dealer.id}_1': sd.id,
-       };
+      final log = {
+        'dealer_act_${dealer.id}_1': sd.id,
+      };
 
-       final result = _resolveNight(players, log);
+      final result = _resolveNight(players, log);
 
-       final updatedSD = result.players.firstWhere((p) => p.id == sd.id);
-       expect(updatedSD.isAlive, false);
+      final updatedSD = result.players.firstWhere((p) => p.id == sd.id);
+      expect(updatedSD.isAlive, false);
     });
 
     test('Seasoned Drinker dies on non-dealer kill even with extra lives', () {
@@ -364,7 +420,9 @@ void main() {
           result.players.firstWhere((p) => p.id == allyCat.id);
       expect(updatedAllyCat.isAlive, true);
       expect(updatedAllyCat.lives, 8);
-      expect(result.report.any((s) => s.contains('Ally Cat AllyCat lost a life')), true);
+      expect(
+          result.report.any((s) => s.contains('Ally Cat AllyCat lost a life')),
+          true);
     });
 
     test('Ally Cat dies when murder occurs at 1 life', () {
@@ -400,14 +458,15 @@ void main() {
 
       final updatedMinor = result.players.firstWhere((p) => p.id == minor.id);
       expect(updatedMinor.isAlive, true);
-      expect(result.report.any((s) => s.contains('identity shield held')), true);
+      expect(
+          result.report.any((s) => s.contains('identity shield held')), true);
     });
 
     test('Minor dies to Dealer murder after being ID checked', () {
       final dealer =
           _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
-      final minor =
-          _player('Minor', _role(RoleIds.minor)).copyWith(minorHasBeenIDd: true);
+      final minor = _player('Minor', _role(RoleIds.minor))
+          .copyWith(minorHasBeenIDd: true);
       final players = [dealer, minor];
 
       final log = {
@@ -421,7 +480,8 @@ void main() {
       expect(updatedMinor.deathReason, 'murder');
     });
 
-    test('Clinger is freed as Attack Dog when partner is murdered by Dealer', () {
+    test('Clinger is freed as Attack Dog when partner is murdered by Dealer',
+        () {
       final dealer =
           _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
       final partner = _player('Partner', _role(RoleIds.partyAnimal));
@@ -481,13 +541,15 @@ void main() {
       );
     });
 
-    test('Creep inherits target role when target dies during night resolution', () {
+    test('Creep inherits target role when target dies during night resolution',
+        () {
       final dealer =
           _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
       final targetRole = _role(RoleIds.bouncer, alliance: Team.partyAnimals);
       final target = _player('Target', targetRole);
-      final creep = _player('Creep', _role(RoleIds.creep, alliance: Team.neutral))
-          .copyWith(creepTargetId: target.id);
+      final creep =
+          _player('Creep', _role(RoleIds.creep, alliance: Team.neutral))
+              .copyWith(creepTargetId: target.id);
       final players = [dealer, target, creep];
 
       final log = {
@@ -496,8 +558,7 @@ void main() {
 
       final result = _resolveNight(players, log);
 
-      final updatedTarget =
-          result.players.firstWhere((p) => p.id == target.id);
+      final updatedTarget = result.players.firstWhere((p) => p.id == target.id);
       final updatedCreep = result.players.firstWhere((p) => p.id == creep.id);
 
       expect(updatedTarget.isAlive, false);
@@ -507,8 +568,8 @@ void main() {
       expect(updatedCreep.alliance, targetRole.alliance);
       expect(updatedCreep.creepTargetId, isNull);
       expect(
-        result.report
-            .any((s) => s.contains('The Creep Creep inherited the role of BOUNCER.')),
+        result.report.any((s) =>
+            s.contains('The Creep Creep inherited the role of BOUNCER.')),
         true,
       );
     });

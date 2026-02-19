@@ -61,9 +61,13 @@ class _HostHomeShellState extends ConsumerState<HostHomeShell> {
       // If game restored, navigate to the appropriate screen via provider
       final gameState = ref.read(gameProvider);
       if (gameState.phase == GamePhase.lobby) {
-        ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.lobby);
+        ref
+            .read(hostNavigationProvider.notifier)
+            .setDestination(HostDestination.lobby);
       } else if (gameState.phase != GamePhase.endGame) {
-        ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.game);
+        ref
+            .read(hostNavigationProvider.notifier)
+            .setDestination(HostDestination.game);
       }
 
       showThemedSnackBar(

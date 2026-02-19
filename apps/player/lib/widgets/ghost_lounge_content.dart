@@ -8,24 +8,29 @@ import 'custom_drawer.dart';
 
 class GhostLoungeContent extends StatelessWidget {
   final PlayerGameState gameState;
-  final PlayerSnapshot player;
   final String playerId;
   final PlayerBridgeActions bridge;
 
   const GhostLoungeContent({
     super.key,
     required this.gameState,
-    required this.player,
     required this.playerId,
     required this.bridge,
   });
 
   @override
   Widget build(BuildContext context) {
-    final aliveTargets = gameState.players.where((p) => p.isAlive).toList();
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
+    final playersById = {
+      for (final p in gameState.players) p.id: p,
+    };
+    final aliveTargets = gameState.players
+        .where((p) => p.isAlive)
+        .map(
+          (p) => GhostLoungeTarget(id: p.id, name: p.name),
+        )
+        .toList();
 
+<<<<<<< ui-polish-host-player-9962985775398423612
     return CBPrismScaffold(
       title: "GHOST LOUNGE",
       drawer: const CustomDrawer(),
@@ -82,6 +87,39 @@ class GhostLoungeContent extends StatelessWidget {
           ],
         ),
       ),
+=======
+    final betCounts = <String, int>{};
+    for (final entry in gameState.deadPoolBets.entries) {
+      betCounts[entry.value] = (betCounts[entry.value] ?? 0) + 1;
+    }
+
+    final activeBets = gameState.deadPoolBets.entries
+        .map(
+          (entry) => GhostLoungeBet(
+            bettorName: playersById[entry.key]?.name ?? entry.key,
+            targetName: playersById[entry.value]?.name ?? entry.value,
+            oddsCount: betCounts[entry.value] ?? 0,
+          ),
+        )
+        .toList();
+
+    final myBetTargetId = gameState.deadPoolBets[playerId];
+    final myBetTargetName = myBetTargetId == null
+        ? null
+        : (playersById[myBetTargetId]?.name ?? myBetTargetId);
+
+    return GhostLoungeView(
+      aliveTargets: aliveTargets,
+      activeBets: activeBets,
+      currentBetTargetName: myBetTargetName,
+      onPlaceBet: (targetId) {
+        bridge.placeDeadPoolBet(
+          playerId: playerId,
+          targetPlayerId: targetId,
+        );
+        HapticFeedback.selectionClick();
+      },
+>>>>>>> main
     );
   }
 }

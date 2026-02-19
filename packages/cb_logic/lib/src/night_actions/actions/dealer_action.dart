@@ -28,6 +28,7 @@ class DealerAction implements NightActionStrategy {
       if (targetId != null) {
         final target = context.getPlayer(targetId);
         context.killedPlayerIds.add(targetId);
+        context.killSources[targetId] = 'murder';
         context.dealerAttacks[dealer.id] = targetId;
         context.addPrivateMessage(dealer.id, 'Target acquired.');
 

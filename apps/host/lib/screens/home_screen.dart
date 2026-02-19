@@ -47,109 +47,92 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     offset: Offset(0, 20 * (1 - value)),
                     child: child,
                   ),
-                );
-              },
-              child: Column(
-                children: [
-                  Text(
-                    'HOST CONTROL',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.labelMedium!.copyWith(
-                      color: scheme.secondary,
-                      shadows: CBColors.textGlow(scheme.secondary),
-                      letterSpacing: 8.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: CBSpace.x4),
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [scheme.primary, scheme.secondary],
-                    ).createShader(bounds),
-                    child: Text(
-                      'CLUB\nBLACKOUT',
-                      textAlign: TextAlign.center,
-                      style: CBTypography.heroNumber.copyWith(
-                        color: scheme.onSurface,
-                        height: 0.85,
-                        fontWeight: FontWeight.w900,
-                        shadows:
-                            CBColors.textGlow(scheme.primary, intensity: 1.5),
+                ),
+
+                const SizedBox(height: CBSpace.x12),
+
+                // ── QUICK STATS ROW ──
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildQuickStatTile(
+                        context,
+                        'TOTAL GAMES',
+                        '${stats.totalGames}',
+                        Icons.videogame_asset_outlined,
+                        scheme.primary,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildQuickStatTile(
+                        context,
+                        'AVG PLAYERS',
+                        stats.averagePlayerCount.toStringAsFixed(1),
+                        Icons.people_outline_rounded,
+                        scheme.secondary,
+                      ),
+                    ),
+                  ],
+                ),
 
-            const SizedBox(height: CBSpace.x12),
+                const SizedBox(height: CBSpace.x6),
 
-            // ── QUICK STATS ROW ──
-            Row(
-              children: [
-                Expanded(
-                  child: _buildQuickStatTile(
-                    context,
-                    'TOTAL GAMES',
-                    '${stats.totalGames}',
-                    Icons.videogame_asset_outlined,
-                    scheme.primary,
+                // ── MAIN ACTIONS PANEL ──
+                CBPanel(
+                  borderColor: scheme.primary.withValues(alpha: 0.5),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      CBPrimaryButton(
+                        label: "START NEW GAME",
+                        icon: Icons.add_circle_outline,
+                        onPressed: () {
+                          HapticService.heavy();
+                          ref
+                              .read(hostNavigationProvider.notifier)
+                              .setDestination(HostDestination.lobby);
+                        },
+                      ),
+                      const SizedBox(height: CBSpace.x4),
+                      CBGhostButton(
+                        label: 'RESTORE SESSION',
+                        onPressed: () {
+                          HapticService.light();
+                          ref
+                              .read(hostNavigationProvider.notifier)
+                              .setDestination(HostDestination.saveLoad);
+                        },
+                      ),
+                      const SizedBox(height: CBSpace.x3),
+                      CBGhostButton(
+                        label: 'VIEW HALL OF FAME',
+                        onPressed: () {
+                          HapticService.light();
+                          ref
+                              .read(hostNavigationProvider.notifier)
+                              .setDestination(HostDestination.hallOfFame);
+                        },
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildQuickStatTile(
-                    context,
-                    'AVG PLAYERS',
-                    stats.averagePlayerCount.toStringAsFixed(1),
-                    Icons.people_outline_rounded,
-                    scheme.secondary,
+
+                const SizedBox(height: CBSpace.x10),
+
+                // ── SYSTEM FOOTER ──
+                Text(
+                  "V4.0.8 NEON | SECURE CONNECTION ACTIVE",
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelSmall!.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.6),
+                    letterSpacing: 1.5,
+                    fontSize: 9,
                   ),
                 ),
               ],
             ),
-
-            const SizedBox(height: CBSpace.x6),
-
-            // ── MAIN ACTIONS PANEL ──
-            CBPanel(
-              borderColor: scheme.primary.withValues(alpha: 0.5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CBPrimaryButton(
-                    label: "START NEW GAME",
-                    icon: Icons.add_circle_outline,
-                    onPressed: () {
-                      HapticService.heavy();
-                      ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.lobby);
-                    },
-                  ),
-                  const SizedBox(height: CBSpace.x4),
-                  CBGhostButton(
-                    label: 'RESTORE SESSION',
-                    onPressed: () {
-                      HapticService.light();
-                      ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.saveLoad);
-                    },
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: CBSpace.x10),
-
-            // ── SYSTEM FOOTER ──
-            Text(
-              "V4.0.8 NEON | SECURE CONNECTION ACTIVE",
-              textAlign: TextAlign.center,
-              style: theme.textTheme.labelSmall!.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.6),
-                letterSpacing: 1.5,
-                fontSize: 9,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     ),
@@ -166,13 +149,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
+    return CBGlassTile(
+      borderColor: color.withValues(alpha: 0.2),
+      borderRadius: BorderRadius.circular(CBRadius.md),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(CBRadius.md),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

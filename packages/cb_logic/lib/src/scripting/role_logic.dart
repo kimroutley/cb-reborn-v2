@@ -30,7 +30,8 @@ class DealerStrategy extends RoleStrategy {
     return ScriptStep(
       id: 'dealer_act_${player.id}_$dayCount',
       title: 'THE DEALER',
-      readAloudText: 'Dealers and associates, wake up and choose a player to eliminate.',
+      readAloudText:
+          'Dealers and associates, wake up and choose a player to eliminate.',
       instructionText: 'Select the player to eliminate.',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,

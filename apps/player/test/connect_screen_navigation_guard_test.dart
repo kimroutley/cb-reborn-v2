@@ -63,8 +63,8 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(ConnectScreen)),
       );
-      final cloudBridge =
-          container.read(cloudPlayerBridgeProvider.notifier) as _TestCloudPlayerBridge;
+      final cloudBridge = container.read(cloudPlayerBridgeProvider.notifier)
+          as _TestCloudPlayerBridge;
       final localBridge =
           container.read(playerBridgeProvider.notifier) as _TestPlayerBridge;
 

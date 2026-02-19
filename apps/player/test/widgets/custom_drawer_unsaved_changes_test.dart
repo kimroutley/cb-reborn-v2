@@ -1,0 +1,81 @@
+import 'package:cb_player/player_destinations.dart';
+import 'package:cb_player/player_navigation.dart';
+import 'package:cb_player/profile_edit_guard.dart';
+import 'package:cb_player/widgets/custom_drawer.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  testWidgets('drawer asks to discard unsaved profile changes', (tester) async {
+    final originalOnError = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      final message = details.exceptionAsString();
+      if (message.contains('A RenderFlex overflowed by')) {
+        return;
+      }
+      originalOnError?.call(details);
+    };
+    addTearDown(() => FlutterError.onError = originalOnError);
+
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    container
+        .read(playerNavigationProvider.notifier)
+        .setDestination(PlayerDestination.profile);
+    container.read(playerProfileDirtyProvider.notifier).setDirty(true);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
+          home: const MediaQuery(
+            data: MediaQueryData(
+              size: Size(1200, 2400),
+              textScaler: TextScaler.noScaling,
+            ),
+            child: Scaffold(
+              drawer: CustomDrawer(),
+              body: SizedBox.expand(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final scaffoldState = tester.state<ScaffoldState>(find.byType(Scaffold));
+    scaffoldState.openDrawer();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('HOME'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Discard Changes?'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    scaffoldState.openDrawer();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(container.read(playerNavigationProvider), PlayerDestination.profile);
+    expect(container.read(playerProfileDirtyProvider), isTrue);
+
+    await tester.tap(find.text('HOME'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.text('Discard'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(container.read(playerNavigationProvider), PlayerDestination.home);
+    expect(container.read(playerProfileDirtyProvider), isFalse);
+  });
+}

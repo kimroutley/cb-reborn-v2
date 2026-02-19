@@ -191,7 +191,8 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
     });
 
     try {
-      final repository = ProfileRepository(firestore: FirebaseFirestore.instance);
+      final repository =
+          ProfileRepository(firestore: FirebaseFirestore.instance);
       final isAvailable = await repository.isUsernameAvailable(
         username,
         excludingUid: user.uid,
@@ -335,8 +336,8 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                                   'SIGN-IN LINK SENT. CHECK YOUR EMAIL AND OPEN IT HERE.',
                                   textAlign: TextAlign.center,
                                   style: textTheme.bodySmall!.copyWith(
-                                    color:
-                                        scheme.onSurface.withValues(alpha: 0.72),
+                                    color: scheme.onSurface
+                                        .withValues(alpha: 0.72),
                                   ),
                                 ),
                               ],
@@ -358,7 +359,8 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                         key: const ValueKey('host_login_back'),
                         delay: const Duration(milliseconds: 400),
                         child: TextButton(
-                          onPressed: () => setState(() => _selectedStyle = null),
+                          onPressed: () =>
+                              setState(() => _selectedStyle = null),
                           child: Text(
                             "CHANGE HOSTING PERSONALITY",
                             style: textTheme.labelSmall!.copyWith(

@@ -1,0 +1,32 @@
+[
+  {
+    "version": "1.0.3",
+    "buildNumber": "13",
+    "releaseDate": "2026-02-18",
+    "highlights": [
+      "Player flow now transitions from code entry into lobby with clearer status hints.",
+      "Host app launches offline-first and only prompts authentication when cloud features are needed.",
+      "Lobby cloud readiness badge now supports one-tap sign-in."
+    ]
+  },
+  {
+    "version": "1.0.2",
+    "buildNumber": "12",
+    "releaseDate": "2026-02-16",
+    "highlights": [
+      "Host startup resilience improved with safer auth bootstrap fallback behavior.",
+      "Cloud sync mode now gracefully falls back to local mode if sign-in fails.",
+      "Player and host navigation stability refinements completed."
+    ]
+  },
+  {
+    "version": "1.0.1",
+    "buildNumber": "11",
+    "releaseDate": "2026-02-12",
+    "highlights": [
+      "Lobby profile editing and guest presence experience were polished.",
+      "Start confirmation and animated transition to game were added for players.",
+      "General reliability fixes and regression coverage updates were applied."
+    ]
+  }
+]

@@ -15,6 +15,26 @@ import '../widgets/custom_drawer.dart';
 
 enum PlayerSyncMode { local, cloud }
 
+const List<Duration> _resumeRetrySchedule = <Duration>[
+  Duration(seconds: 2),
+  Duration(seconds: 4),
+  Duration(seconds: 8),
+  Duration(seconds: 12),
+  Duration(seconds: 20),
+  Duration(seconds: 30),
+];
+
+@visibleForTesting
+Duration resumeRetryDelayForAttempt(int attempt) {
+  if (attempt <= 0) {
+    return _resumeRetrySchedule.first;
+  }
+  if (attempt >= _resumeRetrySchedule.length) {
+    return _resumeRetrySchedule.last;
+  }
+  return _resumeRetrySchedule[attempt];
+}
+
 @visibleForTesting
 bool shouldAcceptJoinUrlEvent({
   required String incomingUrl,
@@ -48,8 +68,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   static const Duration _connectAttemptTimeout = Duration(seconds: 12);
   static const Duration _profileLookupTimeout = Duration(seconds: 5);
+  static const int _maxResumeRetryAttempts = 8;
 
   StreamSubscription<Uri>? _linkSub;
+  Timer? _resumeRetryTimer;
+  bool _resumeAutoReconnectEnabled = false;
+  int _resumeRetryAttempts = 0;
   static const Duration _joinUrlDebounceWindow = Duration(seconds: 2);
   String? _lastHandledJoinUrl;
   DateTime? _lastHandledJoinAt;
@@ -87,23 +111,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ref.read(pendingJoinUrlProvider.notifier).setValue(url);
       }
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      final pending = ref.read(pendingJoinUrlProvider);
+      if (pending != null) {
+        _handlePendingJoinUrl(pending);
+      }
+    });
   }
 
   @override
   void dispose() {
     _linkSub?.cancel();
+    _resumeRetryTimer?.cancel();
     _joinCodeController.dispose();
     _hostIpController.dispose();
     super.dispose();
   }
 
-  void _applyPendingJoinUrl(String url) {
+  bool _applyPendingJoinUrl(String url) {
     final uri = Uri.tryParse(url);
-    if (uri == null) return;
+    if (uri == null) return false;
 
     final code = uri.queryParameters['code'];
     final mode = uri.queryParameters['mode'];
     final host = uri.queryParameters['host'];
+    final autoConnect = uri.queryParameters['autoconnect'] == '1';
 
     if (code != null) {
       _joinCodeController.text = _normalizeJoinCode(code);
@@ -113,18 +149,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       setState(() {
         _mode = PlayerSyncMode.local;
         if (host != null) {
-          _hostIpController.text = Uri.decodeComponent(host);
+          _hostIpController.text = host;
         }
       });
     } else {
       setState(() => _mode = PlayerSyncMode.cloud);
     }
+
+    return autoConnect;
   }
 
   String _normalizeJoinCode(String value) {
     final compact = value.toUpperCase().replaceAll('-', '').trim();
     if (compact.length != 10) return value.toUpperCase();
     return '${compact.substring(0, 4)}-${compact.substring(4)}';
+  }
+
+  void _handlePendingJoinUrl(String next) {
+    final playerState = ref.read(playerBridgeProvider);
+    final cloudState = ref.read(cloudPlayerBridgeProvider);
+    final alreadyConnectedOutsideLobby =
+        (playerState.isConnected && playerState.phase != 'lobby') ||
+            (cloudState.isConnected && cloudState.phase != 'lobby');
+
+    if (alreadyConnectedOutsideLobby) {
+      _cancelResumeAutoReconnect(resetAttempts: true);
+      ref.read(pendingJoinUrlProvider.notifier).setValue(null);
+      return;
+    }
+
+    final shouldAutoConnect = _applyPendingJoinUrl(next);
+    ref.read(pendingJoinUrlProvider.notifier).setValue(null);
+    if (shouldAutoConnect && !_isConnecting) {
+      _enableResumeAutoReconnect();
+      Future<void>.microtask(() => _connect(fromResumeAutoReconnect: true));
+    }
+  }
+
+  void _enableResumeAutoReconnect() {
+    _resumeAutoReconnectEnabled = true;
+    _resumeRetryAttempts = 0;
+    _resumeRetryTimer?.cancel();
+    _resumeRetryTimer = null;
+  }
+
+  void _cancelResumeAutoReconnect({required bool resetAttempts}) {
+    _resumeAutoReconnectEnabled = false;
+    _resumeRetryTimer?.cancel();
+    _resumeRetryTimer = null;
+    if (resetAttempts) {
+      _resumeRetryAttempts = 0;
+    }
+  }
+
+  void _scheduleResumeRetry() {
+    if (!_resumeAutoReconnectEnabled || !mounted) {
+      return;
+    }
+    if (_resumeRetryAttempts >= _maxResumeRetryAttempts) {
+      _cancelResumeAutoReconnect(resetAttempts: false);
+      return;
+    }
+
+    final delay = resumeRetryDelayForAttempt(_resumeRetryAttempts);
+    _resumeRetryAttempts += 1;
+    _resumeRetryTimer?.cancel();
+    _resumeRetryTimer = Timer(delay, () {
+      if (!mounted || !_resumeAutoReconnectEnabled || _isConnecting) {
+        return;
+      }
+      unawaited(_connect(fromResumeAutoReconnect: true));
+    });
   }
 
   Future<String> _resolveJoinIdentity() async {
@@ -162,7 +257,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return 'Player';
   }
 
-  Future<void> _connect() async {
+  Future<void> _performConnection() async {
+    final playerName = await _resolveJoinIdentity();
+    final code = _joinCodeController.text;
+
+    if (_mode == PlayerSyncMode.local) {
+      final host = _hostIpController.text.trim();
+      if (host.isEmpty) {
+        throw 'HOST IP/ADDRESS CANNOT BE EMPTY';
+      }
+      final normalizedHost = host.toLowerCase();
+      if (!normalizedHost.startsWith('ws://') &&
+          !normalizedHost.startsWith('wss://')) {
+        throw 'LOCAL HOST MUST START WITH WS:// OR WSS:// (E.G. WS://192.168.1.100)';
+      }
+      await ref
+          .read(cloudPlayerBridgeProvider.notifier)
+          .disconnect()
+          .timeout(_connectAttemptTimeout);
+      await ref
+          .read(playerBridgeProvider.notifier)
+          .connect(host)
+          .timeout(_connectAttemptTimeout);
+      await ref
+          .read(playerBridgeProvider.notifier)
+          .joinGame(code, playerName)
+          .timeout(_connectAttemptTimeout);
+    } else {
+      await ref
+          .read(playerBridgeProvider.notifier)
+          .disconnect()
+          .timeout(_connectAttemptTimeout);
+      await ref
+          .read(cloudPlayerBridgeProvider.notifier)
+          .joinGame(code, playerName)
+          .timeout(_connectAttemptTimeout);
+    }
+  }
+
+  void _connectFromButton() {
+    _enableResumeAutoReconnect();
+    unawaited(_connect(fromResumeAutoReconnect: false));
+  }
+
+  Future<void> _connect({required bool fromResumeAutoReconnect}) async {
+    var success = false;
+    var retryableFailure = true;
+
     setState(() {
       _connectionError = null;
       _isConnecting = true;
@@ -174,56 +315,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final code = _normalizeJoinCode(_joinCodeController.text);
     _joinCodeController.text = code;
     if (code.length != 11) {
+      retryableFailure = false;
       setState(() {
         _connectionError = 'INVALID CODE FORMAT (XXXX-XXXXXX)';
-        _isConnecting = false;
       });
+      if (mounted) {
+        setState(() {
+          _isConnecting = false;
+        });
+      }
       return;
     }
 
     // Attempt connection
     try {
-      final playerName = await _resolveJoinIdentity();
-
-      if (_mode == PlayerSyncMode.local) {
-        final host = _hostIpController.text.trim();
-        if (host.isEmpty) {
-          setState(() {
-            _connectionError = 'HOST IP/ADDRESS CANNOT BE EMPTY';
-          });
-          return;
-        }
-        final normalizedHost = host.toLowerCase();
-        if (!normalizedHost.startsWith('ws://') &&
-            !normalizedHost.startsWith('wss://')) {
-          setState(() {
-            _connectionError =
-                'LOCAL HOST MUST START WITH WS:// OR WSS:// (E.G. WS://192.168.1.100)';
-          });
-          return;
-        }
-        await ref
-            .read(cloudPlayerBridgeProvider.notifier)
-            .disconnect()
-            .timeout(_connectAttemptTimeout);
-        await ref
-            .read(playerBridgeProvider.notifier)
-            .connect(host)
-            .timeout(_connectAttemptTimeout);
-        await ref
-            .read(playerBridgeProvider.notifier)
-            .joinGame(code, playerName)
-            .timeout(_connectAttemptTimeout);
-      } else {
-        await ref
-            .read(playerBridgeProvider.notifier)
-            .disconnect()
-            .timeout(_connectAttemptTimeout);
-        await ref
-            .read(cloudPlayerBridgeProvider.notifier)
-            .joinGame(code, playerName)
-            .timeout(_connectAttemptTimeout);
-      }
+      await _performConnection();
+      success = true;
     } on TimeoutException {
       setState(() {
         _connectionError =
@@ -234,6 +341,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         _connectionError = e.toString();
       });
     } finally {
+      if (success) {
+        _cancelResumeAutoReconnect(resetAttempts: true);
+      } else if (fromResumeAutoReconnect && retryableFailure) {
+        _scheduleResumeRetry();
+      }
       if (mounted) {
         setState(() {
           _isConnecting = false;
@@ -251,19 +363,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Listen for pending join URL
     ref.listen<String?>(pendingJoinUrlProvider, (prev, next) {
       if (next != null) {
-        final playerState = ref.read(playerBridgeProvider);
-        final cloudState = ref.read(cloudPlayerBridgeProvider);
-        final alreadyConnectedOutsideLobby =
-            (playerState.isConnected && playerState.phase != 'lobby') ||
-                (cloudState.isConnected && cloudState.phase != 'lobby');
-
-        if (alreadyConnectedOutsideLobby) {
-          ref.read(pendingJoinUrlProvider.notifier).setValue(null);
-          return;
-        }
-
-        _applyPendingJoinUrl(next);
-        ref.read(pendingJoinUrlProvider.notifier).setValue(null);
+        _handlePendingJoinUrl(next);
       }
     });
 
@@ -319,6 +419,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 color: scheme.primary.withValues(alpha: 0.9),
                                 fontWeight: FontWeight.w600,
                               ),
+<<<<<<< ui-polish-host-player-9962985775398423612
+=======
+                            ],
+                            const SizedBox(height: 24),
+                            CBPrimaryButton(
+                              label: _isConnecting
+                                  ? 'CONNECTING...'
+                                  : 'CONNECT TO HOST',
+                              onPressed:
+                                  _isConnecting ? null : _connectFromButton,
+>>>>>>> main
                             ),
                           ],
                           const SizedBox(height: 24),
@@ -360,22 +471,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Row(
       children: [
         Expanded(
-          child: CBFilterChip(
-            label: 'CLOUD',
-            icon: Icons.cloud,
-            selected: _mode == PlayerSyncMode.cloud,
-            onSelected: () => setState(() => _mode = PlayerSyncMode.cloud),
-            color: _mode == PlayerSyncMode.cloud ? scheme.primary : null,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: CBFilterChip(
+              label: 'CLOUD',
+              icon: Icons.cloud,
+              selected: _mode == PlayerSyncMode.cloud,
+              onSelected: () => setState(() => _mode = PlayerSyncMode.cloud),
+              color: _mode == PlayerSyncMode.cloud ? scheme.primary : null,
+              dense: false,
+            ),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: CBFilterChip(
-            label: 'LOCAL',
-            icon: Icons.wifi,
-            selected: _mode == PlayerSyncMode.local,
-            onSelected: () => setState(() => _mode = PlayerSyncMode.local),
-            color: _mode == PlayerSyncMode.local ? scheme.primary : null,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 48),
+            child: CBFilterChip(
+              label: 'LOCAL',
+              icon: Icons.wifi,
+              selected: _mode == PlayerSyncMode.local,
+              onSelected: () => setState(() => _mode = PlayerSyncMode.local),
+              color: _mode == PlayerSyncMode.local ? scheme.primary : null,
+              dense: false,
+            ),
           ),
         ),
       ],

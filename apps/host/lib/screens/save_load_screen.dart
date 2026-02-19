@@ -89,7 +89,9 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
     );
     await _refresh();
     if (!mounted) return;
-    ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.game);
+    ref
+        .read(hostNavigationProvider.notifier)
+        .setDestination(HostDestination.game);
   }
 
   Future<void> _loadGameSlot(ColorScheme scheme, String slotId) async {
@@ -125,7 +127,9 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
         'Loaded game from $slotLabel.',
         accentColor: scheme.tertiary,
       );
-      ref.read(hostNavigationProvider.notifier).setDestination(HostDestination.game);
+      ref
+          .read(hostNavigationProvider.notifier)
+          .setDestination(HostDestination.game);
       return;
     }
 
@@ -394,12 +398,10 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'Empty slot. Save the current game state here for manual restore.',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall!
-                              .copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall!.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
                         ),
                       ],
                     ),
@@ -412,8 +414,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                 runSpacing: 10,
                 children: [
                   FilledButton.icon(
-                    onPressed: () =>
-                        _saveCurrentGame(scheme, slotId),
+                    onPressed: () => _saveCurrentGame(scheme, slotId),
                     icon: const Icon(Icons.save_rounded),
                     label: const Text('SAVE HERE'),
                   ),
@@ -426,10 +427,9 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
     }
 
     if (result.data == null) {
-      final subtitle = result.failure ==
-          ActiveGameLoadFailure.partialSnapshot
-      ? 'Slot data is incomplete (missing game/session pair).'
-      : 'Slot data is corrupted and cannot be decoded.';
+      final subtitle = result.failure == ActiveGameLoadFailure.partialSnapshot
+          ? 'Slot data is incomplete (missing game/session pair).'
+          : 'Slot data is corrupted and cannot be decoded.';
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: CBPanel(
@@ -461,12 +461,10 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                         const SizedBox(height: 8),
                         Text(
                           subtitle,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall!
-                              .copyWith(
-                                color: scheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall!.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
                         ),
                       ],
                     ),
@@ -479,8 +477,7 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
                 runSpacing: 10,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: () =>
-                        _clearGameSlot(scheme, slotId),
+                    onPressed: () => _clearGameSlot(scheme, slotId),
                     icon: const Icon(Icons.delete_outline),
                     label: const Text('CLEAR'),
                   ),
@@ -493,9 +490,8 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
     }
 
     final game = result.data!.$1;
-    final savedAtText = savedAt == null
-        ? ''
-        : '\nSaved: ${_formatDate(savedAt)}';
+    final savedAtText =
+        savedAt == null ? '' : '\nSaved: ${_formatDate(savedAt)}';
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: CBPanel(
@@ -509,31 +505,24 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.restore_rounded,
-                    color: scheme.primary),
+                Icon(Icons.restore_rounded, color: scheme.primary),
                 const SizedBox(width: CBSpace.x3),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '$slotLabel • READY',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall!
-                            .copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Players: ${game.players.length} • Day ${game.dayCount} • ${game.phase.name.toUpperCase()}$savedAtText',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall!
-                            .copyWith(
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),
                       ),
@@ -548,21 +537,17 @@ class _SaveLoadScreenState extends ConsumerState<SaveLoadScreen> {
               runSpacing: 10,
               children: [
                 FilledButton.icon(
-                  onPressed: () =>
-                      _loadGameSlot(scheme, slotId),
-                  icon:
-                      const Icon(Icons.play_arrow_rounded),
+                  onPressed: () => _loadGameSlot(scheme, slotId),
+                  icon: const Icon(Icons.play_arrow_rounded),
                   label: const Text('LOAD'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: () =>
-                      _saveCurrentGame(scheme, slotId),
+                  onPressed: () => _saveCurrentGame(scheme, slotId),
                   icon: const Icon(Icons.save_rounded),
                   label: const Text('OVERWRITE'),
                 ),
                 OutlinedButton.icon(
-                  onPressed: () =>
-                      _clearGameSlot(scheme, slotId),
+                  onPressed: () => _clearGameSlot(scheme, slotId),
                   icon: const Icon(Icons.delete_outline),
                   label: const Text('CLEAR'),
                 ),

@@ -41,10 +41,10 @@ void main() {
       expect(steps.last.id, 'night_end_1');
 
       final dealerIdx = steps.indexWhere((s) => s.id.startsWith('dealer_act_'));
-        final observationIdx =
+      final observationIdx =
           steps.indexWhere((s) => s.id.startsWith('wallflower_observe_'));
       expect(dealerIdx, greaterThanOrEqualTo(0));
-        expect(observationIdx, dealerIdx + 1);
+      expect(observationIdx, dealerIdx + 1);
 
       int? priorityForStep(String stepId) {
         if (stepId.startsWith('dealer_act_')) {
@@ -83,10 +83,8 @@ void main() {
         return null;
       }
 
-      final orderedPriorities = steps
-          .map((s) => priorityForStep(s.id))
-          .whereType<int>()
-          .toList();
+      final orderedPriorities =
+          steps.map((s) => priorityForStep(s.id)).whereType<int>().toList();
 
       for (var i = 1; i < orderedPriorities.length; i++) {
         expect(
@@ -97,7 +95,8 @@ void main() {
       }
     });
 
-    test('manual game with all roles progresses setup->night->day->night in order',
+    test(
+        'manual game with all roles progresses setup->night->day->night in order',
         () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -142,8 +141,9 @@ void main() {
         final step = state.currentStep;
         if (step != null) {
           if (step.id.startsWith('day_vote_')) {
-            final alive =
-                state.players.where((p) => p.isAlive && !p.isSinBinned).toList();
+            final alive = state.players
+                .where((p) => p.isAlive && !p.isSinBinned)
+                .toList();
             if (alive.length >= 2) {
               final voter = alive.first;
               final target = alive.firstWhere(
@@ -173,7 +173,8 @@ void main() {
 
       expect(guard, lessThan(400), reason: 'Flow should not stall');
       expect(
-        reachedNextNight || container.read(gameProvider).phase == GamePhase.endGame,
+        reachedNextNight ||
+            container.read(gameProvider).phase == GamePhase.endGame,
         isTrue,
         reason: 'Game should reach next night or end naturally after one cycle',
       );

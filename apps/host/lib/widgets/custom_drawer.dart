@@ -4,6 +4,7 @@ import 'package:cb_theme/cb_theme.dart';
 
 import '../host_destinations.dart';
 import '../host_navigation.dart';
+import '../profile_edit_guard.dart';
 
 class CustomDrawer extends ConsumerWidget {
   final HostDestination? currentDestination;
@@ -15,9 +16,32 @@ class CustomDrawer extends ConsumerWidget {
     this.onDrawerItemTap,
   });
 
+  Future<bool> _confirmDiscardProfileChanges(
+    BuildContext context,
+    WidgetRef ref,
+    HostDestination current,
+    HostDestination next,
+  ) async {
+    if (current != HostDestination.profile ||
+        next == HostDestination.profile ||
+        !ref.read(hostProfileDirtyProvider)) {
+      return true;
+    }
+
+    final shouldDiscard = await showCBDiscardChangesDialog(
+      context,
+      message: 'You have unsaved profile edits. Leave without saving?',
+    );
+
+    if (shouldDiscard) {
+      ref.read(hostProfileDirtyProvider.notifier).reset();
+    }
+    return shouldDiscard;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeDestination =
+    final HostDestination activeDestination =
         currentDestination ?? ref.watch(hostNavigationProvider);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -57,8 +81,24 @@ class CustomDrawer extends ConsumerWidget {
       backgroundColor: colorScheme.surface,
       indicatorColor: colorScheme.secondaryContainer,
       selectedIndex: selectedIndex,
-      onDestinationSelected: (index) {
+      onDestinationSelected: (index) async {
         final destination = hostDestinations[index].destination;
+        if (destination == activeDestination) {
+          return;
+        }
+
+        final canLeave = await _confirmDiscardProfileChanges(
+          context,
+          ref,
+          activeDestination,
+          destination,
+        );
+        if (!context.mounted) {
+          return;
+        }
+        if (!canLeave) {
+          return;
+        }
 
         if (onDrawerItemTap != null) {
           onDrawerItemTap!(destination);

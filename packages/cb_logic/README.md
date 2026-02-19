@@ -1,58 +1,68 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# cb_logic
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
-
-The `cb_logic` package contains the core business logic, game rules, and state management for the Club Blackout game.
+The `cb_logic` package contains the core game engine and state transitions for Club Blackout Reborn.
 
 ## Features
 
-### Core Game Logic
-- **Role Assignment**: Automatically assigns roles to players, ensuring game balance with Dealers (Staff) and required roles. Supports special initialization for roles like "Seasoned Drinker".
-- **Night Phase Resolution**: Processes night actions including pre-emptive blocks (Sober, Roofi), investigations (Bouncer), murders (Dealer), and protections (Medic). Handles complex interactions like "Second Wind" and "Seasoned Drinker" survival mechanics.
-- **Day Phase Resolution**: Manages voting results, including ties and abstentions.
-- **Win Conditions**: Determines victory conditions for "Club Staff" (Dealers) or "Party Animals" (Townsfolk).
+### Core game logic
 
-### Scripting & Narration
-- **Dynamic Script Generation**: Generates step-by-step scripts for the game host, covering Setup, Night, and Day phases using `ScriptBuilder`.
-- **Role-Specific Instructions**: Includes specific steps for roles like Medic, Creep, Clinger, Wallflower, Attack Dog, and Messy Bitch.
-- **AI-Powered Narration**: Integrates with Google Gemini via `GeminiNarrationService` to generate thematic, immersive narration based on game events and selected voice styles (e.g., "nightclub_noir", "host_hype").
+- Role assignment with balance constraints and required-role handling.
+- Night resolution pipeline for blocks, protection, kills, and reactive role effects.
+- Day vote resolution, exile outcomes, and win-condition checks.
 
-### State Management
-- **Game Provider**: Manages the current game state using Riverpod (`game_provider.dart`).
-- **Games Night Provider**: Manages a session of multiple games (`games_night_provider.dart`).
-- **Chat Provider**: Handles in-game chat functionality (`chat_provider.dart`).
+### Scripting and narration
+
+- Dynamic host script generation for setup, night, and day phases.
+- Role-specific host prompts (including reactive/passive role support).
+- Optional Gemini narration integration for themed recap output.
+
+### State management
+
+- `Game` provider for active match lifecycle.
+- `GamesNight` provider for multi-game sessions.
+- Chat/recap/analytics service integrations used by host/player apps.
 
 ### Utilities
-- **Player Matching**: Algorithms for matching players (`PlayerMatcher`).
-- **Recap Generation**: Creates summaries of game events (`RecapGenerator`).
-- **Strategy Hints**: Generates strategic tips for players (`StrategyGenerator`).
-- **Analytics**: Tracks game events using Firebase Analytics (`AnalyticsService`).
+
+- Player matching and lobby helpers.
+- Recap/event formatting helpers.
+- Strategy hint generation.
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+This package is intended to be used from the monorepo workspace.
+
+Prerequisites:
+
+- Flutter SDK version aligned with repository tooling docs.
+- Dependencies installed from the repository root.
+
+Typical workflow:
+
+1. Open the monorepo root.
+2. Install dependencies (`flutter pub get`).
+3. Run tests from `packages/cb_logic`.
+
+If model shapes or generated serialization code change, regenerate in the documented order:
+
+1. `packages/cb_models`
+2. `packages/cb_logic`
+3. apps (`apps/host`, `apps/player`) as needed
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+Use `GameResolutionLogic` for deterministic phase resolution from a `GameState`.
 
 ```dart
-const like = 'sample';
+final result = GameResolutionLogic.resolveNightActions(gameState);
+final playersAfterNight = result.players;
+final hostReport = result.report;
 ```
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+For architecture and contribution context, see:
+
+- `AGENT_CONTEXT.md`
+- `COMPREHENSIVE_ROLE_MECHANICS.md`
+- `packages/cb_logic/test/` for executable behavior examples

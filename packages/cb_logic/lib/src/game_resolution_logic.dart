@@ -302,9 +302,8 @@ class GameResolutionLogic {
 
     // Messy Bitch solo win: if every living player has heard a rumour and
     // at least one living Messy Bitch remains.
-    final livingMessyBitches = livingPlayers
-        .where((p) => p.role.id == RoleIds.messyBitch)
-        .toList();
+    final livingMessyBitches =
+        livingPlayers.where((p) => p.role.id == RoleIds.messyBitch).toList();
     if (livingMessyBitches.isNotEmpty &&
         livingPlayers.isNotEmpty &&
         livingPlayers.every((p) => p.hasRumour)) {
@@ -320,11 +319,11 @@ class GameResolutionLogic {
     int pa = 0;
 
     for (final p in livingPlayers) {
-        if (p.alliance == Team.clubStaff) {
-          staff++;
-        } else if (p.alliance == Team.partyAnimals) {
-          pa++;
-        }
+      if (p.alliance == Team.clubStaff) {
+        staff++;
+      } else if (p.alliance == Team.partyAnimals) {
+        pa++;
+      }
     }
 
     // staff == 0 only if there WERE dealers to begin with

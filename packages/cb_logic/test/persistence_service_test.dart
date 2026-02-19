@@ -424,6 +424,82 @@ void main() {
   });
 
   // ═══════════════════════════════════════════════
+  //  Role Award Progress
+  // ═══════════════════════════════════════════════
+
+  group('Role Award Progress', () {
+    test('rebuildRoleAwardProgresses creates deterministic progress rows',
+        () async {
+      await service.saveGameRecord(_fakeRecord());
+
+      final rebuilt = await service.rebuildRoleAwardProgresses();
+      expect(rebuilt, isNotEmpty);
+
+      final byPlayer = service.loadRoleAwardProgressesByPlayer('p1');
+      expect(byPlayer.length, roleAwardsForRoleId(RoleIds.dealer).length);
+
+      final rookie = byPlayer.firstWhere(
+        (row) => roleAwardDefinitionById(row.awardId)?.tier == RoleAwardTier.rookie,
+      );
+      expect(rookie.progressValue, 1);
+      expect(rookie.isUnlocked, true);
+    });
+
+    test('query helpers filter by role, tier, and recent unlocks', () async {
+      await service.saveGameRecord(_fakeRecord(id: 'g1'));
+      await service.saveGameRecord(
+        _fakeRecord(id: 'g2', winner: Team.clubStaff),
+      );
+
+      await service.rebuildRoleAwardProgresses();
+
+      final dealerProgress =
+          service.loadRoleAwardProgressesByRole(RoleIds.dealer);
+      expect(dealerProgress, isNotEmpty);
+
+      final rookieProgress =
+          service.loadRoleAwardProgressesByTier(RoleAwardTier.rookie);
+      expect(rookieProgress, isNotEmpty);
+
+      final recent = service.loadRecentRoleAwardUnlocks(limit: 5);
+      expect(recent.length, lessThanOrEqualTo(5));
+      expect(recent.every((row) => row.isUnlocked), true);
+    });
+
+    test('survivals metric unlocks survival-based bonus awards', () async {
+      await service.saveGameRecord(_fakeRecord(id: 's1'));
+      await service.saveGameRecord(_fakeRecord(id: 's2'));
+      await service.saveGameRecord(_fakeRecord(id: 's3'));
+
+      await service.rebuildRoleAwardProgresses();
+
+      final aliceRows = service.loadRoleAwardProgressesByPlayer('p1');
+      final survivalBonus = aliceRows.firstWhere(
+        (row) {
+          final definition = roleAwardDefinitionById(row.awardId);
+          return definition?.tier == RoleAwardTier.bonus &&
+              definition?.unlockRule['metric'] == 'survivals';
+        },
+      );
+
+      expect(survivalBonus.progressValue, 3);
+      expect(survivalBonus.isUnlocked, true);
+    });
+
+    test('clearRoleAwardProgresses removes award rows only', () async {
+      await service.saveGameRecord(_fakeRecord(id: 'g1'));
+      await service.rebuildRoleAwardProgresses();
+
+      expect(service.loadRoleAwardProgresses(), isNotEmpty);
+
+      await service.clearRoleAwardProgresses();
+
+      expect(service.loadRoleAwardProgresses(), isEmpty);
+      expect(service.loadGameRecords(), isNotEmpty);
+    });
+  });
+
+  // ═══════════════════════════════════════════════
   //  Freezed Model Serialization
   // ═══════════════════════════════════════════════
 

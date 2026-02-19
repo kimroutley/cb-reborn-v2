@@ -24,3 +24,4 @@ export 'src/analytics_service.dart';
 export 'src/firebase_analytics_provider.dart';
 export 'src/gemini_narration_service.dart';
 export 'src/room_effects_provider.dart';
+export 'src/role_award_progress_service.dart';

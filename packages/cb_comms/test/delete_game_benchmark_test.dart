@@ -1,6 +1,5 @@
 // ignore_for_file: subtype_of_sealed_class
 
-import 'dart:async';
 import 'package:cb_comms/src/firebase_bridge.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 // ----------------------------------------------------------------------
 
 class MockFirestore extends Fake implements FirebaseFirestore {
-  final Map<String, List<DocumentSnapshot<Map<String, dynamic>>>> _collections = {};
+  final Map<String, List<DocumentSnapshot<Map<String, dynamic>>>> _collections =
+      {};
 
   // Track total commits
   int totalCommits = 0;
@@ -40,7 +40,8 @@ class MockFirestore extends Fake implements FirebaseFirestore {
   }
 }
 
-class MockCollectionReference extends Fake implements CollectionReference<Map<String, dynamic>> {
+class MockCollectionReference extends Fake
+    implements CollectionReference<Map<String, dynamic>> {
   final MockFirestore _firestore;
   final String _path;
 
@@ -58,7 +59,8 @@ class MockCollectionReference extends Fake implements CollectionReference<Map<St
   }
 }
 
-class MockDocumentReference extends Fake implements DocumentReference<Map<String, dynamic>> {
+class MockDocumentReference extends Fake
+    implements DocumentReference<Map<String, dynamic>> {
   final MockFirestore _firestore;
   final String _path;
 
@@ -75,20 +77,23 @@ class MockDocumentReference extends Fake implements DocumentReference<Map<String
   }
 }
 
-class MockQuerySnapshot extends Fake implements QuerySnapshot<Map<String, dynamic>> {
+class MockQuerySnapshot extends Fake
+    implements QuerySnapshot<Map<String, dynamic>> {
   final List<DocumentSnapshot<Map<String, dynamic>>> _docs;
 
   MockQuerySnapshot(this._docs);
 
   @override
-  List<QueryDocumentSnapshot<Map<String, dynamic>>> get docs =>
-      _docs.map((d) => d as QueryDocumentSnapshot<Map<String, dynamic>>).toList();
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> get docs => _docs
+      .map((d) => d as QueryDocumentSnapshot<Map<String, dynamic>>)
+      .toList();
 
   @override
   int get size => _docs.length;
 }
 
-class MockDocumentSnapshot extends Fake implements QueryDocumentSnapshot<Map<String, dynamic>> {
+class MockDocumentSnapshot extends Fake
+    implements QueryDocumentSnapshot<Map<String, dynamic>> {
   final MockFirestore _firestore;
   final String _path;
 
@@ -139,7 +144,8 @@ class TrackedMockWriteBatch extends Fake implements WriteBatch {
       throw FirebaseException(
         plugin: 'cloud_firestore',
         code: 'invalid-argument',
-        message: 'Batch write exceeds the limit of 500 operations (mocked: $_operationCount).',
+        message:
+            'Batch write exceeds the limit of 500 operations (mocked: $_operationCount).',
       );
     }
     _firestore.totalCommits++;
@@ -152,7 +158,8 @@ class TrackedMockWriteBatch extends Fake implements WriteBatch {
 // ----------------------------------------------------------------------
 
 void main() {
-  test('deleteGame succeeds when total docs > 500 by chunking batches', () async {
+  test('deleteGame succeeds when total docs > 500 by chunking batches',
+      () async {
     final firestore = MockFirestore();
 
     // Seed data: 200 + 200 + 200 = 600 docs
@@ -170,6 +177,7 @@ void main() {
     // Batch 2: 100 items -> commit()
     // Total commits: 2
 
-    expect(firestore.totalCommits, 2, reason: "Should commit twice for 600 items (500 + 100)");
+    expect(firestore.totalCommits, 2,
+        reason: "Should commit twice for 600 items (500 + 100)");
   });
 }

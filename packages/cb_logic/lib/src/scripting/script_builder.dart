@@ -58,8 +58,9 @@ class ScriptBuilder {
     }
 
     // ── Clinger chooses a partner at Night 0 ──
-    final clingers =
-        players.where((p) => p.role.id == RoleIds.clinger && p.isAlive).toList();
+    final clingers = players
+        .where((p) => p.role.id == RoleIds.clinger && p.isAlive)
+        .toList();
     for (final clinger in clingers) {
       steps.add(ScriptStep(
         id: 'clinger_setup_${clinger.id}_$dayCount',
@@ -80,7 +81,8 @@ class ScriptBuilder {
       steps.add(ScriptStep(
         id: 'drama_queen_setup_${dramaQueen.id}_$dayCount',
         title: 'THE DRAMA QUEEN',
-        readAloudText: 'Drama Queen, wake up and pick two players for your vendetta.',
+        readAloudText:
+            'Drama Queen, wake up and pick two players for your vendetta.',
         instructionText:
             'Select two players. If you are exiled, their role cards will be swapped.',
         actionType: ScriptActionType.selectTwoPlayers,
@@ -89,8 +91,9 @@ class ScriptBuilder {
     }
 
     // ── Wallflower instruction ──
-    final wallflowers =
-        players.where((p) => p.role.id == RoleIds.wallflower && p.isAlive).toList();
+    final wallflowers = players
+        .where((p) => p.role.id == RoleIds.wallflower && p.isAlive)
+        .toList();
     if (wallflowers.isNotEmpty) {
       for (final wallflower in wallflowers) {
         steps.add(ScriptStep(
@@ -157,8 +160,8 @@ class ScriptBuilder {
     // ── Messy Bitch Kill: optional one-shot ability ──
     final mbKillStrategy =
         roleStrategies[RoleIds.messyBitchKill]! as MessyBitchKillStrategy;
-    for (final player
-        in players.where((p) => p.isActive && p.role.id == RoleIds.messyBitch)) {
+    for (final player in players
+        .where((p) => p.isActive && p.role.id == RoleIds.messyBitch)) {
       if (mbKillStrategy.canAct(player, dayCount)) {
         steps.add(mbKillStrategy.buildStep(player, dayCount));
       }

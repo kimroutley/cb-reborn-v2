@@ -1,43 +1,44 @@
 # Authoritative status brief
 
-This brief reconciles project docs with live code health checks run on
-2026-02-18.
+This brief reflects the **live repository state on 2026-02-19**.
 
-## Scope reviewed
+## Executive summary
 
-- Root docs: `README.md`, `AGENT_CONTEXT.md`, `STYLE_GUIDE.md`,
-  `REBORN_CONTEXT.md`, `GEMINI_GUIDE.md`, `AGENTS.md`
-- Working docs: `PLAYER_APP_PLAN.md`, `PR_DESCRIPTION.md`,
-  `GEMINI_HANDOFF_LIST.txt`
-- Live repo validation with `flutter analyze` and `flutter test`
+- `main` is in a **finalized post-stabilization state** and is synced with `origin/main`.
+- Working tree is **clean** (no uncommitted tracked or untracked project changes).
+- The previously broad in-flight set has been sliced into scoped commits and validated.
 
-## Live health snapshot
+## Current branch state
 
-| Package | Analyze | Test | Notes |
-| --- | --- | --- | --- |
-| `apps/host` | Pass | Pass | No analyzer issues |
-| `apps/player` | Pass | Pass | No analyzer issues |
-| `packages/cb_theme` | Pass | Pass | No analyzer issues |
-| `packages/cb_logic` | Pass | Pass | Night resolution tests updated to new API |
+- Branch: `main`
+- Remote relation: in sync (`origin/main...HEAD = 0/0`)
+- Working tree: clean
+- Latest commit train:
+  1. `docs(status): refresh authoritative brief for active in-flight state`
+  2. `feat(apps): polish host/player auth and game flow surfaces`
+  3. `refactor(core): tune role scripting and award catalog coverage`
+  4. `docs(skills): align code-reviewer skill template`
+  5. `docs(status): sync brief with post-slice clean state`
+  6. `docs(status): refresh branch-sync note and commit train`
 
-## Confirmed current state
+## Validation snapshot (completed)
 
-- Host and player apps are stable in analysis and tests.
-- Theme and logic packages now pass both analyze and tests.
-- Logic test coverage is aligned with the current
-  `resolveNightActions(GameState)` contract.
+- Analyze passed:
+  - `apps/host`
+  - `apps/player`
+  - `packages/cb_logic`
+  - `packages/cb_models`
+  - `packages/cb_theme`
+- Tests passed:
+  - `apps/host` full suite
+  - `apps/player` targeted suites (`connect_screen_navigation_guard`, `join_link_debounce`, `onboarding_loading_states`)
+  - `packages/cb_logic` targeted suites (`all_roles_script_audit`, `night_resolution`)
+  - `packages/cb_models` targeted suites (`benchmark_role_lookup`, `role_award_catalog`)
 
-## Reconciliation completed
+## Release posture
 
-- Updated `packages/cb_logic/test/night_resolution_test.dart` to call
-  `resolveNightActions` through `GameState` and aligned one stale Wallflower
-  assertion to current behavior.
-- Removed an unused import in
-  `packages/cb_theme/lib/src/widgets/handbook_content.dart` to clear analyzer
-  warnings.
-- Updated stale documentation claims in `AGENT_CONTEXT.md`, `README.md`, and
-  `STYLE_GUIDE.md`.
+Repository is now in a **stabilized release-ready state** with no pending local divergence.
 
-## Recommended next actions
+## Operator note
 
-1. Keep this brief updated whenever package health or style defaults change.
+Use this file as the single source of truth for "ready vs in-progress" state. Update it whenever branch divergence or working-tree cleanliness changes.

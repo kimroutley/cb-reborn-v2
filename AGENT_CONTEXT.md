@@ -142,6 +142,7 @@ The game logic now uses a **Priority-Based Strategy Pattern** for resolving nigh
 * [x] **Regression Coverage**: Updated `apps/player/test/player_bridge_test.dart` and `apps/host/test/host_bridge_test.dart` for join/duplicate-join stability.
 * [x] **Player Build Health**: `apps/player` full analyze + tests pass after join-flow refactor.
 * [x] **Manual Assignment UX**: Host manual role assignment now supports drag-and-drop in lobby setup sheet.
+* [x] **Player startup cache/resume**: Added bootstrap preload + stale session restore with full `apps/player` analyze/test pass.
 
 ---
 
@@ -185,10 +186,71 @@ To simplify cross-mode development, the Player app uses `activeBridgeProvider`.
 
 ---
 
-## 10. Agent Directives
+## 10. Player Startup Cache & Resume (Feb 18, 2026)
+
+The Player app now restores recent session state before login to reduce
+reconnect friction and avoid re-downloading high-payload gameplay context after
+an app restart.
+
+### Key Components
+
+* **`PlayerBootstrapGate`** (`apps/player/lib/bootstrap/player_bootstrap_gate.dart`):
+  wraps `PlayerAuthScreen` and runs startup initialization before the main UI.
+* **Bootstrap tasks**: initializes local persistence, applies Firestore offline
+  cache settings (mobile), restores cached session state, and pre-caches
+  critical visual assets.
+* **`PlayerSessionCacheRepository`** (`apps/player/lib/player_session_cache.dart`):
+  stores a compact `PlayerGameState` snapshot in `SharedPreferences` with an
+  18-hour TTL.
+* **Bridge persistence**:
+  `PlayerBridge` and `CloudPlayerBridge` persist cache snapshots on join/state
+  updates and clear cache on `leave()`.
+* **Auth cleanup**: player sign-out clears cached session data.
+
+### Resume Flow
+
+1. Bootstrap loads cache and hydrates the matching bridge state (local/cloud).
+2. Bootstrap seeds `pendingJoinUrlProvider` with `autoconnect=1`.
+3. `HomeScreen` consumes pending join URL, applies join parameters, and
+   auto-connects without user re-entry.
+4. Live sync then refreshes state from host/cloud as the source of truth.
+
+### Testing Notes
+
+* Keep cache writes resilient in non-widget unit tests. `SharedPreferences` can
+  be unavailable before Flutter bindings are initialized.
+* Avoid startup timers in bootstrap widgets to prevent `flutter_test` pending
+  timer failures in smoke tests.
+
+---
+
+## 11. Agent Directives
 
 1. **Read Context First**: Before starting any task, verify your understanding against this document.
 2. **Verify, Don't Assume**: After editing code, run `flutter test` in the relevant package.
 
 3. **Respect the Architecture**: Do not bypass `RoleIds` or direct Firestore calls outside the Bridges.
 4. **Update This Doc**: If you discover a new pattern or fix a critical bug, update this file.
+
+
+## 12. Role Awards Rollout (Feb 18, 2026)
+
+Phase 0/1 scaffolding for Role Awards is now in place.
+
+### Implemented foundation
+
+* `packages/cb_models/lib/src/data/role_award_placeholders.dart` provides the canonical `Awards Coming Soon` placeholder registry for all canonical roles.
+* `packages/cb_models/lib/src/persistence/role_awards.dart` defines the shared role-award domain models (`RoleAwardDefinition`, `PlayerRoleAwardProgress`, enums).
+* `packages/cb_models/lib/src/data/role_award_catalog.dart` now provides generated baseline ladders for all canonical roles plus helper lookups (`roleAwardsForRoleId`, `hasFinalizedRoleAwards`, `roleAwardDefinitionById`).
+* Role ladders now use deterministic **role-specific unlock profiles** (still based on currently supported aggregate metrics: `gamesPlayed`, `wins`, `survivals`) instead of one global threshold pattern.
+* Icon metadata is now auto-populated for finalized awards: `iconUrl` is derived by icon source, and attribution fields are enforced for any future CC-BY licensed icon entries.
+* `PersistenceService` now supports role-award progress rebuild + query flows (`rebuildRoleAwardProgresses`, by-player/by-role/by-tier, recent unlocks).
+* Host + Player Hall of Fame screens render Role Award cards for every role and show finalized-role coverage + unlock counters.
+
+### Maintenance rules
+
+1. Keep role IDs canonical (`RoleIds` only), never display-name keyed.
+2. If new roles are added to `role_catalog`, update both placeholder and finalized catalog coverage helpers.
+3. Preserve fallback behavior: unresolved roles must display exactly `Awards Coming Soon` until finalized definitions are added.
+4. Prefer adding finalized role ladders in `role_award_catalog.dart` incrementally without changing model contracts.
+5. If adding a new icon source, update the icon-source URL map in `role_award_catalog.dart`; metadata tests now fail on unknown icon sources.

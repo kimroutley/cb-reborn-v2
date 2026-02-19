@@ -7,9 +7,11 @@ import 'package:cb_comms/src/game_message.dart';
 void main() {
   group('HostServer Tests', () {
     late HostServer server;
-    const int port = 8081;
+    late int port;
+    var nextPort = 18081;
 
     setUp(() async {
+      port = nextPort++;
       server = HostServer(port: port);
       await server.start();
     });

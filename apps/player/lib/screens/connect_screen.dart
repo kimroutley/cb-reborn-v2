@@ -59,10 +59,9 @@ ParsedJoinUrl? parseJoinUrlPayload(String raw) {
     mode = PlayerSyncMode.cloud;
   }
 
-  final decodedHost =
-      hostParam != null && hostParam.trim().isNotEmpty
-          ? Uri.decodeComponent(hostParam.trim())
-          : null;
+  final decodedHost = hostParam != null && hostParam.trim().isNotEmpty
+      ? Uri.decodeComponent(hostParam.trim())
+      : null;
 
   return ParsedJoinUrl(
     normalizedCode: normalizeJoinCode(codeParam),
@@ -424,9 +423,8 @@ class _ModeButton extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final scheme = theme.colorScheme;
-    final activeColor = isSelected
-        ? color
-        : scheme.onSurface.withValues(alpha: 0.3);
+    final activeColor =
+        isSelected ? color : scheme.onSurface.withValues(alpha: 0.3);
 
     return Material(
       type: MaterialType.transparency,

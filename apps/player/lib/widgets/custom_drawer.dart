@@ -1,11 +1,35 @@
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../profile_edit_guard.dart';
 import '../player_destinations.dart';
 import '../player_navigation.dart';
 
 class CustomDrawer extends ConsumerWidget {
   const CustomDrawer({super.key});
+
+  Future<bool> _confirmDiscardProfileChanges(
+    BuildContext context,
+    WidgetRef ref,
+    PlayerDestination nextDestination,
+  ) async {
+    final currentDestination = ref.read(playerNavigationProvider);
+    if (currentDestination != PlayerDestination.profile ||
+        nextDestination == PlayerDestination.profile ||
+        !ref.read(playerProfileDirtyProvider)) {
+      return true;
+    }
+
+    final shouldDiscard = await showCBDiscardChangesDialog(
+      context,
+      message: 'You have unsaved profile edits. Leave without saving?',
+    );
+
+    if (shouldDiscard) {
+      ref.read(playerProfileDirtyProvider.notifier).reset();
+    }
+    return shouldDiscard;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,9 +51,26 @@ class CustomDrawer extends ConsumerWidget {
               icon: config.icon,
               title: config.label,
               isSelected: isSelected,
-              onTap: () {
-                Navigator.pop(context); // Close drawer
-                ref.read(playerNavigationProvider.notifier).setDestination(config.destination);
+              onTap: () async {
+                if (config.destination == currentDestination) {
+                  Navigator.pop(context);
+                  return;
+                }
+                final canLeave = await _confirmDiscardProfileChanges(
+                  context,
+                  ref,
+                  config.destination,
+                );
+                if (!context.mounted) {
+                  return;
+                }
+                if (!canLeave) {
+                  return;
+                }
+                Navigator.pop(context);
+                ref
+                    .read(playerNavigationProvider.notifier)
+                    .setDestination(config.destination);
               },
             );
           }),
@@ -152,10 +193,14 @@ class _DrawerTile extends StatelessWidget {
       title: Text(
         title.toUpperCase(),
         style: textTheme.labelSmall!.copyWith(
-          color: isSelected ? scheme.primary : scheme.onSurface.withValues(alpha: 0.85),
+          color: isSelected
+              ? scheme.primary
+              : scheme.onSurface.withValues(alpha: 0.85),
           letterSpacing: 1.5,
           fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
-          shadows: isSelected ? CBColors.textGlow(scheme.primary, intensity: 0.3) : null,
+          shadows: isSelected
+              ? CBColors.textGlow(scheme.primary, intensity: 0.3)
+              : null,
         ),
       ),
       selected: isSelected,

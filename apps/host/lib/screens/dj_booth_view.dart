@@ -52,7 +52,10 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                       Text(
                         'WELCOME TO THE DJ BOOTH',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
                               color: scheme.onSurface,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 1.6,
@@ -63,7 +66,8 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                         'Under Construction',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: scheme.onSurfaceVariant.withValues(alpha: 0.9),
+                              color: scheme.onSurfaceVariant
+                                  .withValues(alpha: 0.9),
                             ),
                       ),
                       const SizedBox(height: CBSpace.x10),
@@ -79,9 +83,7 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                                   title: const Text('Old Dashboard'),
                                   backgroundColor: Colors.transparent,
                                   elevation: 0,
-                                  actions: const [
-                                    SimulationModeBadgeAction()
-                                  ],
+                                  actions: const [SimulationModeBadgeAction()],
                                 ),
                                 body: CBNeonBackground(
                                   child: DashboardView(

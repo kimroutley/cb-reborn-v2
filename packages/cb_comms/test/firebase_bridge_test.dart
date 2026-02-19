@@ -1,3 +1,5 @@
+// ignore_for_file: subtype_of_sealed_class
+
 import 'package:cb_comms/src/firebase_bridge.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,7 +23,8 @@ class MockWriteBatch extends Fake implements WriteBatch {
   }
 }
 
-class MockDocumentReference extends Fake implements DocumentReference<Map<String, dynamic>> {
+class MockDocumentReference extends Fake
+    implements DocumentReference<Map<String, dynamic>> {
   final String _path;
   final MockFirestore _firestore;
 
@@ -45,12 +48,15 @@ class MockDocumentReference extends Fake implements DocumentReference<Map<String
   }
 
   @override
-  DocumentReference<R> withConverter<R>({required FromFirestore<R> fromFirestore, required ToFirestore<R> toFirestore}) {
+  DocumentReference<R> withConverter<R>(
+      {required FromFirestore<R> fromFirestore,
+      required ToFirestore<R> toFirestore}) {
     throw UnimplementedError();
   }
 }
 
-class MockCollectionReference extends Fake implements CollectionReference<Map<String, dynamic>> {
+class MockCollectionReference extends Fake
+    implements CollectionReference<Map<String, dynamic>> {
   final MockFirestore _firestore;
   final String _path;
 
@@ -62,7 +68,9 @@ class MockCollectionReference extends Fake implements CollectionReference<Map<St
   }
 
   @override
-  CollectionReference<R> withConverter<R>({required FromFirestore<R> fromFirestore, required ToFirestore<R> toFirestore}) {
+  CollectionReference<R> withConverter<R>(
+      {required FromFirestore<R> fromFirestore,
+      required ToFirestore<R> toFirestore}) {
     throw UnimplementedError();
   }
 }
@@ -81,9 +89,11 @@ class MockFirestore extends Fake implements FirebaseFirestore {
 }
 
 void main() {
-  test('publishState optimizes writes by batching public state update', () async {
+  test('publishState optimizes writes by batching public state update',
+      () async {
     final mockFirestore = MockFirestore();
-    final bridge = FirebaseBridge(joinCode: 'TEST_CODE', firestore: mockFirestore);
+    final bridge =
+        FirebaseBridge(joinCode: 'TEST_CODE', firestore: mockFirestore);
 
     final publicState = {'phase': 'day', 'dayCount': 1};
     final privateState = {
@@ -98,13 +108,16 @@ void main() {
 
     // After optimization:
     // 0 direct sets (should be in batch)
-    expect(mockFirestore.directSetCalls.length, 0, reason: 'Public state should NOT be set directly');
+    expect(mockFirestore.directSetCalls.length, 0,
+        reason: 'Public state should NOT be set directly');
 
     // 3 batch sets (1 public + 2 private)
-    expect(mockFirestore.batchInstance.operations.length, 3, reason: 'All updates should be batched');
+    expect(mockFirestore.batchInstance.operations.length, 3,
+        reason: 'All updates should be batched');
 
     // verify public state is in batch
-    final publicOp = mockFirestore.batchInstance.operations.firstWhere((op) => op['path'] == 'games/TEST_CODE');
+    final publicOp = mockFirestore.batchInstance.operations
+        .firstWhere((op) => op['path'] == 'games/TEST_CODE');
     expect(publicOp['data'], publicState);
     expect(publicOp['type'], 'set');
   });

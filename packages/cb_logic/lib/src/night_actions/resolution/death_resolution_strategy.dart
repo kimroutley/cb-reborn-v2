@@ -8,6 +8,7 @@ import 'minor_protection_handler.dart';
 import 'medic_revive_handler.dart';
 import 'clinger_bond_handler.dart';
 import 'creep_inheritance_handler.dart';
+import 'drama_queen_death_handler.dart';
 import 'default_death_handler.dart';
 
 class DeathResolutionStrategy implements NightActionStrategy {
@@ -26,6 +27,7 @@ class DeathResolutionStrategy implements NightActionStrategy {
               MinorProtectionHandler(),
               ClingerBondHandler(),
               CreepInheritanceHandler(),
+              DramaQueenDeathHandler(),
               DefaultDeathHandler(),
             ];
 

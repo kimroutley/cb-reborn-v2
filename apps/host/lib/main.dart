@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -15,19 +17,52 @@ import 'host_settings.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  await PersistenceService.init();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // Initialize analytics provider
-  AnalyticsService.setProvider(
-    FirebaseAnalyticsProvider(FirebaseAnalytics.instance),
-  );
+  await _initializePersistenceOfflineFirst();
 
   runApp(const ProviderScope(
     child: HostApp(),
   ));
+
+  // Keep launch offline-first: do not block first frame on Firebase startup.
+  unawaited(_initializeFirebaseServices());
+}
+
+Future<void> _initializePersistenceOfflineFirst() async {
+  try {
+    await PersistenceService.init().timeout(const Duration(seconds: 5));
+    return;
+  } catch (e) {
+    debugPrint('[HostApp] Persistence init failed/timed out: $e');
+  }
+
+  // Fallback: initialize non-encrypted local boxes so host can still launch
+  // and run local/offline sessions even if secure persistence setup fails.
+  try {
+    final activeBox = await Hive.openBox<String>('active_game_fallback');
+    final recordsBox = await Hive.openBox<String>('game_records_fallback');
+    final sessionsBox = await Hive.openBox<String>('games_night_fallback');
+    PersistenceService.initWithBoxes(activeBox, recordsBox, sessionsBox);
+    debugPrint('[HostApp] Using fallback persistence boxes for offline startup');
+  } catch (e) {
+    debugPrint('[HostApp] Fallback persistence init failed: $e');
+  }
+}
+
+Future<void> _initializeFirebaseServices() async {
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+
+    AnalyticsService.setProvider(
+      FirebaseAnalyticsProvider(FirebaseAnalytics.instance),
+    );
+  } catch (e) {
+    // Startup must remain usable offline/local-mode even if Firebase init fails.
+    debugPrint('[HostApp] Firebase init deferred/failed: $e');
+  }
 }
 
 class HostApp extends ConsumerWidget {

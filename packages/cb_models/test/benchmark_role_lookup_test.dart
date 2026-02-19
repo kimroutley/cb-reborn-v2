@@ -21,7 +21,6 @@ void main() {
       null, // Null check
     ];
 
-    // ignore: avoid_print
     print('Benchmarking $iterations iterations per lookup type...');
 
     // 1. Measure Linear Search (Current implementation)
@@ -36,7 +35,6 @@ void main() {
     }
     stopwatch.stop();
     final linearTime = stopwatch.elapsedMicroseconds;
-    // ignore: avoid_print
     print('Linear Search Time: ${linearTime / 1000} ms');
 
     // 2. Measure Map Lookup (Proposed optimization)
@@ -49,17 +47,19 @@ void main() {
     }
     stopwatch.stop();
     final mapTime = stopwatch.elapsedMicroseconds;
-    // ignore: avoid_print
     print('Map Lookup Time:    ${mapTime / 1000} ms');
 
     // Calculate improvement
     final improvement = (linearTime - mapTime) / linearTime * 100;
-    // ignore: avoid_print
     print('Improvement: ${improvement.toStringAsFixed(2)}%');
 
     // Assert that the optimization is actually faster
     // Note: On very fast machines or small datasets, overhead might skew results,
     // but for 100k iterations it should be measurable.
-    expect(mapTime, lessThan(linearTime), reason: "Map lookup should be faster than linear search");
+    expect(
+      mapTime,
+      lessThan(linearTime),
+      reason: "Map lookup should be faster than linear search",
+    );
   });
 }

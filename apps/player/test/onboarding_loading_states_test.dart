@@ -59,6 +59,32 @@ class _StubAuthNotifier extends AuthNotifier {
 
 void main() {
   testWidgets(
+    'PlayerAuthScreen initial state shows neutral boot splash (no login flash)',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authProvider.overrideWith(
+              () => _StubAuthNotifier(const AuthState(AuthStatus.initial)),
+            ),
+          ],
+          child: MaterialApp(
+            theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
+            home: const PlayerAuthScreen(
+              child: SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      expect(find.text('SYNCING SESSION...'), findsOneWidget);
+      expect(find.text('GUEST LIST CHECK'), findsNothing);
+    },
+  );
+
+  testWidgets(
     'PlayerAuthScreen shows loading dialog overlay while preserving splash context',
     (tester) async {
       await tester.pumpWidget(
@@ -101,7 +127,8 @@ void main() {
             ),
             playerBridgeProvider.overrideWith(() => _NoopPlayerBridge()),
             authProvider.overrideWith(
-              () => _StubAuthNotifier(const AuthState(AuthStatus.unauthenticated)),
+              () => _StubAuthNotifier(
+                  const AuthState(AuthStatus.unauthenticated)),
             ),
           ],
           child: MaterialApp(
@@ -119,7 +146,8 @@ void main() {
       await tester.pump();
 
       expect(find.text('CONNECTING TO HOST...'), findsOneWidget);
-      expect(find.text('Hang tight while we sync your invite.'), findsOneWidget);
+      expect(
+          find.text('Hang tight while we sync your invite.'), findsOneWidget);
       expect(find.text('CONNECTING...'), findsOneWidget);
 
       joinCompleter.complete();

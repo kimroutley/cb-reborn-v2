@@ -1,5 +1,8 @@
+import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../host_destinations.dart';
 import '../widgets/custom_drawer.dart';
@@ -9,11 +12,14 @@ import 'privacy_policy_screen.dart';
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
+  Future<_HostAboutData> _loadAboutData() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final releases = await AppReleaseNotes.loadRecentBuildUpdates();
+    return _HostAboutData(packageInfo: packageInfo, releases: releases);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('ABOUT'),
@@ -23,105 +29,51 @@ class AboutScreen extends StatelessWidget {
       ),
       drawer: const CustomDrawer(currentDestination: HostDestination.about),
       body: CBNeonBackground(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
-          children: [
-            CBSectionHeader(
-              title: 'CLUB BLACKOUT: REBORN',
-              icon: Icons.info_outline,
-              color: scheme.primary,
-            ),
-            const SizedBox(height: 12),
-            CBPanel(
-              borderColor: scheme.primary.withValues(alpha: 0.35),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'HOST CONTROL APP',
-                    style: textTheme.headlineSmall?.copyWith(
-                      letterSpacing: 2.0,
-                      color: scheme.secondary,
-                      shadows:
-                          CBColors.textGlow(scheme.secondary, intensity: 0.6),
-                    ),
+        child: FutureBuilder<_HostAboutData>(
+          future: _loadAboutData(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final packageInfo = snapshot.data?.packageInfo;
+            final releases =
+                snapshot.data?.releases ?? const <AppBuildUpdate>[];
+            final releaseDate = releases.isNotEmpty
+                ? DateFormat.yMMMd().format(releases.first.releaseDate)
+                : 'Unknown release date';
+
+            final versionLabel = packageInfo == null
+                ? 'Unknown version'
+                : '${packageInfo.version} (Build ${packageInfo.buildNumber})';
+
+            return CBAboutContent(
+              appHeading: 'CLUB BLACKOUT: REBORN',
+              appSubtitle: 'HOST CONTROL APP',
+              versionLabel: versionLabel,
+              releaseDateLabel: releaseDate,
+              creditsLabel: 'Kim, Val, Lilo, Stitch and Mushu Kyrian',
+              copyrightLabel:
+                  '© ${DateTime.now().year} Kyrian Co. All rights reserved.',
+              recentBuilds: releases,
+              onPrivacyTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const PrivacyPolicyScreen(),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Version 1.0.0+1',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: CBColors.textDim,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Runs the lobby, scripting engine, tactical dashboard, and session recaps.',
-                    style: textTheme.bodyMedium?.copyWith(height: 1.4),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            CBSectionHeader(
-              title: 'PRIVACY',
-              icon: Icons.privacy_tip_outlined,
-              color: scheme.tertiary,
-            ),
-            const SizedBox(height: 12),
-            CBPanel(
-              borderColor: scheme.tertiary.withValues(alpha: 0.35),
-              child: InkWell(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const PrivacyPolicyScreen()),
-                  );
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'PRIVACY POLICY',
-                                style: textTheme.headlineSmall?.copyWith(
-                                  letterSpacing: 2.0,
-                                  color: scheme.tertiary,
-                                  shadows: CBColors.textGlow(scheme.tertiary,
-                                      intensity: 0.6),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'DATA COLLECTION + CLOUD SYNC DETAILS',
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: CBColors.textDim,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right, size: 28),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
-            Text(
-              'Club Blackout is an in-person social deduction game. All data is handled as per the privacy policy.',
-              textAlign: TextAlign.center,
-              style: textTheme.bodySmall
-                  ?.copyWith(color: scheme.onSurface.withValues(alpha: 0.5)),
-            )
-          ],
+                );
+              },
+            );
+          },
         ),
       ),
     );
   }
+}
+
+class _HostAboutData {
+  const _HostAboutData({required this.packageInfo, required this.releases});
+
+  final PackageInfo packageInfo;
+  final List<AppBuildUpdate> releases;
 }

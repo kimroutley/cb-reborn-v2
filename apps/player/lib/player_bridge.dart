@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_theme/cb_theme.dart';
 
 import 'player_bridge_actions.dart';
+import 'player_session_cache.dart';
 import 'player_stats.dart';
 
 export 'package:cb_models/cb_models.dart' show PlayerSnapshot;
@@ -27,6 +28,11 @@ const Object _undefined = Object();
 /// The player app does NOT run its own GameProvider — it receives
 /// [GameMessage.stateSync] from the host and parses it into this state.
 class PlayerGameState {
+  static const int _cacheBulletinLimit = 120;
+  static const int _cacheHistoryLimit = 240;
+  static const int _cacheReportLimit = 80;
+  static const int _cacheGhostMessageLimit = 120;
+
   final String phase;
   final int dayCount;
   final List<PlayerSnapshot> players;
@@ -94,6 +100,166 @@ class PlayerGameState {
   bool get isLobby => phase == 'lobby';
   bool get isEndGame => phase == 'endGame';
   bool get isPlayerClaimed => myPlayerId != null;
+
+  Map<String, dynamic> toCacheMap() {
+    return <String, dynamic>{
+      'phase': phase,
+      'dayCount': dayCount,
+      'players': players.map(_playerSnapshotToMap).toList(growable: false),
+      'currentStep': currentStep?.toMap(),
+      'bulletinBoard': bulletinBoard
+          .take(_cacheBulletinLimit)
+          .map((entry) => entry.toJson())
+          .toList(growable: false),
+      'eyesOpen': eyesOpen,
+      'winner': winner,
+      'endGameReport':
+          endGameReport.take(_cacheReportLimit).toList(growable: false),
+      'voteTally': voteTally,
+      'votesByVoter': votesByVoter,
+      'nightReport':
+          nightReport.take(_cacheReportLimit).toList(growable: false),
+      'dayReport': dayReport.take(_cacheReportLimit).toList(growable: false),
+      'privateMessages': privateMessages,
+      'claimedPlayerIds': claimedPlayerIds,
+      'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
+      'gameHistory':
+          gameHistory.take(_cacheHistoryLimit).toList(growable: false),
+      'deadPoolBets': deadPoolBets,
+      'ghostChatMessages': ghostChatMessages
+          .take(_cacheGhostMessageLimit)
+          .toList(growable: false),
+      'joinAccepted': joinAccepted,
+      'myPlayerId': myPlayerId,
+      'hostName': hostName,
+      'activeEffect': activeEffect,
+      'activeEffectPayload': activeEffectPayload,
+    };
+  }
+
+  factory PlayerGameState.fromCacheMap(Map<String, dynamic> map) {
+    final players = (map['players'] as List<dynamic>?)
+            ?.whereType<Map<String, dynamic>>()
+            .map(PlayerSnapshot.fromMap)
+            .toList(growable: false) ??
+        const <PlayerSnapshot>[];
+    final myPlayerId = map['myPlayerId'] as String?;
+    PlayerSnapshot? myPlayerSnapshot;
+    if (myPlayerId != null) {
+      for (final player in players) {
+        if (player.id == myPlayerId) {
+          myPlayerSnapshot = player;
+          break;
+        }
+      }
+    }
+
+    final bulletin = (map['bulletinBoard'] as List<dynamic>?)
+            ?.whereType<Map<String, dynamic>>()
+            .map(BulletinEntry.fromJson)
+            .toList(growable: false) ??
+        const <BulletinEntry>[];
+
+    final currentStepRaw = map['currentStep'];
+    final currentStep = currentStepRaw is Map<String, dynamic>
+        ? StepSnapshot.fromMap(currentStepRaw)
+        : null;
+
+    return PlayerGameState(
+      phase: map['phase'] as String? ?? 'lobby',
+      dayCount: map['dayCount'] as int? ?? 0,
+      players: players,
+      currentStep: currentStep,
+      bulletinBoard: bulletin,
+      eyesOpen: map['eyesOpen'] as bool? ?? true,
+      winner: map['winner'] as String?,
+      endGameReport: _toStringList(map['endGameReport']),
+      voteTally: _toIntMap(map['voteTally']),
+      votesByVoter: _toStringMap(map['votesByVoter']),
+      nightReport: _toStringList(map['nightReport']),
+      dayReport: _toStringList(map['dayReport']),
+      privateMessages: _toNestedStringMap(map['privateMessages']),
+      claimedPlayerIds: _toStringList(map['claimedPlayerIds']),
+      roleConfirmedPlayerIds: _toStringList(map['roleConfirmedPlayerIds']),
+      gameHistory: _toStringList(map['gameHistory']),
+      deadPoolBets: _toStringMap(map['deadPoolBets']),
+      ghostChatMessages: _toStringList(map['ghostChatMessages']),
+      isConnected: false,
+      joinAccepted: map['joinAccepted'] as bool? ?? false,
+      myPlayerId: myPlayerId,
+      myPlayerSnapshot: myPlayerSnapshot,
+      hostName: map['hostName'] as String?,
+      activeEffect: map['activeEffect'] as String?,
+      activeEffectPayload: map['activeEffectPayload'] as Map<String, dynamic>?,
+    );
+  }
+
+  static Map<String, dynamic> _playerSnapshotToMap(PlayerSnapshot player) {
+    return <String, dynamic>{
+      'id': player.id,
+      'name': player.name,
+      'roleId': player.roleId,
+      'roleName': player.roleName,
+      'roleDescription': player.roleDescription,
+      'roleColorHex': player.roleColorHex,
+      'alliance': player.alliance,
+      'isAlive': player.isAlive,
+      'deathDay': player.deathDay,
+      'silencedDay': player.silencedDay,
+      'medicChoice': player.medicChoice,
+      'lives': player.lives,
+      'drinksOwed': player.drinksOwed,
+      'currentBetTargetId': player.currentBetTargetId,
+      'penalties': player.penalties,
+      'hasRumour': player.hasRumour,
+      'clingerPartnerId': player.clingerPartnerId,
+      'hasReviveToken': player.hasReviveToken,
+      'secondWindPendingConversion': player.secondWindPendingConversion,
+      'creepTargetId': player.creepTargetId,
+      'whoreDeflectionUsed': player.whoreDeflectionUsed,
+      'tabooNames': player.tabooNames,
+    };
+  }
+
+  static List<String> _toStringList(dynamic value) {
+    if (value is List) {
+      return value.map((e) => e.toString()).toList(growable: false);
+    }
+    return const <String>[];
+  }
+
+  static Map<String, int> _toIntMap(dynamic value) {
+    if (value is! Map) {
+      return const <String, int>{};
+    }
+    final out = <String, int>{};
+    for (final entry in value.entries) {
+      final parsed = int.tryParse('${entry.value}');
+      if (parsed != null) {
+        out['${entry.key}'] = parsed;
+      }
+    }
+    return out;
+  }
+
+  static Map<String, String> _toStringMap(dynamic value) {
+    if (value is! Map) {
+      return const <String, String>{};
+    }
+    return <String, String>{
+      for (final entry in value.entries) '${entry.key}': '${entry.value}',
+    };
+  }
+
+  static Map<String, List<String>> _toNestedStringMap(dynamic value) {
+    if (value is! Map) {
+      return const <String, List<String>>{};
+    }
+    return <String, List<String>>{
+      for (final entry in value.entries)
+        '${entry.key}': _toStringList(entry.value),
+    };
+  }
 
   PlayerGameState copyWith({
     String? phase,
@@ -214,6 +380,20 @@ class StepSnapshot {
   }
 
   bool get isVote => isDayVoteStepId(id);
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id': id,
+      'title': title,
+      'readAloudText': readAloudText,
+      'instructionText': instructionText,
+      'actionType': actionType,
+      'roleId': roleId,
+      'options': options,
+      'timerSeconds': timerSeconds,
+      'isOptional': isOptional,
+    };
+  }
 }
 
 /// Bridges the PlayerClient WebSocket to a Riverpod state notifier.
@@ -228,6 +408,9 @@ class PlayerBridge extends Notifier<PlayerGameState>
     implements PlayerBridgeActions {
   static const Duration _connectTimeout = Duration(seconds: 8);
   String? _pendingClaimName;
+  String? _cachedJoinCode;
+  String? _cachedPlayerName;
+  String? _cachedHostAddress;
 
   /// Testing injection point for PlayerClient
   @visibleForTesting
@@ -245,10 +428,19 @@ class PlayerBridge extends Notifier<PlayerGameState>
     return const PlayerGameState();
   }
 
+  void restoreFromCache(PlayerSessionCacheEntry entry) {
+    _cachedJoinCode = entry.joinCode;
+    _cachedPlayerName = entry.playerName;
+    _cachedHostAddress = entry.hostAddress;
+    state = PlayerGameState.fromCacheMap(entry.state);
+  }
+
   PlayerConnectionState get connectionState => _connectionState;
 
   /// Connect to the host's WebSocket server.
   Future<void> connect(String url) async {
+    _cachedHostAddress = url.trim();
+
     // Reset connection errors before attempting to connect
     state = state.copyWith(joinError: null, claimedPlayerIds: []);
 
@@ -340,7 +532,10 @@ class PlayerBridge extends Notifier<PlayerGameState>
     final resolvedName =
         playerName.trim().isEmpty ? 'Player' : playerName.trim();
     _pendingClaimName = resolvedName;
+    _cachedJoinCode = joinCode.trim().toUpperCase();
+    _cachedPlayerName = resolvedName;
     joinWithCode(joinCode, playerName: resolvedName, authUid: uid);
+    _persistSessionCache();
   }
 
   @override
@@ -405,6 +600,10 @@ class PlayerBridge extends Notifier<PlayerGameState>
     if (playerId != null) {
       _client?.leave(playerId);
     }
+    await ref.read(playerSessionCacheRepositoryProvider).clear();
+    _cachedJoinCode = null;
+    _cachedPlayerName = null;
+    _cachedHostAddress = null;
     await disconnect();
   }
 
@@ -431,6 +630,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
             claimError: null,
             kickedMessage: 'You were removed from the game',
           );
+          _persistSessionCache();
         }
         break;
       case 'join_response':
@@ -448,6 +648,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
             joinError: error ?? 'Join rejected',
           );
         }
+        _persistSessionCache();
         break;
       case 'claim_response':
         final success = msg.payload['success'] as bool? ?? false;
@@ -467,6 +668,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
             claimError: 'Could not claim player',
           );
         }
+        _persistSessionCache();
         break;
       case 'effect':
         final effectType = msg.payload['effectType'] as String;
@@ -582,6 +784,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
 
     state = nextState;
     _attemptAutoClaim(nextState);
+    _persistSessionCache();
 
     // Refresh active player stats view once when the game ends.
     if (prevPhase != 'endGame' && nextState.isEndGame) {
@@ -609,11 +812,31 @@ class PlayerBridge extends Notifier<PlayerGameState>
       phase: payload['phase'] as String? ?? state.phase,
       currentStep: step,
     );
+    _persistSessionCache();
   }
 
   List<String> _toStringList(dynamic value) {
     if (value is List) return value.map((e) => e.toString()).toList();
     return [];
+  }
+
+  void _persistSessionCache() {
+    final joinCode = _cachedJoinCode;
+    if (joinCode == null || joinCode.isEmpty) {
+      return;
+    }
+
+    final entry = PlayerSessionCacheEntry(
+      joinCode: joinCode,
+      mode: CachedSyncMode.local,
+      hostAddress: _cachedHostAddress,
+      playerName: _cachedPlayerName,
+      savedAt: DateTime.now(),
+      state: state.toCacheMap(),
+    );
+    unawaited(
+      ref.read(playerSessionCacheRepositoryProvider).saveSession(entry),
+    );
   }
 
   void _attemptAutoClaim(PlayerGameState nextState) {

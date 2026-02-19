@@ -14,6 +14,7 @@ import 'guides_screen.dart';
 import 'games_night_screen.dart';
 import 'hall_of_fame_screen.dart';
 import 'stats_screen.dart';
+import 'about_screen.dart';
 import '../widgets/custom_drawer.dart';
 
 class PlayerHomeShell extends ConsumerStatefulWidget {
@@ -32,6 +33,13 @@ class PlayerHomeShell extends ConsumerStatefulWidget {
 
 class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
   bool _handlingSetupTransition = false;
+
+  static const Set<PlayerDestination> _sessionBoundDestinations = {
+    PlayerDestination.lobby,
+    PlayerDestination.claim,
+    PlayerDestination.transition,
+    PlayerDestination.game,
+  };
 
   @override
   void initState() {
@@ -57,7 +65,11 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
     if (!hasBridgeSession) {
       _handlingSetupTransition = false;
       onboarding.reset();
-      nav.setDestination(PlayerDestination.home);
+
+      final currentDestination = ref.read(playerNavigationProvider);
+      if (_sessionBoundDestinations.contains(currentDestination)) {
+        nav.setDestination(PlayerDestination.home);
+      }
       return;
     }
 
@@ -226,6 +238,9 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         break;
       case PlayerDestination.stats:
         activeWidget = const StatsScreen();
+        break;
+      case PlayerDestination.about:
+        activeWidget = const AboutScreen();
         break;
     }
 

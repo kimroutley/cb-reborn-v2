@@ -25,9 +25,10 @@ class GameBottomControls extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final isMultiSelect = step!.actionType == ScriptActionType.selectTwoPlayers ||
-        step!.actionType == ScriptActionType.multiSelect;
-    
+    final isMultiSelect =
+        step!.actionType == ScriptActionType.selectTwoPlayers ||
+            step!.actionType == ScriptActionType.multiSelect;
+
     final currentSelection = gameState.actionLog[step!.id];
     final canConfirm = isMultiSelect
         ? (currentSelection != null && currentSelection.split(',').length >= 2)
@@ -57,9 +58,9 @@ class GameBottomControls extends StatelessWidget {
                   // If no bots acted, try falling back to full simulation if no real players exist (Legacy Sandbox support)
                   // Or just inform user.
                   if (count == 0) {
-                     // Check if we should fallback to legacy simulation (e.g. if I am testing alone without bots added explicitly)
-                     // For now, let's stick to the requested bot logic.
-                     showThemedSnackBar(
+                    // Check if we should fallback to legacy simulation (e.g. if I am testing alone without bots added explicitly)
+                    // For now, let's stick to the requested bot logic.
+                    showThemedSnackBar(
                       context,
                       'No active bots found for this step.',
                       accentColor: theme.colorScheme.error,

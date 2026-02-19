@@ -214,8 +214,8 @@ class _CBGuideScreenState extends State<CBGuideScreen>
                           ),
                         ),
                         const SizedBox(height: 40),
-                        _buildDetailStat(
-                            "WAKE PRIORITY", "LEVEL ${role.nightPriority}", color),
+                        _buildDetailStat("WAKE PRIORITY",
+                            "LEVEL ${role.nightPriority}", color),
                         _buildDetailStat(
                             "ALLIANCE", _allianceName(role.alliance), color),
                         _buildDetailStat(
@@ -572,4 +572,3 @@ class _GuideStrategyGenerator {
     }
   }
 }
-

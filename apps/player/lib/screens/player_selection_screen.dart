@@ -70,7 +70,8 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                   padding: CBInsets.panel,
                   child: CBMessageBubble(
                     sender: 'SYSTEM',
-                    message: 'SELECT 2 PLAYERS TO COMPARE (${_selectedIds.length}/2)',
+                    message:
+                        'SELECT 2 PLAYERS TO COMPARE (${_selectedIds.length}/2)',
                     isSystemMessage: true,
                     color: scheme.tertiary,
                   ),
@@ -87,14 +88,16 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                       delay: Duration(milliseconds: 30 * index),
                       child: CBGlassTile(
                         isPrismatic: true,
-                        borderColor: isSelected ? scheme.tertiary : scheme.primary,
+                        borderColor:
+                            isSelected ? scheme.tertiary : scheme.primary,
                         onTap: () => _onTap(player.id),
                         child: Row(
                           children: [
                             CBRoleAvatar(
                               assetPath: 'assets/roles/${player.roleId}.png',
                               size: 40,
-                              color: isSelected ? scheme.tertiary : scheme.primary,
+                              color:
+                                  isSelected ? scheme.tertiary : scheme.primary,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -102,11 +105,14 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(player.name,
-                                      style: Theme.of(context).textTheme.titleMedium),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium),
                                   const SizedBox(height: 2),
                                   Text(
                                     player.roleName,
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
