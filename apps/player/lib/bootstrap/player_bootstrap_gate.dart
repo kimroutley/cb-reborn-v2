@@ -28,7 +28,8 @@ class PlayerBootstrapGate extends ConsumerStatefulWidget {
   final bool skipAssetWarmup;
 
   @override
-  ConsumerState<PlayerBootstrapGate> createState() => _PlayerBootstrapGateState();
+  ConsumerState<PlayerBootstrapGate> createState() =>
+      _PlayerBootstrapGateState();
 }
 
 class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
@@ -101,6 +102,9 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
 
   double get _progress => (_completedUnits / _totalUnits).clamp(0.0, 1.0);
 
+  String get _progressLabel =>
+      '${(_progress * 100).toStringAsFixed(0)}% - $_completedUnits/$_totalUnits';
+
   Future<void> _setStatus(String status) async {
     if (!mounted) {
       return;
@@ -169,14 +173,14 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
 
     final imageProviders = <ImageProvider>[
       const AssetImage(CBTheme.globalBackgroundAsset),
-      for (final role in roleCatalog)
-        AssetImage('assets/roles/${role.id}.png'),
+      for (final role in roleCatalog) AssetImage('assets/roles/${role.id}.png'),
     ];
 
     var index = 0;
     for (final provider in imageProviders) {
       index += 1;
-      await _setStatus('WARMING VISUAL ASSETS... ($index/${imageProviders.length})');
+      await _setStatus(
+          'WARMING VISUAL ASSETS... ($index/${imageProviders.length})');
       if (!mounted) {
         return;
       }
@@ -234,13 +238,15 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
                       child: LinearProgressIndicator(
                         value: _progress,
                         minHeight: 8,
-                        backgroundColor: scheme.onSurface.withValues(alpha: 0.15),
-                        valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
+                        backgroundColor:
+                            scheme.onSurface.withValues(alpha: 0.15),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(scheme.primary),
                       ),
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      '${(_progress * 100).toStringAsFixed(0)}% · $_completedUnits/$_totalUnits',
+                      _progressLabel,
                       textAlign: TextAlign.center,
                       style: textTheme.labelMedium?.copyWith(
                         color: scheme.primary.withValues(alpha: 0.95),

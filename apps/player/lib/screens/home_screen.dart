@@ -293,7 +293,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  Future<void> _connect() async {
+  void _connectFromButton() {
+    _enableResumeAutoReconnect();
+    unawaited(_connect(fromResumeAutoReconnect: false));
+  }
+
+  Future<void> _connect({required bool fromResumeAutoReconnect}) async {
+    var success = false;
+    var retryableFailure = true;
+
     setState(() {
       _connectionError = null;
       _isConnecting = true;
@@ -320,6 +328,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // Attempt connection
     try {
       await _performConnection();
+      success = true;
     } on TimeoutException {
       setState(() {
         _connectionError =

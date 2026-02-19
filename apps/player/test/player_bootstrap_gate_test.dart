@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cb_player/bootstrap/player_bootstrap_gate.dart';
 import 'package:cb_player/cloud_player_bridge.dart';
 import 'package:cb_player/join_link_state.dart';
@@ -14,6 +16,15 @@ class _FakeCacheRepository extends PlayerSessionCacheRepository {
 
   @override
   Future<PlayerSessionCacheEntry?> loadSession() async => entry;
+}
+
+class _DelayedCacheRepository extends PlayerSessionCacheRepository {
+  _DelayedCacheRepository(this.completer);
+
+  final Completer<PlayerSessionCacheEntry?> completer;
+
+  @override
+  Future<PlayerSessionCacheEntry?> loadSession() => completer.future;
 }
 
 class _TrackingPlayerBridge extends PlayerBridge {
@@ -49,6 +60,46 @@ Future<void> _pumpBootstrapProgress(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('bootstrap loader shows bounded progress label while restoring',
+      (tester) async {
+    final localBridge = _TrackingPlayerBridge();
+    final cloudBridge = _TrackingCloudBridge();
+    final completer = Completer<PlayerSessionCacheEntry?>();
+    final container = ProviderContainer(
+      overrides: [
+        playerSessionCacheRepositoryProvider
+            .overrideWithValue(_DelayedCacheRepository(completer)),
+        playerBridgeProvider.overrideWith(() => localBridge),
+        cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: PlayerBootstrapGate(
+            skipPersistenceInit: true,
+            skipFirestoreCacheConfig: true,
+            skipAssetWarmup: true,
+            child: Text('READY'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(find.text('RESTORING LAST SESSION...'), findsOneWidget);
+    expect(find.text('0% - 0/1'), findsOneWidget);
+
+    completer.complete(null);
+    await _pumpBootstrapProgress(tester);
+
+    expect(find.text('READY'), findsOneWidget);
+  });
+
   testWidgets('bootstrap with no cache does not seed pending join URL',
       (tester) async {
     final localBridge = _TrackingPlayerBridge();
