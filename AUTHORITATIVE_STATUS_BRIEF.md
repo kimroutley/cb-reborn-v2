@@ -1,43 +1,42 @@
 # Authoritative status brief
 
-This brief reconciles project docs with live code health checks run on
-2026-02-18.
+This brief reflects the **live repository state on 2026-02-19**.
 
-## Scope reviewed
+## Executive summary
 
-- Root docs: `README.md`, `AGENT_CONTEXT.md`, `STYLE_GUIDE.md`,
-  `REBORN_CONTEXT.md`, `GEMINI_GUIDE.md`, `AGENTS.md`
-- Working docs: `PLAYER_APP_PLAN.md`, `PR_DESCRIPTION.md`,
-  `GEMINI_HANDOFF_LIST.txt`
-- Live repo validation with `flutter analyze` and `flutter test`
+- `main` is currently aligned with `origin/main` (no ahead/behind divergence).
+- Repository is **not release-clean right now** due to a large active in-flight change set.
+- The previous profile/awards/theme stabilization work is in history, but a new broad polish pass is underway and has not been fully gated.
 
-## Live health snapshot
+## Current branch state
 
-| Package | Analyze | Test | Notes |
-| --- | --- | --- | --- |
-| `apps/host` | Pass | Pass | No analyzer issues |
-| `apps/player` | Pass | Pass | No analyzer issues |
-| `packages/cb_theme` | Pass | Pass | No analyzer issues |
-| `packages/cb_logic` | Pass | Pass | Night resolution tests updated to new API |
+- Branch: `main`
+- Remote relation: in sync with `origin/main`
+- Uncommitted tracked changes: **39 files**
+  - `apps/`: 28
+  - `packages/`: 9
+  - local agent metadata dirs: 2
 
-## Confirmed current state
+## Implication
 
-- Host and player apps are stable in analysis and tests.
-- Theme and logic packages now pass both analyze and tests.
-- Logic test coverage is aligned with the current
-  `resolveNightActions(GameState)` contract.
+At this moment, the workspace should be treated as an **active development checkpoint**, not a final release snapshot.
 
-## Reconciliation completed
+## Risk posture (current)
 
-- Updated `packages/cb_logic/test/night_resolution_test.dart` to call
-  `resolveNightActions` through `GameState` and aligned one stale Wallflower
-  assertion to current behavior.
-- Removed an unused import in
-  `packages/cb_theme/lib/src/widgets/handbook_content.dart` to clear analyzer
-  warnings.
-- Updated stale documentation claims in `AGENT_CONTEXT.md`, `README.md`, and
-  `STYLE_GUIDE.md`.
+1. **Scope spread risk**: changes are distributed across Host, Player, and shared packages.
+2. **Validation gap risk**: full repo gates have not yet been re-run against the *current* 39-file in-flight set.
+3. **Packaging risk**: without commit slicing, release notes and PR narrative can drift from actual code state.
 
-## Recommended next actions
+## Stabilization plan (recommended immediate sequence)
 
-1. Keep this brief updated whenever package health or style defaults change.
+1. Slice current in-flight edits into 2-4 coherent commit groups (UI polish, logic/model adjustments, tests/docs).
+2. Run gates per slice:
+   - `apps/host`: analyze + relevant tests
+   - `apps/player`: analyze + relevant tests
+   - touched `packages/*`: analyze + tests
+3. Refresh `PR_DESCRIPTION.md` and `RELEASE_NOTES_2026-02-19.md` from final commit list.
+4. Re-check `git status` is clean and re-verify `origin/main...HEAD` divergence before merge/release.
+
+## Operator note
+
+Use this file as the single source of truth for "ready vs in-progress" state. If the working tree is dirty, this brief must explicitly say so.
