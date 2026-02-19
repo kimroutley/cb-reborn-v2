@@ -18,6 +18,7 @@ class NightResolutionContext {
   final Set<String> silencedPlayerIds = {};
   final Set<String> killedPlayerIds = {};
   final Map<String, String> dealerAttacks = {}; // killerId -> targetId
+  final Map<String, String> killSources = {}; // targetId -> source/reason
   final Map<String, String> redirectedActions = {};
 
   NightResolutionContext({

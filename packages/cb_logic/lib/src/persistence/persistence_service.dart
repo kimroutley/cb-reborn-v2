@@ -290,9 +290,11 @@ class PersistenceService {
     GameState game,
     SessionState session,
   ) async {
-    await _activeBox.put(_gameKeyForSlot(slotId), jsonEncode(game.toJson()));
-    await _activeBox.put(
-        _sessionKeyForSlot(slotId), jsonEncode(session.toJson()));
+    final gameJson = await Isolate.run(() => jsonEncode(game.toJson()));
+    final sessionJson = await Isolate.run(() => jsonEncode(session.toJson()));
+
+    await _activeBox.put(_gameKeyForSlot(slotId), gameJson);
+    await _activeBox.put(_sessionKeyForSlot(slotId), sessionJson);
     await _activeBox.put(
       _savedAtKeyForSlot(slotId),
       DateTime.now().toIso8601String(),
@@ -363,8 +365,8 @@ class PersistenceService {
 
   /// Archive a completed game.
   Future<void> saveGameRecord(GameRecord record) async {
-    await _recordsBox.put(record.id, jsonEncode(record.toJson()));
-    await rebuildRoleAwardProgresses();
+    final recordJson = await Isolate.run(() => jsonEncode(record.toJson()));
+    await _recordsBox.put(record.id, recordJson);
   }
 
   /// Load all game records, newest first.
@@ -630,7 +632,8 @@ class PersistenceService {
 
   /// Save a Games Night session record.
   Future<void> saveGamesNightRecord(GamesNightRecord record) async {
-    await _sessionsBox.put(record.id, jsonEncode(record.toJson()));
+    final recordJson = await Isolate.run(() => jsonEncode(record.toJson()));
+    await _sessionsBox.put(record.id, recordJson);
   }
 
   /// Load all Games Night session records, sorted by start time (newest first).

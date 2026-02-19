@@ -30,6 +30,7 @@ class MessyBitchKillAction implements NightActionStrategy {
       if (targetId != null) {
         final target = context.getPlayer(targetId);
         context.killedPlayerIds.add(targetId);
+        context.killSources[targetId] = 'messy_bitch';
         context.addPrivateMessage(
             bitch.id, 'Score settled with ${target.name}.');
         context.addTeaser('Score settled.');

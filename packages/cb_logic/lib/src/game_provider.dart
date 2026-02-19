@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,22 +18,29 @@ part 'game_provider.g.dart';
 class Game extends _$Game {
   DateTime? _gameStartedAt;
   final Map<String, String> _stepNarrationOverrides = {};
+  Timer? _persistDebounceTimer;
 
   @override
   GameState build() {
+    ref.onDispose(() {
+      _persistDebounceTimer?.cancel();
+    });
     return const GameState();
   }
 
   // ────────────── Persistence helpers ──────────────
 
-  /// Auto-save current state for crash recovery.
+  /// Auto-save current state for crash recovery (debounced).
   void _persist() {
-    try {
-      final session = ref.read(sessionProvider);
-      PersistenceService.instance.saveActiveGame(state, session);
-    } catch (_) {
-      // Persistence is best-effort; don't crash the game
-    }
+    _persistDebounceTimer?.cancel();
+    _persistDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      try {
+        final session = ref.read(sessionProvider);
+        PersistenceService.instance.saveActiveGame(state, session);
+      } catch (_) {
+        // Persistence is best-effort; don't crash the game
+      }
+    });
   }
 
   /// Attempt to restore a previously saved game.
@@ -231,7 +239,7 @@ class Game extends _$Game {
     if (step == null) return 0;
 
     if (_isDayVoteStep(step.id)) {
-      return _simulateDayVotesForBots(stepId: step.id);
+      return _simulateDayVotes(stepId: step.id, botsOnly: true);
     }
 
     // 1. Check if the current step belongs to a specific player
@@ -312,28 +320,28 @@ class Game extends _$Game {
   }
 
   static const List<String> _stepPrefixesWithPlayerId = [
-    'dealer_act_',
-    'silver_fox_act_',
-    'whore_act_',
-    'sober_act_',
-    'roofi_act_',
-    'bouncer_act_',
-    'medic_act_',
-    'bartender_act_',
-    'lightweight_act_',
-    'messy_bitch_act_',
-    'club_manager_act_',
-    'attack_dog_act_',
-    'messy_bitch_kill_',
-    'medic_choice_',
-    'creep_setup_',
-    'clinger_setup_',
-    'drama_queen_setup_',
-    'drama_queen_vendetta_',
-    'minor_id_',
-    'second_wind_convert_',
-    'tea_spiller_reveal_',
-    'predator_retaliation_',
+    '${RoleIds.dealer}_act_',
+    '${RoleIds.silverFox}_act_',
+    '${RoleIds.whore}_act_',
+    '${RoleIds.sober}_act_',
+    '${RoleIds.roofi}_act_',
+    '${RoleIds.bouncer}_act_',
+    '${RoleIds.medic}_act_',
+    '${RoleIds.bartender}_act_',
+    '${RoleIds.lightweight}_act_',
+    '${RoleIds.messyBitch}_act_',
+    '${RoleIds.clubManager}_act_',
+    '${RoleIds.attackDog}_act_',
+    '${RoleIds.messyBitchKill}_',
+    '${RoleIds.medic}_choice_',
+    '${RoleIds.creep}_setup_',
+    '${RoleIds.clinger}_setup_',
+    '${RoleIds.dramaQueen}_setup_',
+    '${RoleIds.dramaQueen}_vendetta_',
+    '${RoleIds.minor}_id_',
+    '${RoleIds.secondWind}_convert_',
+    '${RoleIds.teaSpiller}_reveal_',
+    '${RoleIds.predator}_retaliation_',
   ];
 
   String? _extractActorId(String stepId) {
@@ -620,45 +628,18 @@ class Game extends _$Game {
     return step.options[rng.nextInt(step.options.length)];
   }
 
-  int _simulateDayVotes({required String stepId}) {
+  int _simulateDayVotes({required String stepId, bool botsOnly = false}) {
     final rng = Random();
     final alive = state.players.where((p) => p.isAlive).toList();
     if (alive.length < 2) return 0;
 
-    final voters = alive
-        .where((p) => p.silencedDay != state.dayCount && !p.isSinBinned)
-        .toList();
-    if (voters.isEmpty) return 0;
-
-    var cast = 0;
-    for (final voter in voters) {
-      if (state.dayVotesByVoter.containsKey(voter.id)) continue;
-
-      final targets = alive.where((p) => p.id != voter.id).toList();
-      final targetId = targets.isEmpty || rng.nextDouble() < 0.15
-          ? 'abstain'
-          : targets[rng.nextInt(targets.length)].id;
-      handleInteraction(stepId: stepId, targetId: targetId, voterId: voter.id);
-      cast++;
-    }
-
-    _persist();
-    return cast;
-  }
-
-  int _simulateDayVotesForBots({required String stepId}) {
-    final rng = Random();
-    final alive = state.players.where((p) => p.isAlive).toList();
-    if (alive.length < 2) return 0;
-
-    final voters = state.players
-        .where((p) =>
-            p.isAlive &&
-            p.isBot &&
-            p.silencedDay != state.dayCount &&
-            !p.isSinBinned &&
-            !state.dayVotesByVoter.containsKey(p.id))
-        .toList();
+    final voters = alive.where((p) {
+      if (botsOnly && !p.isBot) return false;
+      if (p.silencedDay == state.dayCount) return false;
+      if (p.isSinBinned) return false;
+      if (state.dayVotesByVoter.containsKey(p.id)) return false;
+      return true;
+    }).toList();
 
     if (voters.isEmpty) return 0;
 
