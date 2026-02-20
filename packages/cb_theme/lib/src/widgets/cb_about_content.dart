@@ -117,7 +117,8 @@ class CBAboutContent extends StatelessWidget {
           child: visibleBuilds.isEmpty
               ? Text(
                   'No recent updates available.',
-                  style: textTheme.bodyMedium?.copyWith(color: CBColors.textDim),
+                  style:
+                      textTheme.bodyMedium?.copyWith(color: CBColors.textDim),
                 )
               : Theme(
                   data: Theme.of(context).copyWith(
@@ -145,7 +146,8 @@ class CBAboutContent extends StatelessWidget {
                         _BuildUpdateTile(update: visibleBuilds[i]),
                         if (i < visibleBuilds.length - 1)
                           Divider(
-                            color: scheme.outlineVariant.withValues(alpha: 0.35),
+                            color:
+                                scheme.outlineVariant.withValues(alpha: 0.35),
                             height: CBSpace.x6,
                           ),
                       ],

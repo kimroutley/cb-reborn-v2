@@ -1993,7 +1993,8 @@ void main() {
         game.assignRole(botId, roleId);
 
         state = container.read(gameProvider);
-        final stepBuilder = scenario['stepBuilder'] as ScriptStep Function(String);
+        final stepBuilder =
+            scenario['stepBuilder'] as ScriptStep Function(String);
         final step = stepBuilder(botId);
 
         game.state = state.copyWith(
@@ -2217,8 +2218,8 @@ void main() {
         expect(acted, 1, reason: 'Expected bot action for role $roleId');
 
         final updated = container.read(gameProvider);
-        final validator =
-            scenario['validator'] as void Function(GameState, String, ScriptStep);
+        final validator = scenario['validator'] as void Function(
+            GameState, String, ScriptStep);
         validator(updated, botId, step);
       }
     });
@@ -2310,7 +2311,8 @@ void main() {
       final drama = updated.players.firstWhere((p) => p.id == dramaBotId);
       expect(drama.dramaQueenTargetAId, isNotNull);
       expect(drama.dramaQueenTargetBId, isNotNull);
-      expect(drama.dramaQueenTargetAId, isNot(equals(drama.dramaQueenTargetBId)));
+      expect(
+          drama.dramaQueenTargetAId, isNot(equals(drama.dramaQueenTargetBId)));
       expect(drama.dramaQueenTargetAId, isNot(equals(dramaBotId)));
       expect(drama.dramaQueenTargetBId, isNot(equals(dramaBotId)));
     });
@@ -2366,7 +2368,8 @@ void main() {
       expect(picks.length, 2);
       expect(picks[0], isNot(equals(picks[1])));
 
-      final aliveIds = updated.players.where((p) => p.isAlive).map((p) => p.id).toSet();
+      final aliveIds =
+          updated.players.where((p) => p.isAlive).map((p) => p.id).toSet();
       expect(aliveIds.contains(picks[0]), isTrue);
       expect(aliveIds.contains(picks[1]), isTrue);
     });

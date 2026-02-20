@@ -91,7 +91,8 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
       await prefs.setDouble(_keySfxVolume, next.sfxVolume);
       await prefs.setDouble(_keyMusicVolume, next.musicVolume);
       await prefs.setBool(_keyHighContrast, next.highContrast);
-      await prefs.setBool(_keyGeminiNarrationEnabled, next.geminiNarrationEnabled);
+      await prefs.setBool(
+          _keyGeminiNarrationEnabled, next.geminiNarrationEnabled);
       await prefs.setString(_keyHostPersonalityId, next.hostPersonalityId);
     } catch (e) {
       // Best-effort

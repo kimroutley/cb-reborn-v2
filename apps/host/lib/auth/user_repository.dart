@@ -6,8 +6,8 @@ class UserRepository {
   final ProfileRepository _profileRepository;
 
   UserRepository({FirebaseFirestore? firestore})
-      : _profileRepository =
-            ProfileRepository(firestore: firestore ?? FirebaseFirestore.instance);
+      : _profileRepository = ProfileRepository(
+            firestore: firestore ?? FirebaseFirestore.instance);
 
   Future<bool> hasProfile(String uid) async {
     return _profileRepository.hasProfile(uid);

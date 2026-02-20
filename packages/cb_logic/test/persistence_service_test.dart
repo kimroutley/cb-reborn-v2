@@ -439,7 +439,8 @@ void main() {
       expect(byPlayer.length, roleAwardsForRoleId(RoleIds.dealer).length);
 
       final rookie = byPlayer.firstWhere(
-        (row) => roleAwardDefinitionById(row.awardId)?.tier == RoleAwardTier.rookie,
+        (row) =>
+            roleAwardDefinitionById(row.awardId)?.tier == RoleAwardTier.rookie,
       );
       expect(rookie.progressValue, 1);
       expect(rookie.isUnlocked, true);

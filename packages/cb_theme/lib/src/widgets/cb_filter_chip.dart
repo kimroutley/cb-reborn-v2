@@ -83,4 +83,3 @@ class CBFilterChip extends StatelessWidget {
     );
   }
 }
-

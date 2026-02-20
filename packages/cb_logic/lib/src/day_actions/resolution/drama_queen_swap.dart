@@ -100,11 +100,11 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
     );
 
     privateMessages.putIfAbsent(targetA.id, () => []).add(
-      'Drama Queen trigger: You were swapped with ${targetB.name}. Your new role is ${targetB.role.name}.',
-    );
+          'Drama Queen trigger: You were swapped with ${targetB.name}. Your new role is ${targetB.role.name}.',
+        );
     privateMessages.putIfAbsent(targetB.id, () => []).add(
-      'Drama Queen trigger: You were swapped with ${targetA.name}. Your new role is ${targetA.role.name}.',
-    );
+          'Drama Queen trigger: You were swapped with ${targetA.name}. Your new role is ${targetA.role.name}.',
+        );
   }
 
   return (

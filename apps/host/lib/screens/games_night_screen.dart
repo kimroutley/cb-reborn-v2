@@ -97,7 +97,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   ],
                 ),
               ),
-            ),
+      ),
     );
   }
 

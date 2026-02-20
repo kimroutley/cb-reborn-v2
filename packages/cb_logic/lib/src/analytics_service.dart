@@ -2,7 +2,8 @@
 abstract class AnalyticsProvider {
   Future<void> setAnalyticsCollectionEnabled(bool enabled);
   Future<void> logScreenView({String? screenName, String? screenClass});
-  Future<void> logEvent({required String name, Map<String, Object>? parameters});
+  Future<void> logEvent(
+      {required String name, Map<String, Object>? parameters});
 }
 
 /// Analytics service for tracking game events.

@@ -50,8 +50,6 @@ class AppReleaseNotes {
       return const [];
     }
 
-    return List<AppBuildUpdate>.unmodifiable(
-      sorted.take(maxEntries),
-    );
+    return List<AppBuildUpdate>.unmodifiable(sorted.take(maxEntries));
   }
 }

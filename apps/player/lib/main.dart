@@ -53,7 +53,8 @@ Future<void> main() async {
                       const SizedBox(height: CBSpace.x4),
                       Text(
                         'Club Blackout Failed to Load',
-                        style: CBTypography.h2.copyWith(color: scheme.onSurface),
+                        style:
+                            CBTypography.h2.copyWith(color: scheme.onSurface),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: CBSpace.x2),

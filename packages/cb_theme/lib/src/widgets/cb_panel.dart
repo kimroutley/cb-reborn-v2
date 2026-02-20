@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-
 /// A glowing panel for grouping related content.
 class CBPanel extends StatelessWidget {
   final Widget child;
@@ -73,4 +72,3 @@ class CBPanel extends StatelessWidget {
     );
   }
 }
-

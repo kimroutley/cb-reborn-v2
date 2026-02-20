@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../colors.dart';
 
-
 /// A linear progress indicator with a breathing neon gradient effect.
 class CBBreathingBar extends StatefulWidget {
   final double width;

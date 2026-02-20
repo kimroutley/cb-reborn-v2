@@ -275,7 +275,8 @@ class AuthNotifier extends Notifier<AuthState> {
         state = AuthState(
           AuthStatus.needsProfile,
           user: user,
-          error: 'That username is already in use. Choose another manager name.',
+          error:
+              'That username is already in use. Choose another manager name.',
         );
         return;
       }

@@ -118,9 +118,10 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
                             child: CircularProgressIndicator(
                               value: _revealAnimation.value,
                               strokeWidth: 3,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(widget.roleColor),
-                              backgroundColor: widget.roleColor.withValues(alpha: 0.1),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  widget.roleColor),
+                              backgroundColor:
+                                  widget.roleColor.withValues(alpha: 0.1),
                             ),
                           );
                         },
@@ -139,7 +140,10 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
                           color: scheme.onSurface,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1.5,
-                          shadows: _isRevealed ? CBColors.textGlow(widget.roleColor, intensity: 0.4) : null,
+                          shadows: _isRevealed
+                              ? CBColors.textGlow(widget.roleColor,
+                                  intensity: 0.4)
+                              : null,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -170,8 +174,7 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
                 if (widget.isMyTurn)
                   CBBadge(text: "YOUR TURN", color: widget.roleColor)
                 else
-                  CBBadge(
-                      text: "ACTIVE", color: scheme.tertiary),
+                  CBBadge(text: "ACTIVE", color: scheme.tertiary),
               ],
             ),
           ),

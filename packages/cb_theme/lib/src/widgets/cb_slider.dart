@@ -49,4 +49,3 @@ class CBSlider extends StatelessWidget {
     );
   }
 }
-

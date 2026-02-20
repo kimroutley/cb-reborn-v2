@@ -16,9 +16,11 @@ class MedicReviveHandler implements DeathHandler {
       if (targetId == victim.id) {
         // Successful revive!
         context.updatePlayer(medic.copyWith(hasReviveToken: false));
-        context.report.add('${medic.name} used their one-time revival on ${victim.name}.');
-        context.teasers.add('A miracle occurred! Someone returned from the brink.');
-        
+        context.report.add(
+            '${medic.name} used their one-time revival on ${victim.name}.');
+        context.teasers
+            .add('A miracle occurred! Someone returned from the brink.');
+
         // Return true to signify the death was handled (prevented)
         return true;
       }

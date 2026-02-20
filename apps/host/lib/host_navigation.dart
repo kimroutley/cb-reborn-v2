@@ -10,6 +10,7 @@ class HostNavigationNotifier extends Notifier<HostDestination> {
   }
 }
 
-final hostNavigationProvider = NotifierProvider<HostNavigationNotifier, HostDestination>(() {
+final hostNavigationProvider =
+    NotifierProvider<HostNavigationNotifier, HostDestination>(() {
   return HostNavigationNotifier();
 });

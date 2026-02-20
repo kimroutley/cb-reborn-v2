@@ -153,13 +153,15 @@ class FakeUserRepository extends Fake implements UserRepository {
   Future<bool> isUsernameAvailable(
     String username, {
     String? excludingUid,
-  }) async => true;
+  }) async =>
+      true;
 
   @override
   Future<bool> isPublicPlayerIdAvailable(
     String publicPlayerId, {
     String? excludingUid,
-  }) async => true;
+  }) async =>
+      true;
 }
 
 class FakeUserCredential extends Fake implements UserCredential {

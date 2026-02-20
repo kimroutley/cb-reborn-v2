@@ -288,7 +288,7 @@ void main() {
       final steps = ScriptBuilder.buildDayScript(1);
       final timerIdx =
           steps.indexWhere((s) => s.actionType == ScriptActionType.showTimer);
-        final voteIdx = steps.indexWhere((s) => s.id.startsWith('day_vote_'));
+      final voteIdx = steps.indexWhere((s) => s.id.startsWith('day_vote_'));
       expect(timerIdx, lessThan(voteIdx));
     });
   });

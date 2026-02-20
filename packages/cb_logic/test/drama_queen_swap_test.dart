@@ -151,8 +151,8 @@ void main() {
       expect(buddy.role.id, RoleIds.partyAnimal);
       expect(result.lines,
           contains('Drama Queen chaos: Dealer and Sober swapped roles.'));
-        expect(result.privateMessages['dealer'], isNotNull);
-        expect(result.privateMessages['sober'], isNotNull);
+      expect(result.privateMessages['dealer'], isNotNull);
+      expect(result.privateMessages['sober'], isNotNull);
     });
 
     test('ignores duplicate explicit swap choice and falls back safely', () {

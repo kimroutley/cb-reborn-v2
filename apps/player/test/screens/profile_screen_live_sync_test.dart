@@ -53,12 +53,14 @@ class _TestProfileRepository extends ProfileRepository {
   Stream<Map<String, dynamic>?> watchProfile(String uid) => watch;
 
   @override
-  Future<bool> isUsernameAvailable(String username, {String? excludingUid}) async {
+  Future<bool> isUsernameAvailable(String username,
+      {String? excludingUid}) async {
     return true;
   }
 
   @override
-  Future<bool> isPublicPlayerIdAvailable(String publicPlayerId, {String? excludingUid}) async {
+  Future<bool> isPublicPlayerIdAvailable(String publicPlayerId,
+      {String? excludingUid}) async {
     return true;
   }
 
@@ -75,7 +77,9 @@ class _TestProfileRepository extends ProfileRepository {
 }
 
 void main() {
-  testWidgets('queues remote profile updates while dirty then applies on discard', (tester) async {
+  testWidgets(
+      'queues remote profile updates while dirty then applies on discard',
+      (tester) async {
     final controller = StreamController<Map<String, dynamic>?>.broadcast();
     addTearDown(controller.close);
 
@@ -126,7 +130,8 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Cloud profile update detected. Save/discard to sync latest values.'),
+      find.text(
+          'Cloud profile update detected. Save/discard to sync latest values.'),
       findsOneWidget,
     );
     expect(
@@ -146,7 +151,9 @@ void main() {
     );
   });
 
-  testWidgets('queues remote profile updates while dirty then applies after save', (tester) async {
+  testWidgets(
+      'queues remote profile updates while dirty then applies after save',
+      (tester) async {
     final controller = StreamController<Map<String, dynamic>?>.broadcast();
     addTearDown(controller.close);
 
@@ -192,11 +199,13 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text('Cloud profile update detected. Save/discard to sync latest values.'),
+      find.text(
+          'Cloud profile update detected. Save/discard to sync latest values.'),
       findsOneWidget,
     );
 
-    final saveButtonFinder = find.widgetWithText(CBPrimaryButton, 'SAVE CHANGES');
+    final saveButtonFinder =
+        find.widgetWithText(CBPrimaryButton, 'SAVE CHANGES');
     await tester.ensureVisible(saveButtonFinder);
     await tester.tap(saveButtonFinder);
     await tester.pump();
@@ -206,9 +215,9 @@ void main() {
       tester.widget<EditableText>(usernameEditable).controller.text,
       'Remote After Save',
     );
-    expect(find.text('Cloud profile update detected. Save/discard to sync latest values.'), findsNothing);
+    expect(
+        find.text(
+            'Cloud profile update detected. Save/discard to sync latest values.'),
+        findsNothing);
   });
-
 }
-
-

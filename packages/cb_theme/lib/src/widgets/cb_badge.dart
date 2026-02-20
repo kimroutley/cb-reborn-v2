@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 /// Compact label chip (e.g., role badge, status tag).
 class CBBadge extends StatelessWidget {
   final String text;
@@ -17,8 +16,7 @@ class CBBadge extends StatelessWidget {
     final theme = Theme.of(context);
     final badgeColor = color ?? theme.colorScheme.primary;
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 12, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
@@ -30,4 +28,3 @@ class CBBadge extends StatelessWidget {
     );
   }
 }
-

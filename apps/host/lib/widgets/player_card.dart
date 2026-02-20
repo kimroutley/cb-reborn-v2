@@ -24,7 +24,8 @@ class PlayerCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: CBPanel(
-        borderColor: (player.isAlive ? roleColor : scheme.error).withValues(alpha: 0.4),
+        borderColor:
+            (player.isAlive ? roleColor : scheme.error).withValues(alpha: 0.4),
         child: InkWell(
           onTap: onTap,
           child: Column(
@@ -49,20 +50,17 @@ class PlayerCard extends StatelessWidget {
                         Text(
                           player.name,
                           style: textTheme.headlineSmall!.copyWith(
-                                color:
-                                    player.isAlive ? roleColor : scheme.error,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            color: player.isAlive ? roleColor : scheme.error,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           player.role.name.toUpperCase(),
                           style: textTheme.bodySmall!.copyWith(
-                                color: (player.isAlive
-                                        ? roleColor
-                                        : scheme.error)
-                                    .withValues(alpha: 0.7),
-                              ),
+                            color: (player.isAlive ? roleColor : scheme.error)
+                                .withValues(alpha: 0.7),
+                          ),
                         ),
                       ],
                     ),
@@ -90,8 +88,7 @@ class PlayerCard extends StatelessWidget {
                     if (player.isShadowBanned)
                       Padding(
                         padding: const EdgeInsets.only(right: 8.0),
-                        child:
-                            CBBadge(text: 'GHOSTED', color: scheme.tertiary),
+                        child: CBBadge(text: 'GHOSTED', color: scheme.tertiary),
                       ),
                     Text(
                       switch (player.alliance) {

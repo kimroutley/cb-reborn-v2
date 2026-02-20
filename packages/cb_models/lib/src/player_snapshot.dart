@@ -66,7 +66,8 @@ class PlayerSnapshot {
       lives: map['lives'] as int? ?? 1,
       drinksOwed: map['drinksOwed'] as int? ?? 0,
       currentBetTargetId: map['currentBetTargetId'] as String?,
-      penalties: (map['penalties'] as List<dynamic>?)
+      penalties:
+          (map['penalties'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const <String>[],
@@ -77,7 +78,8 @@ class PlayerSnapshot {
           map['secondWindPendingConversion'] as bool? ?? false,
       creepTargetId: map['creepTargetId'] as String?,
       whoreDeflectionUsed: map['whoreDeflectionUsed'] as bool? ?? false,
-      tabooNames: (map['tabooNames'] as List<dynamic>?)
+      tabooNames:
+          (map['tabooNames'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const <String>[],

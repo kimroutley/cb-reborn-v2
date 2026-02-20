@@ -55,4 +55,3 @@ class CBStatusOverlay extends StatelessWidget {
     );
   }
 }
-

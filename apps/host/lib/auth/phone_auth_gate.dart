@@ -163,10 +163,12 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailLink(
-        email: normalizedEmail,
-        emailLink: link,
-      ).timeout(_completeLinkTimeout);
+      await FirebaseAuth.instance
+          .signInWithEmailLink(
+            email: normalizedEmail,
+            emailLink: link,
+          )
+          .timeout(_completeLinkTimeout);
       await _clearPendingEmail();
     } on FirebaseAuthException catch (e) {
       if (!mounted) {
@@ -277,7 +279,7 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
             return _buildStyleSelection(context);
           }
 
-            final currentLink = _latestAuthLink ?? Uri.base.toString();
+          final currentLink = _latestAuthLink ?? Uri.base.toString();
           final isSignInLink =
               FirebaseAuth.instance.isSignInWithEmailLink(currentLink);
 

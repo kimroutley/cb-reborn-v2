@@ -46,4 +46,3 @@ class CBSwitch extends StatelessWidget {
     );
   }
 }
-

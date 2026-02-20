@@ -39,14 +39,14 @@ class CBReportCard extends StatelessWidget {
           Text(
             title.toUpperCase(),
             style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                  color: accentColor,
-                  shadows: [
-                    Shadow(
-                      color: accentColor.withValues(alpha: 0.4),
-                      blurRadius: 8,
-                    )
-                  ],
-                ),
+              color: accentColor,
+              shadows: [
+                Shadow(
+                  color: accentColor.withValues(alpha: 0.4),
+                  blurRadius: 8,
+                )
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           ...lines.map(
@@ -73,4 +73,3 @@ class CBReportCard extends StatelessWidget {
     );
   }
 }
-

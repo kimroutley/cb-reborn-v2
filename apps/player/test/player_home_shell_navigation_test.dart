@@ -206,11 +206,11 @@ void main() {
         find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
 
     container
-      .read(playerNavigationProvider.notifier)
-      .setDestination(PlayerDestination.about);
+        .read(playerNavigationProvider.notifier)
+        .setDestination(PlayerDestination.about);
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(
-      find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
+        find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
   });
 }

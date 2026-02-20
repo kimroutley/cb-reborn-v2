@@ -57,7 +57,7 @@ class FakeAuthService implements AuthService {
 
   @override
   Future<UserCredential> signInWithGoogle() async {
-     throw UnimplementedError();
+    throw UnimplementedError();
   }
 
   @override
@@ -94,13 +94,15 @@ class FakeUserRepository implements UserRepository {
   Future<bool> isUsernameAvailable(
     String username, {
     String? excludingUid,
-  }) async => true;
+  }) async =>
+      true;
 
   @override
   Future<bool> isPublicPlayerIdAvailable(
     String publicPlayerId, {
     String? excludingUid,
-  }) async => true;
+  }) async =>
+      true;
 }
 
 // Fake AppLinks implementation
@@ -159,7 +161,8 @@ void main() {
     subscription.close();
   });
 
-  test('State becomes authenticated when user exists and has profile', () async {
+  test('State becomes authenticated when user exists and has profile',
+      () async {
     final subscription = container.listen(authProvider, (_, __) {});
 
     final user = FakeUser(uid: '123', email: 'test@example.com');

@@ -74,17 +74,25 @@ class GhostLoungeView extends StatelessWidget {
                 const SizedBox(height: 20),
                 Text(
                   'Identify the next node to be purged from the network. Influence the remaining patrons from the shadows.',
-                  style: textTheme.bodyMedium!.copyWith(color: scheme.onSurface.withValues(alpha: 0.8)),
+                  style: textTheme.bodyMedium!
+                      .copyWith(color: scheme.onSurface.withValues(alpha: 0.8)),
                 ),
                 const SizedBox(height: 24),
                 CBGlassTile(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  borderColor: currentBetTargetName == null ? scheme.secondary.withValues(alpha: 0.4) : scheme.tertiary.withValues(alpha: 0.4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  borderColor: currentBetTargetName == null
+                      ? scheme.secondary.withValues(alpha: 0.4)
+                      : scheme.tertiary.withValues(alpha: 0.4),
                   child: Row(
                     children: [
                       Icon(
-                        currentBetTargetName == null ? Icons.warning_amber_rounded : Icons.radar_rounded,
-                        color: currentBetTargetName == null ? scheme.secondary : scheme.tertiary,
+                        currentBetTargetName == null
+                            ? Icons.warning_amber_rounded
+                            : Icons.radar_rounded,
+                        color: currentBetTargetName == null
+                            ? scheme.secondary
+                            : scheme.tertiary,
                         size: 20,
                       ),
                       const SizedBox(width: 12),
@@ -94,7 +102,9 @@ class GhostLoungeView extends StatelessWidget {
                               ? 'NO ACTIVE PREDICTION'
                               : 'TARGET LOCKED: ${currentBetTargetName!.toUpperCase()}',
                           style: textTheme.labelSmall!.copyWith(
-                            color: currentBetTargetName == null ? scheme.secondary : scheme.tertiary,
+                            color: currentBetTargetName == null
+                                ? scheme.secondary
+                                : scheme.tertiary,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.0,
                           ),
@@ -129,28 +139,34 @@ class GhostLoungeView extends StatelessWidget {
                                     color: scheme.error,
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.5,
-                                    shadows: CBColors.textGlow(scheme.error, intensity: 0.4),
+                                    shadows: CBColors.textGlow(scheme.error,
+                                        intensity: 0.4),
                                   ),
                                 ),
                                 const SizedBox(height: 24),
                                 ConstrainedBox(
-                                  constraints: const BoxConstraints(maxHeight: 300),
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 300),
                                   child: SingleChildScrollView(
                                     child: Column(
-                                      children: aliveTargets.map(
-                                        (target) => Padding(
-                                          padding: const EdgeInsets.only(bottom: 10),
-                                          child: CBPrimaryButton(
-                                            label: target.name,
-                                            backgroundColor: scheme.error.withValues(alpha: 0.15),
-                                            foregroundColor: scheme.error,
-                                            onPressed: () {
-                                              onPlaceBet(target.id);
-                                              Navigator.pop(context);
-                                            },
-                                          ),
-                                        ),
-                                      ).toList(),
+                                      children: aliveTargets
+                                          .map(
+                                            (target) => Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 10),
+                                              child: CBPrimaryButton(
+                                                label: target.name,
+                                                backgroundColor: scheme.error
+                                                    .withValues(alpha: 0.15),
+                                                foregroundColor: scheme.error,
+                                                onPressed: () {
+                                                  onPlaceBet(target.id);
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
                                     ),
                                   ),
                                 ),
@@ -202,8 +218,10 @@ class GhostLoungeView extends StatelessWidget {
                     (bet) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: CBGlassTile(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        borderColor:
+                            scheme.outlineVariant.withValues(alpha: 0.3),
                         child: Row(
                           children: [
                             Expanded(
@@ -213,7 +231,8 @@ class GhostLoungeView extends StatelessWidget {
                                   Text(
                                     bet.bettorName.toUpperCase(),
                                     style: textTheme.labelSmall!.copyWith(
-                                      color: scheme.onSurface.withValues(alpha: 0.5),
+                                      color: scheme.onSurface
+                                          .withValues(alpha: 0.5),
                                       fontSize: 8,
                                     ),
                                   ),
@@ -222,7 +241,8 @@ class GhostLoungeView extends StatelessWidget {
                                       Text(
                                         'PREDICTS ',
                                         style: textTheme.labelSmall!.copyWith(
-                                          color: scheme.error.withValues(alpha: 0.7),
+                                          color: scheme.error
+                                              .withValues(alpha: 0.7),
                                           fontSize: 9,
                                           fontWeight: FontWeight.w900,
                                         ),
@@ -232,7 +252,9 @@ class GhostLoungeView extends StatelessWidget {
                                         style: textTheme.labelLarge!.copyWith(
                                           color: scheme.onSurface,
                                           fontWeight: FontWeight.w900,
-                                          shadows: CBColors.textGlow(scheme.error, intensity: 0.3),
+                                          shadows: CBColors.textGlow(
+                                              scheme.error,
+                                              intensity: 0.3),
                                         ),
                                       ),
                                     ],

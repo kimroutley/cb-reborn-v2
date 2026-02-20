@@ -175,8 +175,7 @@ class _TacticalMonitorState extends State<TacticalMonitor>
                           decoration: BoxDecoration(
                             color: _getStatusColor(player),
                             shape: BoxShape.circle,
-                            border:
-                                Border.all(color: scheme.surface, width: 2),
+                            border: Border.all(color: scheme.surface, width: 2),
                           ),
                         ),
                       ),

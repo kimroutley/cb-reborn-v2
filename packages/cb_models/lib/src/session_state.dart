@@ -11,7 +11,10 @@ const String kJoinCodePrefix = 'NEON';
 String generateJoinCode() {
   final rng = Random.secure();
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  final suffix = List.generate(kJoinCodeSuffixLength, (_) => chars[rng.nextInt(chars.length)]).join();
+  final suffix = List.generate(
+    kJoinCodeSuffixLength,
+    (_) => chars[rng.nextInt(chars.length)],
+  ).join();
   return '$kJoinCodePrefix-$suffix';
 }
 
@@ -19,7 +22,10 @@ String generateSessionId() {
   final rng = Random.secure();
   String segment(int length) {
     const chars = 'abcdef0123456789';
-    return List.generate(length, (_) => chars[rng.nextInt(chars.length)]).join();
+    return List.generate(
+      length,
+      (_) => chars[rng.nextInt(chars.length)],
+    ).join();
   }
 
   return '${segment(8)}-${segment(4)}-${segment(4)}-${segment(4)}-${segment(12)}';

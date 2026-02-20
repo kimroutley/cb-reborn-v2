@@ -3,11 +3,11 @@ import 'package:cb_theme/src/colors.dart';
 import 'package:cb_theme/src/widgets/cb_role_avatar.dart';
 
 enum CBMessageStyle {
-  system,    // Centered, pill-style, low emphasis
+  system, // Centered, pill-style, low emphasis
   narrative, // Centered, story text, medium emphasis
-  standard,  // Left/Right bubble (chat)
-  action,    // Interactive/Command prompt style
-  result,    // High impact outcome
+  standard, // Left/Right bubble (chat)
+  action, // Interactive/Command prompt style
+  result, // High impact outcome
 }
 
 enum CBMessageGroupPosition {
@@ -21,34 +21,41 @@ enum CBMessageGroupPosition {
 class CBMessageBubble extends StatelessWidget {
   final String sender;
   final String message;
-  final String? avatarAsset;
-  final Color? color;
-  final bool isSender;
   final CBMessageStyle style;
-  final DateTime? timestamp;
+  final Color? color;
+  final String? avatarAsset;
+  final bool isSender;
   final CBMessageGroupPosition groupPosition;
-  final bool _legacyIsSystemMessage;
+
+  /// Deprecated: Use style instead.
+  final bool? isSystemMessage;
 
   const CBMessageBubble({
     super.key,
     required this.sender,
     required this.message,
-    this.avatarAsset,
-    this.color,
-    this.isSender = false,
     this.style = CBMessageStyle.standard,
-    this.timestamp,
+    this.color,
+    this.avatarAsset,
+    this.isSender = false,
     this.groupPosition = CBMessageGroupPosition.single,
     @Deprecated('Use style: CBMessageStyle.system instead')
-    bool isSystemMessage = false,
-  }) : _legacyIsSystemMessage = isSystemMessage;
+    this.isSystemMessage,
+  });
+
+  CBMessageStyle get _effectiveStyle =>
+      (isSystemMessage ?? false) ? CBMessageStyle.system : style;
 
   @override
   Widget build(BuildContext context) {
-    final effectiveStyle =
-        _legacyIsSystemMessage ? CBMessageStyle.system : style;
-    if (effectiveStyle == CBMessageStyle.system ||
-        effectiveStyle == CBMessageStyle.narrative) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    final bool isSystem = _effectiveStyle == CBMessageStyle.system;
+    final bool isNarrative = _effectiveStyle == CBMessageStyle.narrative;
+
+    if (isSystem || isNarrative) {
       return _buildCenteredMessage(context);
     }
     return _buildBubbleMessage(context);
@@ -57,10 +64,12 @@ class CBMessageBubble extends StatelessWidget {
   Widget _buildCenteredMessage(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final effectiveStyle =
-      _legacyIsSystemMessage ? CBMessageStyle.system : style;
+    final effectiveStyle = _effectiveStyle == CBMessageStyle.system
+        ? CBMessageStyle.system
+        : style;
     final isNarrative = effectiveStyle == CBMessageStyle.narrative;
-    final accentColor = color ?? (isNarrative ? scheme.secondary : scheme.outline);
+    final accentColor =
+        color ?? (isNarrative ? scheme.secondary : scheme.outline);
 
     return Center(
       child: Container(
@@ -101,9 +110,15 @@ class CBMessageBubble extends StatelessWidget {
     if (isSender) {
       borderRadius = BorderRadius.only(
         topLeft: radius,
-        topRight: (groupPosition == CBMessageGroupPosition.top || groupPosition == CBMessageGroupPosition.single) ? radius : smallRadius,
+        topRight: (groupPosition == CBMessageGroupPosition.top ||
+                groupPosition == CBMessageGroupPosition.single)
+            ? radius
+            : smallRadius,
         bottomLeft: radius,
-        bottomRight: (groupPosition == CBMessageGroupPosition.bottom || groupPosition == CBMessageGroupPosition.single) ? smallRadius : smallRadius, // Sender tail usually bottom right? Actually standard messaging apps smooth the corners between bubbles.
+        bottomRight: (groupPosition == CBMessageGroupPosition.bottom ||
+                groupPosition == CBMessageGroupPosition.single)
+            ? smallRadius
+            : smallRadius, // Sender tail usually bottom right? Actually standard messaging apps smooth the corners between bubbles.
         // Let's adopt standard messaging logic:
         // Top: Top corners round, bottom same-side corner small
         // Middle: Both same-side corners small
@@ -111,39 +126,84 @@ class CBMessageBubble extends StatelessWidget {
       );
 
       if (groupPosition == CBMessageGroupPosition.top) {
-        borderRadius = const BorderRadius.only(topLeft: radius, topRight: radius, bottomLeft: radius, bottomRight: smallRadius);
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: radius,
+            bottomLeft: radius,
+            bottomRight: smallRadius);
       } else if (groupPosition == CBMessageGroupPosition.middle) {
-        borderRadius = const BorderRadius.only(topLeft: radius, topRight: smallRadius, bottomLeft: radius, bottomRight: smallRadius);
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: smallRadius,
+            bottomLeft: radius,
+            bottomRight: smallRadius);
       } else if (groupPosition == CBMessageGroupPosition.bottom) {
-        borderRadius = const BorderRadius.only(topLeft: radius, topRight: smallRadius, bottomLeft: radius, bottomRight: radius);
-      } else { // single
-        borderRadius = const BorderRadius.only(topLeft: radius, topRight: radius, bottomLeft: radius, bottomRight: radius);
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: smallRadius,
+            bottomLeft: radius,
+            bottomRight: radius);
+      } else {
+        // single
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: radius,
+            bottomLeft: radius,
+            bottomRight: radius);
       }
     } else {
       // Received message (Avatar on left)
       if (groupPosition == CBMessageGroupPosition.top) {
-        borderRadius = const BorderRadius.only(topLeft: radius, topRight: radius, bottomLeft: smallRadius, bottomRight: radius);
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: radius,
+            bottomLeft: smallRadius,
+            bottomRight: radius);
       } else if (groupPosition == CBMessageGroupPosition.middle) {
-        borderRadius = const BorderRadius.only(topLeft: smallRadius, topRight: radius, bottomLeft: smallRadius, bottomRight: radius);
+        borderRadius = const BorderRadius.only(
+            topLeft: smallRadius,
+            topRight: radius,
+            bottomLeft: smallRadius,
+            bottomRight: radius);
       } else if (groupPosition == CBMessageGroupPosition.bottom) {
-        borderRadius = const BorderRadius.only(topLeft: smallRadius, topRight: radius, bottomLeft: radius, bottomRight: radius);
-      } else { // single
-        borderRadius = const BorderRadius.only(topLeft: radius, topRight: radius, bottomLeft: radius, bottomRight: radius);
+        borderRadius = const BorderRadius.only(
+            topLeft: smallRadius,
+            topRight: radius,
+            bottomLeft: radius,
+            bottomRight: radius);
+      } else {
+        // single
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: radius,
+            bottomLeft: radius,
+            bottomRight: radius);
       }
     }
 
-    final showAvatar = !isSender && (groupPosition == CBMessageGroupPosition.bottom || groupPosition == CBMessageGroupPosition.single);
-    final showSenderName = !isSender && sender.isNotEmpty && (groupPosition == CBMessageGroupPosition.top || groupPosition == CBMessageGroupPosition.single);
+    final showAvatar = !isSender &&
+        (groupPosition == CBMessageGroupPosition.bottom ||
+            groupPosition == CBMessageGroupPosition.single);
+    final showSenderName = !isSender &&
+        sender.isNotEmpty &&
+        (groupPosition == CBMessageGroupPosition.top ||
+            groupPosition == CBMessageGroupPosition.single);
 
     return Padding(
       padding: EdgeInsets.only(
-        top: (groupPosition == CBMessageGroupPosition.top || groupPosition == CBMessageGroupPosition.single) ? 4 : 1,
-        bottom: (groupPosition == CBMessageGroupPosition.bottom || groupPosition == CBMessageGroupPosition.single) ? 4 : 1,
-        left: 8,
-        right: 8
-      ),
+          top: (groupPosition == CBMessageGroupPosition.top ||
+                  groupPosition == CBMessageGroupPosition.single)
+              ? 4
+              : 1,
+          bottom: (groupPosition == CBMessageGroupPosition.bottom ||
+                  groupPosition == CBMessageGroupPosition.single)
+              ? 4
+              : 1,
+          left: 8,
+          right: 8),
       child: Row(
-        mainAxisAlignment: isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isSender) ...[
@@ -155,7 +215,8 @@ class CBMessageBubble extends StatelessWidget {
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment: isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 if (showSenderName)
                   Padding(
@@ -170,7 +231,8 @@ class CBMessageBubble extends StatelessWidget {
                     ),
                   ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: isSender
                         ? accentColor.withValues(alpha: 0.2)
@@ -188,7 +250,8 @@ class CBMessageBubble extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (groupPosition == CBMessageGroupPosition.bottom || groupPosition == CBMessageGroupPosition.single)
+                if (groupPosition == CBMessageGroupPosition.bottom ||
+                    groupPosition == CBMessageGroupPosition.single)
                   if (timestamp != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
@@ -210,7 +273,7 @@ class CBMessageBubble extends StatelessWidget {
             // For now, let's keep it simple and just show it if single/bottom or always?
             // "Advanced messaging" often skips own avatar.
             // The previous implementation showed it. I'll hide it for cleaner look unless single.
-             const SizedBox(width: 32),
+            const SizedBox(width: 32),
           ],
         ],
       ),

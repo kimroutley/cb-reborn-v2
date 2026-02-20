@@ -152,10 +152,10 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
     // Approximate height-based scrolling
     double offset = 0;
     for (int i = 0; i < index; i++) {
-        // Calculate approx height of preceding category
-        offset += 60; // Category Header
-        offset += _categories[i].sections.length * 140; // Approx section height
-        offset += 32; // Spacing
+      // Calculate approx height of preceding category
+      offset += 60; // Category Header
+      offset += _categories[i].sections.length * 140; // Approx section height
+      offset += 32; // Spacing
     }
 
     _scrollController.animateTo(
@@ -197,7 +197,9 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
                       child: IconButton(
                         icon: Icon(
                           cat.icon,
-                          color: isActive ? scheme.primary : scheme.onSurface.withValues(alpha: 0.4),
+                          color: isActive
+                              ? scheme.primary
+                              : scheme.onSurface.withValues(alpha: 0.4),
                         ),
                         onPressed: () => _scrollToCategory(index),
                         tooltip: cat.title,
@@ -227,7 +229,7 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
                     color: scheme.primary,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // ── INJECT LIVE DATA FOR OVERVIEW ──
                   if (index == 0 && widget.gameState != null) ...[
                     const SizedBox(height: 16),
@@ -255,7 +257,8 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
                               Text(
                                 sec.content,
                                 style: theme.textTheme.bodyMedium!.copyWith(
-                                  color: scheme.onSurface.withValues(alpha: 0.8),
+                                  color:
+                                      scheme.onSurface.withValues(alpha: 0.8),
                                   height: 1.6,
                                 ),
                               ),

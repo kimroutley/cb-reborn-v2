@@ -37,8 +37,8 @@ class DeathResolutionStrategy implements NightActionStrategy {
 
     // Continue as long as there are pending deaths not yet resolved
     while (context.killedPlayerIds.length > resolvedIds.length) {
-      final targetId = context.killedPlayerIds
-          .firstWhere((id) => !resolvedIds.contains(id));
+      final targetId =
+          context.killedPlayerIds.firstWhere((id) => !resolvedIds.contains(id));
       resolvedIds.add(targetId);
 
       if (context.protectedPlayerIds.contains(targetId)) {

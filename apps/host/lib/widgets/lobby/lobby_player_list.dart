@@ -29,10 +29,8 @@ class LobbyPlayerList extends ConsumerWidget {
     final confirmedHumans = session.roleConfirmedPlayerIds
         .where((id) => gameState.players.any((p) => p.id == id && !p.isBot))
         .length;
-    final alivePlayerIds = gameState.players
-        .where((p) => p.isAlive)
-        .map((p) => p.id)
-        .toSet();
+    final alivePlayerIds =
+        gameState.players.where((p) => p.isAlive).map((p) => p.id).toSet();
     final pendingDramaSwapTargetIds = <String>{};
     for (final dramaQueen in gameState.players.where(
       (p) => p.role.id == RoleIds.dramaQueen && p.isAlive,
@@ -80,8 +78,10 @@ class LobbyPlayerList extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: scheme.tertiary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: scheme.tertiary.withValues(alpha: 0.3)),
-                    boxShadow: CBColors.boxGlow(scheme.tertiary, intensity: 0.1),
+                    border: Border.all(
+                        color: scheme.tertiary.withValues(alpha: 0.3)),
+                    boxShadow:
+                        CBColors.boxGlow(scheme.tertiary, intensity: 0.1),
                   ),
                   child: Icon(
                     Icons.smart_toy_rounded,
@@ -115,7 +115,8 @@ class LobbyPlayerList extends ConsumerWidget {
                 child: Text(
                   'SETUP STATUS: $confirmedHumans / $connectedHumans ROLE CONFIRMATIONS RECEIVED',
                   style: textTheme.labelSmall!.copyWith(
-                    color: confirmedHumans >= connectedHumans && connectedHumans > 0
+                    color: confirmedHumans >= connectedHumans &&
+                            connectedHumans > 0
                         ? scheme.tertiary
                         : scheme.secondary,
                     fontWeight: FontWeight.w900,
@@ -124,7 +125,8 @@ class LobbyPlayerList extends ConsumerWidget {
                 ),
               ),
               if (confirmedHumans >= connectedHumans && connectedHumans > 0)
-                Icon(Icons.check_circle_rounded, color: scheme.tertiary, size: 16),
+                Icon(Icons.check_circle_rounded,
+                    color: scheme.tertiary, size: 16),
             ],
           ),
         ),
@@ -150,7 +152,8 @@ class LobbyPlayerList extends ConsumerWidget {
                         color: scheme.tertiary,
                         letterSpacing: 2.0,
                         fontWeight: FontWeight.w800,
-                        shadows: CBColors.textGlow(scheme.tertiary, intensity: 0.4),
+                        shadows:
+                            CBColors.textGlow(scheme.tertiary, intensity: 0.4),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -187,7 +190,7 @@ class LobbyPlayerList extends ConsumerWidget {
           final descriptor = (emailMasked != null && emailMasked.isNotEmpty)
               ? '$displayName ($emailMasked)'
               : displayName;
-            final hasPendingDramaSwap =
+          final hasPendingDramaSwap =
               pendingDramaSwapTargetIds.contains(player.id);
 
           return CBFadeSlide(
@@ -352,24 +355,28 @@ class LobbyPlayerList extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'Merging ${sourcePlayer.name.toUpperCase()} into another node...',
-            style: textTheme.bodySmall!.copyWith(color: scheme.onSurface.withValues(alpha: 0.6)),
+            style: textTheme.bodySmall!
+                .copyWith(color: scheme.onSurface.withValues(alpha: 0.6)),
           ),
           const SizedBox(height: 24),
           ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 300),
             child: SingleChildScrollView(
               child: Column(
-                children: choices.map(
-                  (choice) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: CBPrimaryButton(
-                      label: choice.name,
-                      backgroundColor: scheme.secondary.withValues(alpha: 0.2),
-                      foregroundColor: scheme.secondary,
-                      onPressed: () => Navigator.pop(context, choice.id),
-                    ),
-                  ),
-                ).toList(),
+                children: choices
+                    .map(
+                      (choice) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: CBPrimaryButton(
+                          label: choice.name,
+                          backgroundColor:
+                              scheme.secondary.withValues(alpha: 0.2),
+                          foregroundColor: scheme.secondary,
+                          onPressed: () => Navigator.pop(context, choice.id),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ),
           ),

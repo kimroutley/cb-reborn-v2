@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 /// Standard bottom-sheet handle (used when you need a handle inside a custom sheet,
 /// e.g. a [DraggableScrollableSheet]).
 class CBBottomSheetHandle extends StatelessWidget {
@@ -28,4 +27,3 @@ class CBBottomSheetHandle extends StatelessWidget {
     );
   }
 }
-

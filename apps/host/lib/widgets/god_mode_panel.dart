@@ -35,7 +35,8 @@ class GodModePanel extends ConsumerWidget {
     );
   }
 
-  Widget _buildDirectorCommands(BuildContext context, CloudHostBridge hostBridge) {
+  Widget _buildDirectorCommands(
+      BuildContext context, CloudHostBridge hostBridge) {
     final scheme = Theme.of(context).colorScheme;
     return CBPanel(
       borderColor: scheme.secondary.withValues(alpha: 0.4),
@@ -382,5 +383,3 @@ class GodModePanel extends ConsumerWidget {
     );
   }
 }
-
-

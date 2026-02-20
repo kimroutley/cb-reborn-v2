@@ -28,7 +28,8 @@ class FirebaseAnalyticsProvider implements AnalyticsProvider {
   }
 
   @override
-  Future<void> logEvent({required String name, Map<String, Object>? parameters}) async {
+  Future<void> logEvent(
+      {required String name, Map<String, Object>? parameters}) async {
     await _analytics.logEvent(name: name, parameters: parameters);
     if (kDebugMode) {
       debugPrint('Firebase Analytics: Event - $name, Parameters: $parameters');

@@ -48,10 +48,10 @@ class SimulationModeBadgeAction extends ConsumerWidget {
             Text(
               'SIMULATION MODE',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: scheme.tertiary,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.9,
-              ),
+                    color: scheme.tertiary,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.9,
+                  ),
             ),
           ],
         ),

@@ -1,15 +1,6 @@
-enum RoleAwardTier {
-  rookie,
-  pro,
-  legend,
-  bonus,
-}
+enum RoleAwardTier { rookie, pro, legend, bonus }
 
-enum RoleAwardScope {
-  role,
-  scenario,
-  allStar,
-}
+enum RoleAwardScope { role, scenario, allStar }
 
 class RoleAwardDefinition {
   const RoleAwardDefinition({

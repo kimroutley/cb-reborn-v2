@@ -25,7 +25,8 @@ void main() {
     });
 
     test('party animal wins when winner is partyAnimals', () {
-      final player = _player(roleId: RoleIds.partyAnimal, alliance: 'partyAnimals');
+      final player =
+          _player(roleId: RoleIds.partyAnimal, alliance: 'partyAnimals');
       expect(isPlayerVictory(winner: 'partyAnimals', player: player), isTrue);
     });
 

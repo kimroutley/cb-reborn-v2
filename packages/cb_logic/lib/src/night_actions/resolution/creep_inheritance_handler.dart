@@ -6,7 +6,9 @@ class CreepInheritanceHandler implements DeathHandler {
   @override
   bool handle(NightResolutionContext context, Player victim) {
     final creeps = context.players.where((p) =>
-        p.isAlive && p.role.id == RoleIds.creep && p.creepTargetId == victim.id);
+        p.isAlive &&
+        p.role.id == RoleIds.creep &&
+        p.creepTargetId == victim.id);
 
     for (final creep in creeps) {
       context.updatePlayer(
@@ -16,8 +18,8 @@ class CreepInheritanceHandler implements DeathHandler {
           creepTargetId: null,
         ),
       );
-      context.report
-          .add('The Creep ${creep.name} inherited the role of ${victim.role.name}.');
+      context.report.add(
+          'The Creep ${creep.name} inherited the role of ${victim.role.name}.');
     }
 
     return false; // Let other handlers continue processing the victim death.

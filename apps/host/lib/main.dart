@@ -42,7 +42,8 @@ Future<void> _initializePersistenceOfflineFirst() async {
     final recordsBox = await Hive.openBox<String>('game_records_fallback');
     final sessionsBox = await Hive.openBox<String>('games_night_fallback');
     PersistenceService.initWithBoxes(activeBox, recordsBox, sessionsBox);
-    debugPrint('[HostApp] Using fallback persistence boxes for offline startup');
+    debugPrint(
+        '[HostApp] Using fallback persistence boxes for offline startup');
   } catch (e) {
     debugPrint('[HostApp] Fallback persistence init failed: $e');
   }

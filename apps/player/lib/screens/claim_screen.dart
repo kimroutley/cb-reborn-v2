@@ -85,7 +85,8 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                                 'Please wait for the Host to add you.',
                                 textAlign: TextAlign.center,
                                 style: textTheme.bodyMedium!.copyWith(
-                                  color: scheme.onSurface.withValues(alpha: 0.5),
+                                  color:
+                                      scheme.onSurface.withValues(alpha: 0.5),
                                 ),
                               ),
                             ),
@@ -118,15 +119,21 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                               children: [
                                 CBRoleAvatar(
                                   size: 40,
-                                  color: isSelected ? scheme.primary : scheme.onSurface.withValues(alpha: 0.5),
+                                  color: isSelected
+                                      ? scheme.primary
+                                      : scheme.onSurface.withValues(alpha: 0.5),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Text(
                                     player.name.toUpperCase(),
                                     style: textTheme.titleMedium!.copyWith(
-                                      color: isSelected ? scheme.primary : scheme.onSurface,
-                                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal,
+                                      color: isSelected
+                                          ? scheme.primary
+                                          : scheme.onSurface,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w900
+                                          : FontWeight.normal,
                                       letterSpacing: 1.0,
                                     ),
                                   ),

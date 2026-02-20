@@ -15,10 +15,8 @@ class GodModeControls extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
     final alivePlayers = gameState.players.where((p) => p.isAlive).toList();
-    final alivePlayerIds = gameState.players
-        .where((p) => p.isAlive)
-        .map((p) => p.id)
-        .toSet();
+    final alivePlayerIds =
+        gameState.players.where((p) => p.isAlive).map((p) => p.id).toSet();
     final pendingDramaSwapTargetIds = <String>{};
     for (final dramaQueen in gameState.players.where(
       (p) => p.role.id == RoleIds.dramaQueen && p.isAlive,
@@ -123,7 +121,7 @@ class GodModeControls extends ConsumerWidget {
                     shadows: CBColors.textGlow(roleColor, intensity: 0.3),
                   ),
                 ),
-            ),
+              ),
               if (hasPendingDramaSwap)
                 CBBadge(
                   text: 'PENDING SWAP',
@@ -169,12 +167,15 @@ class GodModeControls extends ConsumerWidget {
                       ),
                       _ActionChip(
                         label: player.isMuted ? 'UNMUTE' : 'MUTE',
-                        icon: player.isMuted ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                        icon: player.isMuted
+                            ? Icons.volume_up_rounded
+                            : Icons.volume_off_rounded,
                         color: scheme.secondary,
                         onTap: () => _toggleMute(context, ref, player),
                       ),
                       _ActionChip(
-                        label: player.hasHostShield ? 'DISPELS SHIELD' : 'SHIELD',
+                        label:
+                            player.hasHostShield ? 'DISPELS SHIELD' : 'SHIELD',
                         icon: Icons.shield_rounded,
                         color: scheme.primary,
                         onTap: () => _grantShield(context, ref, player),
@@ -251,7 +252,8 @@ class GodModeControls extends ConsumerWidget {
                 onPressed: () {
                   ref.read(gameProvider.notifier).forceKillPlayer(player.id);
                   Navigator.pop(context);
-                  showThemedSnackBar(context, '${player.name} ELIMINATED', accentColor: scheme.error);
+                  showThemedSnackBar(context, '${player.name} ELIMINATED',
+                      accentColor: scheme.error);
                 },
               ),
             ],
@@ -266,8 +268,8 @@ class GodModeControls extends ConsumerWidget {
     ref
         .read(gameProvider.notifier)
         .togglePlayerMute(player.id, !player.isMuted);
-    showThemedSnackBar(
-        context, '${player.name.toUpperCase()} ${player.isMuted ? 'UNMUTED' : 'MUTED'}',
+    showThemedSnackBar(context,
+        '${player.name.toUpperCase()} ${player.isMuted ? 'UNMUTED' : 'MUTED'}',
         accentColor: scheme.secondary);
   }
 
@@ -354,7 +356,9 @@ class GodModeControls extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            player.isShadowBanned ? 'PROTOCOL: LIFT BAN' : 'PROTOCOL: SHADOW BAN',
+            player.isShadowBanned
+                ? 'PROTOCOL: LIFT BAN'
+                : 'PROTOCOL: SHADOW BAN',
             style: textTheme.labelLarge!.copyWith(
               color: scheme.secondary,
               letterSpacing: 1.6,
@@ -452,7 +456,8 @@ class GodModeControls extends ConsumerWidget {
                       reason.isEmpty ? 'No reason provided' : reason);
                   Navigator.pop(context);
                   showThemedSnackBar(
-                      context, '${player.name.toUpperCase()} EJECTED', accentColor: scheme.error);
+                      context, '${player.name.toUpperCase()} EJECTED',
+                      accentColor: scheme.error);
                 },
               ),
             ],

@@ -22,4 +22,3 @@ class CBAllianceGraph extends StatelessWidget {
     );
   }
 }
-

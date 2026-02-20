@@ -101,49 +101,44 @@ void main() {
     });
 
     test('MVP logic - rewards consistency and participation', () {
-      final g1 = _createGame(
-        id: 'g1',
-        winner: Team.clubStaff,
-        roster: [
-          _player('A', Team.clubStaff, true),
-          _player('B', Team.clubStaff, true),
-          _player('C', Team.clubStaff, true),
-        ]
-      );
+      final g1 = _createGame(id: 'g1', winner: Team.clubStaff, roster: [
+        _player('A', Team.clubStaff, true),
+        _player('B', Team.clubStaff, true),
+        _player('C', Team.clubStaff, true),
+      ]);
 
-      final g2 = _createGame(
-        id: 'g2',
-        winner: Team.partyAnimals,
-        roster: [
-          _player('B', Team.partyAnimals, true), // Win
-          _player('C', Team.partyAnimals, true), // Win
-        ]
-      );
+      final g2 = _createGame(id: 'g2', winner: Team.partyAnimals, roster: [
+        _player('B', Team.partyAnimals, true), // Win
+        _player('C', Team.partyAnimals, true), // Win
+      ]);
 
-      final g3 = _createGame(
-        id: 'g3',
-        winner: Team.partyAnimals,
-        roster: [
-          _player('B', Team.clubStaff, false), // Loss
-          _player('C', Team.partyAnimals, true), // Win
-        ]
-      );
+      final g3 = _createGame(id: 'g3', winner: Team.partyAnimals, roster: [
+        _player('B', Team.clubStaff, false), // Loss
+        _player('C', Team.partyAnimals, true), // Win
+      ]);
 
       final games = [g1, g2, g3];
 
       // Session needs to reflect correct games count
       final session = GamesNightRecord(
-        id: 's1',
-        sessionName: 'Test',
-        startedAt: DateTime.now(),
-        gameIds: ['g1', 'g2', 'g3'],
-        playerNames: ['A', 'B', 'C'],
-        playerGamesCount: {
-          'A': 1,
-          'B': 3,
-          'C': 3,
-        }
-      );
+          id: 's1',
+          sessionName: 'Test',
+          startedAt: DateTime.now(),
+          gameIds: [
+            'g1',
+            'g2',
+            'g3'
+          ],
+          playerNames: [
+            'A',
+            'B',
+            'C'
+          ],
+          playerGamesCount: {
+            'A': 1,
+            'B': 3,
+            'C': 3,
+          });
 
       final recap = RecapGenerator.generateRecap(session, games);
 
@@ -153,13 +148,12 @@ void main() {
 
       // Test A vs B (comparing 1 game vs 3 games with lower win rate)
       final sessionAB = GamesNightRecord(
-        id: 's2',
-        sessionName: 'AB',
-        startedAt: DateTime.now(),
-        gameIds: ['g1', 'g2', 'g3'],
-        playerNames: ['A', 'B'],
-        playerGamesCount: {'A': 1, 'B': 3}
-      );
+          id: 's2',
+          sessionName: 'AB',
+          startedAt: DateTime.now(),
+          gameIds: ['g1', 'g2', 'g3'],
+          playerNames: ['A', 'B'],
+          playerGamesCount: {'A': 1, 'B': 3});
 
       final recapAB = RecapGenerator.generateRecap(sessionAB, games);
 
@@ -168,16 +162,13 @@ void main() {
     });
 
     test('Main Character - handles regex variations', () {
-      final g1 = _createGame(
-        id: 'g1',
-        history: [
-          'Vote for Alice.', // Matches "Vote for" (capitalized) + punctuation
-          'Bob voted for Alice', // Matches "voted for" + end of string (no punctuation)
-          'Charlie voted for Alice.', // Matches "voted for" + punctuation
-          'Dealer David killed Alice', // Should NOT match (regex expects "was killed" or "died")
-          'Alice died mysteriously', // Matches "Alice died"
-        ]
-      );
+      final g1 = _createGame(id: 'g1', history: [
+        'Vote for Alice.', // Matches "Vote for" (capitalized) + punctuation
+        'Bob voted for Alice', // Matches "voted for" + end of string (no punctuation)
+        'Charlie voted for Alice.', // Matches "voted for" + punctuation
+        'Dealer David killed Alice', // Should NOT match (regex expects "was killed" or "died")
+        'Alice died mysteriously', // Matches "Alice died"
+      ]);
 
       final games = [g1];
       final session = _generateSession(games);

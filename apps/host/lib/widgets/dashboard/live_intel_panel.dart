@@ -66,7 +66,8 @@ class LiveIntelPanel extends StatelessWidget {
           const SizedBox(height: 12),
           _winOddsBar(context, 'CLUB STAFF', staffOdds, scheme.secondary),
           const SizedBox(height: 12),
-          _winOddsBar(context, 'PARTY ANIMALS', 100 - staffOdds, scheme.tertiary),
+          _winOddsBar(
+              context, 'PARTY ANIMALS', 100 - staffOdds, scheme.tertiary),
 
           const SizedBox(height: 24),
 
@@ -111,7 +112,8 @@ class LiveIntelPanel extends StatelessWidget {
     );
   }
 
-  Widget _winOddsBar(BuildContext context, String label, int percentage, Color color) {
+  Widget _winOddsBar(
+      BuildContext context, String label, int percentage, Color color) {
     final textTheme = Theme.of(context).textTheme;
 
     return Column(

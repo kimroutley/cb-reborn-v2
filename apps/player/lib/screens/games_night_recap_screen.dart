@@ -35,71 +35,71 @@ class GamesNightRecapScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-            // Session Header
-            CBGlassTile(
-              borderColor: scheme.primary,
-              isPrismatic: true,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+                // Session Header
+                CBGlassTile(
+                  borderColor: scheme.primary,
+                  isPrismatic: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.calendar_today, color: scheme.primary),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          session.sessionName.toUpperCase(),
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                      Row(
+                        children: [
+                          Icon(Icons.calendar_today, color: scheme.primary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              session.sessionName.toUpperCase(),
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 6),
+                      Text(
+                        DateFormat('MMM dd, yyyy').format(session.startedAt),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: scheme.primary),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildStatsSummary(context, scheme),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    DateFormat('MMM dd, yyyy').format(session.startedAt),
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: scheme.primary),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildStatsSummary(context, scheme),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // Games List
-            CBSectionHeader(
-              title: 'GAMES PLAYED',
-              icon: Icons.sports_esports,
-              count: sortedGames.length,
-            ),
-            const SizedBox(height: 16),
-
-            if (sortedGames.isEmpty)
-              CBPanel(
-                child: Text(
-                  "No games recorded for this session.",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.7),
-                  ),
                 ),
-              )
-            else
-              ...sortedGames.asMap().entries.map((entry) {
-                // Since we sorted descending, the game number should probably be calculated based on original index or total - index?
-                // Or just use the original list index.
-                // If we want "Game 1" to be the first game, we should use the index from the sorted list if we want it reversed?
-                // Let's just say "Game X" where X corresponds to the order played.
-                // sortedGames is latest first. So index 0 is Game N.
-                final index = entry.key;
-                final game = entry.value;
-                final gameNumber = games.length - index;
-                return _buildGameTile(context, gameNumber, game, scheme);
-              }),
+                const SizedBox(height: 32),
 
-            const SizedBox(height: 48),
+                // Games List
+                CBSectionHeader(
+                  title: 'GAMES PLAYED',
+                  icon: Icons.sports_esports,
+                  count: sortedGames.length,
+                ),
+                const SizedBox(height: 16),
+
+                if (sortedGames.isEmpty)
+                  CBPanel(
+                    child: Text(
+                      "No games recorded for this session.",
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.7),
+                          ),
+                    ),
+                  )
+                else
+                  ...sortedGames.asMap().entries.map((entry) {
+                    // Since we sorted descending, the game number should probably be calculated based on original index or total - index?
+                    // Or just use the original list index.
+                    // If we want "Game 1" to be the first game, we should use the index from the sorted list if we want it reversed?
+                    // Let's just say "Game X" where X corresponds to the order played.
+                    // sortedGames is latest first. So index 0 is Game N.
+                    final index = entry.key;
+                    final game = entry.value;
+                    final gameNumber = games.length - index;
+                    return _buildGameTile(context, gameNumber, game, scheme);
+                  }),
+
+                const SizedBox(height: 48),
               ],
             ),
           ),

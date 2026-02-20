@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../colors.dart';
 import '../theme_data.dart';
 
-
 /// Atmospheric background with blurring and solid overlay.
 class CBNeonBackground extends StatefulWidget {
   final Widget child;
@@ -50,7 +49,7 @@ class _CBNeonBackgroundState extends State<CBNeonBackground>
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final effectiveBackgroundAsset =
-      widget.backgroundAsset ?? CBTheme.globalBackgroundAsset;
+        widget.backgroundAsset ?? CBTheme.globalBackgroundAsset;
     final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
@@ -210,4 +209,3 @@ class _StaticRadiance extends StatelessWidget {
     );
   }
 }
-

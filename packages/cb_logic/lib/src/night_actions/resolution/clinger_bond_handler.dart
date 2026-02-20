@@ -12,19 +12,21 @@ class ClingerBondHandler implements DeathHandler {
         p.clingerPartnerId == victim.id);
 
     for (final clinger in clingers) {
-      final isDealerMurder =
-          victim.deathReason == 'murder' ||
+      final isDealerMurder = victim.deathReason == 'murder' ||
           context.dealerAttacks.values.contains(victim.id);
 
       if (isDealerMurder) {
         // Freed as Attack Dog!
         context.updatePlayer(clinger.copyWith(clingerFreedAsAttackDog: true));
-        context.report.add('${clinger.name} witnessed the murder of their partner and has snapped! They are now an Attack Dog.');
-        context.teasers.add('A witness to last night\'s violence has been transformed by rage.');
+        context.report.add(
+            '${clinger.name} witnessed the murder of their partner and has snapped! They are now an Attack Dog.');
+        context.teasers.add(
+            'A witness to last night\'s violence has been transformed by rage.');
       } else {
         // Die of a broken heart
         context.killedPlayerIds.add(clinger.id);
-        context.report.add('${clinger.name} could not live without ${victim.name} and died of a broken heart.');
+        context.report.add(
+            '${clinger.name} could not live without ${victim.name} and died of a broken heart.');
         // Note: Adding to killedPlayerIds will be handled by the next iteration of DeathResolutionStrategy
       }
     }

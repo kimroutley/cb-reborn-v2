@@ -104,7 +104,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 children: [
                   // Phase/Day Header
                   CBFeedSeparator(
-                    label: "${gameState.phase.toUpperCase()} • DAY ${gameState.dayCount}",
+                    label:
+                        "${gameState.phase.toUpperCase()} • DAY ${gameState.dayCount}",
                     color: scheme.onSurfaceVariant,
                   ),
 
@@ -113,7 +114,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
                   // Private Messages
                   if (gameState.privateMessages.containsKey(playerId))
-                    ..._buildPrivateMessages(gameState.privateMessages[playerId]!, scheme),
+                    ..._buildPrivateMessages(
+                        gameState.privateMessages[playerId]!, scheme),
 
                   // Current Step Narration
                   if (newStep != null && newStep.readAloudText.isNotEmpty)
@@ -136,7 +138,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         ),
         bottomNavigationBar: (gameState.phase == 'setup' && !isRoleConfirmed)
             ? _buildSetupConfirmBar(context, bridge, playerId, roleColor)
-          : canAct
+            : canAct
                 ? _buildGameActionBar(
                     context,
                     newStep,
@@ -151,12 +153,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     );
   }
 
-  List<Widget> _buildBulletinList(List<BulletinEntry> entries, ColorScheme scheme) {
+  List<Widget> _buildBulletinList(
+      List<BulletinEntry> entries, ColorScheme scheme) {
     if (entries.isEmpty) return [];
 
     final widgets = <Widget>[];
     if (entries.isNotEmpty) {
-       widgets.add(const CBFeedSeparator(label: 'PUBLIC FEED'));
+      widgets.add(const CBFeedSeparator(label: 'PUBLIC FEED'));
     }
 
     for (int i = 0; i < entries.length; i++) {
@@ -170,8 +173,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           : scheme.primary;
       final senderName = role.id == 'unassigned' ? entry.title : role.name;
 
-      final isPrevSameSender = prevEntry != null && prevEntry.title == entry.title; // Simplified check
-      final isNextSameSender = nextEntry != null && nextEntry.title == entry.title;
+      final isPrevSameSender = prevEntry != null &&
+          prevEntry.title == entry.title; // Simplified check
+      final isNextSameSender =
+          nextEntry != null && nextEntry.title == entry.title;
 
       CBMessageGroupPosition groupPos = CBMessageGroupPosition.single;
       if (isPrevSameSender && isNextSameSender) {
@@ -185,7 +190,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       widgets.add(CBMessageBubble(
         sender: senderName,
         message: entry.content,
-        style: entry.type == 'system' ? CBMessageStyle.system : CBMessageStyle.narrative,
+        style: entry.type == 'system'
+            ? CBMessageStyle.system
+            : CBMessageStyle.narrative,
         color: color,
         avatarAsset: entry.roleId != null ? role.assetPath : null,
         groupPosition: groupPos,
@@ -194,7 +201,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return widgets;
   }
 
-  List<Widget> _buildPrivateMessages(List<String> messages, ColorScheme scheme) {
+  List<Widget> _buildPrivateMessages(
+      List<String> messages, ColorScheme scheme) {
     if (messages.isEmpty) return [];
 
     final widgets = <Widget>[];
@@ -238,7 +246,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-            border: Border(top: BorderSide(color: color.withValues(alpha: 0.3))),
+            border:
+                Border(top: BorderSide(color: color.withValues(alpha: 0.3))),
           ),
           child: SafeArea(
             child: CBPrimaryButton(
@@ -271,7 +280,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         child: Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-            border: Border(top: BorderSide(color: roleColor.withValues(alpha: 0.3))),
+            border: Border(
+                top: BorderSide(color: roleColor.withValues(alpha: 0.3))),
           ),
           child: SafeArea(
             child: GameActionTile(

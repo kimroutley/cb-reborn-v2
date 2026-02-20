@@ -23,8 +23,7 @@ class CBSectionHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-          horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(8),
@@ -59,4 +58,3 @@ class CBSectionHeader extends StatelessWidget {
     );
   }
 }
-

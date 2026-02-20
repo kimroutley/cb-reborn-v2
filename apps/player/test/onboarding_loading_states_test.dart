@@ -182,9 +182,9 @@ void main() {
 
       await tester.pump();
 
-        expect(find.byType(CBBreathingLoader), findsOneWidget);
+      expect(find.byType(CBBreathingLoader), findsOneWidget);
       expect(find.text('LOADING IDENTITIES...'), findsOneWidget);
-        expect(find.text('Please wait for the Host to add you.'), findsNothing);
+      expect(find.text('Please wait for the Host to add you.'), findsNothing);
     },
   );
 
@@ -230,9 +230,9 @@ void main() {
 
       await tester.pump();
 
-        expect(find.byType(CBBreathingLoader), findsOneWidget);
+      expect(find.byType(CBBreathingLoader), findsOneWidget);
       expect(find.text('WAITING FOR AN OPEN IDENTITY...'), findsOneWidget);
-        expect(find.text('Please wait for the Host to add you.'), findsOneWidget);
+      expect(find.text('Please wait for the Host to add you.'), findsOneWidget);
     },
   );
 }

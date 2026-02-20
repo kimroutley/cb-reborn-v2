@@ -46,7 +46,8 @@ class GeminiNarrationService {
 
     final key = _apiKey;
     if (key.isEmpty) {
-      debugPrint('[GeminiNarrationService] No API key found. Using local fallback narration.');
+      debugPrint(
+          '[GeminiNarrationService] No API key found. Using local fallback narration.');
       return _buildLocalFallbackNarration(lastNightReport, voice: voice);
     }
 
@@ -82,7 +83,8 @@ class GeminiNarrationService {
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        debugPrint('[GeminiNarrationService] API error ${response.statusCode}: ${response.body}');
+        debugPrint(
+            '[GeminiNarrationService] API error ${response.statusCode}: ${response.body}');
         return _buildLocalFallbackNarration(lastNightReport, voice: voice);
       }
 
@@ -104,7 +106,8 @@ class GeminiNarrationService {
 
       return text.trim();
     } catch (e) {
-      debugPrint('[GeminiNarrationService] Request failed, using local fallback: $e');
+      debugPrint(
+          '[GeminiNarrationService] Request failed, using local fallback: $e');
       return _buildLocalFallbackNarration(lastNightReport, voice: voice);
     }
   }
@@ -161,7 +164,9 @@ Show off your unique style now:
       }
 
       final payload = jsonDecode(response.body) as Map<String, dynamic>;
-      final text = (payload['candidates'] as List).first['content']['parts'].first['text'] as String;
+      final text = (payload['candidates'] as List)
+          .first['content']['parts']
+          .first['text'] as String;
       return text.trim();
     } catch (e) {
       return 'Connection lost in the static. Try again later.';
@@ -181,7 +186,8 @@ Show off your unique style now:
 
     final key = _apiKey;
     if (key.isEmpty) {
-      debugPrint('[GeminiNarrationService] No API key found. Using local step fallback narration.');
+      debugPrint(
+          '[GeminiNarrationService] No API key found. Using local step fallback narration.');
       return _buildLocalStepFallbackNarration(
         baseReadAloudText,
         voice: voice,
@@ -220,7 +226,8 @@ Show off your unique style now:
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        debugPrint('[GeminiNarrationService] API error ${response.statusCode}: ${response.body}');
+        debugPrint(
+            '[GeminiNarrationService] API error ${response.statusCode}: ${response.body}');
         return _buildLocalStepFallbackNarration(
           baseReadAloudText,
           voice: voice,
@@ -250,7 +257,8 @@ Show off your unique style now:
 
       return text.trim();
     } catch (e) {
-      debugPrint('[GeminiNarrationService] Step narration request failed, using local fallback: $e');
+      debugPrint(
+          '[GeminiNarrationService] Step narration request failed, using local fallback: $e');
       return _buildLocalStepFallbackNarration(
         baseReadAloudText,
         voice: voice,
@@ -334,9 +342,12 @@ $baseReadAloudText
     final highlights = lastNightReport.take(4).toList();
     final opener = switch (voice) {
       'host_hype' => 'Club Blackout surged into another electric night.',
-      'nightclub_noir' => 'Neon shadows stretched across the floor as the night turned.',
-      'system_glitch' => 'N-N-Night... p-processing... system integrity compromised.',
-      'vixen_whisper' => 'Lean in close, darling. The night has secrets to share.',
+      'nightclub_noir' =>
+        'Neon shadows stretched across the floor as the night turned.',
+      'system_glitch' =>
+        'N-N-Night... p-processing... system integrity compromised.',
+      'vixen_whisper' =>
+        'Lean in close, darling. The night has secrets to share.',
       _ => 'The night closed in and the club changed by morning.',
     };
 

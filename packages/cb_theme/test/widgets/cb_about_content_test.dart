@@ -41,7 +41,8 @@ void main() {
     );
   });
 
-  testWidgets('CBAboutContent shows at most three recent builds', (tester) async {
+  testWidgets('CBAboutContent shows at most three recent builds',
+      (tester) async {
     final builds = <AppBuildUpdate>[
       AppBuildUpdate(
         version: '1.0.3',
