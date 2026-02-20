@@ -25,13 +25,13 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('YOUR BET: PLAYER 2'), findsOneWidget);
-    expect(find.text('Ghost A → Player 1'), findsOneWidget);
+    expect(find.textContaining('TARGET LOCKED: PLAYER 2'), findsOneWidget);
+    expect(find.textContaining('GHOST A'), findsOneWidget);
+    expect(find.textContaining('PLAYER 1'), findsOneWidget);
 
-    await tester
-        .tap(find.widgetWithText(CBPrimaryButton, 'CHANGE DEAD POOL BET'));
+    await tester.tap(find.widgetWithText(CBPrimaryButton, 'RE-LOCK TARGET'));
     await tester.pump(const Duration(milliseconds: 450));
 
-    expect(find.text('PLACE DEAD POOL BET'), findsOneWidget);
+    expect(find.text('DEAD POOL: SELECT TARGET'), findsOneWidget);
   });
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../colors.dart';
 import '../layout.dart';
 import 'cb_buttons.dart';
 import 'glass_tile.dart';
@@ -24,27 +26,44 @@ class CBProfileActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Column(
       children: [
         Row(
           children: [
             Expanded(
+              flex: 2,
               child: CBPrimaryButton(
-                label: saving ? 'Saving...' : 'Save Profile',
-                icon: Icons.save_outlined,
+                label: saving ? 'SAVING...' : 'SAVE CHANGES',
+                icon: Icons.save_rounded,
                 onPressed: canSave ? onSave : null,
               ),
             ),
             const SizedBox(width: CBSpace.x2),
-            CBTextButton(
-              label: 'Discard',
-              onPressed: canDiscard ? onDiscard : null,
+            Expanded(
+              child: CBGhostButton(
+                label: 'DISCARD',
+                color: scheme.error,
+                onPressed: canDiscard ? onDiscard : null,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: CBSpace.x2),
-        CBTextButton(
-          label: 'Reload From Cloud',
+        const SizedBox(height: CBSpace.x3),
+        TextButton.icon(
+          label: Text(
+            'FORCE RELOUD FROM CLOUD',
+            style: TextStyle(
+              color: scheme.onSurface.withValues(alpha: 0.5),
+              fontSize: 10,
+              letterSpacing: 1.0,
+            ),
+          ),
+          icon: Icon(
+            Icons.cloud_sync_rounded,
+            size: 14,
+            color: scheme.onSurface.withValues(alpha: 0.5),
+          ),
           onPressed: saving ? null : onReload,
         ),
       ],
@@ -67,24 +86,58 @@ class CBProfileReadonlyRow extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: textTheme.labelSmall?.copyWith(
-            color: scheme.onSurface.withValues(alpha: 0.6),
-            letterSpacing: 1,
+    return CBGlassTile(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      borderColor: scheme.outlineVariant.withValues(alpha: 0.2),
+      borderRadius: BorderRadius.circular(12),
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: value));
+        HapticFeedback.lightImpact();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$label COPIED TO CLIPBOARD'),
+            duration: const Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: scheme.surfaceContainerHigh,
           ),
-        ),
-        const SizedBox(height: 4),
-        SelectableText(
-          value,
-          style: textTheme.bodyMedium?.copyWith(
-            color: scheme.onSurface,
+        );
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label.toUpperCase(),
+                  style: textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.5),
+                    fontSize: 9,
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurface,
+                    fontFamily: 'RobotoMono',
+                    letterSpacing: 0.5,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+          Icon(
+            Icons.copy_rounded,
+            size: 16,
+            color: scheme.onSurface.withValues(alpha: 0.3),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -111,36 +164,31 @@ class CBProfileAvatarChip extends StatelessWidget {
       opacity: enabled ? 1 : 0.6,
       child: InkWell(
         onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          width: 42,
-          height: 42,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          width: 48,
+          height: 48,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: selected
-                ? scheme.primary.withValues(alpha: 0.22)
-                : scheme.surfaceContainerHighest.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(12),
+                ? scheme.tertiary.withValues(alpha: 0.15)
+                : scheme.surfaceContainerHighest.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: selected
-                  ? scheme.primary
-                  : scheme.outlineVariant.withValues(alpha: 0.5),
+                  ? scheme.tertiary
+                  : scheme.outlineVariant.withValues(alpha: 0.3),
               width: selected ? 2 : 1,
             ),
             boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: scheme.primary.withValues(alpha: 0.2),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    ),
-                  ]
+                ? CBColors.boxGlow(scheme.tertiary, intensity: 0.4)
                 : null,
           ),
           child: Text(
             emoji,
-            style: const TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 24),
           ),
         ),
       ),
@@ -172,16 +220,18 @@ class CBProfilePreferenceChip extends StatelessWidget {
       child: CBGlassTile(
         isSelected: selected,
         onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         borderColor: selected
-            ? scheme.secondary
-            : scheme.outlineVariant.withValues(alpha: 0.5),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ? scheme.tertiary
+            : scheme.outlineVariant.withValues(alpha: 0.3),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: selected ? scheme.secondary : scheme.onSurface,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          label.toUpperCase(),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: selected ? scheme.tertiary : scheme.onSurface.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.0,
+            shadows: selected ? CBColors.textGlow(scheme.tertiary, intensity: 0.4) : null,
           ),
         ),
       ),

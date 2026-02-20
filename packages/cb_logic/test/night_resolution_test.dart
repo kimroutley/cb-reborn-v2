@@ -86,6 +86,16 @@ void main() {
         result.report.any((line) => line.contains('Drama Queen chaos')),
         true,
       );
+      expect(result.privateMessages[updatedSober.id], isNotNull);
+      expect(result.privateMessages[updatedBuddy.id], isNotNull);
+      expect(
+        result.privateMessages[updatedSober.id]!.join(' '),
+        contains('swapped with ${updatedBuddy.name}'),
+      );
+      expect(
+        result.privateMessages[updatedBuddy.id]!.join(' '),
+        contains('swapped with ${updatedSober.name}'),
+      );
     });
 
     test('Gawked wallflower is exposed in report', () {

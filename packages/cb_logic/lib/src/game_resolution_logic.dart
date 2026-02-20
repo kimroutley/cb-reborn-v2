@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:cb_models/cb_models.dart';
 import 'night_actions/night_actions.dart';
 
@@ -129,13 +129,13 @@ class GameResolutionLogic {
 
     final actionStrategies = [
       SoberAction(),
+      DealerAction(),
       RoofiAction(),
       BouncerAction(),
       BartenderAction(),
       ClubManagerAction(),
       MessyBitchAction(),
       LightweightAction(),
-      DealerAction(),
       AttackDogAction(),
       MessyBitchKillAction(),
       MedicAction(),
@@ -149,6 +149,8 @@ class GameResolutionLogic {
         actionStrategies[i].roleId: i,
     };
     final sortedStrategies = [...actionStrategies]..sort((a, b) {
+        if (a.roleId == RoleIds.dealer && b.roleId == RoleIds.roofi) return -1;
+        if (a.roleId == RoleIds.roofi && b.roleId == RoleIds.dealer) return 1;
         final roleA = roleCatalogMap[a.roleId];
         final roleB = roleCatalogMap[b.roleId];
         final priorityA = roleA?.nightPriority ?? 999;
@@ -359,3 +361,5 @@ class GameResolutionLogic {
     }
   }
 }
+
+

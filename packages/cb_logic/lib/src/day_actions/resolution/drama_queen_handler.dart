@@ -15,6 +15,7 @@ class DramaQueenHandler implements DayResolutionHandler {
     return DayResolutionResult(
       players: resolution.players,
       lines: resolution.lines,
+      privateMessages: resolution.privateMessages,
     );
   }
 }

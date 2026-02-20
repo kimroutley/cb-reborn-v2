@@ -63,6 +63,6 @@ final hostReport = result.report;
 
 For architecture and contribution context, see:
 
-- `AGENT_CONTEXT.md`
-- `COMPREHENSIVE_ROLE_MECHANICS.md`
+- `docs/architecture/agent-context.md`
+- `docs/architecture/role-mechanics.md`
 - `packages/cb_logic/test/` for executable behavior examples

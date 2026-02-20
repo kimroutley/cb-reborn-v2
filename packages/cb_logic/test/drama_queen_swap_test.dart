@@ -77,6 +77,16 @@ void main() {
           'Drama Queen reveal: Dealer is now party_animal, Buddy is now dealer.',
         ),
       );
+      expect(result.privateMessages['dealer'], isNotNull);
+      expect(result.privateMessages['buddy'], isNotNull);
+      expect(
+        result.privateMessages['dealer']!.join(' '),
+        contains('swapped with Buddy'),
+      );
+      expect(
+        result.privateMessages['buddy']!.join(' '),
+        contains('swapped with Dealer'),
+      );
     });
 
     test('falls back to voters/alive targets when setup targets absent', () {
@@ -105,6 +115,8 @@ void main() {
       expect(dealer.role.id, RoleIds.partyAnimal);
       expect(buddy.role.id, RoleIds.dealer);
       expect(result.lines, isNotEmpty);
+      expect(result.privateMessages['dealer'], isNotNull);
+      expect(result.privateMessages['buddy'], isNotNull);
     });
 
     test('honors explicit selected swap pair when valid', () {
@@ -139,6 +151,8 @@ void main() {
       expect(buddy.role.id, RoleIds.partyAnimal);
       expect(result.lines,
           contains('Drama Queen chaos: Dealer and Sober swapped roles.'));
+        expect(result.privateMessages['dealer'], isNotNull);
+        expect(result.privateMessages['sober'], isNotNull);
     });
 
     test('ignores duplicate explicit swap choice and falls back safely', () {

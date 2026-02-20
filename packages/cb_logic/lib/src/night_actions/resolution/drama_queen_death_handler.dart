@@ -40,6 +40,11 @@ class DramaQueenDeathHandler implements DeathHandler {
       for (final line in resolution.lines) {
         context.addReport(line);
       }
+      for (final entry in resolution.privateMessages.entries) {
+        for (final message in entry.value) {
+          context.addPrivateMessage(entry.key, message);
+        }
+      }
     }
 
     return true;

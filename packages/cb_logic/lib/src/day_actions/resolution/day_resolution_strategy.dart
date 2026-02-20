@@ -39,6 +39,7 @@ class DayResolutionStrategy {
     final allLines = <String>[];
     final allEvents = <GameEvent>[];
     final allDeathTriggerVictimIds = <String>[];
+    final allPrivateMessages = <String, List<String>>{};
 
     // Always include the exile victim (if any) as a death-trigger source.
     final exiledPlayerId = context.exiledPlayerId;
@@ -53,6 +54,9 @@ class DayResolutionStrategy {
       allLines.addAll(result.lines);
       allEvents.addAll(result.events);
       allDeathTriggerVictimIds.addAll(result.deathTriggerVictimIds);
+      for (final entry in result.privateMessages.entries) {
+        allPrivateMessages.putIfAbsent(entry.key, () => []).addAll(entry.value);
+      }
       if (result.clearDeadPoolBets) {
         shouldClearDeadPoolBets = true;
       }
@@ -65,6 +69,7 @@ class DayResolutionStrategy {
       events: allEvents,
       deathTriggerVictimIds: allDeathTriggerVictimIds.toSet().toList(),
       clearDeadPoolBets: shouldClearDeadPoolBets,
+      privateMessages: allPrivateMessages,
     );
   }
 }

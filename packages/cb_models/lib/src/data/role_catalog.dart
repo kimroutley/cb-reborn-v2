@@ -126,7 +126,7 @@ const List<Role> roleCatalog = [
         'Silence Dealers to block their kills, or silence loud "suspects" to prevent them from leading the vote against you the next day.',
     description:
         'Paralyze a player each night. They are silenced the next day. Roofing the only Dealer blocks their kill.',
-    nightPriority: 15,
+    nightPriority: 8, // Changed from 15 to 8 to ensure it blocks Dealers (Priority 10)
     ability: 'Paralyze',
     assetPath: 'assets/roles/roofi.png',
     colorHex: '#008000', // Green - from CB Visuals
@@ -338,7 +338,7 @@ const List<Role> roleCatalog = [
         'Your partner is your life. Protect them at all costs, but be ready to snap and take your revenge if they are eliminated.',
     description:
         'Obsessed with a partner. Must support their vote. If they die, you die. Can be freed as an Attack Dog.',
-    nightPriority: 0,
+    nightPriority: 10, // Changed from 0 to 10 to act as Attack Dog
     ability: 'Obsession + Attack Dog',
     assetPath: 'assets/roles/clinger.png',
     colorHex: '#FFFF00', // Yellow - from CB Visuals

@@ -27,67 +27,84 @@ class ScriptBuilder {
       ),
     ];
 
+    String? lastRoleId;
+
+    void addSteps(List<Player> specificPlayers, String titleBase,
+        String readAloudBase, String instructionBase,
+        {required ScriptActionType actionType}) {
+      for (final p in specificPlayers) {
+        final isContinuation = p.role.id == lastRoleId;
+        steps.add(ScriptStep(
+          id: '${p.role.id}_setup_${p.id}_$dayCount',
+          title: isContinuation ? '$titleBase (CONT.)' : titleBase,
+          readAloudText: isContinuation ? '' : readAloudBase,
+          instructionText: instructionBase,
+          actionType: actionType,
+          roleId: p.role.id,
+        ));
+        lastRoleId = p.role.id;
+      }
+    }
+
     // ── Medic binary choice ──
     final medics =
         players.where((p) => p.role.id == RoleIds.medic && p.isAlive).toList();
     for (final medic in medics) {
+      final isContinuation = medic.role.id == lastRoleId;
       steps.add(ScriptStep(
         id: 'medic_choice_${medic.id}_$dayCount',
-        title: 'MEDIC - CHOICE',
-        readAloudText: 'Medic, choose your strategy for the game.',
-        instructionText: 'Protect Daily or Revive (one time).',
+        title: isContinuation ? 'MEDIC - CHOICE (CONT.)' : 'MEDIC - CHOICE',
+        readAloudText: isContinuation
+            ? ''
+            : 'Medic, choose your strategy for the game.',
+        instructionText: 'CHOOSE: PROTECT DAILY OR ONE-TIME REVIVE',
         actionType: ScriptActionType.binaryChoice,
         roleId: RoleIds.medic,
         options: const ['PROTECT_DAILY', 'REVIVE'],
       ));
+      lastRoleId = medic.role.id;
     }
 
     // ── Creep picks a target at Night 0 ──
     final creeps =
         players.where((p) => p.role.id == RoleIds.creep && p.isAlive).toList();
-    for (final creep in creeps) {
-      steps.add(ScriptStep(
-        id: 'creep_setup_${creep.id}_$dayCount',
-        title: 'THE CREEP',
-        readAloudText: 'Creep, wake up and choose a player to mimic.',
-        instructionText:
-            'This player\'s alliance becomes yours. If they die, you inherit their role.',
-        actionType: ScriptActionType.selectPlayer,
-        roleId: RoleIds.creep,
-      ));
-    }
+    addSteps(
+      creeps,
+      'THE CREEP',
+      'Creep, wake up and choose a player to mimic.',
+      'SELECT A PLAYER TO MIMIC (INHERIT ALLIANCE/ROLE)',
+      actionType: ScriptActionType.selectPlayer,
+    );
 
     // ── Clinger chooses a partner at Night 0 ──
     final clingers = players
         .where((p) => p.role.id == RoleIds.clinger && p.isAlive)
         .toList();
-    for (final clinger in clingers) {
-      steps.add(ScriptStep(
-        id: 'clinger_setup_${clinger.id}_$dayCount',
-        title: 'THE CLINGER',
-        readAloudText: 'Clinger, wake up and choose your partner.',
-        instructionText:
-            'You are now obsessed with this player. If they die, you die.',
-        actionType: ScriptActionType.selectPlayer,
-        roleId: RoleIds.clinger,
-      ));
-    }
+    addSteps(
+      clingers,
+      'THE CLINGER',
+      'Clinger, wake up and choose your partner.',
+      'SELECT A PARTNER TO OBSESS OVER',
+      actionType: ScriptActionType.selectPlayer,
+    );
 
     // ── Drama Queen chooses two swap targets at Night 0 ──
     final dramaQueens = players
         .where((p) => p.role.id == RoleIds.dramaQueen && p.isAlive)
         .toList();
     for (final dramaQueen in dramaQueens) {
+      final isContinuation = dramaQueen.role.id == lastRoleId;
       steps.add(ScriptStep(
         id: 'drama_queen_setup_${dramaQueen.id}_$dayCount',
-        title: 'THE DRAMA QUEEN',
-        readAloudText:
-            'Drama Queen, wake up and pick two players for your vendetta.',
-        instructionText:
-            'Select two players. If you are exiled, their role cards will be swapped.',
+        title: isContinuation ? 'THE DRAMA QUEEN (CONT.)' : 'THE DRAMA QUEEN',
+        readAloudText: isContinuation
+            ? ''
+            : 'Drama Queen, wake up and pick two players for your vendetta.',
+        instructionText: 'SELECT TWO PLAYERS FOR POST-MORTEM SWAP',
         actionType: ScriptActionType.selectTwoPlayers,
         roleId: RoleIds.dramaQueen,
       ));
+      lastRoleId = dramaQueen.role.id;
     }
 
     // ── Wallflower instruction ──
@@ -95,17 +112,15 @@ class ScriptBuilder {
         .where((p) => p.role.id == RoleIds.wallflower && p.isAlive)
         .toList();
     if (wallflowers.isNotEmpty) {
-      for (final wallflower in wallflowers) {
-        steps.add(ScriptStep(
-          id: 'wallflower_info_${wallflower.id}',
-          title: 'WALLFLOWER IN PLAY',
-          readAloudText:
-              'A heads-up for everyone: a Wallflower is in play. During the night\'s murder, they will be allowed to briefly open their eyes.',
-          instructionText:
-              'Announce that the Wallflower ability is active. The actual peek happens after the Dealer action at night.',
-          actionType: ScriptActionType.info,
-        ));
-      }
+      steps.add(const ScriptStep(
+        id: 'wallflower_info_global',
+        title: 'WALLFLOWER IN PLAY',
+        readAloudText:
+            'A heads-up for everyone: a Wallflower is in play. During the night\'s murder, they will be allowed to briefly open their eyes.',
+        instructionText:
+            'Announce Wallflower mechanic. No player input required.',
+        actionType: ScriptActionType.info,
+      ));
     }
 
     return steps;
@@ -114,7 +129,6 @@ class ScriptBuilder {
   /// Generates the Night Script based on active roles
   static List<ScriptStep> buildNightScript(List<Player> players, int dayCount) {
     if (dayCount == 0 || players.isEmpty) {
-      // Fallback for empty state or setup
       return buildSetupScript(players, dayCount: dayCount);
     }
 
@@ -128,12 +142,12 @@ class ScriptBuilder {
       ),
     ];
 
-    // Priority Sort: Lower number first
     final activePlayers = players.where((p) => p.isActive).toList()
       ..sort((a, b) => a.role.nightPriority.compareTo(b.role.nightPriority));
 
+    String? lastRoleId;
+
     for (final player in activePlayers) {
-      // Wallflower is handled separately now
       if (player.role.id == RoleIds.wallflower) {
         continue;
       }
@@ -143,27 +157,53 @@ class ScriptBuilder {
       }
 
       if (strategy.canAct(player, dayCount)) {
-        steps.add(strategy.buildStep(player, dayCount));
+        var step = strategy.buildStep(player, dayCount);
+
+        if (step.roleId == lastRoleId) {
+          step = step.copyWith(
+            readAloudText: '',
+            title: '${step.title} (CONT.)',
+          );
+        }
+
+        steps.add(step);
+        lastRoleId = step.roleId;
       }
     }
 
-    // ── Attack Dog: Clinger freed after partner death, one-shot ──
+    // ── Attack Dog ──
     final attackDogStrategy =
         roleStrategies[RoleIds.attackDog]! as AttackDogStrategy;
     for (final player
         in players.where((p) => p.isActive && p.role.id == RoleIds.clinger)) {
       if (attackDogStrategy.canAct(player, dayCount)) {
-        steps.add(attackDogStrategy.buildStep(player, dayCount));
+        var step = attackDogStrategy.buildStep(player, dayCount);
+        if (step.roleId == lastRoleId) {
+          step = step.copyWith(
+            readAloudText: '',
+            title: '${step.title} (CONT.)',
+          );
+        }
+        steps.add(step);
+        lastRoleId = step.roleId;
       }
     }
 
-    // ── Messy Bitch Kill: optional one-shot ability ──
+    // ── Messy Bitch Kill ──
     final mbKillStrategy =
         roleStrategies[RoleIds.messyBitchKill]! as MessyBitchKillStrategy;
     for (final player in players
         .where((p) => p.isActive && p.role.id == RoleIds.messyBitch)) {
       if (mbKillStrategy.canAct(player, dayCount)) {
-        steps.add(mbKillStrategy.buildStep(player, dayCount));
+        var step = mbKillStrategy.buildStep(player, dayCount);
+        if (step.roleId == lastRoleId) {
+          step = step.copyWith(
+            readAloudText: '',
+            title: '${step.title} (CONT.)',
+          );
+        }
+        steps.add(step);
+        lastRoleId = step.roleId;
       }
     }
 
@@ -172,24 +212,26 @@ class ScriptBuilder {
         .where((p) => p.role.id == RoleIds.wallflower && p.isAlive)
         .toList();
     final dealerStepIndex =
-        steps.indexWhere((s) => s.id.startsWith('dealer_act_'));
+        steps.lastIndexWhere((s) => s.id.startsWith('dealer_act_'));
 
     if (wallflowers.isNotEmpty && dealerStepIndex != -1) {
+      var insertIndex = dealerStepIndex + 1;
+
       for (final wallflower in wallflowers) {
-        // This step is for the HOST, not the player. It happens after the murder.
         steps.insert(
-          dealerStepIndex + 1, // Place it right after the dealer's action
+          insertIndex,
           ScriptStep(
             id: 'wallflower_observe_${wallflower.id}_$dayCount',
             title: 'HOST OBSERVATION',
-            readAloudText: '', // No read-aloud text for this host-only action
+            readAloudText: '',
             instructionText:
-                'Observe ${wallflower.name}, how did they witness the murder?',
+                'Did ${wallflower.name} peek? (HOST INPUT ONLY)',
             actionType: ScriptActionType.binaryChoice,
-            roleId: RoleIds.wallflower,
+            roleId: null, // Host only
             options: const ['PEEKED', 'GAWKED'],
           ),
         );
+        insertIndex++;
       }
     }
 
@@ -216,7 +258,6 @@ class ScriptBuilder {
 
   static List<ScriptStep> buildDayScript(int dayCount,
       [List<Player> players = const []]) {
-    // Smart timer: 30s per alive player, max 300s (5 min)
     final alive = players.where((p) => p.isAlive).length;
     final timerSeconds = alive > 0 ? (alive * 30).clamp(30, 300) : 300;
 
@@ -244,9 +285,9 @@ class ScriptBuilder {
         readAloudText:
             '${sw.name} survived the Dealer\'s attack. Dealers, do you convert or execute?',
         instructionText:
-            'CONVERT: joins Dealers next night. EXECUTE: killed immediately.',
+            'Ask Dealers for decision. HOST INPUT: Convert or Execute?',
         actionType: ScriptActionType.binaryChoice,
-        roleId: RoleIds.secondWind,
+        roleId: null, // Host-mediated, no specific player ID to avoid sync lock
         options: const ['CONVERT', 'EXECUTE'],
       ));
     }
@@ -264,7 +305,7 @@ class ScriptBuilder {
         id: 'day_vote_$dayCount',
         title: 'VOTING',
         readAloudText: 'Who do you want to exile from the club?',
-        instructionText: 'Select the player to eliminate (if any).',
+        instructionText: 'Monitor voting via Dashboard.',
         actionType: ScriptActionType.selectPlayer,
       ),
     ]);

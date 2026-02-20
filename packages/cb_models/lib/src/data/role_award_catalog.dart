@@ -6,7 +6,7 @@ import 'role_catalog.dart';
 /// Canonical role-award definitions (Phase 1).
 ///
 /// Source-of-truth naming/icon metadata is authored in
-/// `AWARDS_NAME_ICON_CATALOG.md` at repo root.
+/// `docs/features/awards/name-icon-catalog.md`.
 final Map<String, List<RoleAwardDefinition>> roleAwardCatalogByRoleId = {
   for (final role in roleCatalog) role.id: _awardDefinitionsForRole(role),
 };

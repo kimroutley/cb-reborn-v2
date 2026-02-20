@@ -3,6 +3,7 @@ import 'package:cb_models/cb_models.dart';
 typedef DramaQueenSwapResolution = ({
   List<Player> players,
   List<String> lines,
+  Map<String, List<String>> privateMessages,
 });
 
 DramaQueenSwapResolution resolveDramaQueenSwaps({
@@ -12,6 +13,7 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
   Set<String> triggeringDeathReasons = const {'exile'},
 }) {
   final lines = <String>[];
+  final privateMessages = <String, List<String>>{};
   var updatedPlayers = [...players];
 
   final exiledDramaQueens = updatedPlayers.where((p) =>
@@ -96,7 +98,18 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
     lines.add(
       'Drama Queen reveal: ${targetA.name} is now ${targetB.role.name}, ${targetB.name} is now ${targetA.role.name}.',
     );
+
+    privateMessages.putIfAbsent(targetA.id, () => []).add(
+      'Drama Queen trigger: You were swapped with ${targetB.name}. Your new role is ${targetB.role.name}.',
+    );
+    privateMessages.putIfAbsent(targetB.id, () => []).add(
+      'Drama Queen trigger: You were swapped with ${targetA.name}. Your new role is ${targetA.role.name}.',
+    );
   }
 
-  return (players: updatedPlayers, lines: lines);
+  return (
+    players: updatedPlayers,
+    lines: lines,
+    privateMessages: privateMessages,
+  );
 }

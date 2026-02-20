@@ -50,6 +50,7 @@ class DayResolutionResult {
     this.events = const [],
     this.deathTriggerVictimIds = const [],
     this.clearDeadPoolBets = false,
+    this.privateMessages = const {},
   });
 
   final List<Player> players;
@@ -57,6 +58,7 @@ class DayResolutionResult {
   final List<GameEvent> events;
   final List<String> deathTriggerVictimIds;
   final bool clearDeadPoolBets;
+  final Map<String, List<String>> privateMessages;
 }
 
 abstract class DayResolutionHandler {
