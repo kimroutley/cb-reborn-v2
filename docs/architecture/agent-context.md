@@ -13,13 +13,13 @@ This document provides the deep technical context required to work on the Club B
 The project is a **Flutter Monorepo** structured as follows:
 
 *   **`apps/`**: End-user applications.
-    *   `host/`: The "Command Center" (Flutter Windows/Tablet).
-    *   `player/`: The "Companion App" (Flutter Mobile/Web).
+		*   `host/`: The "Command Center" (Flutter Windows/Tablet).
+		*   `player/`: The "Companion App" (Flutter Mobile/Web).
 *   **`packages/`**: Shared local packages. **Strict dependency order matters.**
-    *   `cb_models`: Core data models (Freezed), Enums, Role definitions. (Base)
-    *   `cb_theme`: Design system, UI components, Assets. (Depends on `cb_models`)
-    *   `cb_comms`: Networking, Firebase/WebSocket bridges. (Depends on `cb_models`)
-    *   `cb_logic`: Game engine, State management, Riverpod providers. (Depends on `cb_models`, `cb_comms`)
+		*   `cb_models`: Core data models (Freezed), Enums, Role definitions. (Base)
+		*   `cb_theme`: Design system, UI components, Assets. (Depends on `cb_models`)
+		*   `cb_comms`: Networking, Firebase/WebSocket bridges. (Depends on `cb_models`)
+		*   `cb_logic`: Game engine, State management, Riverpod providers. (Depends on `cb_models`, `cb_comms`)
 
 ### Build Environment
 *   **Flutter SDK**: `3.35.0` or higher.
@@ -43,7 +43,7 @@ When modifying models or logic, you **must** run `build_runner` in the correct d
 *   **Providers**: We use Riverpod 3.x.
 *   **Immutability**: All game state is immutable via `freezed`.
 *   **Updates**: Use `.copyWith()` for updates.
-    *   **Sentinel Pattern**: In `PlayerGameState.copyWith`, use the `_undefined` sentinel object to distinguish between "keep existing value" (missing argument) and "clear value" (explicit `null`).
+		*   **Sentinel Pattern**: In `PlayerGameState.copyWith`, use the `_undefined` sentinel object to distinguish between "keep existing value" (missing argument) and "clear value" (explicit `null`).
 
 ### Role Definitions: `RoleIds`
 *   **Centralization**: Do **not** use magic strings for role IDs.
@@ -54,20 +54,20 @@ When modifying models or logic, you **must** run `build_runner` in the correct d
 The app supports dual-mode networking (Local WebSocket + Cloud Firestore), abstracted via `GameBridge` interfaces.
 
 *   **CloudHostBridge (Host App)**:
-    *   **Optimization**: Calculates a hash of the game state using `DeepCollectionEquality` and compares it with `_lastPublishedHash`.
-    *   **Write Prevention**: Only writes to Firestore if the hash has changed to save costs and reduce latency.
+		*   **Optimization**: Calculates a hash of the game state using `DeepCollectionEquality` and compares it with `_lastPublishedHash`.
+		*   **Write Prevention**: Only writes to Firestore if the hash has changed to save costs and reduce latency.
 *   **FirebaseBridge (Comms Package)**:
-    *   **Batching**: Implements manual chunking (limit 500 operations) for large updates (e.g., `deleteGame`).
-    *   **Atomicity**: `publishState` uses a single `WriteBatch` to commit public and private state updates simultaneously.
+		*   **Batching**: Implements manual chunking (limit 500 operations) for large updates (e.g., `deleteGame`).
+		*   **Atomicity**: `publishState` uses a single `WriteBatch` to commit public and private state updates simultaneously.
 
 ### Bot Simulation Architecture
 *   **Model**: The `Player` model includes an `isBot` boolean field.
 *   **Creation**: Bots are instantiated via `Game.addBot()` with unique IDs prefixed with `bot_` and robot-themed names.
 *   **Execution**:
-    *   **`Game.simulateBotTurns()`**: The central method for bot logic. It checks the current `ScriptStep`.
-    *   **Voting**: If the step is `day_vote`, all eligible bots cast a random vote (or abstain) via `_simulateDayVotesForBots`.
-    *   **Actions**: If the step targets a specific bot role (e.g., `medic_act_bot_1`), or a group role containing bots, `_performRandomStepAction` is triggered.
-    *   **Constraint**: Bots respects game rules (silenced, sin-binned) just like human players.
+		*   **`Game.simulateBotTurns()`**: The central method for bot logic. It checks the current `ScriptStep`.
+		*   **Voting**: If the step is `day_vote`, all eligible bots cast a random vote (or abstain) via `_simulateDayVotesForBots`.
+		*   **Actions**: If the step targets a specific bot role (e.g., `medic_act_bot_1`), or a group role containing bots, `_performRandomStepAction` is triggered.
+		*   **Constraint**: Bots respects game rules (silenced, sin-binned) just like human players.
 
 ---
 
@@ -80,8 +80,8 @@ The app supports dual-mode networking (Local WebSocket + Cloud Firestore), abstr
 ### Mocking & Fakes
 *   **Manual Mocks**: We mostly use manual mocks because `mockito` generation can be flaky in this complex monorepo setup.
 *   **`visibleForTesting`**:
-    *   `PlayerBridge` has a `mockClientFactory` static field. Set this to a function returning a `MockPlayerClient` before running tests.
-    *   `CloudHostBridge` has a `debugFirebase` field for injecting a `MockFirebaseBridge`.
+		*   `PlayerBridge` has a `mockClientFactory` static field. Set this to a function returning a `MockPlayerClient` before running tests.
+		*   `CloudHostBridge` has a `debugFirebase` field for injecting a `MockFirebaseBridge`.
 
 ### Specific Test Cases
 *   **HostOverviewScreen**: When testing widgets dependent on `playerBridgeProvider`, your `MockPlayerBridge` must extend `PlayerBridge` and override `build` to return a valid `PlayerGameState`, not `void`.
@@ -93,7 +93,7 @@ The app supports dual-mode networking (Local WebSocket + Cloud Firestore), abstr
 
 ### Linting Strictness
 *   **`duplicate_ignore`**: The CI fails if you have a file-level `// ignore_for_file: rule` AND a specific `// ignore: rule` on a line.
-    *   *Action*: Remove the specific line ignore if the file-level ignore is present.
+		*   *Action*: Remove the specific line ignore if the file-level ignore is present.
 *   **Analyzer Errors**: "Target of URI doesn't exist" in `cb_models` often means stale build artifacts. Run `rm -rf packages/cb_models/build` if this persists.
 
 ### `json_serializable` Quirks
@@ -195,16 +195,16 @@ an app restart.
 ### Key Components
 
 * **`PlayerBootstrapGate`** (`apps/player/lib/bootstrap/player_bootstrap_gate.dart`):
-  wraps `PlayerAuthScreen` and runs startup initialization before the main UI.
+	wraps `PlayerAuthScreen` and runs startup initialization before the main UI.
 * **Bootstrap tasks**: initializes local persistence, applies Firestore offline
-  cache settings (mobile), restores cached session state, and pre-caches
-  critical visual assets.
+	cache settings (mobile), restores cached session state, and pre-caches
+	critical visual assets.
 * **`PlayerSessionCacheRepository`** (`apps/player/lib/player_session_cache.dart`):
-  stores a compact `PlayerGameState` snapshot in `SharedPreferences` with an
-  18-hour TTL.
+	stores a compact `PlayerGameState` snapshot in `SharedPreferences` with an
+	18-hour TTL.
 * **Bridge persistence**:
-  `PlayerBridge` and `CloudPlayerBridge` persist cache snapshots on join/state
-  updates and clear cache on `leave()`.
+	`PlayerBridge` and `CloudPlayerBridge` persist cache snapshots on join/state
+	updates and clear cache on `leave()`.
 * **Auth cleanup**: player sign-out clears cached session data.
 
 ### Resume Flow
@@ -212,15 +212,15 @@ an app restart.
 1. Bootstrap loads cache and hydrates the matching bridge state (local/cloud).
 2. Bootstrap seeds `pendingJoinUrlProvider` with `autoconnect=1`.
 3. `HomeScreen` consumes pending join URL, applies join parameters, and
-   auto-connects without user re-entry.
+	 auto-connects without user re-entry.
 4. Live sync then refreshes state from host/cloud as the source of truth.
 
 ### Testing Notes
 
 * Keep cache writes resilient in non-widget unit tests. `SharedPreferences` can
-  be unavailable before Flutter bindings are initialized.
+	be unavailable before Flutter bindings are initialized.
 * Avoid startup timers in bootstrap widgets to prevent `flutter_test` pending
-  timer failures in smoke tests.
+	timer failures in smoke tests.
 
 ---
 

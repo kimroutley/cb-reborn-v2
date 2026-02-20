@@ -99,64 +99,64 @@ Copy this block per role while we co-design awards:
 ### Role Intake: `<roleId>` / `<displayName>`
 
 - Award 1
-   Tier: `Rookie`
-   Award ID: `roleid_rookie_01`
-   Title:
-   Unlock Trigger (Deterministic):
-   Difficulty (1-5): `1`
-   Rarity: `common`
-   Icon Key:
-   Source:
-   License:
-   Attribution Needed: `no`
+  Tier: `Rookie`
+  Award ID: `roleid_rookie_01`
+  Title:
+  Unlock Trigger (Deterministic):
+  Difficulty (1-5): `1`
+  Rarity: `common`
+  Icon Key:
+  Source:
+  License:
+  Attribution Needed: `no`
 
 - Award 2
-   Tier: `Pro`
-   Award ID: `roleid_pro_01`
-   Title:
-   Unlock Trigger (Deterministic):
-   Difficulty (1-5): `3`
-   Rarity: `uncommon`
-   Icon Key:
-   Source:
-   License:
-   Attribution Needed: `no`
+  Tier: `Pro`
+  Award ID: `roleid_pro_01`
+  Title:
+  Unlock Trigger (Deterministic):
+  Difficulty (1-5): `3`
+  Rarity: `uncommon`
+  Icon Key:
+  Source:
+  License:
+  Attribution Needed: `no`
 
 - Award 3
-   Tier: `Legend`
-   Award ID: `roleid_legend_01`
-   Title:
-   Unlock Trigger (Deterministic):
-   Difficulty (1-5): `5`
-   Rarity: `rare`
-   Icon Key:
-   Source:
-   License:
-   Attribution Needed: `no`
+  Tier: `Legend`
+  Award ID: `roleid_legend_01`
+  Title:
+  Unlock Trigger (Deterministic):
+  Difficulty (1-5): `5`
+  Rarity: `rare`
+  Icon Key:
+  Source:
+  License:
+  Attribution Needed: `no`
 
 - Award 4
-   Tier: `Bonus`
-   Award ID: `roleid_bonus_01`
-   Title:
-   Unlock Trigger (Deterministic):
-   Difficulty (1-5): `2`
-   Rarity: `uncommon`
-   Icon Key:
-   Source:
-   License:
-   Attribution Needed: `no`
+  Tier: `Bonus`
+  Award ID: `roleid_bonus_01`
+  Title:
+  Unlock Trigger (Deterministic):
+  Difficulty (1-5): `2`
+  Rarity: `uncommon`
+  Icon Key:
+  Source:
+  License:
+  Attribution Needed: `no`
 
 - Award 5
-   Tier: `Bonus`
-   Award ID: `roleid_bonus_02`
-   Title:
-   Unlock Trigger (Deterministic):
-   Difficulty (1-5): `4`
-   Rarity: `ultra`
-   Icon Key:
-   Source:
-   License:
-   Attribution Needed: `no`
+  Tier: `Bonus`
+  Award ID: `roleid_bonus_02`
+  Title:
+  Unlock Trigger (Deterministic):
+  Difficulty (1-5): `4`
+  Rarity: `ultra`
+  Icon Key:
+  Source:
+  License:
+  Attribution Needed: `no`
 
 Notes:
 

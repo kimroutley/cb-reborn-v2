@@ -21,15 +21,11 @@ Start by confirming the current behavior so you know what is changing and why.
 
 ## Phase 1: S_01 Lobby game mode selection [x]
 
-Your guide adds a 4-mode selector and a manual mode override.
-
 1. [x] Confirm `GameStyle` enums map to the guide labels.
 2. [x] Update the host lobby UI to show a 4-button toggle and store the result in game state.
 3. [x] Decide how `MANUAL` affects deck generation and role assignment.
 
 ## Phase 2: S_02 Lobby start session (join URL + UUID) [x]
-
-Your guide uses a session UUID and a join URL.
 
 1. [x] Add a session UUID to `SessionState`.
 2. [x] Generate and persist a UUID at session creation in `Session` provider.
@@ -37,20 +33,14 @@ Your guide uses a session UUID and a join URL.
 
 ## Phase 3: S_03 Lobby player join and player cap [x]
 
-Your guide sets a 4 to 25 player range.
-
 1. [x] Enforce `maxPlayers = 25` in `Game` add player flow.
 2. [x] Update host lobby UI to display a live `current/max` counter.
 
 ## Phase 4: S_04 Dealer ratio [x]
 
-Your guide uses `floor(players / 5)` with a minimum of 1 dealer.
-
 1. [x] Update staff count calculation in `GameResolutionLogic`.
 
 ## Phase 5: S_05 Add specials with mode weighting [x]
-
-Your guide requires mandatory roles first, then mode bias.
 
 1. [x] Confirm which roles are mandatory in the current catalog.
 2. [x] Implement mode-weighted role pools using `GameStyle.rolePool`.
@@ -58,27 +48,19 @@ Your guide requires mandatory roles first, then mode bias.
 
 ## Phase 6: S_06 Fill Party Animals [x]
 
-Your guide fills remaining slots with generic Party Animals.
-
 1. [x] Explicitly fill leftover slots with `RoleIds.partyAnimal`.
 
 ## Phase 7: S_07 Assign roles [x]
-
-Your guide allows manual assignment when in manual mode.
 
 1. [x] Add a manual role assignment path logic in `Game.startGame`.
 2. [x] (UX Polish) Implement the manual role assignment drag-and-drop UI (Logic exists, UI is pending full polish).
 
 ## Phase 8: S_08 Push roles to clients [x]
 
-Your guide pushes role data and moves players to reveal.
-
 1. [x] Confirm role sync path for local and cloud.
 2. [x] Confirm player app transition to reveal state (`GameRouter`).
 
 ## Phase 9: S_09 Role confirmation (ack) [x]
-
-Your guide has a per-player confirm signal.
 
 1. [x] Add confirmed role tracking to `SessionState`.
 2. [x] Add a `confirmRole` action to player app (in `ClaimScreen`).
@@ -86,29 +68,21 @@ Your guide has a per-player confirm signal.
 
 ## Phase 10: S_10 Force start gate [x]
 
-Your guide gates start on `all confirmed` or a host override.
-
 1. [x] Update host start button state.
 2. [x] Add a host override toggle/logic (implicit in start command).
 3. [x] Enforce the gating in `Game.startGame`.
 
 ## Phase 11: S_11 Loading assets [x]
 
-Your guide uses a loading state after role assignment.
-
 1. [x] Add a loading state transition in player app.
 2. [x] Add a host-side loading indicator.
 
 ## Phase 12: Setup script alignment [x]
 
-This section aligns your guide to the existing setup script.
-
 1. [x] Confirm setup steps already present in `ScriptBuilder`.
 2. [x] Add missing setup steps if required by your guide.
 
 ## Phase 13: Win conditions and special overrides [x]
-
-Your guide includes additional win logic and neutral rules.
 
 1. [x] Add neutral win logic.
 2. [x] Add Messy Bitch special win condition.

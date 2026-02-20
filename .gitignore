@@ -41,6 +41,11 @@ firebase-debug.*.log
 *adminsdk*.json
 firebase-adminsdk*.json
 
+# Environment files
+.env
+.env.*
+!.env.example
+
 # Android
 **/android/.gradle/
 **/android/local.properties

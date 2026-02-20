@@ -140,7 +140,7 @@ $groups = @(
       'README.md',
       'PROJECT_DEVELOPER_HANDBOOK.md',
       'GEMINI_HANDOFF_LIST.txt',
-      'COMMIT_CHECKLIST.md'
+      'docs/development/checklists/commit-checklist.md'
     )
   }
 )

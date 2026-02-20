@@ -2,7 +2,7 @@
 
 > **Last Updated:** February 17, 2026 (Stabilization + CI/Release Hardening)
 > **Project Location:** `C:\Club Blackout Reborn\`
-> **Technical Reference:** See [`AGENT_CONTEXT.md`](./AGENT_CONTEXT.md) for deep technical details, build order, and known issues.
+> **Technical Reference:** See [`docs/architecture/agent-context.md`](./docs/architecture/agent-context.md) for deep technical details, build order, and known issues.
 
 ---
 
@@ -63,7 +63,7 @@ Club Blackout is a **social deduction party game** set in a neon-drenched nightc
 ### Visual "Source of Truth"
 The **CB Visuals** folder defines character colors. UI must derive colors from `role.colorHex`.
 
-See [`STYLE_GUIDE.md`](./STYLE_GUIDE.md) for detailed component usage and styling rules.
+See [`docs/architecture/style-guide.md`](./docs/architecture/style-guide.md) for detailed component usage and styling rules.
 
 ### UI Philosophy: "Neon Glass"
 - **High Friction, High Reward**: Use animations (`CBFadeSlide`) and haptics to make every button press feel like interacting with a physical nightclub terminal.

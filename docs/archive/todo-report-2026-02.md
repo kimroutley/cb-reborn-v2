@@ -16,7 +16,7 @@ These are high-level feature requests and architectural improvements prioritized
     -   **Task:** Execute a validation checklist for local/cloud mode switching, deep-linking, and QR scanning on physical devices.
     -   **Status (Updated 2026-02-19):** First physical pass surfaced issues (mode switch instability and cloud connectivity glitches). Mitigations applied in `apps/host/lib/sync_mode_runtime.dart` (defensive stop-both-then-start bridge reset) and `apps/player/lib/cloud_player_bridge.dart` (wait for first cloud snapshot before join success + timeout error path). Re-test on physical devices is required before sign-off.
 -   **🎭 Role Mechanics Parity Audit**
-    -   **Task:** Audit `cb_logic` against `COMPREHENSIVE_ROLE_MECHANICS.md`.
+    -   **Task:** Audit `cb_logic` against `docs/architecture/role-mechanics.md`.
     -   **Status (Updated 2026-02-19):** Complete for current release scope. Verified against scripted setup/night/day flows plus passive/reactive handlers (`all_roles_script_audit_test.dart` + `night_resolution_test.dart` passing).
 
 ## 2. QA & Validation (from PROJECT_DEVELOPER_HANDBOOK.md)

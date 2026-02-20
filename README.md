@@ -25,7 +25,7 @@ The game is designed to feel like you're inside a dark, upscale nightclub with n
 
 ## 🏗️ Architecture
 
-> **⚠️ Developers & Agents:** Please read [`AGENT_CONTEXT.md`](./AGENT_CONTEXT.md) for critical implementation details, build order constraints, and known issues.
+> **⚠️ Developers & Agents:** Please read [`docs/architecture/agent-context.md`](./docs/architecture/agent-context.md) for critical implementation details, build order constraints, and known issues, and use [`docs/governance/authority-map.md`](./docs/governance/authority-map.md) for documentation authority.
 
 This project is a **Flutter monorepo** containing:
 
@@ -242,7 +242,7 @@ The nervous system.
 - **Ghost Lounge + Dead Pool** (full player + host experience integration)
 - **Multi-slot save system** (beyond single active recovery save)
 - **Real-device multiplayer validation** (local/cloud/mode-switch/deep-link checklist)
-- **Role mechanics parity audit** against `COMPREHENSIVE_ROLE_MECHANICS.md`
+- **Role mechanics parity audit** against `docs/architecture/role-mechanics.md`
 
 ## 🤝 Contributing
 

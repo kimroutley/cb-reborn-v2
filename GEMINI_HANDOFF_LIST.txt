@@ -212,7 +212,7 @@ Date: 2026-02-13
 - PRODUCT/POLISH: Ghost Lounge + Dead Pool end-to-end parity and multi-slot save system remain roadmap tasks.
 
 24) Suggested Next Engineering Slice
-- Run a role-mechanics parity pass using `COMPREHENSIVE_ROLE_MECHANICS.md` as source-of-truth and
+- Run a role-mechanics parity pass using `docs/architecture/role-mechanics.md` as source-of-truth and
   verify each role action logs the expected private notification, host report string, and teaser behavior.
 
 25) Role Mechanics Parity Pass (Completed - Feb 17, 2026)

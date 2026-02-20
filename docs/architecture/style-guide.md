@@ -9,9 +9,9 @@
 
 This style guide defines the **"Radiant Neon"** aesthetic — the visual identity of Club Blackout Reborn. The UI must be modern, immersive, and evoke a sense of vibrant, pulsating energy. It's a fusion of neo-noir nightclub darkness with the electrifying glow of a digital realm.
 
--   **Dark-first & Dynamic:** The core is a deep, void-like black, providing the perfect canvas for our neon colors to shine. Surfaces are primarily clean and stable, with motion applied where it communicates state.
--   **Glowing, Breathing Spectrums:** The primary colors are not flat. They are gradients and animated effects of **Neon Pink** and **Turquoise**, creating a living, breathing interface.
--   **Consistent & Thematic:** All UI elements MUST derive their style from the `cb_theme` package. This ensures a cohesive and immersive experience across both the host and player apps.
+- **Dark-first & Dynamic:** The core is a deep, void-like black, providing the perfect canvas for our neon colors to shine. Surfaces are primarily clean and stable, with motion applied where it communicates state.
+- **Glowing, Breathing Spectrums:** The primary colors are not flat. They are gradients and animated effects of **Neon Pink** and **Turquoise**, creating a living, breathing interface.
+- **Consistent & Thematic:** All UI elements MUST derive their style from the `cb_theme` package. This ensures a cohesive and immersive experience across both the host and player apps.
 
 ---
 
@@ -22,7 +22,7 @@ The color system is built around a fixed, high-contrast palette of glowing neons
 ### Primary Palette
 
 | Role | CB Name | Hex/Gradient | Usage |
-|:-----|:--------|:----|:------|
+| :--- | :------ | :----------- | :---- |
 | `primary` | `radiantTurquoise` | `linear-gradient(to right, #00F5A0, #00D9E0)` | Primary actions, highlights, focus indicators, Staff team. |
 | `secondary` | `radiantPink` | `linear-gradient(to right, #F700FF, #E0007F)` | Secondary actions, accents, destructive actions, Party Animal team. |
 | `surface` | `voidBlack` | `#0A0A0A` | Base background for all screens and surfaces. |
@@ -32,7 +32,7 @@ The color system is built around a fixed, high-contrast palette of glowing neons
 ### Semantic & Game Colors
 
 | Purpose | Name | Hex | Usage |
-|:--------|:-----|:----|:------|
+| :------ | :--- | :-- | :---- |
 | Success | `matrixGreen` | `#00FF41` | Success feedback, confirmation. |
 | Warning | `alertOrange` | `#FFAB40` | Warnings, special states. |
 | Error | `errorRed` | `#FF4040` | Error messages and states. |
@@ -47,7 +47,7 @@ Always use the defined `CBColors` from the `cb_theme` package. Do not hardcode h
 The Shimmer introduces a biorefractive quality to the visual language, representing mutation or anomaly. It uses a darker, iridescent palette that feels alien compared to the clean neons.
 
 | Name | Hex | Usage |
-|:-----|:----|:------|
+| :--- | :-- | :---- |
 | `deepSwamp` | `#0A1412` | Dark, organic background base for shimmer components. |
 | `magentaShift` | `#9900FF` | Primary shimmer accent, shifting towards purple. |
 | `cyanRefract` | `#00FFCC` | High-light refraction color for edges and active states. |
@@ -58,9 +58,9 @@ The Shimmer introduces a biorefractive quality to the visual language, represent
 
 The "Radiant Neon" theme comes alive through animated glows and subtle breathing effects. These are not just decorative; they provide feedback and guide the user's attention.
 
--   **Breathing Glow:** Buttons and interactive elements should have a subtle, slow "breathing" glow effect that intensifies on hover or focus. This is achieved using animated `BoxShadow`s with pulsating blur radius and color opacity.
--   **Radiating Spectrums:** Apply shimmer/radiance to focused components and CTA zones. Avoid screen-wide background radiance by default.
--   **Neon Borders:** Key containers and focused elements use a 1.5px border colored with the `radiantTurquoise` or `radiantPink` gradient.
+- **Breathing Glow:** Buttons and interactive elements should have a subtle, slow "breathing" glow effect that intensifies on hover or focus. This is achieved using animated `BoxShadow`s with pulsating blur radius and color opacity.
+- **Radiating Spectrums:** Apply shimmer/radiance to focused components and CTA zones. Avoid screen-wide background radiance by default.
+- **Neon Borders:** Key containers and focused elements use a 1.5px border colored with the `radiantTurquoise` or `radiantPink` gradient.
 
 ---
 
@@ -68,11 +68,11 @@ The "Radiant Neon" theme comes alive through animated glows and subtle breathing
 
 All text MUST use a style defined in `CBTypography`.
 
--   **Roboto Condensed** — Headers/display text. Bold, impactful, and often styled with a neon glow.
--   **Roboto** — Body/labels/info. Clean, modern, and highly readable.
+- **Roboto Condensed** — Headers/display text. Bold, impactful, and often styled with a neon glow.
+- **Roboto** — Body/labels/info. Clean, modern, and highly readable.
 
 | Style | Font | Size/Weight | Usage |
-|:------|:-----|:------------|:------|
+| :---- | :--- | :---------- | :---- |
 | `displayLarge` | Roboto Condensed | 40/bold | Major phase titles ("NIGHT FALLS"), with a strong neon glow. |
 | `displayMedium` | Roboto Condensed | 28/bold | Large headlines ("ELIMINATED"), with a neon glow. |
 | `headlineLarge` | Roboto Condensed | 24/bold | Screen-level headings. |
@@ -83,6 +83,7 @@ All text MUST use a style defined in `CBTypography`.
 ### Glow Effect
 
 Display and headline styles should incorporate a subtle text shadow to create a neon glow effect.
+
 ```dart
 shadows: [Shadow(color: CBColors.radiantTurquoise.withOpacity(0.5), blurRadius: 8.0)]
 ```
@@ -93,9 +94,9 @@ shadows: [Shadow(color: CBColors.radiantTurquoise.withOpacity(0.5), blurRadius: 
 
 A consistent 4px grid system is used.
 
--   **Standard Padding:** `16px` for screen edges.
--   **Component Padding:** `24px` inside dialogs and cards for a more spacious feel.
--   **Gaps:** `12px` or `16px` between components.
+- **Standard Padding:** `16px` for screen edges.
+- **Component Padding:** `24px` inside dialogs and cards for a more spacious feel.
+- **Gaps:** `12px` or `16px` between components.
 
 ---
 
@@ -104,66 +105,70 @@ A consistent 4px grid system is used.
 All UI is constructed from the `cb_theme` widget library.
 
 ### `CBPrismScaffold`
--   **Purpose:** The primary scaffold wrapper for all screens.
--   **Style:** Includes `CBNeonBackground`, `extendBodyBehindAppBar`, themed AppBar with transparency.
--   **Radiance Default:** `showBackgroundRadiance` is `false` by default. Enable it only for deliberate spotlight moments.
+
+- **Purpose:** The primary scaffold wrapper for all screens.
+- **Style:** Includes `CBNeonBackground`, `extendBodyBehindAppBar`, themed AppBar with transparency.
+- **Radiance Default:** `showBackgroundRadiance` is `false` by default. Enable it only for deliberate spotlight moments.
 
 ### `CBPanel`
--   **Purpose:** The primary container for grouping related content.
--   **Style:** Rounded corners (16px), `1px` border, dark surface background, `16px` internal padding. The `borderColor` SHOULD match context: `primary` for neutral, `secondary` for voting, `matrixGreen` for intel.
+
+- **Purpose:** The primary container for grouping related content.
+- **Style:** Rounded corners (16px), `1px` border, dark surface background, `16px` internal padding. The `borderColor` SHOULD match context: `primary` for neutral, `secondary` for voting, `matrixGreen` for intel.
 
 ### `CBTextField`
--   **Style:** `OutlineInputBorder` with `12px` border radius. Border color indicates state:
-    -   **Enabled:** radiantTurquoise (primary)
-    -   **Focused:** radiantPink (secondary)
-    -   **Error:** errorRed
+
+- **Style:** `OutlineInputBorder` with `12px` border radius. Border color indicates state:
+  - **Enabled:** radiantTurquoise (primary)
+  - **Focused:** radiantPink (secondary)
+  - **Error:** errorRed
 
 ### 5.1 CBGlassTile
 
 `CBGlassTile` is the fundamental building block for list items, interactive cards, and status displays.
 
--   **Glassmorphism:** It uses a semi-transparent background with a subtle border to create a "glass" effect over the dark void background.
--   **Effect:** `BoxDecoration` with `voidBlack` at reduced opacity and a border of `coolGrey` (or thematic color).
+- **Glassmorphism:** It uses a semi-transparent background with a subtle border to create a "glass" effect over the dark void background.
+- **Effect:** `BoxDecoration` with `voidBlack` at reduced opacity and a border of `coolGrey` (or thematic color).
 
-#### properties: `isPrismatic` (The Oil Slick Effect)
+#### property: `isPrismatic` (The Oil Slick Effect)
 
 When `isPrismatic: true` is set on a `CBGlassTile`, the component enters "The Shimmer" mode.
 
--   **Visuals:** Instead of the standard glass background, the tile renders a dynamic gradient using `deepSwamp`, `magentaShift`, and `cyanRefract`.
--   **Animation:** This gradient should slowly shift or rotate, creating an "Oil Slick" effect that implies an unstable, biorefractive surface.
--   **Usage:** Use this for items affected by glitches, anomalies, or rare "Shiny" statuses. Keep shimmer localized to the widget surface.
+- **Visuals:** Instead of the standard glass background, the tile renders a dynamic gradient using `deepSwamp`, `magentaShift`, and `cyanRefract`.
+- **Animation:** This gradient should slowly shift or rotate, creating an "Oil Slick" effect that implies an unstable, biorefractive surface.
+- **Usage:** Use this for items affected by glitches, anomalies, or rare "Shiny" statuses. Keep shimmer localized to the widget surface.
 
 ### 5.2 CBRoleIDCard
 
 The standard "trading card" style widget for role reveals and dossiers.
 
--   **Usage:** Use in "Role Reveal" dialogs, Club Bible "Operatives" list, and Player Status.
--   **Features:** Wide layout, large role avatar (breathing animation), status badges (Class, Priority), and description text.
--   **Color:** Derives accent color directly from the role's hex code.
+- **Usage:** Use in "Role Reveal" dialogs, Club Bible "Operatives" list, and Player Status.
+- **Features:** Wide layout, large role avatar (breathing animation), status badges (Class, Priority), and description text.
+- **Color:** Derives accent color directly from the role's hex code.
 
 ---
 
 ## 6. Navigation Patterns
 
 ### The Navigation Drawer
+
 The Host App uses a persistent side drawer for top-level navigation.
 
--   **Widget:** `NavigationDrawer` (M3).
--   **State:** Managed via `hostNavigationProvider`.
--   **Layout:**
-    -   **Header:** "CLUB BLACKOUT" in Neon Pink.
-    -   **Groups:** Core (Home/Lobby/Game), Management (Guides/Recap), System (Settings/About).
-    -   **Dividers:** Used to visually separate groups.
+- **Widget:** `NavigationDrawer` (M3).
+- **State:** Managed via `hostNavigationProvider`.
+- **Layout:**
+  - **Header:** "CLUB BLACKOUT" in Neon Pink.
+  - **Groups:** Core (Home/Lobby/Game), Management (Guides/Recap), System (Settings/About).
+  - **Dividers:** Used to visually separate groups.
 
 ---
 
 ## 7. Iconography
 
--   **Source:** Standard Material Icons (`Icons.*`), prefer rounded variants (`Icons.*_rounded`).
--   **Standard Size:** `24px`.
--   **Small Size:** `16px`–`18px` inside buttons or list items.
--   **Large Size:** `64px` for status overlays.
--   **Color:** Contextual — derive from theme or match surrounding text.
+- **Source:** Standard Material Icons (`Icons.*`), prefer rounded variants (`Icons.*_rounded`).
+- **Standard Size:** `24px`.
+- **Small Size:** `16px`–`18px` inside buttons or list items.
+- **Large Size:** `64px` for status overlays.
+- **Color:** Contextual — derive from theme or match surrounding text.
 
 ---
 
@@ -171,14 +176,14 @@ The Host App uses a persistent side drawer for top-level navigation.
 
 Animations should be subtle and functional.
 
--   **Micro-interactions:** `250ms` (color changes, hover states).
--   **Screen transitions:** `400ms` for major state changes.
--   **Standard Curve:** `Curves.easeInOut`.
--   **Recommended Widgets:**
-    -   `AnimatedContainer` — For color, border, padding changes.
-    -   `AnimatedSwitcher` — Cross-fade between states (e.g., waiting vs. voting).
-    -   `FadeIn` — Stagger list item appearance (300ms fade + slide).
--   **Page Transitions (`CBPageTransitions`):** `slideFromRight`, `slideFromBottom`, `fadeAndScale`, `instant`.
+- **Micro-interactions:** `250ms` (color changes, hover states).
+- **Screen transitions:** `400ms` for major state changes.
+- **Standard Curve:** `Curves.easeInOut`.
+- **Recommended Widgets:**
+  - `AnimatedContainer` — For color, border, padding changes.
+  - `AnimatedSwitcher` — Cross-fade between states (e.g., waiting vs. voting).
+  - `FadeIn` — Stagger list item appearance (300ms fade + slide).
+- **Page Transitions (`CBPageTransitions`):** `slideFromRight`, `slideFromBottom`, `fadeAndScale`, `instant`.
 
 ---
 
@@ -187,7 +192,7 @@ Animations should be subtle and functional.
 Game events trigger contextual haptic patterns:
 
 | Pattern | Usage |
-|:--------|:------|
+| :------ | :---- |
 | `success` | Positive game events |
 | `error` | Errors, eliminations |
 | `nightAction` | Night action prompts |
