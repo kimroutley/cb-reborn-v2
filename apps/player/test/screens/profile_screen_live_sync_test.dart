@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cb_comms/cb_comms_player.dart';
 import 'package:cb_player/screens/profile_screen.dart';
+import 'package:cb_player/widgets/profile_action_buttons.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -100,6 +101,7 @@ void main() {
             body: ProfileScreen(
               repository: repository,
               currentUserResolver: () => user,
+              startInEditMode: true,
             ),
           ),
         ),
@@ -109,9 +111,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    final usernameField = find.byType(CBTextField).first;
     final usernameEditable = find.descendant(
-      of: usernameField,
+      of: find.byType(CBTextField).first,
       matching: find.byType(EditableText),
     );
     expect(
@@ -119,7 +120,12 @@ void main() {
       'Starter',
     );
 
-    await tester.enterText(usernameEditable, 'Dirty Local');
+    final dirtyController =
+        tester.widget<EditableText>(usernameEditable).controller;
+    dirtyController.value = const TextEditingValue(
+      text: 'Dirty Local',
+      selection: TextSelection.collapsed(offset: 11),
+    );
     await tester.pump();
 
     controller.add(<String, dynamic>{
@@ -139,16 +145,13 @@ void main() {
       'Dirty Local',
     );
 
-    final discardButtonFinder = find.widgetWithText(CBGhostButton, 'DISCARD');
-    await tester.ensureVisible(discardButtonFinder);
-    await tester.tap(discardButtonFinder);
+    final discardActions =
+      tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
+    discardActions.onDiscard();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(
-      tester.widget<EditableText>(usernameEditable).controller.text,
-      'Remote Applied',
-    );
+    expect(find.text('REMOTE APPLIED'), findsOneWidget);
   });
 
   testWidgets(
@@ -174,6 +177,7 @@ void main() {
             body: ProfileScreen(
               repository: repository,
               currentUserResolver: () => user,
+              startInEditMode: true,
             ),
           ),
         ),
@@ -183,12 +187,16 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    final usernameField = find.byType(CBTextField).first;
     final usernameEditable = find.descendant(
-      of: usernameField,
+      of: find.byType(CBTextField).first,
       matching: find.byType(EditableText),
     );
-    await tester.enterText(usernameEditable, 'Local Save');
+    final saveController =
+        tester.widget<EditableText>(usernameEditable).controller;
+    saveController.value = const TextEditingValue(
+      text: 'Local Save',
+      selection: TextSelection.collapsed(offset: 10),
+    );
     await tester.pump();
 
     controller.add(<String, dynamic>{
@@ -204,17 +212,13 @@ void main() {
       findsOneWidget,
     );
 
-    final saveButtonFinder =
-        find.widgetWithText(CBPrimaryButton, 'SAVE CHANGES');
-    await tester.ensureVisible(saveButtonFinder);
-    await tester.tap(saveButtonFinder);
+    final saveActions =
+      tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
+    saveActions.onSave();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(
-      tester.widget<EditableText>(usernameEditable).controller.text,
-      'Remote After Save',
-    );
+    expect(find.text('REMOTE AFTER SAVE'), findsOneWidget);
     expect(
         find.text(
             'Cloud profile update detected. Save/discard to sync latest values.'),

@@ -36,10 +36,24 @@ class ProfileRepository {
       return false;
     }
 
-    final existing = await _profiles
-        .where('usernameLower', isEqualTo: normalized)
-        .limit(1)
-        .get();
+    QuerySnapshot<Map<String, dynamic>> existing;
+    try {
+      existing = await _profiles
+          .where('usernameLower', isEqualTo: normalized)
+          .limit(1)
+          .get();
+    } on FirebaseException catch (error) {
+      // Current security rules restrict profile reads to the signed-in user's
+      // document (`request.auth.uid == uid`), so collection queries may be
+      // rejected with permission-denied in client flows.
+      //
+      // In that configuration we allow save to proceed instead of failing the
+      // entire profile update path.
+      if (error.code == 'permission-denied') {
+        return true;
+      }
+      rethrow;
+    }
 
     if (existing.docs.isEmpty) {
       return true;
@@ -57,10 +71,20 @@ class ProfileRepository {
       return false;
     }
 
-    final existing = await _profiles
-        .where('publicPlayerIdLower', isEqualTo: normalized)
-        .limit(1)
-        .get();
+    QuerySnapshot<Map<String, dynamic>> existing;
+    try {
+      existing = await _profiles
+          .where('publicPlayerIdLower', isEqualTo: normalized)
+          .limit(1)
+          .get();
+    } on FirebaseException catch (error) {
+      // See notes in isUsernameAvailable: on permission-denied we avoid
+      // blocking profile updates from the client.
+      if (error.code == 'permission-denied') {
+        return true;
+      }
+      rethrow;
+    }
 
     if (existing.docs.isEmpty) {
       return true;

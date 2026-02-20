@@ -166,7 +166,7 @@ void main() {
     expect(container.read(playerNavigationProvider), PlayerDestination.game);
   });
 
-  testWidgets('Menu button remains accessible across shell destinations',
+  testWidgets('Shell does not render duplicate menu button overlay',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -187,7 +187,9 @@ void main() {
     );
 
     expect(
-        find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
+      find.byKey(const ValueKey('player_shell_menu_button')),
+      findsNothing,
+    );
 
     container
         .read(playerNavigationProvider.notifier)
@@ -195,7 +197,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(
-        find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
+      find.byKey(const ValueKey('player_shell_menu_button')),
+      findsNothing,
+    );
 
     container
         .read(playerNavigationProvider.notifier)
@@ -203,7 +207,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(
-        find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
+      find.byKey(const ValueKey('player_shell_menu_button')),
+      findsNothing,
+    );
 
     container
         .read(playerNavigationProvider.notifier)
@@ -211,6 +217,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(
-        find.byKey(const ValueKey('player_shell_menu_button')), findsOneWidget);
+      find.byKey(const ValueKey('player_shell_menu_button')),
+      findsNothing,
+    );
   });
 }

@@ -78,7 +78,9 @@ class _CBBulletinBoardState extends State<CBBulletinBoard> {
         return CBMessageBubble(
           sender: role?.name ?? entry.title,
           message: entry.content,
-          isSystemMessage: entry.type == 'system',
+          style: entry.type == 'system'
+              ? CBMessageStyle.system
+              : CBMessageStyle.standard,
           color: color,
           avatarAsset: role?.assetPath,
         );

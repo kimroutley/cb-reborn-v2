@@ -1,13 +1,23 @@
 # Club Blackout Reborn: Agent Context & Technical Reference
 
 > **Authoritative Source for AI Agents & Developers**
-> **Last Updated:** February 18, 2026
+> **Last Updated:** February 19, 2026 (UI Overhaul + Release Hardening)
 
 This document provides the deep technical context required to work on the Club Blackout Reborn monorepo without causing regressions. It supplements the `PROJECT_DEVELOPER_HANDBOOK.md` by focusing on architectural constraints, specific implementation patterns, and "gotchas".
 
 ---
 
-## 1. Monorepo Structure & Environment
+## 1. Visual Standards (The "Design Bible")
+
+> **STOP:** Before writing any UI code, read **[`STYLE_GUIDE.md`](./style-guide.md)**.
+
+*   **Do not use raw colors**: Always use `Theme.of(context).colorScheme` or `CBColors` from `cb_theme`.
+*   **Do not use raw widgets**: Use shared components like `CBGlassTile`, `CBPanel`, and `CBPrismScaffold`.
+*   **Aesthetic**: The app enforces a strict "Radiant Neon" terminal look. All screens must be dark, glassmorphic, and haptic-rich.
+
+---
+
+## 2. Monorepo Structure & Environment
 
 ### Directory Layout
 The project is a **Flutter Monorepo** structured as follows:
@@ -37,7 +47,7 @@ When modifying models or logic, you **must** run `build_runner` in the correct d
 
 ---
 
-## 2. Key Architectural Patterns
+## 3. Key Architectural Patterns
 
 ### State Management: Riverpod & Freezed
 *   **Providers**: We use Riverpod 3.x.
@@ -71,7 +81,7 @@ The app supports dual-mode networking (Local WebSocket + Cloud Firestore), abstr
 
 ---
 
-## 3. Testing Strategy
+## 4. Testing Strategy
 
 ### Unit Testing Constraints
 *   **No Internet**: The sandbox has no internet access. You cannot run `flutter pub get` reliably. Rely on pre-installed dependencies.
@@ -89,7 +99,7 @@ The app supports dual-mode networking (Local WebSocket + Cloud Firestore), abstr
 
 ---
 
-## 4. Known Issues & "Gotchas"
+## 5. Known Issues & "Gotchas"
 
 ### Linting Strictness
 *   **`duplicate_ignore`**: The CI fails if you have a file-level `// ignore_for_file: rule` AND a specific `// ignore: rule` on a line.
@@ -102,7 +112,7 @@ The app supports dual-mode networking (Local WebSocket + Cloud Firestore), abstr
 
 ---
 
-## 5. Universal Interactive Role Framework (Mar 2026)
+## 6. Universal Interactive Role Framework (Mar 2026)
 
 The game logic now uses a **Priority-Based Strategy Pattern** for resolving night actions. This replaced the monolithic and hardcoded `resolveNight` implementation.
 
@@ -121,7 +131,7 @@ The game logic now uses a **Priority-Based Strategy Pattern** for resolving nigh
 
 ---
 
-## 6. Current Status Checklist (Feb 18, 2026)
+## 7. Current Status Checklist (Feb 19, 2026)
 
 ### Verified (Stable)
 - [x] **Universal Framework**: All roles transitioned to the new priority-based resolution engine.
@@ -130,19 +140,12 @@ The game logic now uses a **Priority-Based Strategy Pattern** for resolving nigh
 - [x] **Package Health**: `packages/cb_logic` and `packages/cb_theme` full analyze + tests pass.
 - [x] **Bot Simulation**: `addBot` and `simulateBotTurns` verified in `cb_logic`.
 - [x] **Auth & Nav**: Streamlined flows and `NavigationDrawer` implemented.
+- [x] **UI Polish**: Full implementation of "Radiant Neon" style guide.
 
 ### Pending Validation (Manual)
 - [ ] **Cross-Device Multiplayer**: Verify Local vs Cloud mode switching on real devices.
 - [ ] **Deep Links**: Verify "Join via URL" robustly handles app cold starts vs warm resumes.
 - [ ] **Host Parity**: Ghost Lounge and Dead Pool integration needs UI polish.
-
-### Automated Validation Completed (Feb 18, 2026)
-
-* [x] **Join/Registration Stabilization**: Local + cloud join flow now sends identity-backed registration and avoids false `joinAccepted` resets.
-* [x] **Regression Coverage**: Updated `apps/player/test/player_bridge_test.dart` and `apps/host/test/host_bridge_test.dart` for join/duplicate-join stability.
-* [x] **Player Build Health**: `apps/player` full analyze + tests pass after join-flow refactor.
-* [x] **Manual Assignment UX**: Host manual role assignment now supports drag-and-drop in lobby setup sheet.
-* [x] **Player startup cache/resume**: Added bootstrap preload + stale session restore with full `apps/player` analyze/test pass.
 
 ---
 

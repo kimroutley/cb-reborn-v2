@@ -36,175 +36,182 @@ class CustomDrawer extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final currentDestination = ref.watch(playerNavigationProvider);
+    final selectedIndex = playerDestinations
+        .indexWhere((config) => config.destination == currentDestination);
 
-    return Drawer(
-      backgroundColor: scheme.surfaceContainerLow,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          _buildDrawerHeader(context),
+    const coreGroup = <PlayerDestination>{
+      PlayerDestination.home,
+      PlayerDestination.lobby,
+      PlayerDestination.claim,
+      PlayerDestination.game,
+    };
+    const guidesGroup = <PlayerDestination>{
+      PlayerDestination.guides,
+      PlayerDestination.gamesNight,
+      PlayerDestination.hallOfFame,
+    };
+    const profileGroup = <PlayerDestination>{
+      PlayerDestination.profile,
+      PlayerDestination.stats,
+      PlayerDestination.about,
+    };
 
-          ...playerDestinations.map((config) {
-            final isSelected = currentDestination == config.destination;
+    List<PlayerDestinationConfig> configsFor(Set<PlayerDestination> group) {
+      return playerDestinations
+          .where((config) => group.contains(config.destination))
+          .toList(growable: false);
+    }
 
-            return _DrawerTile(
-              icon: config.icon,
-              title: config.label,
-              isSelected: isSelected,
-              onTap: () async {
-                if (config.destination == currentDestination) {
-                  Navigator.pop(context);
-                  return;
-                }
-                final canLeave = await _confirmDiscardProfileChanges(
-                  context,
-                  ref,
-                  config.destination,
-                );
-                if (!context.mounted) {
-                  return;
-                }
-                if (!canLeave) {
-                  return;
-                }
-                Navigator.pop(context);
-                ref
-                    .read(playerNavigationProvider.notifier)
-                    .setDestination(config.destination);
-              },
-            );
-          }),
+    final coreDestinations = configsFor(coreGroup);
+    final guidesDestinations = configsFor(guidesGroup);
+    final profileDestinations = configsFor(profileGroup);
 
-          Divider(color: scheme.outlineVariant.withValues(alpha: 0.25)),
+    return NavigationDrawer(
+      backgroundColor: scheme.surface,
+      indicatorColor: scheme.secondaryContainer,
+      selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
+      onDestinationSelected: (index) async {
+        HapticService.selection();
+        final destination = playerDestinations[index].destination;
+        if (destination == currentDestination) {
+          return;
+        }
 
-          // BAR TAB PREVIEW (Visual only stub)
-          Padding(
-            padding: CBInsets.panel,
-            child: Container(
-              padding: CBInsets.screen,
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(CBRadius.md),
-                border: Border.all(
-                  color: scheme.tertiary.withValues(alpha: 0.3),
+        final canLeave = await _confirmDiscardProfileChanges(
+          context,
+          ref,
+          destination,
+        );
+        if (!context.mounted || !canLeave) {
+          return;
+        }
+
+        ref.read(playerNavigationProvider.notifier).setDestination(destination);
+        try {
+          if (Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        } catch (_) {}
+      },
+      children: [
+        _buildDrawerHeader(context),
+
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'Core',
+            icon: Icons.hub_rounded,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        ...coreDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
+
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'Guides',
+            icon: Icons.auto_stories_rounded,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        ...guidesDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
+
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'Profile & Stats',
+            icon: Icons.perm_identity_rounded,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        ...profileDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // BAR TAB PREVIEW (Visual only stub)
+        Padding(
+          padding: CBInsets.screen,
+          child: CBPanel(
+            borderColor: scheme.tertiary,
+            borderWidth: 1.25,
+            padding: CBInsets.screen,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CBSectionHeader(
+                  title: 'Your Bar Tab',
+                  icon: Icons.receipt_long_rounded,
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.receipt_long_rounded,
-                        color: scheme.tertiary,
-                        size: 16,
-                      ),
-                      const SizedBox(width: CBSpace.x2),
-                      Text(
-                        "YOUR BAR TAB",
-                        style: textTheme.labelSmall!.copyWith(
-                          color: scheme.tertiary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: CBSpace.x3),
+                Text(
+                  '0 DRINKS OWED',
+                  style: textTheme.headlineSmall!.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w900,
+                    shadows: CBColors.textGlow(scheme.onSurface,
+                        intensity: 0.35),
                   ),
-                  const SizedBox(height: CBSpace.x3),
-                  Text(
-                    "0 DRINKS OWED",
-                    style: textTheme.headlineSmall!.copyWith(
-                      color: scheme.onSurface,
-                    ),
+                ),
+                Text(
+                  'NO ACTIVE PENALTIES',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.35),
                   ),
-                  Text(
-                    "NO ACTIVE PENALTIES",
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.35),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildDrawerHeader(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    return DrawerHeader(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        border: Border(
-          bottom: BorderSide(
-              color: scheme.primary.withValues(alpha: 0.4), width: 0.5),
-        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        CBSpace.x6,
+        CBSpace.x6,
+        CBSpace.x4,
+        CBSpace.x4,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CBRoleAvatar(color: scheme.primary, size: 48, pulsing: true),
-          const SizedBox(height: CBSpace.x4),
           Text(
             'CLUB BLACKOUT',
-            style: textTheme.headlineMedium!.copyWith(
-              color: scheme.onSurface,
-              shadows: CBColors.textGlow(scheme.primary, intensity: 0.5),
+            style: textTheme.headlineSmall?.copyWith(
+              color: scheme.secondary,
+              fontWeight: FontWeight.bold,
+              shadows: CBColors.textGlow(scheme.secondary),
             ),
           ),
+          const SizedBox(height: 4),
           Text(
-            'THE ULTIMATE SOCIAL DECEPTION',
+            'PLAYER TERMINAL',
             style: textTheme.labelSmall?.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.35),
-              letterSpacing: 1.0,
+              color: scheme.onSurfaceVariant,
+              letterSpacing: 1.5,
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _DrawerTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-  final bool isSelected;
-
-  const _DrawerTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.isSelected = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
-        size: 20,
-      ),
-      title: Text(
-        title.toUpperCase(),
-        style: textTheme.labelSmall!.copyWith(
-          color: isSelected
-              ? scheme.primary
-              : scheme.onSurface.withValues(alpha: 0.85),
-          letterSpacing: 1.5,
-          fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
-          shadows: isSelected
-              ? CBColors.textGlow(scheme.primary, intensity: 0.3)
-              : null,
-        ),
-      ),
-      selected: isSelected,
-      onTap: onTap,
     );
   }
 }

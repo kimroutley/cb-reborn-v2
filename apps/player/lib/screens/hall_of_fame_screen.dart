@@ -283,7 +283,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String?>(
-                  value: _selectedAwardRoleId,
+                  initialValue: _selectedAwardRoleId,
                   decoration: const InputDecoration(
                     labelText: 'ROLE',
                     isDense: true,
@@ -310,7 +310,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: DropdownButtonFormField<RoleAwardTier?>(
-                  value: _selectedAwardTier,
+                  initialValue: _selectedAwardTier,
                   decoration: const InputDecoration(
                     labelText: 'TIER',
                     isDense: true,

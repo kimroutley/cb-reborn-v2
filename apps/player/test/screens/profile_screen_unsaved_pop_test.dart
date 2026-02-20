@@ -24,7 +24,10 @@ void main() {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) =>
-                              ProfileScreen(currentUserResolver: () => null),
+                              ProfileScreen(
+                                currentUserResolver: () => null,
+                                startInEditMode: true,
+                              ),
                         ),
                       );
                     },

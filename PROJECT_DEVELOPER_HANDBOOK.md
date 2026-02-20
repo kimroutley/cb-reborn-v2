@@ -1,8 +1,8 @@
 # Club Blackout Reborn: Developer Handbook
 
-> **Last Updated:** February 17, 2026 (Stabilization + CI/Release Hardening)
+> **Last Updated:** February 19, 2026 (UI Overhaul + Release Hardening)
 > **Project Location:** `C:\Club Blackout Reborn\`
-> **Technical Reference:** See [`docs/architecture/agent-context.md`](./docs/architecture/agent-context.md) for deep technical details, build order, and known issues.
+> **Technical Reference:** See [`AGENT_CONTEXT.md`](./AGENT_CONTEXT.md) for deep technical details, build order, and known issues.
 
 ---
 
@@ -61,9 +61,9 @@ Club Blackout is a **social deduction party game** set in a neon-drenched nightc
 ## 2. Design System: cb_theme
 
 ### Visual "Source of Truth"
-The **CB Visuals** folder defines character colors. UI must derive colors from `role.colorHex`.
+**READ THIS FIRST:** [`STYLE_GUIDE.md`](./STYLE_GUIDE.md) is the authoritative reference for all visual elements.
 
-See [`docs/architecture/style-guide.md`](./docs/architecture/style-guide.md) for detailed component usage and styling rules.
+The **CB Visuals** folder defines character colors. UI must derive colors from `role.colorHex`.
 
 ### UI Philosophy: "Neon Glass"
 - **High Friction, High Reward**: Use animations (`CBFadeSlide`) and haptics to make every button press feel like interacting with a physical nightclub terminal.
@@ -106,12 +106,12 @@ cd ../../apps/host ; dart run build_runner build --delete-conflicting-outputs
 - [x] **Release Hardening**: Host Android signing template + CI host release artifact path added.
 - [x] **CI Optimization**: Workflow concurrency/caching/action-version refresh to reduce pipeline runtime.
 
-### Build Status (Feb 17, 2026)
+### Build Status (Feb 19, 2026)
 
 | App | Status | Notes |
 | :--- | :--- | :--- |
-| **Host** | ✅ Verified | 0 Analyzer errors. Build successful. |
-| **Player** | ✅ Verified | Auth parity with Host. 0 Analyzer errors. |
+| **Host** | ✅ Verified | 0 Analyzer errors. Build successful. UI Overhauled. |
+| **Player** | ✅ Verified | Auth parity with Host. 0 Analyzer errors. UI Overhauled. |
 
 ### Remaining Manual Validation
 

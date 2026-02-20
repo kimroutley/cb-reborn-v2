@@ -21,6 +21,7 @@ enum CBMessageGroupPosition {
 class CBMessageBubble extends StatelessWidget {
   final String sender;
   final String message;
+  final DateTime? timestamp;
   final CBMessageStyle style;
   final Color? color;
   final String? avatarAsset;
@@ -34,6 +35,7 @@ class CBMessageBubble extends StatelessWidget {
     super.key,
     required this.sender,
     required this.message,
+    this.timestamp,
     this.style = CBMessageStyle.standard,
     this.color,
     this.avatarAsset,

@@ -64,7 +64,7 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                 sender: 'SYSTEM',
                 message:
                     'SELECT 2 PLAYERS TO COMPARE (${_selectedIds.length}/2)',
-                isSystemMessage: true,
+                style: CBMessageStyle.system,
                 color: scheme.tertiary,
               ),
             ),

@@ -56,7 +56,14 @@ class CBPrimaryButton extends StatelessWidget {
 
     if (!fullWidth) return button;
 
-    return SizedBox(width: double.infinity, child: button);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!constraints.hasBoundedWidth) {
+          return button;
+        }
+        return SizedBox(width: double.infinity, child: button);
+      },
+    );
   }
 }
 
@@ -112,7 +119,14 @@ class CBGhostButton extends StatelessWidget {
 
     if (!fullWidth) return button;
 
-    return SizedBox(width: double.infinity, child: button);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (!constraints.hasBoundedWidth) {
+          return button;
+        }
+        return SizedBox(width: double.infinity, child: button);
+      },
+    );
   }
 }
 

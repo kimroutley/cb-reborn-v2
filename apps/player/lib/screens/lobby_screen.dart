@@ -313,7 +313,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
           CBMessageBubble(
             sender: 'SYSTEM',
             message: "SECURE CONNECTION ESTABLISHED",
-            isSystemMessage: true,
+            style: CBMessageStyle.system,
           ),
 
           // ── WELCOME MESSAGE ──
@@ -330,7 +330,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
               sender: 'RESULT',
               message:
                   "IDENTIFIED AS: ${gameState.myPlayerSnapshot!.name.toUpperCase()}",
-              isSystemMessage: true,
+              style: CBMessageStyle.system,
             ),
 
           Padding(
@@ -371,7 +371,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
           CBMessageBubble(
             sender: 'SYSTEM',
             message: "PATRONS ENTERING: ${gameState.players.length}",
-            isSystemMessage: true,
+            style: CBMessageStyle.system,
           ),
 
           ...gameState.players.asMap().entries.map((entry) {

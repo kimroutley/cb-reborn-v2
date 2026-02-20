@@ -82,6 +82,7 @@ class CustomDrawer extends ConsumerWidget {
       indicatorColor: colorScheme.secondaryContainer,
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) async {
+        HapticService.selection();
         final destination = hostDestinations[index].destination;
         if (destination == activeDestination) {
           return;
@@ -116,7 +117,12 @@ class CustomDrawer extends ConsumerWidget {
       },
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(28, 24, 16, 16),
+          padding: const EdgeInsets.fromLTRB(
+            CBSpace.x6,
+            CBSpace.x6,
+            CBSpace.x4,
+            CBSpace.x4,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -140,8 +146,14 @@ class CustomDrawer extends ConsumerWidget {
           ),
         ),
 
-        const Divider(indent: 28, endIndent: 28),
-        const SizedBox(height: 12),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'Core',
+            icon: Icons.hub_rounded,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
 
         // Group 1: Core (Home, Lobby, Game)
         ...coreDestinations.map((dest) => NavigationDrawerDestination(
@@ -150,9 +162,13 @@ class CustomDrawer extends ConsumerWidget {
             )),
 
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-          child: Divider(),
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'Management',
+            icon: Icons.dashboard_customize_rounded,
+          ),
         ),
+        const SizedBox(height: CBSpace.x2),
 
         // Group 2: Management (Guides, Games Night, HoF)
         ...managementDestinations.map((dest) => NavigationDrawerDestination(
@@ -161,9 +177,13 @@ class CustomDrawer extends ConsumerWidget {
             )),
 
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 28, vertical: 12),
-          child: Divider(),
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'System',
+            icon: Icons.tune_rounded,
+          ),
         ),
+        const SizedBox(height: CBSpace.x2),
 
         // Group 3: System (Save/Load, Settings, Profile, About)
         ...systemDestinations.map((dest) => NavigationDrawerDestination(

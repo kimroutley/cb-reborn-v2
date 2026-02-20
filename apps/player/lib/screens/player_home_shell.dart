@@ -15,7 +15,6 @@ import 'games_night_screen.dart';
 import 'hall_of_fame_screen.dart';
 import 'stats_screen.dart';
 import 'about_screen.dart';
-import '../widgets/custom_drawer.dart';
 
 class PlayerHomeShell extends ConsumerStatefulWidget {
   const PlayerHomeShell({
@@ -244,46 +243,26 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         break;
     }
 
-    return Scaffold(
-      drawer: const CustomDrawer(),
-      body: Stack(
-        children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0.05, 0),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
-                  )),
-                  child: child,
-                ),
-              );
-            },
-            child: KeyedSubtree(
-              key: ValueKey(destination),
-              child: activeWidget,
-            ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 500),
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.05, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            )),
+            child: child,
           ),
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: Builder(
-                builder: (context) => IconButton(
-                  key: const ValueKey('player_shell_menu_button'),
-                  tooltip: 'Open menu',
-                  icon: const Icon(Icons.menu_rounded),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
-              ),
-            ),
-          ),
-        ],
+        );
+      },
+      child: KeyedSubtree(
+        key: ValueKey(destination),
+        child: activeWidget,
       ),
     );
   }
