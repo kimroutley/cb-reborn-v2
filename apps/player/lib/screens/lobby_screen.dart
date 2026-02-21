@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:cb_player/auth/auth_provider.dart';
 import 'package:cb_comms/cb_comms_player.dart';
 import 'package:cb_theme/cb_theme.dart';
@@ -185,12 +183,14 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+    showThemedSnackBar(
+      context,
+      message,
+      accentColor: Theme.of(context).colorScheme.tertiary,
     );
   }
 
-  ({String title, String detail}) _buildLobbyStatus({
+  ({String title, String detail, _LobbyStatusTone tone}) _buildLobbyStatus({
     required int playerCount,
     required bool awaitingStartConfirmation,
     required String phase,
@@ -199,6 +199,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
       return (
         title: 'READY TO JOIN',
         detail: 'Host started the game. Confirm your join now.',
+        tone: _LobbyStatusTone.readyToJoin,
       );
     }
 
@@ -207,6 +208,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         title: 'WAITING FOR MORE PLAYERS',
         detail:
             'Need at least $_minimumPlayersHintThreshold players for a full session.',
+        tone: _LobbyStatusTone.waitingPlayers,
       );
     }
 
@@ -214,12 +216,14 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
       return (
         title: 'WAITING FOR HOST TO ASSIGN YOU A ROLE',
         detail: 'Role cards are being assigned. Stay ready.',
+        tone: _LobbyStatusTone.setup,
       );
     }
 
     return (
       title: 'WAITING FOR HOST TO START',
       detail: 'Review the Game Bible in the side drawer while you wait.',
+      tone: _LobbyStatusTone.waitingHost,
     );
   }
 
@@ -248,64 +252,20 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
       phase: gameState.phase,
     );
 
+    final (statusIcon, statusColor) = switch (status.tone) {
+      _LobbyStatusTone.readyToJoin =>
+        (Icons.flash_on_rounded, scheme.tertiary),
+      _LobbyStatusTone.waitingPlayers =>
+        (Icons.groups_rounded, scheme.secondary),
+      _LobbyStatusTone.setup =>
+        (Icons.badge_rounded, scheme.primary),
+      _LobbyStatusTone.waitingHost =>
+        (Icons.hourglass_top_rounded, scheme.onSurfaceVariant),
+    };
+
     return CBPrismScaffold(
       title: 'LOBBY',
       drawer: const CustomDrawer(),
-      bottomNavigationBar: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: scheme.surface.withValues(alpha: 0.6),
-              border: Border(
-                top: BorderSide(
-                  color: scheme.primary.withValues(alpha: 0.4),
-                  width: 1.0,
-                ),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: scheme.primary.withValues(alpha: 0.2),
-                  blurRadius: 24,
-                  spreadRadius: -10,
-                  offset: const Offset(0, -10),
-                )
-              ],
-            ),
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CBBreathingLoader(size: 32),
-                  const SizedBox(height: 20),
-                  Text(
-                    status.title,
-                    textAlign: TextAlign.center,
-                    style: textTheme.labelSmall!.copyWith(
-                      color: scheme.onSurface,
-                      letterSpacing: 2.5,
-                      fontWeight: FontWeight.bold,
-                      shadows:
-                          CBColors.textGlow(scheme.primary, intensity: 0.7),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    status.detail,
-                    textAlign: TextAlign.center,
-                    style: textTheme.labelSmall!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.5),
-                      fontSize: 8,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         children: [
@@ -389,10 +349,70 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             );
           }),
 
-          // ── SPACING FOR LOADING ──
+          const SizedBox(height: 16),
+
+          CBPanel(
+            borderColor: statusColor.withValues(alpha: 0.35),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Icon(statusIcon, size: 18, color: statusColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      'LOBBY STATUS',
+                      style: textTheme.labelMedium?.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    const Spacer(),
+                    const CBBreathingLoader(size: 20),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: Text(
+                    status.title,
+                    key: ValueKey(status.title),
+                    style: textTheme.labelLarge?.copyWith(
+                      color: scheme.onSurface,
+                      letterSpacing: 1.0,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  child: Text(
+                    status.detail,
+                    key: ValueKey(status.detail),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.72),
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           const SizedBox(height: 24),
         ],
       ),
     );
   }
+}
+
+enum _LobbyStatusTone {
+  waitingPlayers,
+  waitingHost,
+  setup,
+  readyToJoin,
 }

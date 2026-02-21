@@ -4,6 +4,7 @@ import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -86,6 +87,109 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     ).toString();
   }
 
+  Future<void> _copyToClipboard(
+    BuildContext context, {
+    required String value,
+    required String successMessage,
+  }) async {
+    await Clipboard.setData(ClipboardData(text: value));
+    if (!context.mounted) return;
+    HapticService.selection();
+    showThemedSnackBar(
+      context,
+      successMessage,
+      accentColor: Theme.of(context).colorScheme.tertiary,
+    );
+  }
+
+  void _showExpandedJoinQrSheet(
+    BuildContext context, {
+    required String joinUrl,
+    required String joinCode,
+  }) {
+    showThemedDialog<void>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'JOIN SESSION BEACON',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'CODE: $joinCode',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontFamily: 'RobotoMono',
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: CBGlassTile(
+              borderColor:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.45),
+              padding: const EdgeInsets.all(16),
+              child: QrImageView(
+                data: joinUrl,
+                size: 260,
+                version: QrVersions.auto,
+                backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                eyeStyle: QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+                dataModuleStyle: QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: Theme.of(context).colorScheme.surface,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              CBGhostButton(
+                label: 'Copy Code',
+                icon: Icons.pin_rounded,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _copyToClipboard(
+                    context,
+                    value: joinCode,
+                    successMessage: 'Join code copied.',
+                  );
+                },
+                fullWidth: false,
+              ),
+              CBPrimaryButton(
+                label: 'Copy Link',
+                icon: Icons.link_rounded,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _copyToClipboard(
+                    context,
+                    value: joinUrl,
+                    successMessage: 'Join link copied.',
+                  );
+                },
+                fullWidth: false,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showManualRoleAssignmentSheet(BuildContext context) {
     showThemedBottomSheet<void>(
       context: context,
@@ -102,6 +206,9 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     final nav = ref.read(hostNavigationProvider.notifier);
     final scheme = Theme.of(context).colorScheme;
     final joinUrl = _buildPlayerJoinUrl(session.joinCode);
+    final cloudStatusKey = _isCloudLinkReady
+      ? 'ready'
+      : (_cloudLinkError == null ? 'connecting' : 'error');
 
     final hasMinPlayers = gameState.players.length >= Game.minPlayers;
     final isManual = gameState.gameStyle == GameStyle.manual;
@@ -137,102 +244,225 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                 const SizedBox(height: 12),
                 Text(
                   'SCAN TO OPEN PLAYER JOIN SESSION',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.7),
-                    letterSpacing: 1.0,
-                  ),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.72),
+                        letterSpacing: 1.1,
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
                 const SizedBox(height: 16),
-                CBGlassTile(
-                  borderColor: _isCloudLinkReady
-                      ? scheme.tertiary.withValues(alpha: 0.45)
-                      : (_cloudLinkError == null
-                          ? scheme.secondary.withValues(alpha: 0.45)
-                          : scheme.error.withValues(alpha: 0.45)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _isCloudLinkReady
-                            ? Icons.cloud_done_rounded
-                            : (_cloudLinkError == null
-                                ? Icons.cloud_sync_rounded
-                                : Icons.cloud_off_rounded),
-                        size: 16,
-                        color: _isCloudLinkReady
-                            ? scheme.tertiary
-                            : (_cloudLinkError == null
-                                ? scheme.secondary
-                                : scheme.error),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _isCloudLinkReady
-                              ? 'CLOUD LINK: ACTIVE'
-                              : (_cloudLinkError == null
-                                  ? 'CLOUD LINK: ESTABLISHING...'
-                                  : 'CLOUD LINK: RETRY REQUIRED'),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: _isCloudLinkReady
-                                    ? scheme.tertiary
-                                    : (_cloudLinkError == null
-                                        ? scheme.secondary
-                                        : scheme.error),
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.0,
-                              ),
-                        ),
-                      ),
-                      if (_cloudLinkError != null)
-                        IconButton(
-                          tooltip: 'Retry cloud link',
-                          visualDensity: VisualDensity.compact,
-                          icon: Icon(
-                            Icons.refresh_rounded,
-                            color: scheme.error,
-                            size: 16,
-                          ),
-                          onPressed: _bootstrapCloudRuntime,
-                        ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Center(
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 260),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
                   child: CBGlassTile(
-                    borderColor: scheme.primary.withValues(alpha: 0.4),
-                    padding: const EdgeInsets.all(14),
-                    child: QrImageView(
-                      data: joinUrl,
-                      size: 180,
-                      version: QrVersions.auto,
-                      backgroundColor: scheme.onPrimary,
-                      eyeStyle: QrEyeStyle(
-                        eyeShape: QrEyeShape.square,
-                        color: scheme.surface,
-                      ),
-                      dataModuleStyle: QrDataModuleStyle(
-                        dataModuleShape: QrDataModuleShape.square,
-                        color: scheme.surface,
+                    key: ValueKey(cloudStatusKey),
+                    borderColor: _isCloudLinkReady
+                        ? scheme.tertiary.withValues(alpha: 0.45)
+                        : (_cloudLinkError == null
+                            ? scheme.secondary.withValues(alpha: 0.45)
+                            : scheme.error.withValues(alpha: 0.45)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _isCloudLinkReady
+                              ? Icons.cloud_done_rounded
+                              : (_cloudLinkError == null
+                                  ? Icons.cloud_sync_rounded
+                                  : Icons.cloud_off_rounded),
+                          size: 16,
+                          color: _isCloudLinkReady
+                              ? scheme.tertiary
+                              : (_cloudLinkError == null
+                                  ? scheme.secondary
+                                  : scheme.error),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _isCloudLinkReady
+                                ? 'CLOUD LINK: ACTIVE'
+                                : (_cloudLinkError == null
+                                    ? 'CLOUD LINK: ESTABLISHING...'
+                                    : 'CLOUD LINK: RETRY REQUIRED'),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  color: _isCloudLinkReady
+                                      ? scheme.tertiary
+                                      : (_cloudLinkError == null
+                                          ? scheme.secondary
+                                          : scheme.error),
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.0,
+                                ),
+                          ),
+                        ),
+                        if (_cloudLinkError != null)
+                          IconButton(
+                            tooltip: 'Retry cloud link',
+                            visualDensity: VisualDensity.compact,
+                            icon: Icon(
+                              Icons.refresh_rounded,
+                              color: scheme.error,
+                              size: 16,
+                            ),
+                            onPressed: _bootstrapCloudRuntime,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 220),
+                  opacity: _isCloudLinkReady ? 1 : 0.82,
+                  child: CBGlassTile(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    borderColor: scheme.primary.withValues(alpha: 0.35),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.pin_rounded,
+                          size: 16,
+                          color: scheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'JOIN CODE: ${session.joinCode}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  color: scheme.primary,
+                                  fontFamily: 'RobotoMono',
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.0,
+                                ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Copy code',
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () {
+                            _copyToClipboard(
+                              context,
+                              value: session.joinCode,
+                              successMessage: 'Join code copied.',
+                            );
+                          },
+                          icon: Icon(
+                            Icons.copy_rounded,
+                            size: 16,
+                            color: scheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Center(
+                  child: AnimatedScale(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    scale: _isCloudLinkReady ? 1 : 0.97,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        _showExpandedJoinQrSheet(
+                          context,
+                          joinUrl: joinUrl,
+                          joinCode: session.joinCode,
+                        );
+                      },
+                      child: CBGlassTile(
+                        borderColor: scheme.primary.withValues(alpha: 0.4),
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            QrImageView(
+                              data: joinUrl,
+                              size: 180,
+                              version: QrVersions.auto,
+                              backgroundColor: scheme.onPrimary,
+                              eyeStyle: QrEyeStyle(
+                                eyeShape: QrEyeShape.square,
+                                color: scheme.surface,
+                              ),
+                              dataModuleStyle: QrDataModuleStyle(
+                                dataModuleShape: QrDataModuleShape.square,
+                                color: scheme.surface,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _isCloudLinkReady
+                                  ? 'TAP TO EXPAND'
+                                  : 'CONNECTING...',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color: scheme.primary.withValues(alpha: 0.8),
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 1.0,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                SelectableText(
-                  joinUrl,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.primary,
-                    fontFamily: 'RobotoMono',
+                CBGlassTile(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  borderColor: scheme.primary.withValues(alpha: 0.2),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SelectableText(
+                          joinUrl,
+                          maxLines: 2,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: scheme.primary,
+                                fontFamily: 'RobotoMono',
+                              ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        tooltip: 'Copy join link',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () {
+                          _copyToClipboard(
+                            context,
+                            value: joinUrl,
+                            successMessage: 'Join link copied.',
+                          );
+                        },
+                        icon: Icon(
+                          Icons.link_rounded,
+                          size: 18,
+                          color: scheme.primary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // ── CONFIGURATION PANEL ──
           CBPanel(
@@ -281,45 +511,49 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
 
           // ── PLAYER LIST ──
           const LobbyPlayerList(),
 
-          const SizedBox(height: 120),
-        ],
-      ),
-      bottomNavigationBar: BottomControls(
-        isLobby: true,
-        isEndGame: false,
-        playerCount: gameState.players.length,
-        onAction: () {
-          if (!hasMinPlayers) {
-            showThemedSnackBar(
-              context,
-              'Need at least ${Game.minPlayers} players to open the club.',
-              accentColor: scheme.error,
-            );
-            return;
-          }
-          if (isManual && !allRolesAssigned) {
-            showThemedSnackBar(
-              context,
-              'Assign all roles manually or change Game Style.',
-              accentColor: scheme.secondary,
-            );
-            return;
-          }
+          const SizedBox(height: 24),
 
-          final success = controller.startGame();
-          if (success) {
-            nav.setDestination(HostDestination.game);
-          }
-        },
-        onAddMock: controller.addBot,
-        eyesOpen: gameState.eyesOpen,
-        onToggleEyes: controller.toggleEyes,
-        onBack: () => nav.setDestination(HostDestination.home),
+          BottomControls(
+            isLobby: true,
+            isEndGame: false,
+            playerCount: gameState.players.length,
+            onAction: () {
+              if (!hasMinPlayers) {
+                showThemedSnackBar(
+                  context,
+                  'Need at least ${Game.minPlayers} players to open the club.',
+                  accentColor: scheme.error,
+                );
+                return;
+              }
+              if (isManual && !allRolesAssigned) {
+                showThemedSnackBar(
+                  context,
+                  'Assign all roles manually or change Game Style.',
+                  accentColor: scheme.secondary,
+                );
+                return;
+              }
+
+              final success = controller.startGame();
+              if (success) {
+                nav.setDestination(HostDestination.game);
+              }
+            },
+            onAddMock: controller.addBot,
+            eyesOpen: gameState.eyesOpen,
+            onToggleEyes: controller.toggleEyes,
+            onBack: () => nav.setDestination(HostDestination.home),
+            requiredPlayers: Game.minPlayers,
+          ),
+
+          const SizedBox(height: 28),
+        ],
       ),
     );
   }
@@ -350,6 +584,7 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.onSurface.withValues(alpha: 0.6),
                   letterSpacing: 1.2,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 4),
@@ -358,6 +593,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                 style: textTheme.labelLarge?.copyWith(
                   color: color,
                   fontWeight: FontWeight.w900,
+                  letterSpacing: 0.6,
+                  fontFamily: 'RobotoMono',
                   shadows: CBColors.textGlow(color, intensity: 0.3),
                 ),
               ),
@@ -369,7 +606,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                 'NEXT: $nextValue',
                 style: textTheme.labelSmall?.copyWith(
                   color: color.withValues(alpha: 0.7),
-                  fontSize: 9,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
                 ),
               ),

@@ -2,7 +2,17 @@
 
 ## Last updated
 
-2026-02-20
+2026-02-21
+
+## Delta (2026-02-21)
+
+- Host Lobby UI polish pass completed (visual hierarchy, QR usability, bottom controls, micro-motion).
+- New targeted QA artifact added: `docs/operations/host-lobby-ui-qa-2026-02-21.md`.
+- Host verification rerun: `apps/host -> flutter analyze .` ✅ (no issues).
+- Player UI polish pass completed for lobby/game action surfaces (status panel, action bars, readability tune).
+- Player connect/claim entry surfaces received follow-up polish (uplink status, identity selection clarity).
+- New targeted QA artifact added: `docs/operations/player-ui-polish-qa-2026-02-21.md`.
+- Player verification rerun: `apps/player -> flutter analyze .` ✅ (no issues).
 
 ## Executive summary
 

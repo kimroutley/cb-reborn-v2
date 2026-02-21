@@ -128,96 +128,97 @@ class _GameActionTileState extends State<GameActionTile> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: CBGlassTile(
-        borderColor: widget.roleColor.withValues(alpha: 0.6),
-        onTap: _handleActionTap,
-        isPrismatic: true,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: widget.roleColor, size: 20),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: textTheme.labelLarge!.copyWith(
-                    color: widget.roleColor,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2.0,
-                    shadows: CBColors.textGlow(widget.roleColor, intensity: 0.4),
-                  ),
+    return CBGlassTile(
+      borderColor: widget.roleColor.withValues(alpha: 0.6),
+      onTap: _handleActionTap,
+      isPrismatic: true,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: widget.roleColor, size: 20),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: textTheme.labelLarge!.copyWith(
+                  color: widget.roleColor,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.4,
+                  shadows: CBColors.textGlow(widget.roleColor, intensity: 0.4),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              subTitle,
-              style: textTheme.labelSmall!.copyWith(
-                color: widget.roleColor.withValues(alpha: 0.6),
-                fontSize: 9,
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.bold,
               ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            subTitle,
+            style: textTheme.labelSmall!.copyWith(
+              color: widget.roleColor.withValues(alpha: 0.68),
+              letterSpacing: 1.1,
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(height: 20),
-            Text(
-              widget.step.instructionText.isNotEmpty
-                  ? widget.step.instructionText.toUpperCase()
-                  : "WAITING FOR YOUR INPUT...",
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium!.copyWith(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            widget.step.instructionText.isNotEmpty
+                ? widget.step.instructionText.toUpperCase()
+                : "WAITING FOR YOUR INPUT...",
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium!.copyWith(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 32,
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      widget.roleColor.withValues(alpha: 0.5)
+                    ],
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 32,
-                  height: 1,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.transparent, widget.roleColor.withValues(alpha: 0.5)],
-                    ),
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Icon(
+                  Icons.touch_app_rounded,
+                  color: widget.roleColor.withValues(alpha: 0.4),
+                  size: 18,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Icon(
-                    Icons.touch_app_rounded,
-                    color: widget.roleColor.withValues(alpha: 0.4),
-                    size: 18,
-                  ),
-                ),
-                Container(
-                  width: 32,
-                  height: 1,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [widget.roleColor.withValues(alpha: 0.5), Colors.transparent],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              "WAKE UP, ${widget.player.name.toUpperCase()}. THE CLUB IS WAITING.",
-              textAlign: TextAlign.center,
-              style: textTheme.labelSmall!.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.3),
-                fontSize: 8,
-                letterSpacing: 1.0,
               ),
+              Container(
+                width: 32,
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      widget.roleColor.withValues(alpha: 0.5),
+                      Colors.transparent
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "WAKE UP, ${widget.player.name.toUpperCase()}. THE CLUB IS WAITING.",
+            textAlign: TextAlign.center,
+            style: textTheme.labelSmall!.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.45),
+              letterSpacing: 0.8,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

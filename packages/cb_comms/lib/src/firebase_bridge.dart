@@ -76,6 +76,7 @@ class FirebaseBridge {
       debugPrint('[FirebaseBridge] Published state for $joinCode');
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to publish: $e');
+      rethrow;
     }
   }
 

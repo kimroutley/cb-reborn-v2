@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 class EndGameView extends StatelessWidget {
   final GameState gameState;
   final Game controller;
+  final VoidCallback onReturnToLobby;
 
   const EndGameView({
     super.key,
     required this.gameState,
     required this.controller,
+    required this.onReturnToLobby,
   });
 
   @override
@@ -150,7 +152,16 @@ class EndGameView extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 48),
+
+          const SizedBox(height: 24),
+
+          CBPrimaryButton(
+            label: 'NEW GAME',
+            icon: Icons.refresh_rounded,
+            onPressed: onReturnToLobby,
+          ),
+
+          const SizedBox(height: 24),
         ],
       ),
     );

@@ -93,6 +93,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   final TextEditingController joinUrlController = TextEditingController();
   String? localError;
   bool _navigatingToClaim = false;
+  bool _isConnecting = false;
 
   @override
   void initState() {
@@ -138,13 +139,23 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     return true;
   }
 
-  void _connect() async {
-    setState(() => localError = null);
+  Future<void> _connect() async {
+    if (_isConnecting) {
+      return;
+    }
+    setState(() {
+      localError = null;
+      _isConnecting = true;
+    });
 
     if (joinUrlController.text.trim().isNotEmpty) {
       final ok = _tryApplyJoinUrl(joinUrlController.text);
       if (!ok) {
-        setState(() => localError = 'INVALID JOIN URL');
+        HapticService.error();
+        setState(() {
+          localError = 'INVALID JOIN URL';
+          _isConnecting = false;
+        });
         return;
       }
     }
@@ -152,7 +163,11 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     final code = _normalizeJoinCode(joinCodeController.text);
 
     if (code.length != 11) {
-      setState(() => localError = 'INVALID CODE FORMAT');
+      HapticService.error();
+      setState(() {
+        localError = 'INVALID CODE FORMAT';
+        _isConnecting = false;
+      });
       return;
     }
 
@@ -160,8 +175,15 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       await ref.read(playerBridgeProvider.notifier).disconnect();
       final bridge = ref.read(cloudPlayerBridgeProvider.notifier);
       await bridge.joinWithCode(code);
+      HapticService.medium();
     } catch (e) {
+      HapticService.error();
+      if (!mounted) return;
       setState(() => localError = e.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isConnecting = false);
+      }
     }
   }
 
@@ -184,8 +206,24 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     // Get current error state
     final cloudState = ref.watch(cloudPlayerBridgeProvider);
     final error = localError ?? cloudState.joinError;
-    // Note: isConnecting logic needs a proper state in the bridges.
-    // For now, assume if error is null and not accepted, it's connecting.
+    final hasParsedUrl = joinUrlController.text.trim().isNotEmpty;
+    final toneColor = _isConnecting
+      ? scheme.primary
+      : (error == null ? scheme.tertiary : scheme.error);
+    final toneIcon = _isConnecting
+      ? Icons.cloud_sync_rounded
+      : (error == null
+        ? Icons.cloud_done_rounded
+        : Icons.error_outline_rounded);
+    final toneTitle = _isConnecting
+      ? 'UPLINK IN PROGRESS'
+      : (error == null ? 'UPLINK READY' : 'UPLINK ISSUE DETECTED');
+    final readyDetail = hasParsedUrl
+      ? 'Join URL detected. Code can be prefilled from parser.'
+      : 'Enter a join code or paste a join URL to continue.';
+    final toneDetail = _isConnecting
+      ? 'Connecting to host session. Keep this terminal active.'
+      : (error ?? readyDetail);
 
     final accent = scheme.secondary;
 
@@ -210,6 +248,45 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
           ],
         ),
         const SizedBox(height: CBSpace.x4),
+        CBGlassTile(
+          borderColor: toneColor.withValues(alpha: 0.35),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(toneIcon, size: 18, color: toneColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: Column(
+                    key: ValueKey('$toneTitle|$toneDetail'),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        toneTitle,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: toneColor,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.9,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        toneDetail,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.76),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: CBSpace.x4),
         // Local-only: Host IP
         CBBadge(
           text: 'JOIN URL (OPTIONAL)',
@@ -226,11 +303,15 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
           alignment: Alignment.centerRight,
           child: CBTextButton(
             label: 'PARSE URL',
-            onPressed: () {
+            onPressed: _isConnecting
+                ? null
+                : () {
               final ok = _tryApplyJoinUrl(joinUrlController.text);
               if (!ok) {
+                HapticService.error();
                 setState(() => localError = 'INVALID JOIN URL');
               } else {
+                HapticService.selection();
                 setState(() => localError = null);
               }
             },
@@ -257,19 +338,23 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
         if (error != null) ...[
           const SizedBox(height: CBSpace.x4),
-          CBStatusOverlay(
-            icon: Icons.error_outline,
-            label: 'CONNECTION FAILED',
-            color: scheme.error,
-            detail: error,
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: CBStatusOverlay(
+              key: ValueKey(error),
+              icon: Icons.error_outline,
+              label: 'CONNECTION FAILED',
+              color: scheme.error,
+              detail: error,
+            ),
           ),
         ],
 
         const SizedBox(height: CBSpace.x6),
         CBPrimaryButton(
-          label: 'INITIATE UPLINK',
+          label: _isConnecting ? 'CONNECTING...' : 'INITIATE UPLINK',
           icon: Icons.login_rounded,
-          onPressed: _connect,
+          onPressed: _isConnecting ? null : _connect,
         ),
       ],
     );

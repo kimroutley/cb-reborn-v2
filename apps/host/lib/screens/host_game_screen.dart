@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../host_destinations.dart';
 import '../host_navigation.dart';
-import '../widgets/bottom_controls.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import 'dashboard_view.dart';
@@ -35,7 +34,14 @@ class HostGameScreen extends ConsumerWidget {
       drawer: const CustomDrawer(currentDestination: HostDestination.game),
       actions: const [SimulationModeBadgeAction()],
       body: isEndGame
-          ? EndGameView(gameState: gameState, controller: controller)
+          ? EndGameView(
+              gameState: gameState,
+              controller: controller,
+              onReturnToLobby: () {
+                controller.returnToLobby();
+                nav.setDestination(HostDestination.lobby);
+              },
+            )
           : DefaultTabController(
               length: 3,
               child: Column(
@@ -50,32 +56,34 @@ class HostGameScreen extends ConsumerWidget {
                   Expanded(
                     child: TabBarView(
                       children: [
-                        DashboardView(gameState: gameState),
-                        LogsView(gameState: gameState),
-                        StatsView(gameState: gameState),
+                        DashboardView(
+                          gameState: gameState,
+                          onAction: controller.advancePhase,
+                          onAddMock: controller.addBot,
+                          eyesOpen: gameState.eyesOpen,
+                          onToggleEyes: controller.toggleEyes,
+                          onBack: () => nav.setDestination(HostDestination.lobby),
+                        ),
+                        Builder(
+                          builder: (tabContext) => LogsView(
+                            gameState: gameState,
+                            onOpenCommand: () =>
+                                DefaultTabController.of(tabContext).animateTo(0),
+                          ),
+                        ),
+                        Builder(
+                          builder: (tabContext) => StatsView(
+                            gameState: gameState,
+                            onOpenCommand: () =>
+                                DefaultTabController.of(tabContext).animateTo(0),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-      bottomNavigationBar: BottomControls(
-        isLobby: false,
-        isEndGame: isEndGame,
-        playerCount: gameState.players.length,
-        onAction: () {
-          if (isEndGame) {
-            controller.returnToLobby();
-            nav.setDestination(HostDestination.lobby);
-            return;
-          }
-          controller.advancePhase();
-        },
-        onAddMock: controller.addBot,
-        eyesOpen: gameState.eyesOpen,
-        onToggleEyes: controller.toggleEyes,
-        onBack: () => nav.setDestination(HostDestination.lobby),
-      ),
     );
   }
 }

@@ -4,8 +4,13 @@ import 'package:flutter/material.dart';
 
 class LogsView extends StatelessWidget {
   final GameState gameState;
+  final VoidCallback? onOpenCommand;
 
-  const LogsView({super.key, required this.gameState});
+  const LogsView({
+    super.key,
+    required this.gameState,
+    this.onOpenCommand,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +25,36 @@ class LogsView extends StatelessWidget {
           icon: Icons.history_edu_rounded,
           color: scheme.primary,
         ),
+        if (onOpenCommand != null) ...[
+          const SizedBox(height: 8),
+          CBGlassTile(
+            borderColor: scheme.secondary.withValues(alpha: 0.35),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.touch_app_rounded,
+                  size: 16,
+                  color: scheme.secondary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Need round controls? Return to Command tab.',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onOpenCommand,
+                  icon: const Icon(Icons.dashboard_customize_rounded, size: 16),
+                  label: const Text('Command'),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         Expanded(
           child: CBPanel(

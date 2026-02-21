@@ -1,6 +1,5 @@
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../active_bridge.dart';
@@ -26,6 +25,16 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
     final availablePlayers = gameState.players
         .where((p) => p.isAlive && !gameState.claimedPlayerIds.contains(p.id))
         .toList();
+    final selectedPlayer = _selectedId == null
+        ? null
+        : () {
+            for (final player in availablePlayers) {
+              if (player.id == _selectedId) {
+                return player;
+              }
+            }
+            return null;
+          }();
 
     return CBPrismScaffold(
       title: 'ENTRY TERMINAL',
@@ -54,6 +63,37 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
               style: textTheme.bodySmall!.copyWith(
                 color: scheme.onSurface.withValues(alpha: 0.6),
                 letterSpacing: 1.0,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: CBPanel(
+              borderColor: scheme.primary.withValues(alpha: 0.32),
+              child: Row(
+                children: [
+                  Icon(Icons.badge_rounded, size: 18, color: scheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      child: Text(
+                        selectedPlayer == null
+                            ? 'AVAILABLE IDENTITIES: ${availablePlayers.length}'
+                            : 'SELECTED: ${selectedPlayer.name.toUpperCase()}',
+                        key: ValueKey('${availablePlayers.length}|$_selectedId'),
+                        style: textTheme.labelMedium?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -109,7 +149,7 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                           child: CBGlassTile(
                             onTap: () {
                               setState(() => _selectedId = player.id);
-                              HapticFeedback.selectionClick();
+                              HapticService.selection();
                             },
                             isPrismatic: isSelected,
                             isSelected: isSelected,
@@ -157,12 +197,12 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: CBPrimaryButton(
-                label: 'CONFIRM IDENTITY',
+                label: _selectedId == null ? 'SELECT AN IDENTITY' : 'CONFIRM IDENTITY',
                 icon: Icons.fingerprint_rounded,
                 onPressed: _selectedId == null
                     ? null
                     : () {
-                        HapticFeedback.heavyImpact();
+                        HapticService.medium();
                         activeBridge.actions.claimPlayer(_selectedId!);
                       },
               ),

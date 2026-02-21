@@ -90,7 +90,13 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                                 ),
                                 body: CBNeonBackground(
                                   child: DashboardView(
-                                      gameState: widget.gameState),
+                                    gameState: widget.gameState,
+                                    onAction: () {},
+                                    onAddMock: () {},
+                                    eyesOpen: false,
+                                    onToggleEyes: (_) {},
+                                    onBack: () => Navigator.of(context).maybePop(),
+                                  ),
                                 ),
                               ),
                             ),

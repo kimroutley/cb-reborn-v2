@@ -79,6 +79,44 @@ If FAIL:
 - Escalation owner: <name>
 ```
 
+### Prefilled execution skeleton — 2026-02-21 (copy/paste)
+
+```text
+Runbook Progress (2026-02-21)
+- Completed: Host/player analyze pass after host navigation + inline control refactor
+- In Progress: Real-device continuity validation (host tab flow + player sync)
+- Blockers: Manual device evidence capture still pending for sections 3–5
+- Release Outlook: Cautiously positive once manual gates pass
+- Next 2 Actions:
+  1) Execute Host navigation + Player continuity smoke set (docs/operations/qa-smoke-checklist.md)
+  2) Record PASS/FAIL evidence in section logs and update docs/operations/status.md
+
+Section: Host navigation + Player continuity
+Owner: QA / Release Lead
+Start: 2026-02-21 <hh:mm>
+End: 2026-02-21 <hh:mm>
+Result: PASS | FAIL | PARTIAL
+Evidence:
+- Host build: <apk/hash/version>
+- Player build/web hash: <hash/version>
+- Device matrix: <host device + player device(s)>
+- Screenshot/log refs: <paths/links>
+Notes:
+- Verified no fixed action bars in host game flow screens
+- Verified Command shortcut from Logs/Analytics returns to Command tab
+- Verified player state remains in sync while host switches tabs and advances phases
+If FAIL:
+- Repro steps: <steps>
+- Suspected area: <file/module>
+- Escalation owner: <name>
+
+Release Decision (2026-02-21): GO | NO-GO
+Blockers Remaining: <none | list>
+Risk Notes: <concise>
+Next Action Owner: <name>
+ETA: <date/time>
+```
+
 ---
 
 ## 4) Final release decision block

@@ -67,105 +67,123 @@ class CloudHostBridge {
     _running = true;
 
     // Listen for join requests from players
-    _joinSub = _firebase!.subscribeToJoinRequests().listen((snapshot) {
-      for (final change in snapshot.docChanges) {
-        if (change.doc.id.isEmpty || _processedJoins.contains(change.doc.id)) {
-          continue;
-        }
-        _processedJoins.add(change.doc.id);
+    _joinSub = _firebase!.subscribeToJoinRequests().listen(
+      (snapshot) {
+        for (final change in snapshot.docChanges) {
+          if (change.doc.id.isEmpty || _processedJoins.contains(change.doc.id)) {
+            continue;
+          }
+          _processedJoins.add(change.doc.id);
 
-        final data = change.doc.data();
-        if (data == null) continue;
+          final data = change.doc.data();
+          if (data == null) continue;
 
-        final name = (data['name'] as String?)?.trim();
-        final uid = (data['uid'] as String?)?.trim();
-        if (name != null && name.isNotEmpty) {
-          final players = _ref.read(gameProvider).players;
-          final hasExisting = (uid != null && uid.isNotEmpty)
-              ? players.any((p) => (p.authUid ?? '').trim() == uid)
-              : players.any(
-                  (p) => p.name.trim().toLowerCase() == name.toLowerCase(),
-                );
-          if (!hasExisting) {
-            _ref.read(gameProvider.notifier).addPlayer(
-                  name,
-                  authUid: uid?.isNotEmpty == true ? uid : null,
-                );
-            debugPrint('[CloudHostBridge] Player joined: $name ($uid)');
+          final name = (data['name'] as String?)?.trim();
+          final uid = (data['uid'] as String?)?.trim();
+          if (name != null && name.isNotEmpty) {
+            final players = _ref.read(gameProvider).players;
+            final hasExisting = (uid != null && uid.isNotEmpty)
+                ? players.any((p) => (p.authUid ?? '').trim() == uid)
+                : players.any(
+                    (p) => p.name.trim().toLowerCase() == name.toLowerCase(),
+                  );
+            if (!hasExisting) {
+              _ref.read(gameProvider.notifier).addPlayer(
+                    name,
+                    authUid: uid?.isNotEmpty == true ? uid : null,
+                  );
+              debugPrint('[CloudHostBridge] Player joined: $name ($uid)');
+            }
           }
         }
-      }
-    });
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        debugPrint('[CloudHostBridge] Join stream error: $error');
+        _running = false;
+      },
+    );
 
     // Listen for player actions (votes, night actions)
-    _actionSub = _firebase!.subscribeToActions().listen((snapshot) {
-      for (final change in snapshot.docChanges) {
-        if (change.doc.id.isEmpty ||
-            _processedActions.contains(change.doc.id)) {
-          continue;
-        }
-        _processedActions.add(change.doc.id);
+    _actionSub = _firebase!.subscribeToActions().listen(
+      (snapshot) {
+        for (final change in snapshot.docChanges) {
+          if (change.doc.id.isEmpty ||
+              _processedActions.contains(change.doc.id)) {
+            continue;
+          }
+          _processedActions.add(change.doc.id);
 
-        final data = change.doc.data();
-        if (data == null) continue;
+          final data = change.doc.data();
+          if (data == null) continue;
 
-        final type = data['type'] as String?;
+          final type = data['type'] as String?;
 
-        if (type == 'dead_pool_bet') {
-          final playerId = data['playerId'] as String? ?? '';
-          final targetPlayerId = data['targetPlayerId'] as String? ?? '';
-          if (playerId.isNotEmpty && targetPlayerId.isNotEmpty) {
-            _ref.read(gameProvider.notifier).placeDeadPoolBet(
-                  playerId: playerId,
-                  targetPlayerId: targetPlayerId,
+          if (type == 'dead_pool_bet') {
+            final playerId = data['playerId'] as String? ?? '';
+            final targetPlayerId = data['targetPlayerId'] as String? ?? '';
+            if (playerId.isNotEmpty && targetPlayerId.isNotEmpty) {
+              _ref.read(gameProvider.notifier).placeDeadPoolBet(
+                    playerId: playerId,
+                    targetPlayerId: targetPlayerId,
+                  );
+              debugPrint(
+                  '[CloudHostBridge] Dead-pool bet: $playerId -> $targetPlayerId');
+            }
+            continue;
+          }
+
+          if (type == 'ghost_chat') {
+            final playerId = data['playerId'] as String? ?? '';
+            final playerName = data['playerName'] as String?;
+            final message = data['message'] as String? ?? '';
+            if (playerId.isNotEmpty && message.trim().isNotEmpty) {
+              _ref.read(gameProvider.notifier).addGhostChatMessage(
+                    senderPlayerId: playerId,
+                    senderPlayerName: playerName,
+                    message: message.trim(),
+                  );
+              debugPrint('[CloudHostBridge] Ghost chat from $playerId');
+            }
+            continue;
+          }
+
+          if (type == 'role_confirm') {
+            final playerId = data['playerId'] as String? ?? '';
+            if (playerId.isNotEmpty) {
+              _ref.read(sessionProvider.notifier).confirmRole(playerId);
+              debugPrint('[CloudHostBridge] Role confirmed: $playerId');
+            }
+            continue;
+          }
+
+          final stepId = data['stepId'] as String? ?? '';
+          final targetId = data['targetId'] as String?;
+          final playerId = data['playerId'] as String?;
+
+          if (stepId.isNotEmpty) {
+            _ref.read(gameProvider.notifier).handleInteraction(
+                  stepId: stepId,
+                  targetId: targetId ?? '',
+                  voterId: playerId,
                 );
-            debugPrint(
-                '[CloudHostBridge] Dead-pool bet: $playerId -> $targetPlayerId');
+            debugPrint('[CloudHostBridge] Action: $stepId from $playerId');
           }
-          continue;
         }
-
-        if (type == 'ghost_chat') {
-          final playerId = data['playerId'] as String? ?? '';
-          final playerName = data['playerName'] as String?;
-          final message = data['message'] as String? ?? '';
-          if (playerId.isNotEmpty && message.trim().isNotEmpty) {
-            _ref.read(gameProvider.notifier).addGhostChatMessage(
-                  senderPlayerId: playerId,
-                  senderPlayerName: playerName,
-                  message: message.trim(),
-                );
-            debugPrint('[CloudHostBridge] Ghost chat from $playerId');
-          }
-          continue;
-        }
-
-        if (type == 'role_confirm') {
-          final playerId = data['playerId'] as String? ?? '';
-          if (playerId.isNotEmpty) {
-            _ref.read(sessionProvider.notifier).confirmRole(playerId);
-            debugPrint('[CloudHostBridge] Role confirmed: $playerId');
-          }
-          continue;
-        }
-
-        final stepId = data['stepId'] as String? ?? '';
-        final targetId = data['targetId'] as String?;
-        final playerId = data['playerId'] as String?;
-
-        if (stepId.isNotEmpty) {
-          _ref.read(gameProvider.notifier).handleInteraction(
-                stepId: stepId,
-                targetId: targetId ?? '',
-                voterId: playerId,
-              );
-          debugPrint('[CloudHostBridge] Action: $stepId from $playerId');
-        }
-      }
-    });
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        debugPrint('[CloudHostBridge] Action stream error: $error');
+        _running = false;
+      },
+    );
 
     // Publish initial state
-    await publishState();
+    try {
+      await publishState();
+    } catch (e) {
+      debugPrint('[CloudHostBridge] Initial publish failed: $e');
+      await stop();
+      rethrow;
+    }
     debugPrint('[CloudHostBridge] Started for game $joinCode');
   }
 
@@ -206,8 +224,6 @@ class CloudHostBridge {
           '[CloudHostBridge] Skipping publish: host user is not authenticated yet.');
       return;
     }
-
-    _lastPublishedHash = currentHash;
 
     final step = game.currentStep;
     final isEndGame = game.phase == GamePhase.endGame;
@@ -293,6 +309,7 @@ class CloudHostBridge {
       publicState: publicState,
       playerPrivateData: playerPrivateData,
     );
+    _lastPublishedHash = currentHash;
   }
 
   int _computeStateHash(GameState game, SessionState session) {

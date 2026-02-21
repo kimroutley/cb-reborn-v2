@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:cb_models/cb_models.dart' hide PlayerSnapshot;
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
@@ -240,26 +238,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   Widget _buildSetupConfirmBar(BuildContext context, PlayerBridgeActions bridge,
       String playerId, Color color) {
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-            border:
-                Border(top: BorderSide(color: color.withValues(alpha: 0.3))),
-          ),
-          child: SafeArea(
-            child: CBPrimaryButton(
-              label: 'CONFIRM IDENTITY',
-              icon: Icons.fingerprint_rounded,
-              backgroundColor: color,
-              onPressed: () {
-                bridge.confirmRole(playerId: playerId);
-                HapticFeedback.selectionClick();
-              },
-            ),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: CBPanel(
+          borderColor: color.withValues(alpha: 0.4),
+          child: CBPrimaryButton(
+            label: 'CONFIRM IDENTITY',
+            icon: Icons.fingerprint_rounded,
+            backgroundColor: color,
+            onPressed: () {
+              bridge.confirmRole(playerId: playerId);
+              HapticFeedback.selectionClick();
+            },
           ),
         ),
       ),
@@ -275,24 +267,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     String playerId,
     PlayerBridgeActions bridge,
   ) {
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-            border: Border(
-                top: BorderSide(color: roleColor.withValues(alpha: 0.3))),
-          ),
-          child: SafeArea(
-            child: GameActionTile(
-              step: step,
-              roleColor: roleColor,
-              player: player,
-              gameState: gameState,
-              playerId: playerId,
-              bridge: bridge,
-            ),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: CBPanel(
+          padding: const EdgeInsets.all(12),
+          borderColor: roleColor.withValues(alpha: 0.4),
+          child: GameActionTile(
+            step: step,
+            roleColor: roleColor,
+            player: player,
+            gameState: gameState,
+            playerId: playerId,
+            bridge: bridge,
           ),
         ),
       ),
