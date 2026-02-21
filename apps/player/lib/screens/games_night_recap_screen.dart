@@ -2,6 +2,7 @@ import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/custom_drawer.dart';
 
 class GamesNightRecapScreen extends StatelessWidget {
   final GamesNightRecord session;
@@ -21,6 +22,7 @@ class GamesNightRecapScreen extends StatelessWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      drawer: const CustomDrawer(),
       appBar: AppBar(
         title: Text(
           'SESSION RECAP',

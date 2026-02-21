@@ -15,7 +15,7 @@ class GuidesScreen extends ConsumerWidget {
     final gameState = ref.watch(gameProvider);
 
     return CBPrismScaffold(
-      title: 'CLUB BIBLE',
+      title: 'THE BLACKBOOK',
       drawer: const CustomDrawer(currentDestination: HostDestination.guides),
       body: CBGuideScreen(
         gameState: gameState,

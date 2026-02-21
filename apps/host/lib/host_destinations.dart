@@ -29,7 +29,7 @@ class HostDestinationConfig {
 const hostDestinations = <HostDestinationConfig>[
   HostDestinationConfig(
     destination: HostDestination.home,
-    label: 'Home',
+    label: 'Command Center',
     icon: Icons.home_outlined,
   ),
   HostDestinationConfig(
@@ -39,12 +39,12 @@ const hostDestinations = <HostDestinationConfig>[
   ),
   HostDestinationConfig(
     destination: HostDestination.game,
-    label: 'Game',
-    icon: Icons.play_circle_outline,
+    label: 'Group Chat',
+    icon: Icons.chat_bubble_outline_rounded,
   ),
   HostDestinationConfig(
     destination: HostDestination.guides,
-    label: 'Game Bible',
+    label: 'The Blackbook',
     icon: Icons.menu_book_outlined,
   ),
   HostDestinationConfig(
@@ -69,8 +69,8 @@ const hostDestinations = <HostDestinationConfig>[
   ),
   HostDestinationConfig(
     destination: HostDestination.profile,
-    label: 'Profile',
-    icon: Icons.badge_outlined,
+    label: 'Wallet',
+    icon: Icons.account_balance_wallet_outlined,
   ),
   HostDestinationConfig(
     destination: HostDestination.about,

@@ -18,7 +18,7 @@ class GuidesScreen extends StatelessWidget {
     // If we have no context, we show the full scaffold with drawer
     if (gameState == null) {
       return CBPrismScaffold(
-        title: 'CLUB BIBLE',
+        title: 'THE BLACKBOOK',
         drawer: const CustomDrawer(),
         body: CBGuideScreen(gameState: gameState, localPlayer: localPlayer),
       );

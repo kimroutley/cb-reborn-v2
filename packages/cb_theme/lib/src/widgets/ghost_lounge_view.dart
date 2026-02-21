@@ -32,6 +32,7 @@ class GhostLoungeView extends StatelessWidget {
   final List<GhostLoungeBet> activeBets;
   final String? currentBetTargetName;
   final ValueChanged<String> onPlaceBet;
+  final Widget? drawer;
 
   const GhostLoungeView({
     super.key,
@@ -39,6 +40,7 @@ class GhostLoungeView extends StatelessWidget {
     required this.activeBets,
     required this.onPlaceBet,
     this.currentBetTargetName,
+    this.drawer,
   });
 
   @override
@@ -48,6 +50,7 @@ class GhostLoungeView extends StatelessWidget {
 
     return CBPrismScaffold(
       title: 'GHOST LOUNGE',
+      drawer: drawer,
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         children: [

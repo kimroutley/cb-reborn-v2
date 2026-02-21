@@ -4,6 +4,8 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'custom_drawer.dart';
+
 class GhostLoungeContent extends StatelessWidget {
   final PlayerGameState gameState;
   final String playerId;
@@ -49,6 +51,7 @@ class GhostLoungeContent extends StatelessWidget {
         : (playersById[myBetTargetId]?.name ?? myBetTargetId);
 
     return GhostLoungeView(
+      drawer: const CustomDrawer(),
       aliveTargets: aliveTargets,
       activeBets: activeBets,
       currentBetTargetName: myBetTargetName,

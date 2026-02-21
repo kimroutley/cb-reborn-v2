@@ -46,21 +46,27 @@ class CustomDrawer extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    const coreGroup = <HostDestination>{
-      HostDestination.home,
+    const lobbyGroup = <HostDestination>{
       HostDestination.lobby,
+    };
+    const socialGroup = <HostDestination>{
       HostDestination.game,
     };
-    const managementGroup = <HostDestination>{
+    const blackbookGroup = <HostDestination>{
       HostDestination.guides,
-      HostDestination.gamesNight,
-      HostDestination.hallOfFame,
     };
-    const systemGroup = <HostDestination>{
+    const walletGroup = <HostDestination>{
+      HostDestination.profile,
+    };
+    const aboutGroup = <HostDestination>{
+      HostDestination.about,
+    };
+    const adminGroup = <HostDestination>{
+      HostDestination.home,
       HostDestination.saveLoad,
       HostDestination.settings,
-      HostDestination.profile,
-      HostDestination.about,
+      HostDestination.gamesNight,
+      HostDestination.hallOfFame,
     };
 
     List<HostDestinationConfig> configsFor(Set<HostDestination> group) {
@@ -69,21 +75,31 @@ class CustomDrawer extends ConsumerWidget {
           .toList(growable: false);
     }
 
-    final coreDestinations = configsFor(coreGroup);
-    final managementDestinations = configsFor(managementGroup);
-    final systemDestinations = configsFor(systemGroup);
+    final lobbyDestinations = configsFor(lobbyGroup);
+    final socialDestinations = configsFor(socialGroup);
+    final blackbookDestinations = configsFor(blackbookGroup);
+    final walletDestinations = configsFor(walletGroup);
+    final aboutDestinations = configsFor(aboutGroup);
+    final adminDestinations = configsFor(adminGroup);
+    final drawerDestinations = <HostDestinationConfig>[
+      ...lobbyDestinations,
+      ...socialDestinations,
+      ...blackbookDestinations,
+      ...walletDestinations,
+      ...aboutDestinations,
+      ...adminDestinations,
+    ];
 
-    // Calculate selected index based on the full list of destinations
-    final selectedIndex =
-        hostDestinations.indexWhere((d) => d.destination == activeDestination);
+    final selectedIndex = drawerDestinations
+        .indexWhere((d) => d.destination == activeDestination);
 
     return NavigationDrawer(
       backgroundColor: colorScheme.surface,
       indicatorColor: colorScheme.secondaryContainer,
-      selectedIndex: selectedIndex,
+      selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
       onDestinationSelected: (index) async {
         HapticService.selection();
-        final destination = hostDestinations[index].destination;
+        final destination = drawerDestinations[index].destination;
         if (destination == activeDestination) {
           return;
         }
@@ -149,14 +165,13 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Core',
+            title: 'Lobby',
             icon: Icons.hub_rounded,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
 
-        // Group 1: Core (Home, Lobby, Game)
-        ...coreDestinations.map((dest) => NavigationDrawerDestination(
+        ...lobbyDestinations.map((dest) => NavigationDrawerDestination(
               icon: Icon(dest.icon),
               label: Text(dest.label),
             )),
@@ -164,14 +179,26 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Management',
-            icon: Icons.dashboard_customize_rounded,
+            title: 'Group Chat',
+            icon: Icons.chat_bubble_outline_rounded,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        ...socialDestinations.map((dest) => NavigationDrawerDestination(
+              icon: Icon(dest.icon),
+              label: Text(dest.label),
+            )),
+
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'The Blackbook',
+            icon: Icons.auto_stories_rounded,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
 
-        // Group 2: Management (Guides, Games Night, HoF)
-        ...managementDestinations.map((dest) => NavigationDrawerDestination(
+        ...blackbookDestinations.map((dest) => NavigationDrawerDestination(
               icon: Icon(dest.icon),
               label: Text(dest.label),
             )),
@@ -179,14 +206,39 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'System',
+            title: 'Wallet',
+            icon: Icons.account_balance_wallet_outlined,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        ...walletDestinations.map((dest) => NavigationDrawerDestination(
+              icon: Icon(dest.icon),
+              label: Text(dest.label),
+            )),
+
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'About',
+            icon: Icons.info_outline_rounded,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        ...aboutDestinations.map((dest) => NavigationDrawerDestination(
+              icon: Icon(dest.icon),
+              label: Text(dest.label),
+            )),
+
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'Admin',
             icon: Icons.tune_rounded,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
 
-        // Group 3: System (Save/Load, Settings, Profile, About)
-        ...systemDestinations.map((dest) => NavigationDrawerDestination(
+        ...adminDestinations.map((dest) => NavigationDrawerDestination(
               icon: Icon(dest.icon),
               label: Text(dest.label),
             )),

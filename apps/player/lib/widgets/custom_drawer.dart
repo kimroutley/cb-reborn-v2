@@ -33,27 +33,27 @@ class CustomDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final currentDestination = ref.watch(playerNavigationProvider);
-    final selectedIndex = playerDestinations
-        .indexWhere((config) => config.destination == currentDestination);
-
-    const coreGroup = <PlayerDestination>{
+    const lobbyGroup = <PlayerDestination>{
       PlayerDestination.home,
-      PlayerDestination.lobby,
-      PlayerDestination.claim,
+    };
+    const socialGroup = <PlayerDestination>{
       PlayerDestination.game,
     };
-    const guidesGroup = <PlayerDestination>{
+    const referenceGroup = <PlayerDestination>{
       PlayerDestination.guides,
-      PlayerDestination.gamesNight,
-      PlayerDestination.hallOfFame,
     };
-    const profileGroup = <PlayerDestination>{
+    const walletGroup = <PlayerDestination>{
       PlayerDestination.profile,
       PlayerDestination.stats,
+      PlayerDestination.hallOfFame,
+    };
+    const aboutGroup = <PlayerDestination>{
       PlayerDestination.about,
+    };
+    const barTabGroup = <PlayerDestination>{
+      PlayerDestination.gamesNight,
     };
 
     List<PlayerDestinationConfig> configsFor(Set<PlayerDestination> group) {
@@ -62,9 +62,23 @@ class CustomDrawer extends ConsumerWidget {
           .toList(growable: false);
     }
 
-    final coreDestinations = configsFor(coreGroup);
-    final guidesDestinations = configsFor(guidesGroup);
-    final profileDestinations = configsFor(profileGroup);
+    final lobbyDestinations = configsFor(lobbyGroup);
+    final socialDestinations = configsFor(socialGroup);
+    final referenceDestinations = configsFor(referenceGroup);
+    final walletDestinations = configsFor(walletGroup);
+    final aboutDestinations = configsFor(aboutGroup);
+    final barTabDestinations = configsFor(barTabGroup);
+    final drawerDestinations = <PlayerDestinationConfig>[
+      ...lobbyDestinations,
+      ...socialDestinations,
+      ...referenceDestinations,
+      ...walletDestinations,
+      ...aboutDestinations,
+      ...barTabDestinations,
+    ];
+
+    final selectedIndex = drawerDestinations
+        .indexWhere((config) => config.destination == currentDestination);
 
     return NavigationDrawer(
       backgroundColor: scheme.surface,
@@ -72,7 +86,7 @@ class CustomDrawer extends ConsumerWidget {
       selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
       onDestinationSelected: (index) async {
         HapticService.selection();
-        final destination = playerDestinations[index].destination;
+        final destination = drawerDestinations[index].destination;
         if (destination == currentDestination) {
           return;
         }
@@ -99,12 +113,12 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Core',
+            title: 'Lobby',
             icon: Icons.hub_rounded,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...coreDestinations.map(
+        ...lobbyDestinations.map(
           (dest) => NavigationDrawerDestination(
             icon: Icon(dest.icon),
             label: Text(dest.label),
@@ -114,12 +128,27 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Guides',
+            title: 'Group Chat',
+            icon: Icons.chat_bubble_outline_rounded,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        ...socialDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
+
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'The Blackbook',
             icon: Icons.auto_stories_rounded,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...guidesDestinations.map(
+        ...referenceDestinations.map(
           (dest) => NavigationDrawerDestination(
             icon: Icon(dest.icon),
             label: Text(dest.label),
@@ -129,12 +158,42 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Profile & Stats',
-            icon: Icons.perm_identity_rounded,
+            title: 'Wallet',
+            icon: Icons.account_balance_wallet_outlined,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...profileDestinations.map(
+        ...walletDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
+
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'About',
+            icon: Icons.info_outline_rounded,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        ...aboutDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
+
+        const Padding(
+          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
+          child: CBSectionHeader(
+            title: 'Bar Tab',
+            icon: Icons.wine_bar_outlined,
+          ),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        ...barTabDestinations.map(
           (dest) => NavigationDrawerDestination(
             icon: Icon(dest.icon),
             label: Text(dest.label),
@@ -142,41 +201,6 @@ class CustomDrawer extends ConsumerWidget {
         ),
 
         const SizedBox(height: 12),
-
-        // BAR TAB PREVIEW (Visual only stub)
-        Padding(
-          padding: CBInsets.screen,
-          child: CBPanel(
-            borderColor: scheme.tertiary,
-            borderWidth: 1.25,
-            padding: CBInsets.screen,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CBSectionHeader(
-                  title: 'Your Bar Tab',
-                  icon: Icons.receipt_long_rounded,
-                ),
-                const SizedBox(height: CBSpace.x3),
-                Text(
-                  '0 DRINKS OWED',
-                  style: textTheme.headlineSmall!.copyWith(
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.w900,
-                    shadows: CBColors.textGlow(scheme.onSurface,
-                        intensity: 0.35),
-                  ),
-                ),
-                Text(
-                  'NO ACTIVE PENALTIES',
-                  style: textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.35),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
     );
   }

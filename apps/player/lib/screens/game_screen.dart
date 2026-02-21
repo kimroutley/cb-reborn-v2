@@ -54,8 +54,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final playerId = gameState.myPlayerId;
 
     if (player == null || playerId == null) {
-      return const CBPrismScaffold(
+      return CBPrismScaffold(
         title: 'CONNECTING...',
+        drawer: const CustomDrawer(),
         body: Center(child: CBBreathingLoader()),
       );
     }

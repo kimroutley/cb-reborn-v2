@@ -6,6 +6,7 @@ import 'package:cb_theme/cb_theme.dart';
 import 'dashboard_view.dart';
 import '../widgets/dj_booth/turntable_widget.dart';
 import '../widgets/simulation_mode_badge_action.dart';
+import '../widgets/custom_drawer.dart';
 
 class DjBoothView extends ConsumerStatefulWidget {
   final GameState gameState;
@@ -20,6 +21,7 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      drawer: const CustomDrawer(),
       appBar: AppBar(
         title: const Text('DJ Booth'),
         backgroundColor: Colors.transparent,
@@ -79,6 +81,7 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => Scaffold(
+                                drawer: const CustomDrawer(),
                                 appBar: AppBar(
                                   title: const Text('Old Dashboard'),
                                   backgroundColor: Colors.transparent,

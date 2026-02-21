@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cb_theme/cb_theme.dart';
 import '../widgets/simulation_mode_badge_action.dart';
+import '../widgets/custom_drawer.dart';
 
 /// Privacy Policy screen displaying data collection and usage information.
 class PrivacyPolicyScreen extends StatelessWidget {
@@ -9,8 +10,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const CustomDrawer(),
       appBar: AppBar(
-        title: const Text('Privacy Policy'),
+        title: const Text('ABOUT'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: const [SimulationModeBadgeAction()],

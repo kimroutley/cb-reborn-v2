@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'home_screen.dart';
+import 'host_navigation_shell.dart';
 
 class HostIntroScreen extends StatefulWidget {
   const HostIntroScreen({super.key});
@@ -53,7 +53,7 @@ class _HostIntroScreenState extends State<HostIntroScreen> {
     }
 
     if (_seen) {
-      return const HomeScreen();
+      return const HostNavigationShell();
     }
 
     final theme = Theme.of(context);

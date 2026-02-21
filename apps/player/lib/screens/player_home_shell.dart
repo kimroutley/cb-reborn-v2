@@ -1,3 +1,4 @@
+import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../player_destinations.dart';
@@ -130,27 +131,47 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
       var dialogCompleted = false;
       final timeoutSeconds = widget.startConfirmTimeout.inSeconds;
 
-      final dialogFuture = showDialog<bool>(
+      final dialogFuture = showThemedDialog<bool>(
         context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return PopScope(
-            canPop: false,
-            child: AlertDialog(
-              title: const Text('GAME STARTED'),
-              content: Text(
-                'The host started the game. Confirm and enter the session now. '
-                'Auto-join starts in ${timeoutSeconds}s.',
+        accentColor: Theme.of(context).colorScheme.secondary,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'SESSION STARTING',
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                color: Theme.of(context).colorScheme.secondary,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                shadows: CBColors.textGlow(Theme.of(context).colorScheme.secondary),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('JOIN NOW'),
-                ),
-              ],
             ),
-          );
-        },
+            const SizedBox(height: 24),
+            Text(
+              'THE HOST HAS INITIATED THE SEQUENCE. CONNECT TO THE TERMINAL NOW.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'AUTO-UPLINK IN ${timeoutSeconds}S',
+              style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.6),
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 32),
+            CBPrimaryButton(
+              label: 'INITIATE JOIN',
+              backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
+              foregroundColor: Theme.of(context).colorScheme.secondary,
+              onPressed: () => Navigator.of(context).pop(true),
+            ),
+          ],
+        ),
       ).then((value) {
         dialogCompleted = true;
         return value ?? false;

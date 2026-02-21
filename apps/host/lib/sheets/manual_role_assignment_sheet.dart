@@ -7,17 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class ManualRoleAssignmentSheet extends ConsumerWidget {
   const ManualRoleAssignmentSheet({super.key});
 
-  Color _parseRoleColor(String hex) {
-    try {
-      if (hex.startsWith('#')) {
-        return Color(int.parse(hex.substring(1), radix: 16) | 0xFF000000);
-      }
-      return Colors.grey;
-    } catch (_) {
-      return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentState = ref.watch(gameProvider);
@@ -27,137 +16,183 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
     final assignableRoles =
         roleCatalog.where((role) => role.id != 'unassigned').toList();
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'MANUAL ROLE ASSIGNMENT',
-          style: textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Drag a role chip onto a player card, or use quick-select.',
-          style: textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: assignableRoles.map((role) {
-            final roleColor = _parseRoleColor(role.colorHex);
-            return Draggable<String>(
-              data: role.id,
-              feedback: Material(
-                color: Colors.transparent,
-                child: Chip(
-                  label: Text(role.name),
-                  backgroundColor: roleColor,
-                  labelStyle:
-                      textTheme.labelLarge?.copyWith(color: Colors.black),
-                ),
-              ),
-              childWhenDragging: Opacity(
-                opacity: 0.4,
-                child: Chip(label: Text(role.name)),
-              ),
-              child: Chip(
-                label: Text(role.name),
-                avatar: const Icon(Icons.drag_indicator, size: 16),
-              ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 16),
-        Flexible(
-          child: SingleChildScrollView(
-            child: Column(
-              children: currentState.players.map((player) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const CBBottomSheetHandle(),
+          const SizedBox(height: 16),
+          Text(
+            'ROLE ASSIGNMENT MATRIX',
+            style: textTheme.headlineSmall?.copyWith(
+              color: scheme.secondary,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2.0,
+              shadows: CBColors.textGlow(scheme.secondary),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'DRAG A ROLE CHIP ONTO A PATRON TO MANUALLY ASSIGN THEIR IDENTITY.',
+            style: textTheme.labelSmall?.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.5),
+              fontSize: 9,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // --- ROLE CHIPS (Draggable) ---
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: assignableRoles.length,
+              itemBuilder: (context, index) {
+                final role = assignableRoles[index];
+                final roleColor = CBColors.fromHex(role.colorHex);
+
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(right: 12),
+                  child: Draggable<String>(
+                    data: role.id,
+                    feedback: Material(
+                      type: MaterialType.transparency,
+                      child: CBBadge(text: role.name, color: roleColor),
+                    ),
+                    childWhenDragging: Opacity(
+                      opacity: 0.3,
+                      child: _buildRoleSourceChip(role, roleColor, context),
+                    ),
+                    child: _buildRoleSourceChip(role, roleColor, context),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // --- PLAYER LIST (Targets) ---
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: currentState.players.length,
+              itemBuilder: (context, index) {
+                final player = currentState.players[index];
+                final hasRole = player.role.id != 'unassigned';
+                final roleColor = hasRole ? CBColors.fromHex(player.role.colorHex) : scheme.outline;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: DragTarget<String>(
-                    onWillAcceptWithDetails: (details) =>
-                        details.data.isNotEmpty,
+                    onWillAcceptWithDetails: (details) => details.data != player.role.id,
                     onAcceptWithDetails: (details) {
+                      HapticService.medium();
                       controller.assignRole(player.id, details.data);
                     },
                     builder: (context, candidateData, rejectedData) {
                       final isHovering = candidateData.isNotEmpty;
+
                       return AnimatedContainer(
-                        duration: const Duration(milliseconds: 120),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: isHovering
-                              ? scheme.secondary.withValues(alpha: 0.18)
-                              : scheme.surfaceContainerHighest
-                                  .withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(10),
+                              ? scheme.secondary.withValues(alpha: 0.15)
+                              : scheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: isHovering
                                 ? scheme.secondary
-                                : scheme.outline.withValues(alpha: 0.45),
-                            width: isHovering ? 1.6 : 1,
+                                : roleColor.withValues(alpha: 0.3),
+                            width: isHovering ? 2.0 : 1.0,
                           ),
+                          boxShadow: isHovering ? CBColors.boxGlow(scheme.secondary, intensity: 0.2) : null,
                         ),
                         child: Row(
                           children: [
+                            CBRoleAvatar(
+                              assetPath: player.role.assetPath,
+                              color: roleColor,
+                              size: 40,
+                            ),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    player.name,
-                                    style: textTheme.bodyLarge,
+                                    player.name.toUpperCase(),
+                                    style: textTheme.labelLarge?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.0,
+                                    ),
                                   ),
-                                  const SizedBox(height: 2),
                                   Text(
-                                    player.role.id == 'unassigned'
-                                        ? 'Unassigned'
-                                        : player.role.name,
-                                    style: textTheme.labelMedium?.copyWith(
-                                      color: player.role.id == 'unassigned'
-                                          ? scheme.onSurfaceVariant
-                                          : scheme.secondary,
+                                    hasRole ? player.role.name.toUpperCase() : 'PENDING ASSIGNMENT',
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: roleColor,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            DropdownButton<String>(
-                              value: player.role.id == 'unassigned'
-                                  ? null
-                                  : player.role.id,
-                              hint: const Text('Select'),
-                              items: roleCatalog.map((role) {
-                                return DropdownMenuItem<String>(
-                                  value: role.id,
-                                  child: Text(role.name),
-                                );
-                              }).toList(),
-                              onChanged: (roleId) {
-                                if (roleId == null) return;
-                                controller.assignRole(player.id, roleId);
-                              },
-                            ),
+                            if (hasRole)
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 18),
+                                color: scheme.onSurface.withValues(alpha: 0.3),
+                                onPressed: () => controller.assignRole(player.id, 'unassigned'),
+                              ),
                           ],
                         ),
                       );
                     },
                   ),
                 );
-              }).toList(),
+              },
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        CBPrimaryButton(
-          label: 'DONE',
-          onPressed: () => Navigator.pop(context),
-        ),
-      ],
+
+          const SizedBox(height: 24),
+          CBPrimaryButton(
+            label: 'FINALIZE ROSTER',
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoleSourceChip(Role role, Color color, BuildContext context) {
+    return Container(
+      width: 100,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.badge_rounded, color: color, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            role.name.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import '../widgets/simulation_mode_badge_action.dart';
+import '../widgets/custom_drawer.dart';
 
 /// A high-impact, Spotify Wrapped style recap for the Games Night.
 /// Features animated story slides, dynamic neon glows, and player awards.
@@ -138,6 +139,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      drawer: const CustomDrawer(),
       body: CBNeonBackground(
         showOverlay: false,
         child: Stack(

@@ -77,7 +77,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
           _buildGuideRow(
             context,
             Icons.menu_rounded,
-            'CLUB BIBLE',
+            'THE BLACKBOOK',
             'Check the side menu for role guides and game rules at any time.',
           ),
           const SizedBox(height: 32),

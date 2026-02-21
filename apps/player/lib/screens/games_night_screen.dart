@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'games_night_recap_screen.dart';
+import '../widgets/custom_drawer.dart';
 
 class GamesNightScreen extends ConsumerStatefulWidget {
   const GamesNightScreen({super.key});
@@ -48,9 +49,10 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      drawer: const CustomDrawer(),
       appBar: AppBar(
         title: Text(
-          'GAMES NIGHT',
+          'BAR TAB',
           style: Theme.of(context).textTheme.titleLarge!,
         ),
         centerTitle: true,

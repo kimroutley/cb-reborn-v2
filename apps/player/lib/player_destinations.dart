@@ -30,7 +30,7 @@ class PlayerDestinationConfig {
 const playerDestinations = <PlayerDestinationConfig>[
   PlayerDestinationConfig(
     destination: PlayerDestination.home,
-    label: 'Home',
+    label: 'Lobby',
     icon: Icons.home_outlined,
   ),
   PlayerDestinationConfig(
@@ -45,23 +45,23 @@ const playerDestinations = <PlayerDestinationConfig>[
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.game,
-    label: 'Session Feed',
-    icon: Icons.play_circle_outline,
+    label: 'Group Chat',
+    icon: Icons.chat_bubble_outline_rounded,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.guides,
-    label: 'Game Bible',
+    label: 'The Blackbook',
     icon: Icons.menu_book_outlined,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.gamesNight,
-    label: 'Games Night',
+    label: 'Bar Tab',
     icon: Icons.wine_bar_outlined,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.profile,
-    label: 'Profile',
-    icon: Icons.badge_outlined,
+    label: 'Wallet',
+    icon: Icons.account_balance_wallet_outlined,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.stats,

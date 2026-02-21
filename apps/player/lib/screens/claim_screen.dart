@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../active_bridge.dart';
+import '../widgets/custom_drawer.dart';
 
 class ClaimScreen extends ConsumerStatefulWidget {
   const ClaimScreen({super.key});
@@ -27,11 +28,11 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
         .toList();
 
     return CBPrismScaffold(
-      title: 'IDENTITY CLAIM',
-      showAppBar: false,
+      title: 'ENTRY TERMINAL',
+      drawer: const CustomDrawer(),
       body: Column(
         children: [
-          SizedBox(height: MediaQuery.paddingOf(context).top + 24),
+          const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Text(
