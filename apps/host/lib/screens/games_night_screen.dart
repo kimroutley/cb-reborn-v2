@@ -53,11 +53,10 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
     return CBPrismScaffold(
       title: 'GAMES NIGHT',
       actions: const [SimulationModeBadgeAction()],
-      drawer: const CustomDrawer(),
-      body: CBNeonBackground(
-        child: _isLoading
-            ? const Center(child: CBBreathingSpinner())
-            : RefreshIndicator(
+      drawer: const CustomDrawer(currentDestination: HostDestination.gamesNight),
+      body: _isLoading
+          ? const Center(child: CBBreathingLoader())
+          : RefreshIndicator(
                 onRefresh: _loadData,
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -66,22 +65,25 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   children: [
                     CBSectionHeader(
                       title: 'ACTIVE SESSION',
-                      color:
-                          scheme.tertiary, // Migrated from CBColors.matrixGreen
+                      icon: Icons.play_circle_outline_rounded,
+                      color: scheme.tertiary,
                     ),
                     const SizedBox(height: 12),
                     _buildActiveSessionPanel(context, activeSession, scheme),
                     const SizedBox(height: 28),
                     CBSectionHeader(
                       title: 'RECENT SESSIONS',
-                      color: scheme.primary, // Migrated from CBColors.neonBlue
+                      icon: Icons.history_rounded,
+                      color: scheme.primary,
                     ),
                     const SizedBox(height: 12),
                     if (_sessions.isEmpty)
                       CBPanel(
                         padding: const EdgeInsets.all(16),
+                        borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
                         child: Text(
                           'No sessions yet. Start a Games Night to begin tracking rounds.',
+                          textAlign: TextAlign.center,
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -97,7 +99,6 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   ],
                 ),
               ),
-      ),
     );
   }
 
@@ -111,7 +112,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
     if (session == null || !session.isActive) {
       return CBPanel(
         padding: const EdgeInsets.all(16),
-        borderColor: scheme.outline.withValues(alpha: 0.2),
+        borderColor: scheme.outline.withValues(alpha: 0.3),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -133,7 +134,8 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: CBPrimaryButton(
-                label: 'START SESSION',
+                label: 'START NEW SESSION',
+                fullWidth: false,
                 onPressed: () async {
                   final name = await showStartSessionDialog(context);
                   if (name == null || name.trim().isEmpty) return;
@@ -154,17 +156,13 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
 
     return CBPanel(
       padding: const EdgeInsets.all(16),
-      borderColor: scheme.tertiary
-          .withValues(alpha: 0.55), // Migrated from CBColors.matrixGreen
+      borderColor: scheme.tertiary.withValues(alpha: 0.55),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              if (session.isActive)
-                CBBadge(text: 'ACTIVE', color: scheme.tertiary),
-              if (!session.isActive)
-                Icon(Icons.check_circle, color: scheme.primary, size: 18),
+              CBBadge(text: 'ACTIVE', color: scheme.tertiary),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -199,7 +197,6 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                 child: CBPrimaryButton(
                   label: 'START NEXT GAME',
                   onPressed: () {
-                    // Ensure the lobby is clean for the next round.
                     ref.read(gameProvider.notifier).returnToLobby();
                     ref
                         .read(hostNavigationProvider.notifier)
@@ -215,6 +212,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
               Expanded(
                 child: CBGhostButton(
                   label: 'END SESSION',
+                  color: scheme.error,
                   onPressed: () async {
                     final confirmed = await _confirmEndSession(
                         context, scheme.error); // Pass scheme.error
@@ -228,13 +226,13 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
               Expanded(
                 child: CBGhostButton(
                   label: 'VIEW RECAP',
+                  color: scheme.primary,
                   onPressed: () {
                     if (games.isEmpty) {
                       showThemedSnackBar(
                         context,
                         'No recap yet — finish at least 1 game in this session.',
-                        accentColor:
-                            scheme.error, // Migrated from CBColors.dead
+                        accentColor: scheme.error,
                         duration: const Duration(seconds: 2),
                       );
                       return;
@@ -276,11 +274,11 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: scheme.error.withValues(alpha: 0.3),
+          color: scheme.error.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(Icons.delete_forever,
-            color: scheme.error.withValues(alpha: 0.7)),
+            color: scheme.onSurface), // Updated to use scheme.onSurface
       ),
       confirmDismiss: (direction) async {
         return await showConfirmationDialog(
@@ -331,6 +329,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                 CBPrimaryButton(
                   label: 'RECAP',
                   icon: Icons.insights_rounded,
+                  fullWidth: false,
                   onPressed: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(

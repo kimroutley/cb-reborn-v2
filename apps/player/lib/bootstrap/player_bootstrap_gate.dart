@@ -4,7 +4,6 @@ import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_player/cloud_player_bridge.dart';
 import 'package:cb_player/join_link_state.dart';
-import 'package:cb_player/player_bridge.dart';
 import 'package:cb_player/player_session_cache.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -147,21 +146,18 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
       return;
     }
 
-    if (entry.mode == CachedSyncMode.cloud) {
-      ref.read(cloudPlayerBridgeProvider.notifier).restoreFromCache(entry);
-    } else {
-      ref.read(playerBridgeProvider.notifier).restoreFromCache(entry);
+    if (entry.mode != CachedSyncMode.cloud) {
+      await cache.clear();
+      return;
     }
+
+    ref.read(cloudPlayerBridgeProvider.notifier).restoreFromCache(entry);
 
     final qp = <String, String>{
       'code': entry.joinCode,
-      'mode': entry.mode == CachedSyncMode.cloud ? 'cloud' : 'local',
+      'mode': 'cloud',
       'autoconnect': '1',
     };
-    final host = entry.hostAddress?.trim();
-    if (host != null && host.isNotEmpty) {
-      qp['host'] = host;
-    }
     ref.read(pendingJoinUrlProvider.notifier).setValue(
           Uri(path: '/join', queryParameters: qp).toString(),
         );

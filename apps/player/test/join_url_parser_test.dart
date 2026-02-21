@@ -14,13 +14,13 @@ void main() {
       expect(parsed.hostUrl, isNull);
     });
 
-    test('parses local URL and decodes host endpoint', () {
+    test('treats legacy local URL as cloud and decodes host endpoint', () {
       final parsed = parseJoinUrlPayload(
         'https://cb-reborn.web.app/join?mode=local&code=NEONABCDEF&host=ws%3A%2F%2F192.168.1.10%3A8080',
       );
 
       expect(parsed, isNotNull);
-      expect(parsed!.mode, PlayerSyncMode.local);
+      expect(parsed!.mode, PlayerSyncMode.cloud);
       expect(parsed.normalizedCode, 'NEON-ABCDEF');
       expect(parsed.hostUrl, 'ws://192.168.1.10:8080');
     });

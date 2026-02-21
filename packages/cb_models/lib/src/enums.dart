@@ -12,6 +12,12 @@ enum GamePhase {
   endGame,
 }
 
+@JsonEnum()
+enum SyncMode {
+  local,
+  cloud,
+}
+
 enum Team {
   @JsonValue("The Dealers")
   clubStaff, // Renamed display name to "The Dealers" (Killers)
@@ -24,12 +30,6 @@ enum Team {
 
   @JsonValue("Unknown")
   unknown,
-}
-
-@JsonEnum()
-enum SyncMode {
-  local, // WebSocket based
-  cloud, // Firebase Firestore based
 }
 
 @JsonEnum()

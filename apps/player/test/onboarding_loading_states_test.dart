@@ -7,6 +7,7 @@ import 'package:cb_player/player_bridge.dart';
 import 'package:cb_player/screens/claim_screen.dart';
 import 'package:cb_player/screens/home_screen.dart';
 import 'package:cb_theme/cb_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -55,6 +56,11 @@ class _StubAuthNotifier extends AuthNotifier {
 
   @override
   AuthState build() => initial;
+}
+
+class _FakeUser implements User {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 void main() {
@@ -115,6 +121,37 @@ void main() {
   );
 
   testWidgets(
+    'PlayerAuthScreen loading with existing user stays on neutral boot state (no id-print flash)',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authProvider.overrideWith(
+              () => _StubAuthNotifier(
+                AuthState(AuthStatus.loading, user: _FakeUser()),
+              ),
+            ),
+          ],
+          child: MaterialApp(
+            theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
+            home: const PlayerAuthScreen(
+              child: SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      expect(find.text('SYNCING SESSION...'), findsOneWidget);
+      expect(find.text('PRINT YOUR ID CARD'), findsNothing);
+      expect(find.text('SYNCING PLAYER PROFILE...'), findsOneWidget);
+      expect(find.text('Preparing your identity and restoring session state.'),
+          findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'HomeScreen shows modal loading dialog while connecting',
     (tester) async {
       final joinCompleter = Completer<void>();
@@ -142,7 +179,7 @@ void main() {
         find.byType(CBTextField).first,
         'NEON-ABCDEF',
       );
-      await tester.tap(find.text('CONNECT TO HOST'));
+      await tester.tap(find.text('INITIATE UPLINK'));
       await tester.pump();
 
       expect(find.text('CONNECTING TO HOST...'), findsOneWidget);

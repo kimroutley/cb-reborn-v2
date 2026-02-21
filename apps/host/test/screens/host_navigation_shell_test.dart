@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class _FakeBox extends Fake implements Box<String> {
   @override
@@ -54,6 +55,12 @@ void main() {
         .read(hostNavigationProvider.notifier)
         .setDestination(HostDestination.lobby);
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.textContaining('BROADCAST JOIN CODE'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('BROADCASTING ON CODE'), findsAtLeastNWidgets(1));
+    expect(find.text('JOIN BEACON'), findsOneWidget);
+    expect(find.textContaining('CLOUD LINK:'), findsOneWidget);
+    expect(find.byType(QrImageView), findsOneWidget);
+
+    // Allow debounced persistence timer from sync mode bootstrap to settle.
+    await tester.pump(const Duration(milliseconds: 600));
   });
 }

@@ -15,52 +15,60 @@ class LogsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CBSectionHeader(title: 'LIVE SESSION LOGS'),
+        CBSectionHeader(
+          title: 'LIVE SESSION LOGS',
+          icon: Icons.history_edu_rounded,
+          color: scheme.primary,
+        ),
+        const SizedBox(height: 16),
         Expanded(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: scheme.surface,
-            child: ListView.builder(
-              reverse: true,
-              itemCount: gameState.gameHistory.length,
-              itemBuilder: (context, index) {
-                // Show most recent at bottom, but we reverse the list in UI
-                final log = gameState
-                    .gameHistory[gameState.gameHistory.length - 1 - index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Placeholder for future proper historical timestamps from GameState.
-                      Text(
-                        '[00:00:00] ',
-                        style: textTheme.bodySmall!.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      Text(
-                        '> ',
-                        style: textTheme.bodySmall!.copyWith(
-                          color: scheme
-                              .tertiary, // Migrated from CBColors.matrixGreen
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          log.toUpperCase(),
-                          style: textTheme.bodySmall!.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.8),
+          child: CBPanel(
+            borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
+            padding: EdgeInsets.zero, // Padding handled by internal ListView
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: scheme.surface.withValues(alpha: 0.2), // Darker translucent background
+                borderRadius: BorderRadius.circular(16), // Match panel rounded corners
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: ListView.builder(
+                  reverse: true,
+                  padding: const EdgeInsets.all(12),
+                  itemCount: gameState.gameHistory.length,
+                  itemBuilder: (context, index) {
+                    final log = gameState
+                        .gameHistory[gameState.gameHistory.length - 1 - index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '# ',
+                            style: textTheme.labelSmall!.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.4),
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
-                        ),
+                          Expanded(
+                            child: Text(
+                              log.toUpperCase(),
+                              style: textTheme.labelSmall!.copyWith(
+                                color: scheme.onSurface.withValues(alpha: 0.8),
+                                fontSize: 9,
+                                letterSpacing: 0.5,
+                                fontFamily: 'RobotoMono',
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+              ),
             ),
           ),
         ),

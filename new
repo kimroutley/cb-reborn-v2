@@ -43,7 +43,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-
+          
           // --- ROLE CHIPS (Draggable) ---
           SizedBox(
             height: 100,
@@ -53,14 +53,14 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final role = assignableRoles[index];
                 final roleColor = CBColors.fromHex(role.colorHex);
-
+                
                 return Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: Draggable<String>(
                     data: role.id,
                     feedback: Material(
                       type: MaterialType.transparency,
-                      child: _buildRoleSourceChip(role, roleColor, context, isDragging: true),
+                      child: CBBadge(text: role.name, color: roleColor),
                     ),
                     childWhenDragging: Opacity(
                       opacity: 0.3,
@@ -72,9 +72,9 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
               },
             ),
           ),
-
+          
           const SizedBox(height: 32),
-
+          
           // --- PLAYER LIST (Targets) ---
           Flexible(
             child: ListView.builder(
@@ -83,7 +83,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final player = currentState.players[index];
                 final hasRole = player.role.id != 'unassigned';
-                final roleColor = hasRole ? CBColors.fromHex(player.role.colorHex) : scheme.outlineVariant;
+                final roleColor = hasRole ? CBColors.fromHex(player.role.colorHex) : scheme.outline;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -95,17 +95,27 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                     },
                     builder: (context, candidateData, rejectedData) {
                       final isHovering = candidateData.isNotEmpty;
-
-                      return CBGlassTile(
-                        isPrismatic: isHovering || hasRole,
-                        borderColor: isHovering
-                            ? scheme.secondary
-                            : (hasRole ? roleColor : scheme.outline.withValues(alpha: 0.3)),
+                      
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
                         padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isHovering 
+                              ? scheme.secondary.withValues(alpha: 0.15) 
+                              : scheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isHovering 
+                                ? scheme.secondary 
+                                : roleColor.withValues(alpha: 0.3),
+                            width: isHovering ? 2.0 : 1.0,
+                          ),
+                          boxShadow: isHovering ? CBColors.boxGlow(scheme.secondary, intensity: 0.2) : null,
+                        ),
                         child: Row(
                           children: [
                             CBRoleAvatar(
-                              assetPath: hasRole ? player.role.assetPath : null,
+                              assetPath: player.role.assetPath,
                               color: roleColor,
                               size: 40,
                             ),
@@ -124,7 +134,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                                   Text(
                                     hasRole ? player.role.name.toUpperCase() : 'PENDING ASSIGNMENT',
                                     style: textTheme.labelSmall?.copyWith(
-                                      color: hasRole ? roleColor : scheme.onSurface.withValues(alpha: 0.5),
+                                      color: roleColor,
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -147,7 +157,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
               },
             ),
           ),
-
+          
           const SizedBox(height: 24),
           CBPrimaryButton(
             label: 'FINALIZE ROSTER',
@@ -158,31 +168,30 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildRoleSourceChip(Role role, Color color, BuildContext context, {bool isDragging = false}) {
-    final textTheme = Theme.of(context).textTheme;
-    return CBGlassTile(
-      isPrismatic: true,
-      borderColor: color.withValues(alpha: 0.4),
+  Widget _buildRoleSourceChip(Role role, Color color, BuildContext context) {
+    return Container(
+      width: 100,
       padding: const EdgeInsets.all(12),
-      child: SizedBox(
-        width: 80,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.badge_rounded, color: color, size: 24, shadows: CBColors.iconGlow(color, intensity: 0.3)),
-            const SizedBox(height: 8),
-            Text(
-              role.name.toUpperCase(),
-              textAlign: TextAlign.center,
-              style: textTheme.labelSmall?.copyWith(
-                color: color,
-                fontSize: 9,
-                fontWeight: FontWeight.w900,
-                shadows: CBColors.textGlow(color, intensity: 0.2),
-              ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.badge_rounded, color: color, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            role.name.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

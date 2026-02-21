@@ -115,7 +115,8 @@ void main() {
     expect(resumeRetryDelayForAttempt(99), const Duration(seconds: 30));
   });
 
-  testWidgets('pending local autoconnect URL triggers immediate reconnect flow',
+    testWidgets(
+      'pending legacy local autoconnect URL is coerced to cloud reconnect flow',
       (tester) async {
     final playerBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
@@ -153,11 +154,13 @@ void main() {
 
     await _pumpFrames(tester);
 
-    expect(playerBridge.connectCalls, 1);
-    expect(playerBridge.joinGameCalls, 1);
-    expect(playerBridge.lastConnectUrl, 'ws://192.168.1.44');
-    expect(playerBridge.lastJoinCode, 'NEON-ABCDEF');
-    expect(cloudBridge.disconnectCalls, 1);
+    expect(playerBridge.connectCalls, 0);
+    expect(playerBridge.joinGameCalls, 0);
+    expect(playerBridge.lastConnectUrl, isNull);
+    expect(playerBridge.lastJoinCode, isNull);
+    expect(playerBridge.disconnectCalls, 1);
+    expect(cloudBridge.joinGameCalls, 1);
+    expect(cloudBridge.lastJoinCode, 'NEON-ABCDEF');
     expect(container.read(pendingJoinUrlProvider), isNull);
   });
 

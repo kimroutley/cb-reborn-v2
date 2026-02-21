@@ -8,7 +8,7 @@ import '../player_bridge.dart';
 import 'claim_screen.dart';
 
 /// Connection mode for the player app.
-enum PlayerSyncMode { local, cloud }
+enum PlayerSyncMode { cloud }
 
 @immutable
 class ParsedJoinUrl {
@@ -54,7 +54,8 @@ ParsedJoinUrl? parseJoinUrlPayload(String raw) {
 
   PlayerSyncMode? mode;
   if (modeParam == 'local') {
-    mode = PlayerSyncMode.local;
+    // Legacy links with mode=local are treated as cloud-only.
+    mode = PlayerSyncMode.cloud;
   } else if (modeParam == 'cloud') {
     mode = PlayerSyncMode.cloud;
   }
@@ -88,31 +89,10 @@ class ConnectScreen extends ConsumerStatefulWidget {
 }
 
 class _ConnectScreenState extends ConsumerState<ConnectScreen> {
-  PlayerSyncMode _mode = PlayerSyncMode.cloud;
-  final TextEditingController hostIpController =
-      TextEditingController(text: 'ws://192.168.1.');
   final TextEditingController joinCodeController = TextEditingController();
   final TextEditingController joinUrlController = TextEditingController();
   String? localError;
   bool _navigatingToClaim = false;
-
-  Future<void> _switchMode(PlayerSyncMode nextMode) async {
-    if (_mode == nextMode) {
-      return;
-    }
-
-    setState(() {
-      _mode = nextMode;
-      localError = null;
-    });
-
-    if (nextMode == PlayerSyncMode.cloud) {
-      await ref.read(playerBridgeProvider.notifier).disconnect();
-      return;
-    }
-
-    await ref.read(cloudPlayerBridgeProvider.notifier).disconnect();
-  }
 
   @override
   void initState() {
@@ -136,7 +116,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
   @override
   void dispose() {
-    hostIpController.dispose();
     joinCodeController.dispose();
     joinUrlController.dispose();
     super.dispose();
@@ -154,15 +133,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
     setState(() {
       joinCodeController.text = parsed.normalizedCode;
-
-      if (parsed.mode == PlayerSyncMode.local) {
-        _mode = PlayerSyncMode.local;
-        if (parsed.hostUrl != null) {
-          hostIpController.text = parsed.hostUrl!;
-        }
-      } else if (parsed.mode == PlayerSyncMode.cloud) {
-        _mode = PlayerSyncMode.cloud;
-      }
     });
 
     return true;
@@ -179,7 +149,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       }
     }
 
-    final isCloud = _mode == PlayerSyncMode.cloud;
     final code = _normalizeJoinCode(joinCodeController.text);
 
     if (code.length != 11) {
@@ -188,22 +157,9 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     }
 
     try {
-      if (isCloud) {
-        await ref.read(playerBridgeProvider.notifier).disconnect();
-        final bridge = ref.read(cloudPlayerBridgeProvider.notifier);
-        await bridge.joinWithCode(code);
-      } else {
-        await ref.read(cloudPlayerBridgeProvider.notifier).disconnect();
-        final bridge = ref.read(playerBridgeProvider.notifier);
-        final url = hostIpController.text.trim();
-        if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
-          setState(() =>
-              localError = 'LOCAL HOST URL MUST START WITH ws:// OR wss://');
-          return;
-        }
-        await bridge.connect(url);
-        bridge.joinWithCode(code);
-      }
+      await ref.read(playerBridgeProvider.notifier).disconnect();
+      final bridge = ref.read(cloudPlayerBridgeProvider.notifier);
+      await bridge.joinWithCode(code);
     } catch (e) {
       setState(() => localError = e.toString());
     }
@@ -227,17 +183,11 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
     // Get current error state
     final cloudState = ref.watch(cloudPlayerBridgeProvider);
-    final localState = ref.watch(playerBridgeProvider);
-    final error = localError ??
-        (_mode == PlayerSyncMode.cloud
-            ? cloudState.joinError
-            : localState.joinError);
-
-    final isCloud = _mode == PlayerSyncMode.cloud;
+    final error = localError ?? cloudState.joinError;
     // Note: isConnecting logic needs a proper state in the bridges.
     // For now, assume if error is null and not accepted, it's connecting.
 
-    final accent = isCloud ? scheme.secondary : scheme.primary;
+    final accent = scheme.secondary;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -260,47 +210,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
           ],
         ),
         const SizedBox(height: CBSpace.x4),
-        // Mode Toggle
-        CBPanel(
-          padding: const EdgeInsets.all(CBSpace.x3),
-          margin: const EdgeInsets.only(bottom: CBSpace.x4),
-          borderColor: accent.withValues(alpha: 0.4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CBBadge(
-                text: 'CONNECTION',
-                color: accent,
-              ),
-              const SizedBox(height: CBSpace.x3),
-              Row(
-                children: [
-                  Expanded(
-                    child: _ModeButton(
-                      icon: Icons.wifi,
-                      label: 'LOCAL',
-                      desc: 'Same Wi-Fi',
-                      color: scheme.primary,
-                      isSelected: !isCloud,
-                      onTap: () => _switchMode(PlayerSyncMode.local),
-                    ),
-                  ),
-                  const SizedBox(width: CBSpace.x2),
-                  Expanded(
-                    child: _ModeButton(
-                      icon: Icons.cloud,
-                      label: 'CLOUD',
-                      desc: 'Internet',
-                      color: scheme.secondary,
-                      isSelected: isCloud,
-                      onTap: () => _switchMode(PlayerSyncMode.cloud),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
         // Local-only: Host IP
         CBBadge(
           text: 'JOIN URL (OPTIONAL)',
@@ -330,19 +239,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         ),
         const SizedBox(height: CBSpace.x4),
 
-        if (!isCloud) ...[
-          CBBadge(
-            text: 'HOST ADDRESS',
-            color: scheme.primary,
-          ),
-          const SizedBox(height: CBSpace.x2),
-          CBTextField(
-            controller: hostIpController,
-            hintText: 'ws://192.168.1.X:8080',
-            textStyle: textTheme.bodyLarge!,
-          ),
-          const SizedBox(height: CBSpace.x4),
-        ],
         CBBadge(
           text: 'JOIN CODE',
           color: accent,
@@ -398,73 +294,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         _navigatingToClaim = false;
       }
     });
-  }
-}
-
-class _ModeButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String desc;
-  final Color color;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ModeButton({
-    required this.icon,
-    required this.label,
-    required this.desc,
-    required this.color,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final scheme = theme.colorScheme;
-    final activeColor =
-        isSelected ? color : scheme.onSurface.withValues(alpha: 0.3);
-
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(CBRadius.sm),
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
-        child: Ink(
-          padding: const EdgeInsets.all(CBSpace.x3),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? color.withValues(alpha: 0.1)
-                : CBColors.transparent,
-            borderRadius: BorderRadius.circular(CBRadius.sm),
-            border: Border.all(
-              color: activeColor.withValues(alpha: isSelected ? 1.0 : 0.3),
-              width: isSelected ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, color: activeColor),
-              const SizedBox(height: CBSpace.x2),
-              Text(
-                label,
-                style: textTheme.labelMedium!.copyWith(color: activeColor),
-              ),
-              Text(
-                desc,
-                style: textTheme.labelSmall?.copyWith(
-                  color: activeColor.withValues(alpha: 0.7),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

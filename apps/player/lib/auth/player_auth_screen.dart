@@ -17,11 +17,11 @@ class PlayerAuthScreen extends ConsumerWidget {
     final isLoading = authState.status == AuthStatus.loading;
 
     final loadingTitle = authState.user == null
-        ? 'VERIFYING VIP PASS...'
-        : 'PRINTING YOUR ID CARD...';
+      ? 'VERIFYING VIP PASS...'
+      : 'SYNCING PLAYER PROFILE...';
     final loadingSubtitle = authState.user == null
-        ? 'Please wait while we validate your invite.'
-        : 'Setting up your player identity.';
+      ? 'Please wait while we validate your invite.'
+      : 'Preparing your identity and restoring session state.';
 
     return Scaffold(
       body: Stack(
@@ -53,7 +53,7 @@ class PlayerAuthScreen extends ConsumerWidget {
         return _ProfileSetupForm(key: const ValueKey('profile'));
       case AuthStatus.loading:
         return authState.user != null
-            ? _ProfileSetupForm(key: const ValueKey('profile_loading'))
+            ? const _AuthBootScreen(key: ValueKey('auth_boot_loading'))
             : _AuthSplash(key: const ValueKey('auth_splash_loading'));
       case AuthStatus.error:
         return _AuthSplash(

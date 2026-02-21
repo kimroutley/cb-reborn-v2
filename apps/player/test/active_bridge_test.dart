@@ -79,7 +79,7 @@ void main() {
       expect(active.state.phase, 'setup');
     });
 
-    test('falls back to local when cloud is not connected and not joined', () {
+    test('uses cloud bridge even when cloud is idle', () {
       final container = ProviderContainer(
         overrides: [
           cloudPlayerBridgeProvider.overrideWith(
@@ -97,9 +97,9 @@ void main() {
       addTearDown(container.dispose);
 
       final active = container.read(activeBridgeProvider);
-      expect(active.isCloud, isFalse);
-      expect(active.state.isConnected, isTrue);
-      expect(active.state.phase, 'lobby');
+      expect(active.isCloud, isTrue);
+      expect(active.state.isConnected, isFalse);
+      expect(active.state.joinAccepted, isFalse);
     });
   });
 }

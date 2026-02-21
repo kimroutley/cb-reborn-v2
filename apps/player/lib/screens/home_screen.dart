@@ -13,7 +13,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/custom_drawer.dart';
 
-enum PlayerSyncMode { local, cloud }
+enum PlayerSyncMode {
+  local,
+  cloud,
+}
 
 const List<Duration> _resumeRetrySchedule = <Duration>[
   Duration(seconds: 2),
@@ -79,10 +82,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   DateTime? _lastHandledJoinAt;
 
   // Connection State
-  PlayerSyncMode _mode = PlayerSyncMode.cloud;
+  PlayerSyncMode _mode = PlayerSyncMode.cloud; // Default to cloud
   final TextEditingController _joinCodeController = TextEditingController();
   final TextEditingController _hostIpController =
-      TextEditingController(text: 'ws://192.168.1.');
+      TextEditingController(text: 'ws://192.168.1.'); // Default local IP hint
   String? _connectionError;
   bool _isConnecting = false;
 
@@ -137,14 +140,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (uri == null) return false;
 
     final code = uri.queryParameters['code'];
-    final mode = uri.queryParameters['mode'];
-    final host = uri.queryParameters['host'];
+    final mode = uri.queryParameters['mode']; // Added for sync mode
+    final host = uri.queryParameters['host']; // Added for local host
     final autoConnect = uri.queryParameters['autoconnect'] == '1';
 
     if (code != null) {
       _joinCodeController.text = _normalizeJoinCode(code);
     }
 
+    // Set mode based on URL parameter
     if (mode == 'local') {
       setState(() {
         _mode = PlayerSyncMode.local;
@@ -284,6 +288,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           .joinGame(code, playerName)
           .timeout(_connectAttemptTimeout);
     } else {
+      // Cloud mode
       await ref
           .read(playerBridgeProvider.notifier)
           .disconnect()
@@ -368,7 +373,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
 
     return CBPrismScaffold(
-      title: 'JOIN A GAME',
+      title: 'JOIN THE CLUB',
       drawer: const CustomDrawer(),
       body: Stack(
         children: [
@@ -381,7 +386,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'CLUB BLACKOUT',
+                      'CONNECT TO HOST',
                       textAlign: TextAlign.center,
                       style: textTheme.displayMedium!.copyWith(
                         color: scheme.primary,
@@ -425,7 +430,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           CBPrimaryButton(
                             label: _isConnecting
                                 ? 'CONNECTING...'
-                                : 'CONNECT TO HOST',
+                                : 'INITIATE UPLINK',
                             onPressed:
                                 _isConnecting ? null : _connectFromButton,
                           ),
