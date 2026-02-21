@@ -37,10 +37,18 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       
       // Host can create/update/delete games
-      allow write: if isAuthenticated() && isValidGameData() && (
-        (!exists(resource) && request.resource.data.hostId == request.auth.uid) ||
-        (exists(resource) && resource.data.hostId == request.auth.uid)
-      );
+      // Split by operation to avoid ambiguous type checks on `resource`/`request.resource`.
+      allow create: if isAuthenticated()
+        && isValidGameData()
+        && request.resource.data.hostId == request.auth.uid;
+
+      allow update: if isAuthenticated()
+        && resource.data.hostId == request.auth.uid
+        && isValidGameData()
+        && request.resource.data.hostId == resource.data.hostId;
+
+      allow delete: if isAuthenticated()
+        && resource.data.hostId == request.auth.uid;
       
       // ── Join Requests Subcollection ──
       match /joins/{joinId} {
