@@ -9,7 +9,6 @@ import '../host_destinations.dart';
 import '../host_navigation.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
-import '../widgets/themed_snackbar.dart';
 
 class HostSaveLoadScreen extends ConsumerWidget {
   const HostSaveLoadScreen({super.key});
@@ -106,8 +105,8 @@ class HostSaveLoadScreen extends ConsumerWidget {
           CBGhostButton(
             label: 'CLEAR SAVED SNAPSHOT',
             color: scheme.error,
-            onPressed: () async {
-              await service.clearActiveGame();
+            onPressed: () {
+              service.clearActiveGame();
               showThemedSnackBar(
                 context,
                 'Saved snapshot cleared.',

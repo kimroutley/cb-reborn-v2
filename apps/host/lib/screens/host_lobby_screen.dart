@@ -209,7 +209,14 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                       size: 180,
                       version: QrVersions.auto,
                       backgroundColor: scheme.onPrimary,
-                      foregroundColor: scheme.surface,
+                      eyeStyle: QrEyeStyle(
+                        eyeShape: QrEyeShape.square,
+                        color: scheme.surface,
+                      ),
+                      dataModuleStyle: QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.square,
+                        color: scheme.surface,
+                      ),
                     ),
                   ),
                 ),

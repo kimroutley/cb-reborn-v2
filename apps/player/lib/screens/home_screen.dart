@@ -143,13 +143,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final mode = uri.queryParameters['mode']; // Added for sync mode
     final host = uri.queryParameters['host']; // Added for local host
     final autoConnect = uri.queryParameters['autoconnect'] == '1';
+    final legacyLocalAutoconnect = mode == 'local' && autoConnect;
 
     if (code != null) {
       _joinCodeController.text = _normalizeJoinCode(code);
     }
 
-    // Set mode based on URL parameter
-    if (mode == 'local') {
+    // Legacy compatibility: old local autoconnect links are coerced to cloud.
+    // Player is cloud-first and these links should reconnect through Firestore.
+    if (legacyLocalAutoconnect) {
+      setState(() => _mode = PlayerSyncMode.cloud);
+    } else if (mode == 'local') {
       setState(() {
         _mode = PlayerSyncMode.local;
         if (host != null) {
