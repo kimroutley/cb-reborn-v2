@@ -103,7 +103,25 @@ class FirebaseBridge {
       });
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to send join request: $e');
+      rethrow;
     }
+  }
+
+  Future<void> _sendActionEnvelope({
+    required String type,
+    required String stepId,
+    required String playerId,
+    String? targetId,
+    Map<String, dynamic>? payload,
+  }) async {
+    await gameDoc.collection('actions').add({
+      'type': type,
+      'stepId': stepId,
+      'playerId': playerId,
+      'targetId': targetId,
+      'payload': payload ?? <String, dynamic>{},
+      'timestamp': FieldValue.serverTimestamp(),
+    });
   }
 
   /// Player: Send an action (vote/night action).
@@ -113,14 +131,15 @@ class FirebaseBridge {
     String? targetId,
   }) async {
     try {
-      await gameDoc.collection('actions').add({
-        'stepId': stepId,
-        'playerId': playerId,
-        'targetId': targetId,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      await _sendActionEnvelope(
+        type: 'interaction',
+        stepId: stepId,
+        playerId: playerId,
+        targetId: targetId,
+      );
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to send action: $e');
+      rethrow;
     }
   }
 
@@ -130,14 +149,18 @@ class FirebaseBridge {
     required String targetPlayerId,
   }) async {
     try {
-      await gameDoc.collection('actions').add({
-        'type': 'dead_pool_bet',
-        'playerId': playerId,
-        'targetPlayerId': targetPlayerId,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      await _sendActionEnvelope(
+        type: 'dead_pool_bet',
+        stepId: 'dead_pool_bet',
+        playerId: playerId,
+        targetId: targetPlayerId,
+        payload: <String, dynamic>{
+          'targetPlayerId': targetPlayerId,
+        },
+      );
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to send dead-pool bet: $e');
+      rethrow;
     }
   }
 
@@ -148,28 +171,32 @@ class FirebaseBridge {
     String? playerName,
   }) async {
     try {
-      await gameDoc.collection('actions').add({
-        'type': 'ghost_chat',
-        'playerId': playerId,
-        'playerName': playerName,
-        'message': message,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      await _sendActionEnvelope(
+        type: 'ghost_chat',
+        stepId: 'ghost_chat',
+        playerId: playerId,
+        payload: <String, dynamic>{
+          'playerName': playerName,
+          'message': message,
+        },
+      );
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to send ghost chat: $e');
+      rethrow;
     }
   }
 
   /// Player: Send role confirmation acknowledgment.
   Future<void> sendRoleConfirm({required String playerId}) async {
     try {
-      await gameDoc.collection('actions').add({
-        'type': 'role_confirm',
-        'playerId': playerId,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      await _sendActionEnvelope(
+        type: 'role_confirm',
+        stepId: 'role_confirm',
+        playerId: playerId,
+      );
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to send role confirm: $e');
+      rethrow;
     }
   }
 

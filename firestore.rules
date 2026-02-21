@@ -22,9 +22,12 @@ service cloud.firestore {
     }
     
     function isValidAction() {
-      return request.resource.data.keys().hasAll(['stepId', 'playerId', 'timestamp'])
+      return request.resource.data.keys().hasAll(['type', 'stepId', 'playerId', 'timestamp'])
+        && request.resource.data.type is string
         && request.resource.data.stepId is string
-        && request.resource.data.playerId is string;
+        && request.resource.data.playerId is string
+        && (!request.resource.data.keys().hasAny(['targetId']) || request.resource.data.targetId is string)
+        && (!request.resource.data.keys().hasAny(['payload']) || request.resource.data.payload is map);
     }
     
     // ── Games Collection ──

@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../auth/auth_provider.dart';
 import '../cloud_host_bridge.dart';
 import '../host_destinations.dart';
 import '../host_navigation.dart';
@@ -25,34 +26,24 @@ class HostLobbyScreen extends ConsumerStatefulWidget {
 }
 
 class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
-  bool _didBootstrapCloud = false;
-  bool _isCloudLinkReady = false;
-  String? _cloudLinkError;
-
   static const String _playerJoinHost = 'cb-reborn.web.app';
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_didBootstrapCloud) {
-      return;
-    }
-    _didBootstrapCloud = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _bootstrapCloudRuntime();
-    });
-  }
 
   Future<void> _bootstrapCloudRuntime() async {
     if (!mounted) return;
-    setState(() {
-      _isCloudLinkReady = false;
-      _cloudLinkError = null;
-    });
 
     final controller = ref.read(gameProvider.notifier);
     final syncMode = ref.read(gameProvider).syncMode;
+    final authState = ref.read(authProvider);
     final bridge = ref.read(cloudHostBridgeProvider);
+
+    if (authState.status != AuthStatus.authenticated) {
+      showThemedSnackBar(
+        context,
+        'SIGN IN FIRST TO ESTABLISH CLOUD LINK.',
+        accentColor: Theme.of(context).colorScheme.error,
+      );
+      return;
+    }
 
     if (syncMode != SyncMode.cloud) {
       controller.setSyncMode(SyncMode.cloud);
@@ -61,18 +52,31 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     try {
       await bridge.start();
       if (!mounted) return;
-      setState(() {
-        _isCloudLinkReady = bridge.isRunning;
-        _cloudLinkError = bridge.isRunning ? null : 'Cloud link inactive';
-      });
+      showThemedSnackBar(
+        context,
+        'CLOUD LINK VERIFIED END-TO-END.',
+        accentColor: Theme.of(context).colorScheme.tertiary,
+      );
     } catch (e) {
       debugPrint('[HostLobbyScreen] Cloud bridge start failed: $e');
       if (!mounted) return;
-      setState(() {
-        _isCloudLinkReady = false;
-        _cloudLinkError = 'Cloud link retry required';
-      });
+      showThemedSnackBar(
+        context,
+        'CLOUD LINK FAILED. RETRY REQUIRED.',
+        accentColor: Theme.of(context).colorScheme.error,
+      );
     }
+  }
+
+  Future<void> _terminateCloudRuntime() async {
+    final bridge = ref.read(cloudHostBridgeProvider);
+    await bridge.stop();
+    if (!mounted) return;
+    showThemedSnackBar(
+      context,
+      'CLOUD LINK OFFLINE.',
+      accentColor: Theme.of(context).colorScheme.secondary,
+    );
   }
 
   String _buildPlayerJoinUrl(String joinCode) {
@@ -204,11 +208,16 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     final session = ref.watch(sessionProvider);
     final controller = ref.read(gameProvider.notifier);
     final nav = ref.read(hostNavigationProvider.notifier);
+    final linkState = ref.watch(cloudLinkStateProvider);
     final scheme = Theme.of(context).colorScheme;
     final joinUrl = _buildPlayerJoinUrl(session.joinCode);
-    final cloudStatusKey = _isCloudLinkReady
-      ? 'ready'
-      : (_cloudLinkError == null ? 'connecting' : 'error');
+    final isCloudVerified = linkState.isVerified;
+    final isCloudBusy = linkState.phase == CloudLinkPhase.initializing ||
+        linkState.phase == CloudLinkPhase.publishing ||
+        linkState.phase == CloudLinkPhase.verifying;
+    final hasCloudError = linkState.phase == CloudLinkPhase.degraded;
+    final requiresAuth = linkState.phase == CloudLinkPhase.requiresAuth;
+    final cloudStatusKey = linkState.phase.name;
 
     final hasMinPlayers = gameState.players.length >= Game.minPlayers;
     final isManual = gameState.gameStyle == GameStyle.manual;
@@ -257,51 +266,63 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                   switchOutCurve: Curves.easeInCubic,
                   child: CBGlassTile(
                     key: ValueKey(cloudStatusKey),
-                    borderColor: _isCloudLinkReady
+                  borderColor: isCloudVerified
                         ? scheme.tertiary.withValues(alpha: 0.45)
-                        : (_cloudLinkError == null
-                            ? scheme.secondary.withValues(alpha: 0.45)
-                            : scheme.error.withValues(alpha: 0.45)),
+                    : (hasCloudError
+                      ? scheme.error.withValues(alpha: 0.45)
+                      : (requiresAuth
+                        ? scheme.secondary.withValues(alpha: 0.45)
+                        : scheme.primary.withValues(alpha: 0.35))),
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     child: Row(
                       children: [
                         Icon(
-                          _isCloudLinkReady
+                      isCloudVerified
                               ? Icons.cloud_done_rounded
-                              : (_cloudLinkError == null
-                                  ? Icons.cloud_sync_rounded
-                                  : Icons.cloud_off_rounded),
+                        : (hasCloudError
+                          ? Icons.cloud_off_rounded
+                          : (requiresAuth
+                            ? Icons.lock_outline_rounded
+                            : Icons.cloud_sync_rounded)),
                           size: 16,
-                          color: _isCloudLinkReady
+                      color: isCloudVerified
                               ? scheme.tertiary
-                              : (_cloudLinkError == null
-                                  ? scheme.secondary
-                                  : scheme.error),
+                        : (hasCloudError
+                          ? scheme.error
+                          : (requiresAuth
+                            ? scheme.secondary
+                            : scheme.primary)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            _isCloudLinkReady
-                                ? 'CLOUD LINK: ACTIVE'
-                                : (_cloudLinkError == null
-                                    ? 'CLOUD LINK: ESTABLISHING...'
-                                    : 'CLOUD LINK: RETRY REQUIRED'),
+                      isCloudVerified
+                        ? 'CLOUD LINK: VERIFIED'
+                        : (hasCloudError
+                          ? 'CLOUD LINK: DEGRADED'
+                          : (requiresAuth
+                            ? 'CLOUD LINK: SIGN-IN REQUIRED'
+                            : (isCloudBusy
+                              ? 'CLOUD LINK: ESTABLISHING...'
+                              : 'CLOUD LINK: OFFLINE'))),
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall
                                 ?.copyWith(
-                                  color: _isCloudLinkReady
+                          color: isCloudVerified
                                       ? scheme.tertiary
-                                      : (_cloudLinkError == null
-                                          ? scheme.secondary
-                                          : scheme.error),
+                            : (hasCloudError
+                              ? scheme.error
+                              : (requiresAuth
+                                ? scheme.secondary
+                                : scheme.primary)),
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1.0,
                                 ),
                           ),
                         ),
-                        if (_cloudLinkError != null)
+                    if (hasCloudError)
                           IconButton(
                             tooltip: 'Retry cloud link',
                             visualDensity: VisualDensity.compact,
@@ -316,10 +337,41 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                     ),
                   ),
                 ),
+                if ((linkState.message ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    linkState.message!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.72),
+                        ),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CBPrimaryButton(
+                        label:
+                            isCloudVerified ? 'RE-VERIFY LINK' : 'ESTABLISH LINK',
+                        icon: Icons.cloud_sync_rounded,
+                        onPressed: isCloudBusy ? null : _bootstrapCloudRuntime,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: CBGhostButton(
+                        label: 'GO OFFLINE',
+                        icon: Icons.cloud_off_rounded,
+                        color: scheme.secondary,
+                        onPressed: isCloudBusy ? null : _terminateCloudRuntime,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 220),
-                  opacity: _isCloudLinkReady ? 1 : 0.82,
+                  opacity: isCloudVerified ? 1 : 0.82,
                   child: CBGlassTile(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -371,7 +423,7 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                   child: AnimatedScale(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOutCubic,
-                    scale: _isCloudLinkReady ? 1 : 0.97,
+                    scale: isCloudVerified ? 1 : 0.97,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(16),
                       onTap: () {
@@ -403,9 +455,9 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              _isCloudLinkReady
+                              isCloudVerified
                                   ? 'TAP TO EXPAND'
-                                  : 'CONNECTING...',
+                                : 'LINK NOT VERIFIED YET',
                               style: Theme.of(context)
                                   .textTheme
                                   .labelSmall

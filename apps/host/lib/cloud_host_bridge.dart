@@ -7,7 +7,60 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'auth/auth_provider.dart';
 import 'firebase_options.dart';
+
+enum CloudLinkPhase {
+  offline,
+  requiresAuth,
+  initializing,
+  publishing,
+  verifying,
+  verified,
+  degraded,
+}
+
+@immutable
+class CloudLinkState {
+  const CloudLinkState({
+    required this.phase,
+    this.message,
+  });
+
+  final CloudLinkPhase phase;
+  final String? message;
+
+  bool get isVerified => phase == CloudLinkPhase.verified;
+
+  CloudLinkState copyWith({
+    CloudLinkPhase? phase,
+    String? message,
+  }) {
+    return CloudLinkState(
+      phase: phase ?? this.phase,
+      message: message,
+    );
+  }
+}
+
+class CloudLinkStateNotifier extends Notifier<CloudLinkState> {
+  @override
+  CloudLinkState build() {
+    return const CloudLinkState(
+      phase: CloudLinkPhase.offline,
+      message: 'Cloud link offline. Sign in and establish link.',
+    );
+  }
+
+  void update(CloudLinkState next) {
+    state = next;
+  }
+}
+
+final cloudLinkStateProvider =
+    NotifierProvider<CloudLinkStateNotifier, CloudLinkState>(
+  CloudLinkStateNotifier.new,
+);
 
 /// Cloud-mode host bridge using Firebase Firestore.
 ///
@@ -32,6 +85,18 @@ class CloudHostBridge {
 
   CloudHostBridge(this._ref);
 
+  void _setLinkState(
+    CloudLinkPhase phase, {
+    String? message,
+  }) {
+    _ref.read(cloudLinkStateProvider.notifier).update(
+      CloudLinkState(
+        phase: phase,
+        message: message,
+      ),
+    );
+  }
+
   String get joinCode => _ref.read(sessionProvider).joinCode;
 
   @visibleForTesting
@@ -54,7 +119,28 @@ class CloudHostBridge {
 
   /// Start cloud mode — begin publishing to Firestore and listening.
   Future<void> start() async {
-    if (_running) return;
+    if (_running) {
+      _setLinkState(
+        CloudLinkPhase.verified,
+        message: 'Cloud link already active and verified.',
+      );
+      return;
+    }
+
+    final authState = _ref.read(authProvider);
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (authState.status != AuthStatus.authenticated || currentUser == null) {
+      _setLinkState(
+        CloudLinkPhase.requiresAuth,
+        message: 'Host sign-in required before establishing cloud link.',
+      );
+      throw StateError('Host must be signed in before starting cloud link.');
+    }
+
+    _setLinkState(
+      CloudLinkPhase.initializing,
+      message: 'Initializing cloud runtime...',
+    );
 
     // Ensure Firebase is initialized for cloud mode
     if (debugFirebase == null) {
@@ -65,6 +151,10 @@ class CloudHostBridge {
 
     _firebase = debugFirebase ?? FirebaseBridge(joinCode: joinCode);
     _running = true;
+    _setLinkState(
+      CloudLinkPhase.publishing,
+      message: 'Cloud runtime initialized. Publishing state...',
+    );
 
     // Listen for join requests from players
     _joinSub = _firebase!.subscribeToJoinRequests().listen(
@@ -100,6 +190,10 @@ class CloudHostBridge {
       onError: (Object error, StackTrace stackTrace) {
         debugPrint('[CloudHostBridge] Join stream error: $error');
         _running = false;
+        _setLinkState(
+          CloudLinkPhase.degraded,
+          message: 'Join stream error detected. Retry cloud link.',
+        );
       },
     );
 
@@ -117,10 +211,17 @@ class CloudHostBridge {
           if (data == null) continue;
 
           final type = data['type'] as String?;
+          final payload = (data['payload'] as Map?)
+                  ?.map((key, value) => MapEntry(key.toString(), value)) ??
+              const <String, dynamic>{};
 
           if (type == 'dead_pool_bet') {
             final playerId = data['playerId'] as String? ?? '';
-            final targetPlayerId = data['targetPlayerId'] as String? ?? '';
+            final targetPlayerId =
+                (data['targetId'] as String?) ??
+                    (data['targetPlayerId'] as String?) ??
+                    (payload['targetPlayerId'] as String?) ??
+                    '';
             if (playerId.isNotEmpty && targetPlayerId.isNotEmpty) {
               _ref.read(gameProvider.notifier).placeDeadPoolBet(
                     playerId: playerId,
@@ -134,8 +235,11 @@ class CloudHostBridge {
 
           if (type == 'ghost_chat') {
             final playerId = data['playerId'] as String? ?? '';
-            final playerName = data['playerName'] as String?;
-            final message = data['message'] as String? ?? '';
+            final playerName = (data['playerName'] as String?) ??
+                (payload['playerName'] as String?);
+            final message = (data['message'] as String?) ??
+                (payload['message'] as String?) ??
+                '';
             if (playerId.isNotEmpty && message.trim().isNotEmpty) {
               _ref.read(gameProvider.notifier).addGhostChatMessage(
                     senderPlayerId: playerId,
@@ -173,18 +277,74 @@ class CloudHostBridge {
       onError: (Object error, StackTrace stackTrace) {
         debugPrint('[CloudHostBridge] Action stream error: $error');
         _running = false;
+        _setLinkState(
+          CloudLinkPhase.degraded,
+          message: 'Action stream error detected. Retry cloud link.',
+        );
       },
     );
 
     // Publish initial state
     try {
       await publishState();
+      _setLinkState(
+        CloudLinkPhase.verifying,
+        message: 'Publish complete. Verifying end-to-end uplink...',
+      );
+
+      final verified = await _verifyEndToEnd();
+      if (!verified) {
+        _running = false;
+        _setLinkState(
+          CloudLinkPhase.degraded,
+          message: 'Cloud link verification failed. Retry required.',
+        );
+        throw StateError('Cloud link verification failed.');
+      }
+
+      _setLinkState(
+        CloudLinkPhase.verified,
+        message: 'Cloud link verified end-to-end.',
+      );
     } catch (e) {
       debugPrint('[CloudHostBridge] Initial publish failed: $e');
+      _setLinkState(
+        CloudLinkPhase.degraded,
+        message: 'Cloud link failed to start. Retry required.',
+      );
       await stop();
       rethrow;
     }
     debugPrint('[CloudHostBridge] Started for game $joinCode');
+  }
+
+  Future<bool> _verifyEndToEnd() async {
+    if (_firebase == null) {
+      return false;
+    }
+
+    final hostUid = await resolveHostUid();
+    if (hostUid == null || hostUid.isEmpty) {
+      return false;
+    }
+
+    try {
+      await _firebase!
+          .subscribeToGame()
+          .firstWhere((snapshot) {
+            final data = snapshot.data();
+            if (data == null) {
+              return false;
+            }
+            final hostId = data['hostId'] as String?;
+            final updatedAt = data['updatedAt'];
+            return hostId == hostUid && updatedAt != null;
+          })
+          .timeout(const Duration(seconds: 8));
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Stop cloud mode and clean up subscriptions.
@@ -196,6 +356,10 @@ class CloudHostBridge {
     _processedJoins.clear();
     _processedActions.clear();
     _running = false;
+    _setLinkState(
+      CloudLinkPhase.offline,
+      message: 'Cloud link offline. Sign in and establish link.',
+    );
     debugPrint('[CloudHostBridge] Stopped');
   }
 
@@ -222,7 +386,11 @@ class CloudHostBridge {
     if (hostUid == null || hostUid.isEmpty) {
       debugPrint(
           '[CloudHostBridge] Skipping publish: host user is not authenticated yet.');
-      return;
+      _setLinkState(
+        CloudLinkPhase.degraded,
+        message: 'Publish blocked: host authentication unavailable.',
+      );
+      throw StateError('Host authentication unavailable for publish.');
     }
 
     final step = game.currentStep;

@@ -161,7 +161,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   /// Send a vote action to Firestore.
   @override
   Future<void> vote({required String voterId, required String targetId}) async {
-    _firebase?.sendAction(
+    if (_firebase == null) return;
+    await _firebase!.sendAction(
       stepId: kDayVoteStepId,
       playerId: voterId,
       targetId: targetId,
@@ -175,7 +176,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     required String targetId,
     String? voterId,
   }) async {
-    _firebase?.sendAction(
+    if (_firebase == null) return;
+    await _firebase!.sendAction(
       stepId: stepId,
       playerId: voterId ?? state.myPlayerId ?? '',
       targetId: targetId,
@@ -184,7 +186,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
   @override
   Future<void> confirmRole({required String playerId}) async {
-    _firebase?.sendRoleConfirm(playerId: playerId);
+    if (_firebase == null) return;
+    await _firebase!.sendRoleConfirm(playerId: playerId);
   }
 
   @override
@@ -192,7 +195,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     required String playerId,
     required String targetPlayerId,
   }) async {
-    _firebase?.sendDeadPoolBet(
+    if (_firebase == null) return;
+    await _firebase!.sendDeadPoolBet(
       playerId: playerId,
       targetPlayerId: targetPlayerId,
     );
@@ -208,7 +212,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     if (trimmed.isEmpty) {
       return;
     }
-    _firebase?.sendGhostChat(
+    if (_firebase == null) return;
+    await _firebase!.sendGhostChat(
       playerId: playerId,
       message: trimmed,
       playerName: playerName,

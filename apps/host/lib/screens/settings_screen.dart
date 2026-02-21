@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../auth/auth_provider.dart';
 import '../auth/host_auth_screen.dart';
+import '../cloud_host_bridge.dart';
 import '../host_settings.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/personality_picker_modal.dart';
@@ -117,13 +118,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildCloudAccessSettings(BuildContext context, ColorScheme scheme) {
     final authState = ref.watch(authProvider);
+    final linkState = ref.watch(cloudLinkStateProvider);
     final isAuthenticated = authState.status == AuthStatus.authenticated;
     final isLoading = authState.status == AuthStatus.loading;
+    final isBusy = linkState.phase == CloudLinkPhase.initializing ||
+      linkState.phase == CloudLinkPhase.publishing ||
+      linkState.phase == CloudLinkPhase.verifying;
+    final isVerified = linkState.isVerified;
+    final isDegraded = linkState.phase == CloudLinkPhase.degraded;
     final userIdentity = authState.user?.email?.trim().isNotEmpty == true
         ? authState.user!.email!.trim()
         : (authState.user?.displayName?.trim().isNotEmpty == true
             ? authState.user!.displayName!.trim()
             : 'HOST');
+
+    final statusLabel = isVerified
+      ? 'LINK VERIFIED'
+      : (isBusy
+        ? 'LINK ESTABLISHING'
+        : (isDegraded
+          ? 'LINK DEGRADED'
+          : (isAuthenticated ? 'LINK OFFLINE' : 'OFFLINE MODE')));
+    final statusColor = isVerified
+      ? scheme.tertiary
+      : (isDegraded
+        ? scheme.error
+        : (isBusy ? scheme.primary : scheme.onSurface));
 
     return CBPanel(
       borderColor: scheme.tertiary.withValues(alpha: 0.35),
@@ -142,15 +162,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isAuthenticated ? 'LINK ACTIVE' : 'OFFLINE MODE',
+                      statusLabel,
                       style: CBTypography.labelSmall.copyWith(
-                        color: isAuthenticated ? scheme.tertiary : scheme.onSurface,
+                        color: statusColor,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.0,
                       ),
                     ),
                     Text(
-                      isAuthenticated ? userIdentity.toUpperCase() : 'SIGN IN FOR CLOUD HOSTING',
+                      isAuthenticated
+                          ? userIdentity.toUpperCase()
+                          : 'SIGN IN FOR CLOUD HOSTING',
                       style: CBTypography.bodySmall.copyWith(
                         color: scheme.onSurface.withValues(alpha: 0.7),
                         fontSize: 10,
@@ -161,58 +183,127 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ],
           ),
+          if ((linkState.message ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              linkState.message!,
+              style: CBTypography.bodySmall.copyWith(
+                color: scheme.onSurface.withValues(alpha: 0.72),
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: isAuthenticated
-                ? CBGhostButton(
-                    label: 'TERMINATE LINK',
-                    color: scheme.tertiary,
-                    onPressed: isLoading
+          if (!isAuthenticated)
+            SizedBox(
+              width: double.infinity,
+              child: CBPrimaryButton(
+                label: 'SIGN IN HOST',
+                backgroundColor: scheme.tertiary.withValues(alpha: 0.2),
+                foregroundColor: scheme.tertiary,
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const HostAuthScreen(),
+                          ),
+                        );
+
+                        if (!context.mounted) return;
+
+                        final refreshedState = ref.read(authProvider);
+                        if (refreshedState.status == AuthStatus.authenticated) {
+                          showThemedSnackBar(
+                            context,
+                            'HOST SIGN-IN COMPLETE.',
+                            accentColor: scheme.tertiary,
+                          );
+                        } else {
+                          showThemedSnackBar(
+                            context,
+                            'SIGN-IN REQUIRED FOR CLOUD HOSTING.',
+                            accentColor: scheme.error,
+                          );
+                        }
+                      },
+              ),
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: CBPrimaryButton(
+                    label: isVerified ? 'RE-VERIFY LINK' : 'ESTABLISH LINK',
+                    icon: Icons.cloud_sync_rounded,
+                    onPressed: (isLoading || isBusy)
                         ? null
                         : () async {
-                            await ref.read(authProvider.notifier).signOut();
-                            if (!context.mounted) return;
-                            showThemedSnackBar(
-                              context,
-                              'CLOUD LINK TERMINATED',
-                              accentColor: scheme.tertiary,
-                            );
-                          },
-                  )
-                : CBPrimaryButton(
-                    label: 'ESTABLISH LINK',
-                    backgroundColor: scheme.tertiary.withValues(alpha: 0.2),
-                    foregroundColor: scheme.tertiary,
-                    onPressed: isLoading
-                        ? null
-                        : () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const HostAuthScreen(),
-                              ),
-                            );
-
-                            if (!context.mounted) return;
-
-                            final refreshedState = ref.read(authProvider);
-                            if (refreshedState.status ==
-                                AuthStatus.authenticated) {
+                            final controller = ref.read(gameProvider.notifier);
+                            if (ref.read(gameProvider).syncMode != SyncMode.cloud) {
+                              controller.setSyncMode(SyncMode.cloud);
+                            }
+                            try {
+                              await ref.read(cloudHostBridgeProvider).start();
+                              if (!context.mounted) return;
                               showThemedSnackBar(
                                 context,
-                                'CLOUD UPLINK ESTABLISHED',
+                                'CLOUD LINK VERIFIED.',
                                 accentColor: scheme.tertiary,
                               );
-                            } else {
+                            } catch (_) {
+                              if (!context.mounted) return;
                               showThemedSnackBar(
                                 context,
-                                'LINK FAILED. STAYING OFFLINE.',
+                                'CLOUD LINK FAILED. RETRY REQUIRED.',
                                 accentColor: scheme.error,
                               );
                             }
                           },
                   ),
-          ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CBGhostButton(
+                    label: 'TERMINATE LINK',
+                    icon: Icons.cloud_off_rounded,
+                    color: scheme.secondary,
+                    onPressed: (isLoading || isBusy)
+                        ? null
+                        : () async {
+                            await ref.read(cloudHostBridgeProvider).stop();
+                            if (!context.mounted) return;
+                            showThemedSnackBar(
+                              context,
+                              'CLOUD LINK TERMINATED.',
+                              accentColor: scheme.secondary,
+                            );
+                          },
+                  ),
+                ),
+              ],
+            ),
+          if (isAuthenticated) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: CBGhostButton(
+                label: 'SIGN OUT HOST',
+                color: scheme.tertiary,
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        await ref.read(cloudHostBridgeProvider).stop();
+                        await ref.read(authProvider.notifier).signOut();
+                        if (!context.mounted) return;
+                        showThemedSnackBar(
+                          context,
+                          'HOST SIGNED OUT. CLOUD OFFLINE.',
+                          accentColor: scheme.tertiary,
+                        );
+                      },
+              ),
+            ),
+          ],
         ],
       ),
     );
