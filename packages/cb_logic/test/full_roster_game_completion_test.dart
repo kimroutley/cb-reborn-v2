@@ -74,6 +74,7 @@ void main() {
 
       final finalState = container.read(gameProvider);
       expect(finalState.winner, isNotNull);
+      //       print('Scenario A: Full House finished. Winner: ${finalState.winner}');
     });
 
     test('Scenario B: "Offensive Meta" (Auto-Assign, High Aggression)', () async {
