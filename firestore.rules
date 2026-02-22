@@ -66,7 +66,7 @@ service cloud.firestore {
       // ── Player Actions Subcollection ──
       match /actions/{actionId} {
         // Players can submit actions with valid data
-        allow create: if isValidAction() && isAuthenticated();
+        allow create: if isValidAction() && isAuthenticated() && exists(/databases/$(database)/documents/games/$(joinCode)/private_state/$(request.resource.data.playerId)) && get(/databases/$(database)/documents/games/$(joinCode)/private_state/$(request.resource.data.playerId)).data.uid == request.auth.uid;
         
         // Host can read actions
         allow read: if isAuthenticated();
