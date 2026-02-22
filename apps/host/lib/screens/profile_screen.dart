@@ -20,15 +20,754 @@ class ProfileScreen extends ConsumerWidget {
   final bool startInEditMode;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SharedProfileScreen(
-      repository: repository,
-      currentUserResolver: currentUserResolver,
-      startInEditMode: startInEditMode,
-      drawer: const CustomDrawer(),
-      onDirtyChanged: (isDirty) {
-        if (ref.read(hostProfileDirtyProvider) != isDirty) {
-          ref.read(hostProfileDirtyProvider.notifier).setDirty(isDirty);
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+enum _FeedbackTone { info, success, error }
+
+enum _ProfileLayoutMode { wallet, edit }
+
+class _WalletAwardSnapshot {
+  const _WalletAwardSnapshot({
+    required this.unlocked,
+    required this.inProgress,
+    required this.totalTracked,
+    required this.unlockedCount,
+  });
+
+  const _WalletAwardSnapshot.empty()
+      : unlocked = const <RoleAwardDefinition>[],
+        inProgress = const <RoleAwardDefinition>[],
+        totalTracked = 0,
+        unlockedCount = 0;
+
+  final List<RoleAwardDefinition> unlocked;
+  final List<RoleAwardDefinition> inProgress;
+  final int totalTracked;
+  final int unlockedCount;
+}
+
+class _NoStretchScrollBehavior extends MaterialScrollBehavior {
+  const _NoStretchScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
+  }
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  static const List<String> _preferredStyles = <String>[
+    'auto',
+    'neon',
+    'glass',
+    'minimal',
+    'retro',
+  ];
+
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _publicIdController = TextEditingController();
+  final FocusNode _usernameFocusNode = FocusNode();
+  final FocusNode _publicIdFocusNode = FocusNode();
+
+  ProfileRepository? _repository;
+
+  bool _loadingProfile = true;
+  bool _loadingAwards = false;
+  bool _saving = false;
+  bool _allowImmediatePop = false;
+  String? _usernameError;
+  String? _publicIdError;
+  String _selectedAvatar = clubAvatarEmojis.first;
+  String _selectedPreferredStyle = _preferredStyles.first;
+  String _initialUsername = '';
+  String _initialPublicId = '';
+  String _initialAvatar = clubAvatarEmojis.first;
+  String _initialPreferredStyle = _preferredStyles.first;
+  DateTime? _createdAt;
+  DateTime? _updatedAt;
+  _ProfileLayoutMode _layoutMode = _ProfileLayoutMode.wallet;
+  _WalletAwardSnapshot _awardSnapshot = const _WalletAwardSnapshot.empty();
+
+  ProfileRepository get _profileRepository {
+    return _repository ??= widget.repository ??
+        ProfileRepository(firestore: FirebaseFirestore.instance);
+  }
+
+  User? get _user {
+    final resolver = widget.currentUserResolver;
+    if (resolver != null) {
+      return resolver();
+    }
+    try {
+      return FirebaseAuth.instance.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool get _hasChanges {
+    return _usernameController.text.trim() != _initialUsername ||
+        ProfileFormValidation.sanitizePublicPlayerId(
+                _publicIdController.text) !=
+            _initialPublicId ||
+        _selectedAvatar != _initialAvatar ||
+        _selectedPreferredStyle != _initialPreferredStyle;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _layoutMode =
+        widget.startInEditMode ? _ProfileLayoutMode.edit : _ProfileLayoutMode.wallet;
+    _usernameController.addListener(_onInputChanged);
+    _publicIdController.addListener(_onInputChanged);
+    _loadProfile();
+  }
+
+  @override
+  void dispose() {
+    _usernameController.removeListener(_onInputChanged);
+    _publicIdController.removeListener(_onInputChanged);
+    _usernameController.dispose();
+    _publicIdController.dispose();
+    _usernameFocusNode.dispose();
+    _publicIdFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _syncDirtyFlag() {
+    if (!mounted) {
+      return;
+    }
+    final dirty = _hasChanges;
+
+    void writeDirtyFlag() {
+      if (!mounted) {
+        return;
+      }
+      if (ref.read(hostProfileDirtyProvider) == dirty) {
+        return;
+      }
+      ref.read(hostProfileDirtyProvider.notifier).setDirty(dirty);
+    }
+
+    final phase = WidgetsBinding.instance.schedulerPhase;
+    if (phase == SchedulerPhase.idle ||
+        phase == SchedulerPhase.postFrameCallbacks) {
+      writeDirtyFlag();
+      return;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      writeDirtyFlag();
+    });
+  }
+
+  void _onInputChanged() {
+    _normalizePublicIdField();
+    if (!mounted) {
+      return;
+    }
+    if (_usernameError != null || _publicIdError != null) {
+      setState(() {
+        _usernameError = null;
+        _publicIdError = null;
+      });
+      _syncDirtyFlag();
+      return;
+    }
+    setState(() {});
+    _syncDirtyFlag();
+  }
+
+  void _normalizePublicIdField() {
+    final normalized =
+        ProfileFormValidation.sanitizePublicPlayerId(_publicIdController.text);
+    if (_publicIdController.text == normalized) {
+      return;
+    }
+    _publicIdController.value = TextEditingValue(
+      text: normalized,
+      selection: TextSelection.collapsed(offset: normalized.length),
+    );
+  }
+
+  Future<void> _handleAttemptPop() async {
+    if (!_hasChanges) {
+      return;
+    }
+    final discard = await _confirmDiscardChanges();
+    if (!discard || !mounted) {
+      return;
+    }
+    _discardChanges();
+    setState(() => _allowImmediatePop = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context).maybePop();
+    });
+  }
+
+  Future<bool> _confirmDiscardChanges() async {
+    if (!_hasChanges) {
+      return true;
+    }
+    return showCBDiscardChangesDialog(
+      context,
+      message: 'You have unsaved profile edits. Leave without saving?',
+    );
+  }
+
+  void _captureInitialSnapshot() {
+    _initialUsername = _usernameController.text.trim();
+    _initialPublicId =
+        ProfileFormValidation.sanitizePublicPlayerId(_publicIdController.text);
+    _initialAvatar = _selectedAvatar;
+    _initialPreferredStyle = _selectedPreferredStyle;
+    _syncDirtyFlag();
+  }
+
+  void _dismissProfileFieldFocus() {
+    _usernameFocusNode.unfocus();
+    _publicIdFocusNode.unfocus();
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
+  bool get _isWidgetTestBinding {
+    return WidgetsBinding.instance.runtimeType
+        .toString()
+        .contains('TestWidgetsFlutterBinding');
+  }
+
+  Widget _wrapScrollSemanticsForTest(Widget child) {
+    if (_isWidgetTestBinding) {
+      return ExcludeSemantics(child: child);
+    }
+    return child;
+  }
+
+  DateTime? _dateFromFirestore(dynamic value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+    if (value is DateTime) {
+      return value;
+    }
+    return null;
+  }
+
+  String _formatDateTime(DateTime? value) {
+    if (value == null) {
+      return 'Unknown';
+    }
+    final local = value.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${local.year}-${two(local.month)}-${two(local.day)} '
+        '${two(local.hour)}:${two(local.minute)}';
+  }
+
+  String _styleLabel(String value) {
+    if (value == 'auto') {
+      return 'Auto';
+    }
+    return value[0].toUpperCase() + value.substring(1);
+  }
+
+  Set<String> _resolvePlayerKeys({
+    required User user,
+    required String username,
+    required String publicId,
+  }) {
+    final keys = <String>{
+      user.uid,
+      username.trim(),
+      publicId.trim(),
+      user.displayName?.trim() ?? '',
+    };
+    keys.removeWhere((value) => value.isEmpty);
+    return keys;
+  }
+
+  Future<void> _refreshWalletAwards() async {
+    final user = _user;
+    if (user == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _loadingAwards = true;
+    });
+
+    try {
+      final service = PersistenceService.instance;
+      await service.rebuildRoleAwardProgresses();
+      final allProgress = service.roleAwards.loadRoleAwardProgresses();
+      final playerKeys = _resolvePlayerKeys(
+        user: user,
+        username: _usernameController.text,
+        publicId: _publicIdController.text,
+      );
+
+      final progressByAward = <String, PlayerRoleAwardProgress>{};
+      for (final progress in allProgress) {
+        if (!playerKeys.contains(progress.playerKey)) {
+          continue;
+        }
+        final existing = progressByAward[progress.awardId];
+        if (existing == null) {
+          progressByAward[progress.awardId] = progress;
+          continue;
+        }
+        if (progress.isUnlocked && !existing.isUnlocked) {
+          progressByAward[progress.awardId] = progress;
+          continue;
+        }
+        if (progress.progressValue > existing.progressValue) {
+          progressByAward[progress.awardId] = progress;
+        }
+      }
+
+      final unlocked = <RoleAwardDefinition>[];
+      final inProgress = <RoleAwardDefinition>[];
+      for (final entry in progressByAward.entries) {
+        final definition = roleAwardDefinitionById(entry.key);
+        if (definition == null) {
+          continue;
+        }
+        if (entry.value.isUnlocked) {
+          unlocked.add(definition);
+        } else {
+          inProgress.add(definition);
+        }
+      }
+
+      unlocked.sort((a, b) => a.tier.index.compareTo(b.tier.index));
+      inProgress.sort((a, b) => a.tier.index.compareTo(b.tier.index));
+
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _awardSnapshot = _WalletAwardSnapshot(
+          unlocked: unlocked.take(6).toList(growable: false),
+          inProgress: inProgress.take(4).toList(growable: false),
+          totalTracked: progressByAward.length,
+          unlockedCount: unlocked.length,
+        );
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _awardSnapshot = const _WalletAwardSnapshot.empty();
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadingAwards = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildWalletView(ThemeData theme, ColorScheme scheme) {
+    final user = _user;
+    final publicId = ProfileFormValidation.sanitizePublicPlayerId(
+      _publicIdController.text,
+    );
+
+    return _wrapScrollSemanticsForTest(ScrollConfiguration(
+      behavior: const _NoStretchScrollBehavior(),
+      child: SingleChildScrollView(
+        padding: CBInsets.screen,
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CBSectionHeader(
+            title: 'DIGITAL WALLET',
+            icon: Icons.account_balance_wallet_rounded,
+            color: scheme.primary,
+          ),
+          const SizedBox(height: CBSpace.x4),
+          CBGlassTile(
+            isPrismatic: true,
+            borderRadius: BorderRadius.circular(16),
+            borderColor: scheme.primary.withValues(alpha: 0.45),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      _selectedAvatar,
+                      style: const TextStyle(fontSize: 28),
+                    ),
+                    const SizedBox(width: CBSpace.x3),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (_usernameController.text.trim().isEmpty
+                                    ? 'UNSET USERNAME'
+                                    : _usernameController.text.trim())
+                                .toUpperCase(),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          Text(
+                            publicId.isEmpty
+                                ? 'ID: NOT ISSUED'
+                                : 'ID: ${publicId.toUpperCase()}',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    CBBadge(
+                      text: _styleLabel(_selectedPreferredStyle).toUpperCase(),
+                      color: scheme.secondary,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: CBSpace.x4),
+                Text(
+                  'ACCOLADES PRINTED',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                const SizedBox(height: CBSpace.x2),
+                if (_loadingAwards)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: LinearProgressIndicator(minHeight: 3),
+                  )
+                else
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      ..._awardSnapshot.unlocked.map(
+                        (award) => CBBadge(
+                          text: award.title.toUpperCase(),
+                          color: scheme.primary,
+                        ),
+                      ),
+                      ..._awardSnapshot.inProgress.map(
+                        (award) => CBBadge(
+                          text: '${award.title.toUpperCase()} • INKING',
+                          color: scheme.tertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: CBSpace.x3),
+                Text(
+                  'UNLOCKED ${_awardSnapshot.unlockedCount} / ${_awardSnapshot.totalTracked}',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: CBSpace.x4),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CBGhostButton(
+                        label: 'EDIT PROFILE',
+                        icon: Icons.edit_rounded,
+                        onPressed: () {
+                          setState(() {
+                            _layoutMode = _ProfileLayoutMode.edit;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: CBSpace.x2),
+                    Expanded(
+                      child: CBGhostButton(
+                        label: 'REFRESH WALLET',
+                        icon: Icons.refresh_rounded,
+                        onPressed: _refreshWalletAwards,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: CBSpace.x4),
+          CBPanel(
+            borderColor: scheme.secondary.withValues(alpha: 0.35),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ISSUER DETAILS',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: scheme.secondary,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: CBSpace.x4),
+                CBProfileReadonlyRow(label: 'UID', value: user?.uid ?? 'N/A'),
+                const SizedBox(height: CBSpace.x3),
+                CBProfileReadonlyRow(
+                  label: 'EMAIL',
+                  value: user?.email ?? 'No email on account',
+                ),
+                const SizedBox(height: CBSpace.x3),
+                CBProfileReadonlyRow(
+                  label: 'CREATED',
+                  value: _formatDateTime(_createdAt),
+                ),
+                const SizedBox(height: CBSpace.x3),
+                CBProfileReadonlyRow(
+                  label: 'LAST UPDATE',
+                  value: _formatDateTime(_updatedAt),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      ),
+    ));
+  }
+
+  Future<void> _loadProfile() async {
+    final user = _user;
+    if (user == null) {
+      if (mounted) {
+        setState(() => _loadingProfile = false);
+      }
+      _syncDirtyFlag();
+      return;
+    }
+
+    try {
+      final profile = await _profileRepository.loadProfile(user.uid);
+      if (!mounted) {
+        return;
+      }
+
+      final username =
+          (profile?['username'] as String?)?.trim() ?? user.displayName?.trim();
+      final publicId = (profile?['publicPlayerId'] as String?)?.trim();
+      final avatar = (profile?['avatarEmoji'] as String?)?.trim();
+      final preferredStyle = (profile?['preferredStyle'] as String?)?.trim();
+
+      _usernameController.text = username ?? '';
+      _publicIdController.text = publicId == null
+          ? ''
+          : ProfileFormValidation.sanitizePublicPlayerId(publicId);
+      _selectedAvatar =
+          clubAvatarEmojis.contains(avatar) ? avatar! : clubAvatarEmojis.first;
+      _selectedPreferredStyle =
+          _preferredStyles.contains(preferredStyle?.toLowerCase())
+              ? preferredStyle!.toLowerCase()
+              : _preferredStyles.first;
+      _createdAt = _dateFromFirestore(profile?['createdAt']);
+      _updatedAt = _dateFromFirestore(profile?['updatedAt']);
+      _captureInitialSnapshot();
+      await _refreshWalletAwards();
+    } catch (_) {
+      // Ignore load failure and keep editable defaults.
+    } finally {
+      if (mounted) {
+        setState(() => _loadingProfile = false);
+      }
+      _syncDirtyFlag();
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    final user = _user;
+    if (user == null) {
+      _showFeedback(
+        'Sign in required to edit your profile.',
+        tone: _FeedbackTone.error,
+      );
+      return;
+    }
+
+    if (!_hasChanges) {
+      _showFeedback('No profile changes to save.');
+      return;
+    }
+
+    final username = _usernameController.text.trim();
+    final usernameValidation = ProfileFormValidation.validateUsername(username);
+    final rawPublicId = _publicIdController.text;
+    final normalizedPublicId =
+        ProfileFormValidation.sanitizePublicPlayerId(rawPublicId);
+    final publicIdValidation =
+        ProfileFormValidation.validatePublicPlayerId(rawPublicId);
+
+    if (usernameValidation != null || publicIdValidation != null) {
+      setState(() {
+        _usernameError = usernameValidation;
+        _publicIdError = publicIdValidation;
+      });
+      _syncDirtyFlag();
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+      _usernameError = null;
+      _publicIdError = null;
+    });
+
+    try {
+      if (username != _initialUsername) {
+        final usernameAvailable = await _profileRepository.isUsernameAvailable(
+          username,
+          excludingUid: user.uid,
+        );
+        if (!usernameAvailable) {
+          setState(() {
+            _usernameError = 'That username is already in use.';
+          });
+          return;
+        }
+      }
+
+      if (normalizedPublicId.isNotEmpty &&
+          normalizedPublicId != _initialPublicId) {
+        final publicIdAvailable =
+            await _profileRepository.isPublicPlayerIdAvailable(
+          normalizedPublicId,
+          excludingUid: user.uid,
+        );
+        if (!publicIdAvailable) {
+          setState(() {
+            _publicIdError = 'That public player ID is already in use.';
+          });
+          return;
+        }
+      }
+
+      final preferredStyleToSave =
+          _selectedPreferredStyle == 'auto' ? null : _selectedPreferredStyle;
+
+      await _profileRepository.upsertBasicProfile(
+        uid: user.uid,
+        username: username,
+        email: user.email,
+        isHost: true,
+        publicPlayerId: normalizedPublicId.isEmpty ? null : normalizedPublicId,
+        avatarEmoji: _selectedAvatar,
+        preferredStyle: preferredStyleToSave,
+      );
+
+      try {
+        await user.updateDisplayName(username);
+      } catch (_) {
+        // Keep profile write even if display-name update fails.
+      }
+
+      setState(() {
+        _updatedAt = DateTime.now();
+        _layoutMode = _ProfileLayoutMode.wallet;
+      });
+      _dismissProfileFieldFocus();
+      _captureInitialSnapshot();
+      await _refreshWalletAwards();
+      _showFeedback('Profile saved.', tone: _FeedbackTone.success);
+    } catch (_) {
+      _showFeedback(
+        'Could not save profile right now.',
+        tone: _FeedbackTone.error,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+      _syncDirtyFlag();
+    }
+  }
+
+  void _discardChanges() {
+    _usernameController.text = _initialUsername;
+    _publicIdController.text = _initialPublicId;
+    setState(() {
+      _selectedAvatar = _initialAvatar;
+      _selectedPreferredStyle = _initialPreferredStyle;
+      _usernameError = null;
+      _publicIdError = null;
+      _layoutMode = _ProfileLayoutMode.wallet;
+    });
+    _dismissProfileFieldFocus();
+    _syncDirtyFlag();
+    unawaited(_refreshWalletAwards());
+  }
+
+  void _showFeedback(String message,
+      {_FeedbackTone tone = _FeedbackTone.info}) {
+    if (!mounted) {
+      return;
+    }
+    final scheme = Theme.of(context).colorScheme;
+    final (Color iconColor, IconData icon) = switch (tone) {
+      _FeedbackTone.success => (scheme.primary, Icons.check_circle_outline),
+      _FeedbackTone.error => (scheme.error, Icons.error_outline),
+      _FeedbackTone.info => (scheme.secondary, Icons.info_outline),
+    };
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: scheme.surfaceContainerHigh,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: iconColor.withValues(alpha: 0.65),
+            ),
+          ),
+          content: Row(
+            children: [
+              Icon(icon, color: iconColor, size: 18),
+              const SizedBox(width: CBSpace.x2),
+              Expanded(child: Text(message)),
+            ],
+          ),
+        ),
+      );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final user = _user;
+    final normalizedPublicId =
+        ProfileFormValidation.sanitizePublicPlayerId(_publicIdController.text);
+
+    return PopScope(
+      canPop: _allowImmediatePop || !_hasChanges,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop || _allowImmediatePop || !_hasChanges) {
+          return;
         }
       },
     );

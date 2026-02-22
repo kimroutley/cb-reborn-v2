@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'role_award_calculator.dart';
 
 import 'package:cb_models/cb_models.dart';
+import 'role_award_persistence.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_ce/hive.dart';
 
@@ -14,7 +15,6 @@ const _activeGameKey = 'game_state';
 const _activeSessionKey = 'session_state';
 const _activeSavedAtKey = 'saved_at';
 const _encryptionKeyStorageKey = 'hive_encryption_key';
-const _awardProgressKeyPrefix = 'role_award_progress::';
 const defaultSaveSlotId = 'slot_1';
 const manualSaveSlotCount = 3;
 
@@ -92,6 +92,7 @@ class PersistenceService {
   late Box<String> _activeBox;
   late Box<String> _recordsBox;
   late Box<String> _sessionsBox;
+  late final RoleAwardPersistence roleAwards;
 
   /// Initialise Hive and open boxes. Call once at app startup.
   static Future<PersistenceService> init() async {
@@ -143,6 +144,10 @@ class PersistenceService {
     service._sessionsBox = await Hive.openBox<String>(
       _sessionsBoxKey,
       encryptionCipher: cipher,
+    );
+    service.roleAwards = RoleAwardPersistence(
+      recordsBox: service._recordsBox,
+      gameRecordsLoader: service.loadGameRecords,
     );
 
     _instance = service;
@@ -214,6 +219,10 @@ class PersistenceService {
     service._activeBox = activeBox;
     service._recordsBox = recordsBox;
     service._sessionsBox = sessionsBox;
+    service.roleAwards = RoleAwardPersistence(
+      recordsBox: recordsBox,
+      gameRecordsLoader: service.loadGameRecords,
+    );
     _instance = service;
     return service;
   }
@@ -374,7 +383,7 @@ class PersistenceService {
   List<GameRecord> loadGameRecords() {
     final records = <GameRecord>[];
     for (final key in _recordsBox.keys) {
-      if (key is String && key.startsWith(_awardProgressKeyPrefix)) {
+      if (key is String && key.startsWith(RoleAwardPersistence.keyPrefix)) {
         continue;
       }
       final raw = _recordsBox.get(key);
@@ -396,109 +405,12 @@ class PersistenceService {
   /// Delete a single game record by ID.
   Future<void> deleteGameRecord(String id) async {
     await _recordsBox.delete(id);
-    await rebuildRoleAwardProgresses();
+    await roleAwards.rebuildRoleAwardProgresses();
   }
 
   /// Delete all game records.
   Future<void> clearGameRecords() async {
     await _recordsBox.clear();
-  }
-
-  // ────────────────── Role Award Progress ──────────────────
-
-  String _awardProgressKey(String playerKey, String awardId) {
-    return '$_awardProgressKeyPrefix$playerKey::$awardId';
-  }
-
-  Future<void> saveRoleAwardProgress(PlayerRoleAwardProgress progress) async {
-    await _recordsBox.put(
-      _awardProgressKey(progress.playerKey, progress.awardId),
-      jsonEncode(progress.toJson()),
-    );
-  }
-
-  List<PlayerRoleAwardProgress> loadRoleAwardProgresses() {
-    final progressList = <PlayerRoleAwardProgress>[];
-    for (final key in _recordsBox.keys) {
-      if (key is! String || !key.startsWith(_awardProgressKeyPrefix)) {
-        continue;
-      }
-      final raw = _recordsBox.get(key);
-      if (raw == null) {
-        continue;
-      }
-      try {
-        progressList.add(
-          PlayerRoleAwardProgress.fromJson(
-            jsonDecode(raw) as Map<String, dynamic>,
-          ),
-        );
-      } catch (_) {
-        // skip corrupted entries
-      }
-    }
-    return progressList;
-  }
-
-  List<PlayerRoleAwardProgress> loadRoleAwardProgressesByPlayer(
-    String playerKey,
-  ) {
-    return loadRoleAwardProgresses()
-        .where((progress) => progress.playerKey == playerKey)
-        .toList(growable: false);
-  }
-
-  List<PlayerRoleAwardProgress> loadRoleAwardProgressesByRole(String roleId) {
-    return loadRoleAwardProgresses().where((progress) {
-      final definition = roleAwardDefinitionById(progress.awardId);
-      return definition?.roleId == roleId;
-    }).toList(growable: false);
-  }
-
-  List<PlayerRoleAwardProgress> loadRoleAwardProgressesByTier(
-    RoleAwardTier tier,
-  ) {
-    return loadRoleAwardProgresses().where((progress) {
-      final definition = roleAwardDefinitionById(progress.awardId);
-      return definition?.tier == tier;
-    }).toList(growable: false);
-  }
-
-  List<PlayerRoleAwardProgress> loadRecentRoleAwardUnlocks({int limit = 20}) {
-    final unlocked = loadRoleAwardProgresses()
-        .where((progress) => progress.isUnlocked && progress.unlockedAt != null)
-        .toList(growable: false)
-      ..sort((a, b) => b.unlockedAt!.compareTo(a.unlockedAt!));
-    return unlocked.take(limit).toList(growable: false);
-  }
-
-  Future<void> clearRoleAwardProgresses() async {
-    final keysToDelete = _recordsBox.keys.whereType<String>().where((key) {
-      return key.startsWith(_awardProgressKeyPrefix);
-    }).toList(growable: false);
-
-    for (final key in keysToDelete) {
-      await _recordsBox.delete(key);
-    }
-  }
-
-  Future<List<PlayerRoleAwardProgress>> rebuildRoleAwardProgresses() async {
-    await clearRoleAwardProgresses();
-    final records = loadGameRecords();
-
-    if (records.isEmpty) {
-      return const <PlayerRoleAwardProgress>[];
-    }
-
-    final rebuilt = await Isolate.run(() => calculateRoleAwardProgress(records));
-
-    final batch = <String, String>{};
-    for (final progress in rebuilt) {
-      batch[_awardProgressKey(progress.playerKey, progress.awardId)] = jsonEncode(progress.toJson());
-    }
-    await _recordsBox.putAll(batch);
-
-    return rebuilt;
   }
 
   // ────────────────── Aggregate Stats ──────────────────
