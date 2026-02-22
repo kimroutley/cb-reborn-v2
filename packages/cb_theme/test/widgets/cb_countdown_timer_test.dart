@@ -111,6 +111,11 @@ void main() {
           return null;
         },
       );
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null);
+        log.clear();
+      });
 
       // Start with 6 seconds
       await tester.pumpWidget(
