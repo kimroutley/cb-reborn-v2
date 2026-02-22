@@ -29,9 +29,9 @@ void main() {
     });
   });
 
-  group('CBColors.roleColorFromHex', () {
+  group('CBColors.fromHex', () {
     test('delegates to logic (same as fromHex currently)', () {
-      expect(CBColors.roleColorFromHex('#FF0000'), const Color(0xFFFF0000));
+      expect(CBColors.fromHex('#FF0000'), const Color(0xFFFF0000));
     });
   });
 }

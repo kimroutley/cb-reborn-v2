@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cb_theme/src/colors.dart';
 import 'package:cb_theme/src/widgets/cb_role_avatar.dart';
 
 enum CBMessageStyle {
@@ -50,9 +49,6 @@ class CBMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
 
     final bool isSystem = _effectiveStyle == CBMessageStyle.system;
     final bool isNarrative = _effectiveStyle == CBMessageStyle.narrative;
@@ -64,14 +60,12 @@ class CBMessageBubble extends StatelessWidget {
   }
 
   Widget _buildCenteredMessage(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final effectiveStyle = _effectiveStyle == CBMessageStyle.system
         ? CBMessageStyle.system
         : style;
     final isNarrative = effectiveStyle == CBMessageStyle.narrative;
     final accentColor =
-        color ?? (isNarrative ? scheme.secondary : scheme.outline);
+        color ?? (isNarrative ? Theme.of(context).colorScheme.secondary : Theme.of(context).colorScheme.outline);
 
     return Center(
       child: Container(
@@ -86,7 +80,7 @@ class CBMessageBubble extends StatelessWidget {
         ),
         child: Text(
           message.toUpperCase(),
-          style: theme.textTheme.labelSmall?.copyWith(
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: accentColor,
             letterSpacing: 1.0,
             fontSize: 10,
@@ -99,9 +93,7 @@ class CBMessageBubble extends StatelessWidget {
   }
 
   Widget _buildBubbleMessage(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final accentColor = color ?? scheme.primary;
+    final accentColor = color ?? Theme.of(context).colorScheme.primary;
 
     // Bubble shape constants
     const radius = Radius.circular(20);
@@ -225,7 +217,7 @@ class CBMessageBubble extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 12, bottom: 4),
                     child: Text(
                       sender.toUpperCase(),
-                      style: theme.textTheme.labelSmall?.copyWith(
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: accentColor,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -238,7 +230,7 @@ class CBMessageBubble extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isSender
                         ? accentColor.withValues(alpha: 0.2)
-                        : scheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                        : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
                     borderRadius: borderRadius,
                     border: isSender
                         ? Border.all(color: accentColor.withValues(alpha: 0.5))
@@ -246,8 +238,8 @@ class CBMessageBubble extends StatelessWidget {
                   ),
                   child: Text(
                     message,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurface,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
                       height: 1.4,
                     ),
                   ),
@@ -259,8 +251,8 @@ class CBMessageBubble extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
                       child: Text(
                         _formatTime(timestamp!),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                           fontSize: 9,
                         ),
                       ),
