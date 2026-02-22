@@ -29,9 +29,8 @@ void main() {
     });
   });
 
-  group('CBColors.fromHex (legacy)', () {
+  group('CBColors.fromHex', () {
     test('delegates to logic (same as fromHex currently)', () {
-      // Using fromHex instead of deprecated roleColorFromHex to avoid analysis info
       expect(CBColors.fromHex('#FF0000'), const Color(0xFFFF0000));
     });
   });
