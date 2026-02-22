@@ -123,13 +123,6 @@ void main() {
         log.clear();
       });
 
-      addTearDown(() {
-        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-          SystemChannels.platform,
-          null,
-        );
-      });
-
       // Start with 6 seconds
       await tester.pumpWidget(
         const MaterialApp(
