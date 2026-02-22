@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../colors.dart';
-import '../layout.dart';
 
 /// Dark input field with glassmorphism styling.
 class CBTextField extends StatelessWidget {
