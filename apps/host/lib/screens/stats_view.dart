@@ -50,7 +50,7 @@ class _StatsViewState extends State<StatsView> {
     final scheme = Theme.of(context).colorScheme;
 
     if (_loading) {
-      return Center(
+      return const Center(
         child: CBBreathingSpinner(),
       );
     }
@@ -136,6 +136,30 @@ class _StatsViewState extends State<StatsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuickStatTile(
+                context,
+                'TOTAL GAMES',
+                '${_stats.totalGames}',
+                Icons.videogame_asset_outlined,
+                scheme.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildQuickStatTile(
+                context,
+                'AVG PLAYERS',
+                _stats.averagePlayerCount.toStringAsFixed(1),
+                Icons.people_outline_rounded,
+                scheme.secondary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
         if (widget.gameState.phase != GamePhase.lobby) ...[
           _buildLiveIntel(scheme),
           const SizedBox(height: 24),
@@ -147,6 +171,46 @@ class _StatsViewState extends State<StatsView> {
         CBSectionHeader(title: 'GAME HISTORY', count: _records.length),
         const SizedBox(height: 12),
       ],
+    );
+  }
+
+  Widget _buildQuickStatTile(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return CBGlassTile(
+      borderColor: color.withValues(alpha: 0.2),
+      borderRadius: BorderRadius.circular(CBRadius.md),
+      padding: const EdgeInsets.all(16),
+      isPrismatic: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: textTheme.headlineSmall!.copyWith(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            label,
+            style: textTheme.labelSmall!.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.4),
+              letterSpacing: 1.0,
+              fontSize: 8,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

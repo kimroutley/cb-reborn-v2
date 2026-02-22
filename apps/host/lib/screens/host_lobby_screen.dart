@@ -36,7 +36,7 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     final authState = ref.read(authProvider);
     final bridge = ref.read(cloudHostBridgeProvider);
 
-    if (authState.status != AuthStatus.authenticated) {
+    if (authState.user == null) {
       showThemedSnackBar(
         context,
         'SIGN IN FIRST TO ESTABLISH CLOUD LINK.',
@@ -221,7 +221,9 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
 
     final hasMinPlayers = gameState.players.length >= Game.minPlayers;
     final isManual = gameState.gameStyle == GameStyle.manual;
-    final allRolesAssigned = gameState.players.every((p) => p.role.id != 'unassigned');
+    final allRolesAssigned = gameState.players.every(
+      (p) => p.role.id != 'unassigned' && p.alliance != Team.unknown,
+    );
 
     return CBPrismScaffold(
       title: 'LOBBY',
@@ -544,7 +546,7 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                   nextValue: GameStyle.values[(gameState.gameStyle.index + 1) % GameStyle.values.length].label.toUpperCase(),
                   color: scheme.secondary,
                   onTap: () {
-                    final styles = GameStyle.values;
+                    const styles = GameStyle.values;
                     final next = styles[(gameState.gameStyle.index + 1) % styles.length];
                     controller.setGameStyle(next);
                   }
@@ -586,7 +588,7 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
               if (isManual && !allRolesAssigned) {
                 showThemedSnackBar(
                   context,
-                  'Assign all roles manually or change Game Style.',
+                  'Manual start requires every player to have role + alliance. Complete assignment first.',
                   accentColor: scheme.secondary,
                 );
                 return;
@@ -595,6 +597,22 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
               final success = controller.startGame();
               if (success) {
                 nav.setDestination(HostDestination.game);
+              } else {
+                if (gameState.phase != GamePhase.lobby) {
+                  showThemedSnackBar(
+                    context,
+                    'SESSION ALREADY ACTIVE. OPENING COMMAND SCREEN.',
+                    accentColor: scheme.tertiary,
+                  );
+                  nav.setDestination(HostDestination.game);
+                  return;
+                }
+
+                showThemedSnackBar(
+                  context,
+                  'Unable to start session. Check roster and setup.',
+                  accentColor: scheme.error,
+                );
               }
             },
             onAddMock: controller.addBot,

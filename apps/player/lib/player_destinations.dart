@@ -1,81 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:cb_models/cb_models.dart';
 
 enum PlayerDestination {
   home,
   lobby,
+  game,
+  profile,
+  settings,
+  guides,
+  about,
+  stats,
+  hallOfFame,
+  gamesNight,
   claim,
   transition,
-  game,
-  guides,
-  gamesNight,
-  hallOfFame,
-  profile,
-  stats,
-  about,
 }
 
-@immutable
-class PlayerDestinationConfig {
-  final PlayerDestination destination;
-  final String label;
-  final IconData icon;
-
+class PlayerDestinationConfig
+    extends AbstractDestinationConfig<PlayerDestination> {
   const PlayerDestinationConfig({
-    required this.destination,
-    required this.label,
-    required this.icon,
+    required super.destination,
+    required super.label,
+    required super.icon,
   });
 }
 
 const playerDestinations = <PlayerDestinationConfig>[
   PlayerDestinationConfig(
     destination: PlayerDestination.home,
-    label: 'Lobby',
-    icon: Icons.home_outlined,
+    label: 'Home',
+    icon: Icons.home_rounded,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.lobby,
-    label: 'Club Lounge',
-    icon: Icons.group_outlined,
-  ),
-  PlayerDestinationConfig(
-    destination: PlayerDestination.claim,
-    label: 'Entry Terminal',
-    icon: Icons.vpn_key_outlined,
+    label: 'Lobby',
+    icon: Icons.hub_rounded,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.game,
-    label: 'Group Chat',
-    icon: Icons.chat_bubble_outline_rounded,
-  ),
-  PlayerDestinationConfig(
-    destination: PlayerDestination.guides,
-    label: 'The Blackbook',
-    icon: Icons.menu_book_outlined,
-  ),
-  PlayerDestinationConfig(
-    destination: PlayerDestination.gamesNight,
-    label: 'Bar Tab',
-    icon: Icons.wine_bar_outlined,
+    label: 'Game',
+    icon: Icons.casino_rounded,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.profile,
-    label: 'Wallet',
-    icon: Icons.account_balance_wallet_outlined,
+    label: 'Profile',
+    icon: Icons.person_rounded,
   ),
   PlayerDestinationConfig(
-    destination: PlayerDestination.stats,
-    label: 'Career Stats',
-    icon: Icons.show_chart_rounded,
+    destination: PlayerDestination.settings,
+    label: 'Settings',
+    icon: Icons.settings_rounded,
   ),
   PlayerDestinationConfig(
-    destination: PlayerDestination.hallOfFame,
-    label: 'Hall of Fame',
-    icon: Icons.emoji_events_outlined,
+    destination: PlayerDestination.guides,
+    label: 'Guides',
+    icon: Icons.auto_stories_rounded,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.about,
     label: 'About',
-    icon: Icons.info_outline,
+    icon: Icons.info_outline_rounded,
+  ),
+  PlayerDestinationConfig(
+    destination: PlayerDestination.stats,
+    label: 'My Stats',
+    icon: Icons.bar_chart_rounded,
+  ),
+  PlayerDestinationConfig(
+    destination: PlayerDestination.hallOfFame,
+    label: 'Hall of Fame',
+    icon: Icons.emoji_events_rounded,
+  ),
+  PlayerDestinationConfig(
+    destination: PlayerDestination.gamesNight,
+    label: 'Games Night',
+    icon: Icons.group_rounded,
+  ),
+  PlayerDestinationConfig(
+    destination: PlayerDestination.claim,
+    label: 'Claim Reward',
+    icon: Icons.redeem_rounded,
+  ),
+  PlayerDestinationConfig(
+    destination: PlayerDestination.transition,
+    label: 'Transition',
+    icon: Icons.screen_share_outlined,
   ),
 ];

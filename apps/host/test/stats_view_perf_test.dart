@@ -70,17 +70,16 @@ void main() {
 
     // 2. Pump StatsView
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: StatsView(
-            gameState: const GameState(),
+            gameState: GameState(),
           ),
         ),
       ),
     );
-
-    // Allow FutureBuilder/setState to settle
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     // 3. Verify ListView is using SliverChildBuilderDelegate (lazy list)
     final listViewFinder = find.byType(ListView);

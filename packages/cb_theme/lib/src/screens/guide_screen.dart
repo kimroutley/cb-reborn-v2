@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cb_models/cb_models.dart';
 import '../colors.dart';
+import '../haptic_service.dart';
 import '../widgets.dart';
 
 class CBGuideScreen extends StatefulWidget {
@@ -21,53 +22,27 @@ class CBGuideScreen extends StatefulWidget {
 
 class _CBGuideScreenState extends State<CBGuideScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
   Role? _selectedRoleForTips;
   String _searchQuery = "";
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
     _selectedRoleForTips = widget.localPlayer?.role ?? roleCatalog.first;
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final topInset =
-        MediaQuery.paddingOf(context).top + kToolbarHeight + kTextTabBarHeight;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        flexibleSpace: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                scheme.surface.withValues(alpha: 0.90),
-                scheme.surface.withValues(alpha: 0.60),
-                Colors.transparent,
-              ],
-              stops: const [0.0, 0.78, 1.0],
-            ),
-          ),
-        ),
-        title: const Text("CLUB BIBLE"),
-        bottom: TabBar(
-          controller: _tabController,
+    return DefaultTabController(
+      length: 3,
+      child: CBPrismScaffold(
+        title: "THE BLACKBOOK",
+        drawer: widget.drawer,
+        appBarBottom: TabBar(
+          onTap: (_) => HapticService.selection(),
           labelColor: theme.colorScheme.primary,
           unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.6),
           indicatorColor: theme.colorScheme.primary,
@@ -84,29 +59,12 @@ class _CBGuideScreenState extends State<CBGuideScreen>
             Tab(text: "STRATEGY"),
           ],
         ),
-      ),
-      drawer: widget.drawer,
-      body: CBNeonBackground(
-        showRadiance: true,
-        blurSigma: 11,
-        child: SafeArea(
-          top: false,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: scheme.surface.withValues(alpha: 0.26),
-            ),
-            child: Padding(
-              padding: EdgeInsets.only(top: topInset),
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildHandbookTab(),
-                  _buildOperativesTab(),
-                  _buildStrategyTab(),
-                ],
-              ),
-            ),
-          ),
+        body: TabBarView(
+          children: [
+            CBFadeSlide(child: _buildHandbookTab()),
+            CBFadeSlide(child: _buildOperativesTab()),
+            CBFadeSlide(child: _buildStrategyTab()),
+          ],
         ),
       ),
     );
@@ -148,7 +106,10 @@ class _CBGuideScreenState extends State<CBGuideScreen>
                 padding: const EdgeInsets.only(bottom: 8),
                 child: CBRoleIDCard(
                   role: role,
-                  onTap: () => _showOperativeFile(role),
+                  onTap: () {
+                    HapticService.light();
+                    _showOperativeFile(role);
+                  },
                 ),
               );
             },
@@ -179,51 +140,79 @@ class _CBGuideScreenState extends State<CBGuideScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const SizedBox(height: 12),
-                        CBRoleAvatar(
-                          assetPath: role.assetPath,
-                          color: color,
-                          size: 140,
-                          breathing: true,
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 100),
+                          child: CBRoleAvatar(
+                            assetPath: role.assetPath,
+                            color: color,
+                            size: 140,
+                            breathing: true,
+                          ),
                         ),
                         const SizedBox(height: 28),
-                        Text(
-                          role.name.toUpperCase(),
-                          textAlign: TextAlign.center,
-                          style: textTheme.displayMedium!.copyWith(
-                            color: scheme.onSurface,
-                            letterSpacing: 3.5,
-                            shadows: [
-                              Shadow(
-                                color: color.withValues(alpha: 0.9),
-                                blurRadius: 10,
-                              )
-                            ],
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 200),
+                          child: Text(
+                            role.name.toUpperCase(),
+                            textAlign: TextAlign.center,
+                            style: textTheme.displayMedium!.copyWith(
+                              color: scheme.onSurface,
+                              letterSpacing: 3.5,
+                              shadows: [
+                                Shadow(
+                                  color: color.withValues(alpha: 0.9),
+                                  blurRadius: 10,
+                                )
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
-                        CBBadge(text: "CLASS: ${role.type}", color: color),
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 300),
+                          child: CBBadge(
+                              text: "CLASS: ${role.type}", color: color),
+                        ),
                         const SizedBox(height: 36),
-                        CBPanel(
-                          child: Text(
-                            role.description,
-                            textAlign: TextAlign.center,
-                            style: textTheme.bodyLarge!.copyWith(
-                              height: 1.7,
-                              color: scheme.onSurface.withValues(alpha: 0.9),
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 400),
+                          child: CBPanel(
+                            child: Text(
+                              role.description,
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodyLarge!.copyWith(
+                                height: 1.7,
+                                color: scheme.onSurface.withValues(alpha: 0.9),
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 40),
-                        _buildDetailStat("WAKE PRIORITY",
-                            "LEVEL ${role.nightPriority}", color),
-                        _buildDetailStat(
-                            "ALLIANCE", _allianceName(role.alliance), color),
-                        _buildDetailStat(
-                            "MISSION GOAL", _winConditionFor(role), color),
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 500),
+                          child: _buildDetailStat("WAKE PRIORITY",
+                              "LEVEL ${role.nightPriority}", color),
+                        ),
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 600),
+                          child: _buildDetailStat(
+                              "ALLIANCE", _allianceName(role.alliance), color),
+                        ),
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 700),
+                          child: _buildDetailStat(
+                              "MISSION GOAL", _winConditionFor(role), color),
+                        ),
                         const SizedBox(height: 64),
-                        CBPrimaryButton(
-                          label: "CLOSE DOSSIER",
-                          onPressed: () => Navigator.pop(context),
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 800),
+                          child: CBPrimaryButton(
+                            label: "CLOSE DOSSIER",
+                            onPressed: () {
+                              HapticService.light();
+                              Navigator.pop(context);
+                            },
+                          ),
                         ),
                       ],
                     ),
@@ -233,7 +222,10 @@ class _CBGuideScreenState extends State<CBGuideScreen>
                   top: 12,
                   right: 12,
                   child: IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      HapticService.light();
+                      Navigator.of(context).pop();
+                    },
                     icon: Icon(
                       Icons.close_rounded,
                       color: scheme.onSurface.withValues(alpha: 0.75),
@@ -353,7 +345,10 @@ class _CBGuideScreenState extends State<CBGuideScreen>
     final color = CBColors.fromHex(_selectedRoleForTips!.colorHex);
     return CBPanel(
       child: InkWell(
-        onTap: () => _showRolePickerModal(),
+        onTap: () {
+          HapticService.medium();
+          _showRolePickerModal();
+        },
         child: Row(
           children: [
             CBRoleAvatar(
@@ -415,33 +410,37 @@ class _CBGuideScreenState extends State<CBGuideScreen>
                     itemBuilder: (context, index) {
                       final role = roleCatalog[index];
                       final rColor = CBColors.fromHex(role.colorHex);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                      return CBFadeSlide(
+                        delay: Duration(milliseconds: 50 + (index * 25)),
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            tileColor: scheme.surfaceContainerHighest
+                                .withValues(alpha: 0.5),
+                            leading: CBRoleAvatar(
+                              assetPath: role.assetPath,
+                              color: rColor,
+                              size: 32,
+                            ),
+                            title: Text(
+                              role.name.toUpperCase(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall!
+                                  .copyWith(
+                                    color: scheme.onSurface,
+                                    fontSize: 11,
+                                  ),
+                            ),
+                            onTap: () {
+                              HapticService.selection();
+                              setState(() => _selectedRoleForTips = role);
+                              Navigator.pop(context);
+                            },
                           ),
-                          tileColor: scheme.surfaceContainerHighest
-                              .withValues(alpha: 0.5),
-                          leading: CBRoleAvatar(
-                            assetPath: role.assetPath,
-                            color: rColor,
-                            size: 32,
-                          ),
-                          title: Text(
-                            role.name.toUpperCase(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall!
-                                .copyWith(
-                                  color: scheme.onSurface,
-                                  fontSize: 11,
-                                ),
-                          ),
-                          onTap: () {
-                            setState(() => _selectedRoleForTips = role);
-                            Navigator.pop(context);
-                          },
                         ),
                       );
                     },

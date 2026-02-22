@@ -146,7 +146,7 @@ void main() {
     );
 
     final discardActions =
-      tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
+        tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
     discardActions.onDiscard();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -213,7 +213,7 @@ void main() {
     );
 
     final saveActions =
-      tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
+        tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
     saveActions.onSave();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));

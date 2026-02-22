@@ -11,3 +11,4 @@ export 'src/overlays.dart';
 export 'src/screens/guide_screen.dart';
 export 'src/image_processing_service.dart';
 export 'src/discard_changes_dialog.dart';
+export 'src/widgets/cb_side_drawer.dart';

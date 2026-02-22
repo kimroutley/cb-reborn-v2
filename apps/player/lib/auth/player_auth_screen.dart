@@ -6,9 +6,9 @@ import 'package:cb_theme/cb_theme.dart';
 import 'auth_provider.dart';
 
 class PlayerAuthScreen extends ConsumerWidget {
-  const PlayerAuthScreen({super.key, required this.child});
+  const PlayerAuthScreen({super.key, this.onSignedIn});
 
-  final Widget child;
+  final VoidCallback? onSignedIn;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,12 +16,18 @@ class PlayerAuthScreen extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final isLoading = authState.status == AuthStatus.loading;
 
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (next.status == AuthStatus.authenticated) {
+        onSignedIn?.call();
+      }
+    });
+
     final loadingTitle = authState.user == null
-      ? 'VERIFYING VIP PASS...'
-      : 'SYNCING PLAYER PROFILE...';
+        ? 'VERIFYING VIP PASS...'
+        : 'SYNCING PLAYER PROFILE...';
     final loadingSubtitle = authState.user == null
-      ? 'Please wait while we validate your invite.'
-      : 'Preparing your identity and restoring session state.';
+        ? 'Please wait while we validate your invite.'
+        : 'Preparing your identity and restoring session state.';
 
     return Scaffold(
       body: Stack(
@@ -61,7 +67,7 @@ class PlayerAuthScreen extends ConsumerWidget {
           errorMessage: authState.error,
         );
       case AuthStatus.authenticated:
-        return child;
+        return Container();
       default:
         return const _AuthSplash(key: ValueKey('auth_splash'));
     }

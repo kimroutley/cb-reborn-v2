@@ -76,9 +76,7 @@ void main() {
           ],
           child: MaterialApp(
             theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
-            home: const PlayerAuthScreen(
-              child: SizedBox.shrink(),
-            ),
+            home: const PlayerAuthScreen(),
           ),
         ),
       );
@@ -102,9 +100,7 @@ void main() {
           ],
           child: MaterialApp(
             theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
-            home: const PlayerAuthScreen(
-              child: SizedBox.shrink(),
-            ),
+            home: const PlayerAuthScreen(),
           ),
         ),
       );
@@ -134,9 +130,7 @@ void main() {
           ],
           child: MaterialApp(
             theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
-            home: const PlayerAuthScreen(
-              child: SizedBox.shrink(),
-            ),
+            home: const PlayerAuthScreen(),
           ),
         ),
       );

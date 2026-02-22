@@ -170,7 +170,7 @@ void main() {
 
     fakeAuthService.emitUser(user);
 
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
 
     final authState = container.read(authProvider);
     expect(authState.status, AuthStatus.authenticated);
@@ -187,7 +187,7 @@ void main() {
 
     fakeAuthService.emitUser(user);
 
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
 
     final authState = container.read(authProvider);
     expect(authState.status, AuthStatus.needsProfile);
@@ -202,7 +202,7 @@ void main() {
     final user = FakeUser(uid: '789', email: 'save@example.com');
     fakeAuthService.emitUser(user); // Initially needs profile
 
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
 
     var authState = container.read(authProvider);
     expect(authState.status, AuthStatus.needsProfile);

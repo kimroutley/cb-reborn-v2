@@ -115,7 +115,7 @@ void main() {
     expect(resumeRetryDelayForAttempt(99), const Duration(seconds: 30));
   });
 
-    testWidgets(
+  testWidgets(
       'pending legacy local autoconnect URL is coerced to cloud reconnect flow',
       (tester) async {
     final playerBridge = _TrackingPlayerBridge();

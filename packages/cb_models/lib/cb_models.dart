@@ -8,6 +8,7 @@ export 'src/data/rumour_catalog.dart';
 export 'src/strategy_data.dart';
 export 'src/app_release_notes.dart';
 export 'src/player.dart';
+export 'src/navigation/abstract_destination_config.dart';
 export 'src/player_snapshot.dart';
 export 'src/script/script_action_type.dart';
 export 'src/script/script_step.dart';

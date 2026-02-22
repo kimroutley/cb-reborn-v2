@@ -208,22 +208,22 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     final error = localError ?? cloudState.joinError;
     final hasParsedUrl = joinUrlController.text.trim().isNotEmpty;
     final toneColor = _isConnecting
-      ? scheme.primary
-      : (error == null ? scheme.tertiary : scheme.error);
+        ? scheme.primary
+        : (error == null ? scheme.tertiary : scheme.error);
     final toneIcon = _isConnecting
-      ? Icons.cloud_sync_rounded
-      : (error == null
-        ? Icons.cloud_done_rounded
-        : Icons.error_outline_rounded);
+        ? Icons.cloud_sync_rounded
+        : (error == null
+            ? Icons.cloud_done_rounded
+            : Icons.error_outline_rounded);
     final toneTitle = _isConnecting
-      ? 'UPLINK IN PROGRESS'
-      : (error == null ? 'UPLINK READY' : 'UPLINK ISSUE DETECTED');
+        ? 'UPLINK IN PROGRESS'
+        : (error == null ? 'UPLINK READY' : 'UPLINK ISSUE DETECTED');
     final readyDetail = hasParsedUrl
-      ? 'Join URL detected. Code can be prefilled from parser.'
-      : 'Enter a join code or paste a join URL to continue.';
+        ? 'Join URL detected. Code can be prefilled from parser.'
+        : 'Enter a join code or paste a join URL to continue.';
     final toneDetail = _isConnecting
-      ? 'Connecting to host session. Keep this terminal active.'
-      : (error ?? readyDetail);
+        ? 'Connecting to host session. Keep this terminal active.'
+        : (error ?? readyDetail);
 
     final accent = scheme.secondary;
 
@@ -306,15 +306,15 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
             onPressed: _isConnecting
                 ? null
                 : () {
-              final ok = _tryApplyJoinUrl(joinUrlController.text);
-              if (!ok) {
-                HapticService.error();
-                setState(() => localError = 'INVALID JOIN URL');
-              } else {
-                HapticService.selection();
-                setState(() => localError = null);
-              }
-            },
+                    final ok = _tryApplyJoinUrl(joinUrlController.text);
+                    if (!ok) {
+                      HapticService.error();
+                      setState(() => localError = 'INVALID JOIN URL');
+                    } else {
+                      HapticService.selection();
+                      setState(() => localError = null);
+                    }
+                  },
             color: accent,
           ),
         ),

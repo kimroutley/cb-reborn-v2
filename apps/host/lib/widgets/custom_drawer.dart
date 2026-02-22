@@ -6,6 +6,7 @@ import '../host_destinations.dart';
 import '../host_navigation.dart';
 import '../profile_edit_guard.dart';
 
+
 class CustomDrawer extends ConsumerWidget {
   final HostDestination? currentDestination;
   final ValueChanged<HostDestination>? onDrawerItemTap;
@@ -46,27 +47,25 @@ class CustomDrawer extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    const lobbyGroup = <HostDestination>{
+    const gameplayGroup = <HostDestination>{
       HostDestination.lobby,
-    };
-    const socialGroup = <HostDestination>{
       HostDestination.game,
-    };
-    const blackbookGroup = <HostDestination>{
       HostDestination.guides,
+    };
+    const statsAndAwardsGroup = <HostDestination>{
+      HostDestination.hallOfFame,
+    };
+    const gamesNightGroup = <HostDestination>{
+      HostDestination.gamesNight,
     };
     const walletGroup = <HostDestination>{
       HostDestination.profile,
     };
-    const aboutGroup = <HostDestination>{
-      HostDestination.about,
-    };
-    const adminGroup = <HostDestination>{
+    const otherGroup = <HostDestination>{
       HostDestination.home,
       HostDestination.saveLoad,
       HostDestination.settings,
-      HostDestination.gamesNight,
-      HostDestination.hallOfFame,
+      HostDestination.about,
     };
 
     List<HostDestinationConfig> configsFor(Set<HostDestination> group) {
@@ -75,27 +74,23 @@ class CustomDrawer extends ConsumerWidget {
           .toList(growable: false);
     }
 
-    final lobbyDestinations = configsFor(lobbyGroup);
-    final socialDestinations = configsFor(socialGroup);
-    final blackbookDestinations = configsFor(blackbookGroup);
+    final gameplayDestinations = configsFor(gameplayGroup);
+    final statsAndAwardsDestinations = configsFor(statsAndAwardsGroup);
+    final gamesNightDestinations = configsFor(gamesNightGroup);
     final walletDestinations = configsFor(walletGroup);
-    final aboutDestinations = configsFor(aboutGroup);
-    final adminDestinations = configsFor(adminGroup);
+    final otherDestinations = configsFor(otherGroup);
     final drawerDestinations = <HostDestinationConfig>[
-      ...lobbyDestinations,
-      ...socialDestinations,
-      ...blackbookDestinations,
+      ...gameplayDestinations,
+      ...statsAndAwardsDestinations,
+      ...gamesNightDestinations,
       ...walletDestinations,
-      ...aboutDestinations,
-      ...adminDestinations,
+      ...otherDestinations,
     ];
 
     final selectedIndex = drawerDestinations
         .indexWhere((d) => d.destination == activeDestination);
 
-    return NavigationDrawer(
-      backgroundColor: colorScheme.surface,
-      indicatorColor: colorScheme.secondaryContainer,
+    return CBSideDrawer(
       selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
       onDestinationSelected: (index) async {
         HapticService.selection();
@@ -131,47 +126,18 @@ class CustomDrawer extends ConsumerWidget {
           }
         } catch (_) {}
       },
+      drawerHeader: _buildDrawerHeader(context, theme, colorScheme), // Pass the header
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            CBSpace.x6,
-            CBSpace.x6,
-            CBSpace.x4,
-            CBSpace.x4,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'CLUB BLACKOUT',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: colorScheme.secondary,
-                  fontWeight: FontWeight.bold,
-                  shadows: CBColors.textGlow(colorScheme.secondary),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'HOST CONSOLE',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Lobby',
-            icon: Icons.hub_rounded,
+            title: 'Gameplay',
+            icon: Icons.gamepad_outlined,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
 
-        ...lobbyDestinations.map((dest) => NavigationDrawerDestination(
+        ...gameplayDestinations.map((dest) => NavigationDrawerDestination(
               icon: Icon(dest.icon),
               label: Text(dest.label),
             )),
@@ -179,12 +145,12 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Group Chat',
-            icon: Icons.chat_bubble_outline_rounded,
+            title: 'Stats and Awards',
+            icon: Icons.emoji_events_outlined,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...socialDestinations.map((dest) => NavigationDrawerDestination(
+        ...statsAndAwardsDestinations.map((dest) => NavigationDrawerDestination(
               icon: Icon(dest.icon),
               label: Text(dest.label),
             )),
@@ -192,13 +158,13 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'The Blackbook',
-            icon: Icons.auto_stories_rounded,
+            title: 'Games Night',
+            icon: Icons.group_outlined,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
 
-        ...blackbookDestinations.map((dest) => NavigationDrawerDestination(
+        ...gamesNightDestinations.map((dest) => NavigationDrawerDestination(
               icon: Icon(dest.icon),
               label: Text(dest.label),
             )),
@@ -219,32 +185,50 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'About',
-            icon: Icons.info_outline_rounded,
+            title: 'Other',
+            icon: Icons.more_horiz_outlined,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...aboutDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
-
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Admin',
-            icon: Icons.tune_rounded,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-
-        ...adminDestinations.map((dest) => NavigationDrawerDestination(
+        ...otherDestinations.map((dest) => NavigationDrawerDestination(
               icon: Icon(dest.icon),
               label: Text(dest.label),
             )),
 
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Widget _buildDrawerHeader(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        CBSpace.x6,
+        CBSpace.x6,
+        CBSpace.x4,
+        CBSpace.x4,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'CLUB BLACKOUT',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: colorScheme.secondary,
+              fontWeight: FontWeight.bold,
+              shadows: CBColors.textGlow(colorScheme.secondary),
+            ),
+          ),
+          const SizedBox(height: CBSpace.x1),
+          Text(
+            'HOST CONSOLE',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant.withAlpha(178),
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

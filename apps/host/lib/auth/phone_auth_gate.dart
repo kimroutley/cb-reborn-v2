@@ -414,7 +414,7 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
           future: _loadProfile(user),
           builder: (context, profileSnapshot) {
             if (profileSnapshot.connectionState != ConnectionState.done) {
-              return Scaffold(
+              return const Scaffold(
                 body: CBNeonBackground(
                   child: Center(child: CBBreathingSpinner()),
                 ),

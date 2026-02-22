@@ -30,8 +30,17 @@ class HostAuthScreen extends ConsumerWidget {
   Widget _buildUIForState(BuildContext context, WidgetRef ref,
       AuthState authState, ColorScheme scheme) {
     switch (authState.status) {
+      case AuthStatus.authenticated:
+        if (Navigator.of(context).canPop()) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted && Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+          });
+        }
+        return const _AuthSplash(key: ValueKey('auth_authenticated'));
       case AuthStatus.needsProfile:
-        return _ProfileSetupForm(key: const ValueKey('profile'));
+        return const _ProfileSetupForm(key: ValueKey('profile'));
       case AuthStatus.error:
         return _AuthSplash(
           key: const ValueKey('auth_error'),

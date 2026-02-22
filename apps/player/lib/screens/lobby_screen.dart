@@ -253,14 +253,16 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     );
 
     final (statusIcon, statusColor) = switch (status.tone) {
-      _LobbyStatusTone.readyToJoin =>
-        (Icons.flash_on_rounded, scheme.tertiary),
-      _LobbyStatusTone.waitingPlayers =>
-        (Icons.groups_rounded, scheme.secondary),
-      _LobbyStatusTone.setup =>
-        (Icons.badge_rounded, scheme.primary),
-      _LobbyStatusTone.waitingHost =>
-        (Icons.hourglass_top_rounded, scheme.onSurfaceVariant),
+      _LobbyStatusTone.readyToJoin => (Icons.flash_on_rounded, scheme.tertiary),
+      _LobbyStatusTone.waitingPlayers => (
+          Icons.groups_rounded,
+          scheme.secondary
+        ),
+      _LobbyStatusTone.setup => (Icons.badge_rounded, scheme.primary),
+      _LobbyStatusTone.waitingHost => (
+          Icons.hourglass_top_rounded,
+          scheme.onSurfaceVariant
+        ),
     };
 
     return CBPrismScaffold(

@@ -1,62 +1,105 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../firebase_options.dart';
+
 class AuthService {
-  final FirebaseAuth _auth;
+  final FirebaseAuth? _auth;
   final GoogleSignIn _googleSignIn;
 
   AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
-      : _auth = auth ?? FirebaseAuth.instance,
+      : _auth = auth,
         _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
 
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  FirebaseAuth get _firebaseAuth => _auth ?? FirebaseAuth.instance;
 
-  User? get currentUser => _auth.currentUser;
+  Future<void> _ensureFirebaseInitialized() async {
+    if (_auth != null) {
+      return;
+    }
+    if (Firebase.apps.isNotEmpty) {
+      return;
+    }
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
+  Stream<User?> get authStateChanges {
+    if (_auth != null || Firebase.apps.isNotEmpty) {
+      return _firebaseAuth.authStateChanges();
+    }
+
+    return Stream<void>.fromFuture(_ensureFirebaseInitialized())
+        .asyncExpand((_) => _firebaseAuth.authStateChanges());
+  }
+
+  User? get currentUser => (_auth != null || Firebase.apps.isNotEmpty)
+      ? _firebaseAuth.currentUser
+      : null;
 
   Future<void> sendSignInLinkToEmail({
     required String email,
     required ActionCodeSettings actionCodeSettings,
-  }) {
-    return _auth.sendSignInLinkToEmail(
+  }) async {
+    await _ensureFirebaseInitialized();
+    return _firebaseAuth.sendSignInLinkToEmail(
       email: email,
       actionCodeSettings: actionCodeSettings,
     );
   }
 
   bool isSignInWithEmailLink(String link) {
-    return _auth.isSignInWithEmailLink(link);
+    if (!(_auth != null || Firebase.apps.isNotEmpty)) {
+      return false;
+    }
+    return _firebaseAuth.isSignInWithEmailLink(link);
   }
 
   Future<UserCredential> signInWithEmailLink({
     required String email,
     required String emailLink,
-  }) {
-    return _auth.signInWithEmailLink(email: email, emailLink: emailLink);
+  }) async {
+    await _ensureFirebaseInitialized();
+    return _firebaseAuth.signInWithEmailLink(email: email, emailLink: emailLink);
   }
 
   Future<UserCredential> signInWithGoogle() async {
+    await _ensureFirebaseInitialized();
+
     if (kIsWeb) {
-      return _auth.signInWithPopup(GoogleAuthProvider());
+      return _firebaseAuth.signInWithPopup(GoogleAuthProvider());
     }
 
     await _googleSignIn.initialize();
     final googleUser = await _googleSignIn.authenticate();
 
     final googleAuth = googleUser.authentication;
+    if (googleAuth.idToken == null) {
+      throw FirebaseAuthException(
+        code: 'google-sign-in-no-token',
+        message:
+            'Google sign-in succeeded, but no auth token was returned by Google.',
+      );
+    }
+
     final AuthCredential credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
     );
 
-    return _auth.signInWithCredential(credential);
+    return _firebaseAuth.signInWithCredential(credential);
   }
 
   Future<void> signOut() async {
     if (!kIsWeb) {
       await _googleSignIn.signOut();
     }
-    await _auth.signOut();
+    if (_auth != null || Firebase.apps.isNotEmpty) {
+      await _firebaseAuth.signOut();
+    }
   }
 }
 

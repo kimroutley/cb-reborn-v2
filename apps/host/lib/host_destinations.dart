@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cb_models/cb_models.dart';
 
 enum HostDestination {
   home,
@@ -13,68 +14,63 @@ enum HostDestination {
   about,
 }
 
-@immutable
-class HostDestinationConfig {
-  final HostDestination destination;
-  final String label;
-  final IconData icon;
-
+class HostDestinationConfig extends AbstractDestinationConfig<HostDestination> {
   const HostDestinationConfig({
-    required this.destination,
-    required this.label,
-    required this.icon,
+    required super.destination,
+    required super.label,
+    required super.icon,
   });
 }
 
 const hostDestinations = <HostDestinationConfig>[
   HostDestinationConfig(
     destination: HostDestination.home,
-    label: 'Command Center',
-    icon: Icons.home_outlined,
+    label: 'Home',
+    icon: Icons.home_rounded,
   ),
   HostDestinationConfig(
     destination: HostDestination.lobby,
     label: 'Lobby',
-    icon: Icons.group_outlined,
+    icon: Icons.hub_rounded,
   ),
   HostDestinationConfig(
     destination: HostDestination.game,
-    label: 'Group Chat',
-    icon: Icons.chat_bubble_outline_rounded,
+    label: 'Game',
+    icon: Icons.casino_rounded,
   ),
   HostDestinationConfig(
-    destination: HostDestination.guides,
-    label: 'The Blackbook',
-    icon: Icons.menu_book_outlined,
-  ),
-  HostDestinationConfig(
-    destination: HostDestination.gamesNight,
-    label: 'Games Night',
-    icon: Icons.wine_bar_outlined,
-  ),
-  HostDestinationConfig(
-    destination: HostDestination.hallOfFame,
-    label: 'Hall of Fame',
-    icon: Icons.shield_outlined,
-  ),
-  HostDestinationConfig(
-    destination: HostDestination.saveLoad,
-    label: 'Save/Load Game',
-    icon: Icons.save_alt_outlined,
+    destination: HostDestination.profile,
+    label: 'Profile',
+    icon: Icons.person_rounded,
   ),
   HostDestinationConfig(
     destination: HostDestination.settings,
     label: 'Settings',
-    icon: Icons.settings_outlined,
+    icon: Icons.settings_rounded,
   ),
   HostDestinationConfig(
-    destination: HostDestination.profile,
-    label: 'Wallet',
-    icon: Icons.account_balance_wallet_outlined,
+    destination: HostDestination.guides,
+    label: 'Guides',
+    icon: Icons.auto_stories_rounded,
   ),
   HostDestinationConfig(
     destination: HostDestination.about,
     label: 'About',
-    icon: Icons.info_outline,
+    icon: Icons.info_outline_rounded,
+  ),
+  HostDestinationConfig(
+    destination: HostDestination.gamesNight,
+    label: 'Games Night',
+    icon: Icons.group_rounded,
+  ),
+  HostDestinationConfig(
+    destination: HostDestination.hallOfFame,
+    label: 'Hall of Fame',
+    icon: Icons.emoji_events_rounded,
+  ),
+  HostDestinationConfig(
+    destination: HostDestination.saveLoad,
+    label: 'Save/Load Game',
+    icon: Icons.save_rounded,
   ),
 ];

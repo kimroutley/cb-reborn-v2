@@ -18,13 +18,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await _initializePersistenceOfflineFirst();
+  await _initializeFirebaseServices();
 
   runApp(const ProviderScope(
     child: HostApp(),
   ));
-
-  // Keep launch offline-first: do not block first frame on Firebase startup.
-  unawaited(_initializeFirebaseServices());
 }
 
 Future<void> _initializePersistenceOfflineFirst() async {

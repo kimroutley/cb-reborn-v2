@@ -1,4 +1,3 @@
-import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +19,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final stats = PersistenceService.instance.computeStats();
 
     return CBPrismScaffold(
       title: '',
@@ -62,33 +60,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
 
               const SizedBox(height: CBSpace.x12),
-
-              // ── QUICK STATS ROW ──
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildQuickStatTile(
-                      context,
-                      'TOTAL GAMES',
-                      '${stats.totalGames}',
-                      Icons.videogame_asset_outlined,
-                      scheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildQuickStatTile(
-                      context,
-                      'AVG PLAYERS',
-                      stats.averagePlayerCount.toStringAsFixed(1),
-                      Icons.people_outline_rounded,
-                      scheme.secondary,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: CBSpace.x6),
 
               // ── MAIN ACTIONS PANEL ──
               CBPanel(
@@ -145,46 +116,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildQuickStatTile(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return CBGlassTile(
-      borderColor: color.withValues(alpha: 0.2),
-      borderRadius: BorderRadius.circular(CBRadius.md),
-      padding: const EdgeInsets.all(16),
-      isPrismatic: true, // Updated to prismatic
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: textTheme.headlineSmall!.copyWith(
-              color: scheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            label,
-            style: textTheme.labelSmall!.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.4),
-              letterSpacing: 1.0,
-              fontSize: 8,
-            ),
-          ),
-        ],
       ),
     );
   }

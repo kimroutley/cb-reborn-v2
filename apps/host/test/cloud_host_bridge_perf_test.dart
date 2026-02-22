@@ -37,21 +37,12 @@ class MockFirebaseBridge extends FirebaseBridge {
   }
 }
 
-class TestCloudHostBridge extends CloudHostBridge {
-  TestCloudHostBridge(super.ref);
-
-  @override
-  Future<String?> resolveHostUid() async {
-    return 'TEST_HOST_UID';
-  }
-}
-
 void main() {
   test('CloudHostBridge baseline performance test', () async {
     final container = ProviderContainer(
       overrides: [
         cloudHostBridgeProvider.overrideWith((ref) {
-          final bridge = TestCloudHostBridge(ref);
+          final bridge = CloudHostBridge(ref);
 
           // Replicate the listeners defined in the original provider to simulate the environment.
           ref.listen(gameProvider, (prev, next) {
@@ -67,7 +58,7 @@ void main() {
           });
 
           ref.onDispose(() {
-            bridge.stop();
+            bridge.stop(updateLinkState: false);
           });
 
           return bridge;

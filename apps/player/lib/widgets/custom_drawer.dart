@@ -34,26 +34,27 @@ class CustomDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
     final currentDestination = ref.watch(playerNavigationProvider);
-    const lobbyGroup = <PlayerDestination>{
+    const gameplayGroup = <PlayerDestination>{
       PlayerDestination.home,
-    };
-    const socialGroup = <PlayerDestination>{
       PlayerDestination.game,
-    };
-    const referenceGroup = <PlayerDestination>{
       PlayerDestination.guides,
     };
-    const walletGroup = <PlayerDestination>{
-      PlayerDestination.profile,
+    const statsAndAwardsGroup = <PlayerDestination>{
       PlayerDestination.stats,
       PlayerDestination.hallOfFame,
     };
-    const aboutGroup = <PlayerDestination>{
-      PlayerDestination.about,
-    };
-    const barTabGroup = <PlayerDestination>{
+    const gamesNightGroup = <PlayerDestination>{
       PlayerDestination.gamesNight,
+    };
+    const walletGroup = <PlayerDestination>{
+      PlayerDestination.profile,
+      PlayerDestination.claim,
+    };
+    const otherGroup = <PlayerDestination>{
+      PlayerDestination.about,
+      PlayerDestination.settings,
     };
 
     List<PlayerDestinationConfig> configsFor(Set<PlayerDestination> group) {
@@ -62,27 +63,23 @@ class CustomDrawer extends ConsumerWidget {
           .toList(growable: false);
     }
 
-    final lobbyDestinations = configsFor(lobbyGroup);
-    final socialDestinations = configsFor(socialGroup);
-    final referenceDestinations = configsFor(referenceGroup);
+    final gameplayDestinations = configsFor(gameplayGroup);
+    final statsAndAwardsDestinations = configsFor(statsAndAwardsGroup);
+    final gamesNightDestinations = configsFor(gamesNightGroup);
     final walletDestinations = configsFor(walletGroup);
-    final aboutDestinations = configsFor(aboutGroup);
-    final barTabDestinations = configsFor(barTabGroup);
+    final otherDestinations = configsFor(otherGroup);
     final drawerDestinations = <PlayerDestinationConfig>[
-      ...lobbyDestinations,
-      ...socialDestinations,
-      ...referenceDestinations,
+      ...gameplayDestinations,
+      ...statsAndAwardsDestinations,
+      ...gamesNightDestinations,
       ...walletDestinations,
-      ...aboutDestinations,
-      ...barTabDestinations,
+      ...otherDestinations,
     ];
 
     final selectedIndex = drawerDestinations
         .indexWhere((config) => config.destination == currentDestination);
 
-    return NavigationDrawer(
-      backgroundColor: scheme.surface,
-      indicatorColor: scheme.secondaryContainer,
+    return CBSideDrawer(
       selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
       onDestinationSelected: (index) async {
         HapticService.selection();
@@ -107,54 +104,51 @@ class CustomDrawer extends ConsumerWidget {
           }
         } catch (_) {}
       },
+      drawerHeader:
+          _buildDrawerHeader(context, theme, scheme), // Pass the header
       children: [
-        _buildDrawerHeader(context),
-
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Lobby',
-            icon: Icons.hub_rounded,
+            title: 'Gameplay',
+            icon: Icons.gamepad_outlined,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...lobbyDestinations.map(
+        ...gameplayDestinations.map(
           (dest) => NavigationDrawerDestination(
             icon: Icon(dest.icon),
             label: Text(dest.label),
           ),
         ),
-
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Group Chat',
-            icon: Icons.chat_bubble_outline_rounded,
+            title: 'Stats and Awards',
+            icon: Icons.emoji_events_outlined,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...socialDestinations.map(
+        ...statsAndAwardsDestinations.map(
           (dest) => NavigationDrawerDestination(
             icon: Icon(dest.icon),
             label: Text(dest.label),
           ),
         ),
-
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'The Blackbook',
-            icon: Icons.auto_stories_rounded,
+            title: 'Games Night',
+            icon: Icons.group_outlined,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...referenceDestinations.map(
+        ...gamesNightDestinations.map(
           (dest) => NavigationDrawerDestination(
             icon: Icon(dest.icon),
             label: Text(dest.label),
           ),
         ),
-
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
@@ -169,45 +163,28 @@ class CustomDrawer extends ConsumerWidget {
             label: Text(dest.label),
           ),
         ),
-
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'About',
-            icon: Icons.info_outline_rounded,
+            title: 'Other',
+            icon: Icons.more_horiz_outlined,
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...aboutDestinations.map(
+        ...otherDestinations.map(
           (dest) => NavigationDrawerDestination(
             icon: Icon(dest.icon),
             label: Text(dest.label),
           ),
         ),
-
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Bar Tab',
-            icon: Icons.wine_bar_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-        ...barTabDestinations.map(
-          (dest) => NavigationDrawerDestination(
-            icon: Icon(dest.icon),
-            label: Text(dest.label),
-          ),
-        ),
-
         const SizedBox(height: 12),
       ],
     );
   }
 
-  Widget _buildDrawerHeader(BuildContext context) {
+  Widget _buildDrawerHeader(
+      BuildContext context, ThemeData theme, ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         CBSpace.x6,
@@ -226,12 +203,12 @@ class CustomDrawer extends ConsumerWidget {
               shadows: CBColors.textGlow(scheme.secondary),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: CBSpace.x1),
           Text(
             'PLAYER TERMINAL',
-            style: textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              letterSpacing: 1.5,
+            style: textTheme.labelMedium?.copyWith(
+              color: scheme.onSurfaceVariant.withAlpha(178),
+              letterSpacing: 1.2,
             ),
           ),
         ],

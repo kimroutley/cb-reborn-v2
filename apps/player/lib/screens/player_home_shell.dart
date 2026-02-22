@@ -16,6 +16,7 @@ import 'games_night_screen.dart';
 import 'hall_of_fame_screen.dart';
 import 'stats_screen.dart';
 import 'about_screen.dart';
+import 'settings_screen.dart';
 
 class PlayerHomeShell extends ConsumerStatefulWidget {
   const PlayerHomeShell({
@@ -140,33 +141,43 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
             Text(
               'SESSION STARTING',
               style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                color: Theme.of(context).colorScheme.secondary,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-                shadows: CBColors.textGlow(Theme.of(context).colorScheme.secondary),
-              ),
+                    color: Theme.of(context).colorScheme.secondary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    shadows: CBColors.textGlow(
+                        Theme.of(context).colorScheme.secondary),
+                  ),
             ),
             const SizedBox(height: 24),
             Text(
               'THE HOST HAS INITIATED THE SEQUENCE. CONNECT TO THE TERMINAL NOW.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
-                fontWeight: FontWeight.bold,
-              ),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.8),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 12),
             Text(
               'AUTO-UPLINK IN ${timeoutSeconds}S',
               style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.6),
-                letterSpacing: 1.2,
-              ),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondary
+                        .withValues(alpha: 0.6),
+                    letterSpacing: 1.2,
+                  ),
             ),
             const SizedBox(height: 32),
             CBPrimaryButton(
               label: 'INITIATE JOIN',
-              backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
+              backgroundColor: Theme.of(context)
+                  .colorScheme
+                  .secondary
+                  .withValues(alpha: 0.2),
               foregroundColor: Theme.of(context).colorScheme.secondary,
               onPressed: () => Navigator.of(context).pop(true),
             ),
@@ -261,6 +272,9 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         break;
       case PlayerDestination.about:
         activeWidget = const AboutScreen();
+        break;
+      case PlayerDestination.settings:
+        activeWidget = const SettingsScreen();
         break;
     }
 

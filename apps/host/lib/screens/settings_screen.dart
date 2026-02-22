@@ -119,7 +119,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildCloudAccessSettings(BuildContext context, ColorScheme scheme) {
     final authState = ref.watch(authProvider);
     final linkState = ref.watch(cloudLinkStateProvider);
-    final isAuthenticated = authState.status == AuthStatus.authenticated;
+    final isAuthenticated = authState.user != null;
     final isLoading = authState.status == AuthStatus.loading;
     final isBusy = linkState.phase == CloudLinkPhase.initializing ||
       linkState.phase == CloudLinkPhase.publishing ||
@@ -212,7 +212,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         if (!context.mounted) return;
 
                         final refreshedState = ref.read(authProvider);
-                        if (refreshedState.status == AuthStatus.authenticated) {
+                        if (refreshedState.user != null) {
                           showThemedSnackBar(
                             context,
                             'HOST SIGN-IN COMPLETE.',

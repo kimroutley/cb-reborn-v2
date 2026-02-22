@@ -8,16 +8,20 @@ void main() {
       const statsZero = PlayerStats(playerId: '1', gamesPlayed: 0, gamesWon: 0);
       expect(statsZero.winRate, 0.0);
 
-      const statsHalf = PlayerStats(playerId: '1', gamesPlayed: 10, gamesWon: 5);
+      const statsHalf =
+          PlayerStats(playerId: '1', gamesPlayed: 10, gamesWon: 5);
       expect(statsHalf.winRate, 50.0);
 
-      const statsFull = PlayerStats(playerId: '1', gamesPlayed: 10, gamesWon: 10);
+      const statsFull =
+          PlayerStats(playerId: '1', gamesPlayed: 10, gamesWon: 10);
       expect(statsFull.winRate, 100.0);
 
-      const statsNone = PlayerStats(playerId: '1', gamesPlayed: 10, gamesWon: 0);
+      const statsNone =
+          PlayerStats(playerId: '1', gamesPlayed: 10, gamesWon: 0);
       expect(statsNone.winRate, 0.0);
 
-      const statsOneThird = PlayerStats(playerId: '1', gamesPlayed: 3, gamesWon: 1);
+      const statsOneThird =
+          PlayerStats(playerId: '1', gamesPlayed: 3, gamesWon: 1);
       expect(statsOneThird.winRate, closeTo(33.33, 0.01));
     });
 

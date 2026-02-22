@@ -223,7 +223,7 @@ void main() {
     ]);
 
     // Wait for stream update
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
 
     // 5. Verify result
     final asyncValue = container.read(lobbyProfilesProvider);
@@ -256,7 +256,7 @@ void main() {
     query.emit([
       {'uid': 'u1', 'username': 'Initial'},
     ]);
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
 
     expect(container.read(lobbyProfilesProvider).value!['u1']!['username'], 'Initial');
 
@@ -264,7 +264,7 @@ void main() {
     query.emit([
       {'uid': 'u1', 'username': 'Updated'},
     ]);
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
 
     expect(container.read(lobbyProfilesProvider).value!['u1']!['username'], 'Updated');
 

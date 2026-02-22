@@ -28,7 +28,8 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
   final ProfileRepository? repository;
   final User? Function()? currentUserResolver;
-  final Stream<Map<String, dynamic>?> Function(String uid)? profileStreamFactory;
+  final Stream<Map<String, dynamic>?> Function(String uid)?
+      profileStreamFactory;
   final Stream<User?> Function()? authStateChangesResolver;
   final bool startInEditMode;
 
@@ -141,8 +142,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _layoutMode =
-        widget.startInEditMode ? _ProfileLayoutMode.edit : _ProfileLayoutMode.wallet;
+    _layoutMode = widget.startInEditMode
+        ? _ProfileLayoutMode.edit
+        : _ProfileLayoutMode.wallet;
     _usernameController.addListener(_onInputChanged);
     _publicIdController.addListener(_onInputChanged);
     _startAuthListener();
@@ -359,7 +361,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ? preferredStyle!.toLowerCase()
                 : _preferredStyles.first;
         _createdAt = _dateFromFirestore(profile?['createdAt']);
-        _updatedAt = _dateFromFirestore(profile?['updatedAt']) ?? DateTime.now();
+        _updatedAt =
+            _dateFromFirestore(profile?['updatedAt']) ?? DateTime.now();
         _remoteUpdatePending = false;
       });
       _captureInitialSnapshot();
@@ -545,165 +548,166 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: SingleChildScrollView(
         padding: CBInsets.screen,
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CBSectionHeader(
-            title: 'DIGITAL WALLET',
-            icon: Icons.account_balance_wallet_rounded,
-            color: scheme.primary,
-          ),
-          const SizedBox(height: CBSpace.x4),
-          CBGlassTile(
-            isPrismatic: true,
-            borderRadius: BorderRadius.circular(16),
-            borderColor: scheme.primary.withValues(alpha: 0.45),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      _selectedAvatar,
-                      style: const TextStyle(fontSize: 28),
-                    ),
-                    const SizedBox(width: CBSpace.x3),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            (_usernameController.text.trim().isEmpty
-                                    ? 'UNSET USERNAME'
-                                    : _usernameController.text.trim())
-                                .toUpperCase(),
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          Text(
-                            publicId.isEmpty
-                                ? 'ID: NOT ISSUED'
-                                : 'ID: ${publicId.toUpperCase()}',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    CBBadge(
-                      text: _styleLabel(_selectedPreferredStyle).toUpperCase(),
-                      color: scheme.secondary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: CBSpace.x4),
-                Text(
-                  'ACCOLADES PRINTED',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.1,
-                  ),
-                ),
-                const SizedBox(height: CBSpace.x2),
-                if (_loadingAwards)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: LinearProgressIndicator(minHeight: 3),
-                  )
-                else
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CBSectionHeader(
+              title: 'DIGITAL WALLET',
+              icon: Icons.account_balance_wallet_rounded,
+              color: scheme.primary,
+            ),
+            const SizedBox(height: CBSpace.x4),
+            CBGlassTile(
+              isPrismatic: true,
+              borderRadius: BorderRadius.circular(16),
+              borderColor: scheme.primary.withValues(alpha: 0.45),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      ..._awardSnapshot.unlocked.map(
-                        (award) => CBBadge(
-                          text: award.title.toUpperCase(),
-                          color: scheme.primary,
+                      Text(
+                        _selectedAvatar,
+                        style: const TextStyle(fontSize: 28),
+                      ),
+                      const SizedBox(width: CBSpace.x3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              (_usernameController.text.trim().isEmpty
+                                      ? 'UNSET USERNAME'
+                                      : _usernameController.text.trim())
+                                  .toUpperCase(),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            Text(
+                              publicId.isEmpty
+                                  ? 'ID: NOT ISSUED'
+                                  : 'ID: ${publicId.toUpperCase()}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      ..._awardSnapshot.inProgress.map(
-                        (award) => CBBadge(
-                          text: '${award.title.toUpperCase()} • INKING',
-                          color: scheme.tertiary,
+                      CBBadge(
+                        text:
+                            _styleLabel(_selectedPreferredStyle).toUpperCase(),
+                        color: scheme.secondary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: CBSpace.x4),
+                  Text(
+                    'ACCOLADES PRINTED',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: CBSpace.x2),
+                  if (_loadingAwards)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: LinearProgressIndicator(minHeight: 3),
+                    )
+                  else
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ..._awardSnapshot.unlocked.map(
+                          (award) => CBBadge(
+                            text: award.title.toUpperCase(),
+                            color: scheme.primary,
+                          ),
+                        ),
+                        ..._awardSnapshot.inProgress.map(
+                          (award) => CBBadge(
+                            text: '${award.title.toUpperCase()} • INKING',
+                            color: scheme.tertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: CBSpace.x3),
+                  Text(
+                    'UNLOCKED ${_awardSnapshot.unlockedCount} / ${_awardSnapshot.totalTracked}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: CBSpace.x4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CBGhostButton(
+                          label: 'EDIT PROFILE',
+                          icon: Icons.edit_rounded,
+                          onPressed: () {
+                            setState(() {
+                              _layoutMode = _ProfileLayoutMode.edit;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: CBSpace.x2),
+                      Expanded(
+                        child: CBGhostButton(
+                          label: 'REFRESH WALLET',
+                          icon: Icons.refresh_rounded,
+                          onPressed: _refreshWalletAwards,
                         ),
                       ),
                     ],
                   ),
-                const SizedBox(height: CBSpace.x3),
-                Text(
-                  'UNLOCKED ${_awardSnapshot.unlockedCount} / ${_awardSnapshot.totalTracked}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: CBSpace.x4),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CBGhostButton(
-                        label: 'EDIT PROFILE',
-                        icon: Icons.edit_rounded,
-                        onPressed: () {
-                          setState(() {
-                            _layoutMode = _ProfileLayoutMode.edit;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: CBSpace.x2),
-                    Expanded(
-                      child: CBGhostButton(
-                        label: 'REFRESH WALLET',
-                        icon: Icons.refresh_rounded,
-                        onPressed: _refreshWalletAwards,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: CBSpace.x4),
-          CBPanel(
-            borderColor: scheme.secondary.withValues(alpha: 0.35),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'ISSUER DETAILS',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: scheme.secondary,
-                    letterSpacing: 1.2,
-                    fontWeight: FontWeight.w800,
+            const SizedBox(height: CBSpace.x4),
+            CBPanel(
+              borderColor: scheme.secondary.withValues(alpha: 0.35),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ISSUER DETAILS',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.secondary,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
-                const SizedBox(height: CBSpace.x4),
-                CBProfileReadonlyRow(label: 'UID', value: user?.uid ?? 'N/A'),
-                const SizedBox(height: CBSpace.x3),
-                CBProfileReadonlyRow(
-                  label: 'EMAIL',
-                  value: user?.email ?? 'No email on account',
-                ),
-                const SizedBox(height: CBSpace.x3),
-                CBProfileReadonlyRow(
-                  label: 'CREATED',
-                  value: _formatDateTime(_createdAt),
-                ),
-                const SizedBox(height: CBSpace.x3),
-                CBProfileReadonlyRow(
-                  label: 'LAST UPDATE',
-                  value: _formatDateTime(_updatedAt),
-                ),
-              ],
+                  const SizedBox(height: CBSpace.x4),
+                  CBProfileReadonlyRow(label: 'UID', value: user?.uid ?? 'N/A'),
+                  const SizedBox(height: CBSpace.x3),
+                  CBProfileReadonlyRow(
+                    label: 'EMAIL',
+                    value: user?.email ?? 'No email on account',
+                  ),
+                  const SizedBox(height: CBSpace.x3),
+                  CBProfileReadonlyRow(
+                    label: 'CREATED',
+                    value: _formatDateTime(_createdAt),
+                  ),
+                  const SizedBox(height: CBSpace.x3),
+                  CBProfileReadonlyRow(
+                    label: 'LAST UPDATE',
+                    value: _formatDateTime(_updatedAt),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     ));
   }
@@ -934,246 +938,273 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             Expanded(
               child: _loadingProfile
                   ? const Center(child: CBBreathingLoader())
-                : IgnorePointer(
-                  ignoring: _saving,
-                  child: _layoutMode == _ProfileLayoutMode.wallet
-                    ? _buildWalletView(theme, scheme)
-                          : _wrapScrollSemanticsForTest(ScrollConfiguration(
-                        behavior: const _NoStretchScrollBehavior(),
-                        child: SingleChildScrollView(
-                        padding: CBInsets.screen,
-                        child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: CBSectionHeader(
-                                            title: 'EDIT PROFILE',
-                                            icon: Icons.badge_outlined,
-                                            color: scheme.primary,
+                  : IgnorePointer(
+                      ignoring: _saving,
+                      child: _layoutMode == _ProfileLayoutMode.wallet
+                          ? _buildWalletView(theme, scheme)
+                          : _wrapScrollSemanticsForTest(
+                              ScrollConfiguration(
+                                behavior: const _NoStretchScrollBehavior(),
+                                child: SingleChildScrollView(
+                                  padding: CBInsets.screen,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: CBSectionHeader(
+                                              title: 'EDIT PROFILE',
+                                              icon: Icons.badge_outlined,
+                                              color: scheme.primary,
+                                            ),
                                           ),
-                                        ),
-                                        CBGhostButton(
-                                          label: 'VIEW WALLET',
-                                          icon: Icons.account_balance_wallet_rounded,
-                                          onPressed: () {
-                                            _dismissProfileFieldFocus();
-                                            setState(() {
-                                              _layoutMode = _ProfileLayoutMode.wallet;
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: CBSpace.x4),
-
-                                    AnimatedSwitcher(
-                                      duration: const Duration(milliseconds: 250),
-                                      child: (_hasChanges || _remoteUpdatePending)
-                                          ? Padding(
-                                            padding: const EdgeInsets.only(bottom: 24),
-                                            child: CBGlassTile(
-                                              key: const ValueKey('dirty-banner'),
-                                              isPrismatic: true,
-                                              borderColor: scheme.tertiary
-                                                  .withValues(alpha: 0.6),
-                                              borderRadius: BorderRadius.circular(14),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.auto_awesome_rounded,
-                                                    color: scheme.tertiary,
-                                                    size: 18,
-                                                  ),
-                                                  const SizedBox(width: CBSpace.x2),
-                                                  Expanded(
-                                                    child: Text(
-                                                      _remoteUpdatePending
-                                                          ? 'Cloud profile update detected. Save/discard to sync latest values.'
-                                                          : 'Unsaved changes in progress.',
-                                                      style: theme.textTheme.bodySmall
-                                                          ?.copyWith(
-                                                        color: scheme.onSurface,
-                                                        fontWeight: FontWeight.w700,
+                                          CBGhostButton(
+                                            label: 'VIEW WALLET',
+                                            icon: Icons
+                                                .account_balance_wallet_rounded,
+                                            onPressed: () {
+                                              _dismissProfileFieldFocus();
+                                              setState(() {
+                                                _layoutMode =
+                                                    _ProfileLayoutMode.wallet;
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: CBSpace.x4),
+                                      AnimatedSwitcher(
+                                        duration:
+                                            const Duration(milliseconds: 250),
+                                        child: (_hasChanges ||
+                                                _remoteUpdatePending)
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 24),
+                                                child: CBGlassTile(
+                                                  key: const ValueKey(
+                                                      'dirty-banner'),
+                                                  isPrismatic: true,
+                                                  borderColor: scheme.tertiary
+                                                      .withValues(alpha: 0.6),
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons
+                                                            .auto_awesome_rounded,
+                                                        color: scheme.tertiary,
+                                                        size: 18,
                                                       ),
-                                                    ),
+                                                      const SizedBox(
+                                                          width: CBSpace.x2),
+                                                      Expanded(
+                                                        child: Text(
+                                                          _remoteUpdatePending
+                                                              ? 'Cloud profile update detected. Save/discard to sync latest values.'
+                                                              : 'Unsaved changes in progress.',
+                                                          style: theme.textTheme
+                                                              .bodySmall
+                                                              ?.copyWith(
+                                                            color: scheme
+                                                                .onSurface,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
+                                                ),
+                                              )
+                                            : const SizedBox(
+                                                key: ValueKey('clean-banner'),
+                                                height: 0,
+                                              ),
+                                      ),
+                                      CBPanel(
+                                        borderColor: scheme.secondary
+                                            .withValues(alpha: 0.35),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'PUBLIC PROFILE',
+                                              style: theme.textTheme.labelSmall
+                                                  ?.copyWith(
+                                                color: scheme.secondary,
+                                                letterSpacing: 1.2,
+                                                fontWeight: FontWeight.w800,
                                               ),
                                             ),
-                                          )
-                                          : const SizedBox(
-                                              key: ValueKey('clean-banner'),
-                                              height: 0,
+                                            const SizedBox(height: CBSpace.x4),
+                                            CBTextField(
+                                              controller: _usernameController,
+                                              focusNode: _usernameFocusNode,
+                                              textCapitalization:
+                                                  TextCapitalization.words,
+                                              textInputAction:
+                                                  TextInputAction.next,
+                                              maxLength: ProfileFormValidation
+                                                  .usernameMaxLength,
+                                              errorText: _usernameError,
+                                              inputFormatters: <TextInputFormatter>[
+                                                FilteringTextInputFormatter
+                                                    .allow(
+                                                  RegExp(r'[A-Za-z0-9 _-]'),
+                                                ),
+                                              ],
+                                              onSubmitted: (_) {
+                                                FocusScope.of(context)
+                                                    .requestFocus(
+                                                        _publicIdFocusNode);
+                                              },
+                                              decoration: const InputDecoration(
+                                                labelText: 'USERNAME',
+                                                hintText: '3-24 characters',
+                                              ),
                                             ),
-                                    ),
-
-                                    CBPanel(
-                                      borderColor:
-                                          scheme.secondary.withValues(alpha: 0.35),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                    Text(
-                                      'PUBLIC PROFILE',
-                                      style:
-                                          theme.textTheme.labelSmall?.copyWith(
-                                        color: scheme.secondary,
-                                        letterSpacing: 1.2,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    const SizedBox(height: CBSpace.x4),
-                                    CBTextField(
-                                      controller: _usernameController,
-                                      focusNode: _usernameFocusNode,
-                                      textCapitalization:
-                                          TextCapitalization.words,
-                                      textInputAction: TextInputAction.next,
-                                      maxLength: ProfileFormValidation
-                                          .usernameMaxLength,
-                                      errorText: _usernameError,
-                                      inputFormatters: <TextInputFormatter>[
-                                        FilteringTextInputFormatter.allow(
-                                          RegExp(r'[A-Za-z0-9 _-]'),
-                                        ),
-                                      ],
-                                      onSubmitted: (_) {
-                                        FocusScope.of(context)
-                                            .requestFocus(_publicIdFocusNode);
-                                      },
-                                      decoration: const InputDecoration(
-                                        labelText: 'USERNAME',
-                                        hintText: '3-24 characters',
-                                      ),
-                                    ),
-                                    const SizedBox(height: CBSpace.x2),
-                                    Text(
-                                      'This is what other players see in lobbies and recaps.',
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color: scheme.onSurface
-                                            .withValues(alpha: 0.5),
-                                        fontSize: 9,
-                                      ),
-                                    ),
-                                    const SizedBox(height: CBSpace.x4),
-                                    CBTextField(
-                                      controller: _publicIdController,
-                                      focusNode: _publicIdFocusNode,
-                                      textInputAction: TextInputAction.done,
-                                      maxLength: ProfileFormValidation
-                                          .publicIdMaxLength,
-                                      errorText: _publicIdError,
-                                      inputFormatters: <TextInputFormatter>[
-                                        FilteringTextInputFormatter.allow(
-                                          RegExp(r'[A-Za-z0-9_-]'),
-                                        ),
-                                      ],
-                                      onSubmitted: (_) {
-                                        if (_hasChanges && !_saving) {
-                                          _saveProfile();
-                                        }
-                                      },
-                                      decoration: const InputDecoration(
-                                        labelText:
-                                            'PUBLIC PLAYER ID (OPTIONAL)',
-                                        hintText: 'night_fox',
-                                      ),
-                                    ),
-                                    if (normalizedPublicId.isNotEmpty) ...[
-                                      const SizedBox(height: CBSpace.x2),
-                                      Text(
-                                        'Share link key: $normalizedPublicId',
-                                        style:
-                                            theme.textTheme.bodySmall?.copyWith(
-                                          color: scheme.onSurface
-                                              .withValues(alpha: 0.75),
+                                            const SizedBox(height: CBSpace.x2),
+                                            Text(
+                                              'This is what other players see in lobbies and recaps.',
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                color: scheme.onSurface
+                                                    .withValues(alpha: 0.5),
+                                                fontSize: 9,
+                                              ),
+                                            ),
+                                            const SizedBox(height: CBSpace.x4),
+                                            CBTextField(
+                                              controller: _publicIdController,
+                                              focusNode: _publicIdFocusNode,
+                                              textInputAction:
+                                                  TextInputAction.done,
+                                              maxLength: ProfileFormValidation
+                                                  .publicIdMaxLength,
+                                              errorText: _publicIdError,
+                                              inputFormatters: <TextInputFormatter>[
+                                                FilteringTextInputFormatter
+                                                    .allow(
+                                                  RegExp(r'[A-Za-z0-9_-]'),
+                                                ),
+                                              ],
+                                              onSubmitted: (_) {
+                                                if (_hasChanges && !_saving) {
+                                                  _saveProfile();
+                                                }
+                                              },
+                                              decoration: const InputDecoration(
+                                                labelText:
+                                                    'PUBLIC PLAYER ID (OPTIONAL)',
+                                                hintText: 'night_fox',
+                                              ),
+                                            ),
+                                            if (normalizedPublicId
+                                                .isNotEmpty) ...[
+                                              const SizedBox(
+                                                  height: CBSpace.x2),
+                                              Text(
+                                                'Share link key: $normalizedPublicId',
+                                                style: theme.textTheme.bodySmall
+                                                    ?.copyWith(
+                                                  color: scheme.onSurface
+                                                      .withValues(alpha: 0.75),
+                                                ),
+                                              ),
+                                            ],
+                                            const SizedBox(height: CBSpace.x6),
+                                            Text(
+                                              'VISUAL STYLE',
+                                              style: theme.textTheme.labelSmall
+                                                  ?.copyWith(
+                                                color: scheme.tertiary,
+                                                letterSpacing: 1.2,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            const SizedBox(height: CBSpace.x3),
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
+                                              children:
+                                                  _preferredStyles.map((style) {
+                                                final selected = style ==
+                                                    _selectedPreferredStyle;
+                                                return CBProfilePreferenceChip(
+                                                  label: _styleLabel(style)
+                                                      .toUpperCase(),
+                                                  selected: selected,
+                                                  enabled: !_saving,
+                                                  onTap: () {
+                                                    setState(() {
+                                                      _selectedPreferredStyle =
+                                                          style;
+                                                    });
+                                                    _syncDirtyFlag();
+                                                  },
+                                                );
+                                              }).toList(growable: false),
+                                            ),
+                                            const SizedBox(height: CBSpace.x6),
+                                            Text(
+                                              'AVATAR',
+                                              style: theme.textTheme.labelSmall
+                                                  ?.copyWith(
+                                                color: scheme.tertiary,
+                                                letterSpacing: 1.2,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                            const SizedBox(height: CBSpace.x3),
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
+                                              children:
+                                                  clubAvatarEmojis.map((emoji) {
+                                                final selected =
+                                                    emoji == _selectedAvatar;
+                                                return CBProfileAvatarChip(
+                                                  emoji: emoji,
+                                                  selected: selected,
+                                                  enabled: !_saving,
+                                                  onTap: () {
+                                                    setState(() =>
+                                                        _selectedAvatar =
+                                                            emoji);
+                                                    _syncDirtyFlag();
+                                                  },
+                                                );
+                                              }).toList(growable: false),
+                                            ),
+                                            const SizedBox(height: CBSpace.x6),
+                                            ProfileActionButtons(
+                                              saving: _saving,
+                                              canSave: !_saving &&
+                                                  user != null &&
+                                                  _hasChanges,
+                                              canDiscard:
+                                                  !_saving && _hasChanges,
+                                              onSave: _saveProfile,
+                                              onDiscard: _discardChanges,
+                                              onReload: () async {
+                                                setState(() =>
+                                                    _loadingProfile = true);
+                                                await _loadProfile();
+                                              },
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
-                                    const SizedBox(height: CBSpace.x6),
-                                    Text(
-                                      'VISUAL STYLE',
-                                      style:
-                                          theme.textTheme.labelSmall?.copyWith(
-                                        color: scheme.tertiary,
-                                        letterSpacing: 1.2,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    const SizedBox(height: CBSpace.x3),
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: _preferredStyles.map((style) {
-                                        final selected =
-                                            style == _selectedPreferredStyle;
-                                        return CBProfilePreferenceChip(
-                                          label: _styleLabel(style).toUpperCase(),
-                                          selected: selected,
-                                          enabled: !_saving,
-                                          onTap: () {
-                                            setState(() {
-                                              _selectedPreferredStyle = style;
-                                            });
-                                            _syncDirtyFlag();
-                                          },
-                                        );
-                                      }).toList(growable: false),
-                                    ),
-                                    const SizedBox(height: CBSpace.x6),
-                                    Text(
-                                      'AVATAR',
-                                      style:
-                                          theme.textTheme.labelSmall?.copyWith(
-                                        color: scheme.tertiary,
-                                        letterSpacing: 1.2,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    const SizedBox(height: CBSpace.x3),
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: clubAvatarEmojis.map((emoji) {
-                                        final selected =
-                                            emoji == _selectedAvatar;
-                                        return CBProfileAvatarChip(
-                                          emoji: emoji,
-                                          selected: selected,
-                                          enabled: !_saving,
-                                          onTap: () {
-                                            setState(
-                                                () => _selectedAvatar = emoji);
-                                            _syncDirtyFlag();
-                                          },
-                                        );
-                                      }).toList(growable: false),
-                                    ),
-                                    const SizedBox(height: CBSpace.x6),
-                                    ProfileActionButtons(
-                                      saving: _saving,
-                                      canSave: !_saving &&
-                                          user != null &&
-                                          _hasChanges,
-                                      canDiscard: !_saving && _hasChanges,
-                                      onSave: _saveProfile,
-                                      onDiscard: _discardChanges,
-                                      onReload: () async {
-                                        setState(() => _loadingProfile = true);
-                                        await _loadProfile();
-                                      },
-                                    ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                                    ),
-                                    ),
-                                    ),
+                              ),
+                            ),
                     ),
             ),
           ],

@@ -134,7 +134,7 @@ class AuthNotifier extends Notifier<AuthState> {
     } on FirebaseAuthException catch (e) {
       state = AuthState(AuthStatus.error, error: e.message);
     } catch (_) {
-      state = AuthState(
+      state = const AuthState(
         AuthStatus.error,
         error: 'Could not send sign-in link. Please try again.',
       );
@@ -144,8 +144,22 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> signInWithGoogle() async {
     state = state.copyWith(status: AuthStatus.loading);
     try {
-      await _authService.signInWithGoogle();
+      await _authService
+          .signInWithGoogle()
+          .timeout(const Duration(seconds: 45));
+
+      if (_authService.currentUser == null) {
+        state = const AuthState(
+          AuthStatus.unauthenticated,
+          error: 'Sign-in did not complete. Please try again.',
+        );
+      }
       // Auth state listener will handle success
+    } on TimeoutException {
+      state = const AuthState(
+        AuthStatus.unauthenticated,
+        error: 'Sign-in timed out. Please try again.',
+      );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'ERROR_ABORTED_BY_USER') {
         state = state.copyWith(status: AuthStatus.unauthenticated);
@@ -157,7 +171,7 @@ class AuthNotifier extends Notifier<AuthState> {
         error: e.message ?? 'Google sign-in failed. Please try again.',
       );
     } catch (e) {
-      state = AuthState(
+      state = const AuthState(
         AuthStatus.error,
         error: 'Google sign-in failed. Please retry.',
       );
@@ -167,7 +181,7 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> completeSignInFromCurrentLink() async {
     final link = Uri.base.toString();
     if (!_authService.isSignInWithEmailLink(link)) {
-      state = AuthState(
+      state = const AuthState(
         AuthStatus.error,
         error: 'No valid sign-in link found in this session.',
       );
@@ -190,7 +204,7 @@ class AuthNotifier extends Notifier<AuthState> {
         : (persistedEmail ?? (typedEmail.isNotEmpty ? typedEmail : null));
 
     if (email == null || !email.contains('@')) {
-      state = AuthState(
+      state = const AuthState(
         AuthStatus.error,
         error:
             'Email confirmation needed. Enter the same email used to request the link, then tap COMPLETE OPEN LINK.',
@@ -214,7 +228,7 @@ class AuthNotifier extends Notifier<AuthState> {
       if (currentUser != null) {
         state = AuthState(AuthStatus.needsProfile, user: currentUser);
       } else {
-        state = AuthState(
+        state = const AuthState(
           AuthStatus.error,
           error: 'Could not complete sign-in from this link. Please retry.',
         );

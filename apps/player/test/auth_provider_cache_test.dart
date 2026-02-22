@@ -11,7 +11,8 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
-  test('signOut clears session cache even when Firebase is unavailable', () async {
+  test('signOut clears session cache even when Firebase is unavailable',
+      () async {
     final repo = const PlayerSessionCacheRepository();
     await repo.saveSession(
       PlayerSessionCacheEntry(

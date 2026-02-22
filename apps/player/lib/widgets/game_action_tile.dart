@@ -74,7 +74,8 @@ class _GameActionTileState extends State<GameActionTile> {
                     color: widget.roleColor,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 2.0,
-                    shadows: CBColors.textGlow(widget.roleColor, intensity: 0.5),
+                    shadows:
+                        CBColors.textGlow(widget.roleColor, intensity: 0.5),
                   ),
                 ),
                 const SizedBox(height: 24),

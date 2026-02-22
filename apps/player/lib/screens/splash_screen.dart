@@ -25,7 +25,8 @@ class SplashScreen extends StatelessWidget {
                     color: scheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(CBRadius.lg),
                     border: Border.all(color: scheme.primary, width: 1.5),
-                    boxShadow: CBColors.boxGlow(scheme.primary, intensity: 0.25),
+                    boxShadow:
+                        CBColors.boxGlow(scheme.primary, intensity: 0.25),
                   ),
                   child: Icon(
                     Icons.nightlife,
@@ -45,7 +46,8 @@ class SplashScreen extends StatelessWidget {
                   'REBORN',
                   style: textTheme.labelLarge!.copyWith(
                     color: scheme.secondary,
-                    shadows: CBColors.textGlow(scheme.secondary, intensity: 0.4),
+                    shadows:
+                        CBColors.textGlow(scheme.secondary, intensity: 0.4),
                   ),
                 ),
                 const SizedBox(height: CBSpace.x12),

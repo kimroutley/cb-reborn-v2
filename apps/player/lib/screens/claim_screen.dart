@@ -84,7 +84,8 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                         selectedPlayer == null
                             ? 'AVAILABLE IDENTITIES: ${availablePlayers.length}'
                             : 'SELECTED: ${selectedPlayer.name.toUpperCase()}',
-                        key: ValueKey('${availablePlayers.length}|$_selectedId'),
+                        key:
+                            ValueKey('${availablePlayers.length}|$_selectedId'),
                         style: textTheme.labelMedium?.copyWith(
                           color: scheme.onSurface,
                           fontWeight: FontWeight.w700,
@@ -197,7 +198,9 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: CBPrimaryButton(
-                label: _selectedId == null ? 'SELECT AN IDENTITY' : 'CONFIRM IDENTITY',
+                label: _selectedId == null
+                    ? 'SELECT AN IDENTITY'
+                    : 'CONFIRM IDENTITY',
                 icon: Icons.fingerprint_rounded,
                 onPressed: _selectedId == null
                     ? null

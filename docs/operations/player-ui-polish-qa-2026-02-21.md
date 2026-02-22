@@ -1,3 +1,4 @@
+
 # Player UI Polish QA Checklist + Log (2026-02-21)
 
 ## Scope

@@ -106,8 +106,8 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
     if (service != null) {
       await service.rebuildRoleAwardProgresses();
     }
-    final allProgress = service?.loadRoleAwardProgresses() ??
-        const <PlayerRoleAwardProgress>[];
+    final allProgress =
+        service?.loadRoleAwardProgresses() ?? const <PlayerRoleAwardProgress>[];
     final unlockedCounts = <String, int>{};
     final unlockedAwardIds = <String>{};
     for (final progress in allProgress) {
@@ -123,13 +123,11 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
           (unlockedCounts[definition.roleId] ?? 0) + 1;
     }
 
-    final recentUnlocks =
-        service?.loadRecentRoleAwardUnlocks(limit: 10) ??
-            const <PlayerRoleAwardProgress>[];
+    final recentUnlocks = service?.loadRecentRoleAwardUnlocks(limit: 10) ??
+        const <PlayerRoleAwardProgress>[];
 
     setState(() {
-      _stats = playerStats.values.toList()
-        ..sort(_comparePlayerStats);
+      _stats = playerStats.values.toList()..sort(_comparePlayerStats);
       _roleUnlockCounts = unlockedCounts;
       _unlockedAwardIds = unlockedAwardIds;
       _recentUnlockCount = recentUnlocks.length;
@@ -168,19 +166,18 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final awardCoverage = const RoleAwardProgressService().buildCoverageSummary();
-    final visibleRoles = roleCatalog
-        .where((role) {
-          if (_selectedAwardRoleId != null && role.id != _selectedAwardRoleId) {
-            return false;
-          }
-          if (_selectedAwardTier == null) {
-            return true;
-          }
-          return roleAwardsForRoleId(role.id)
-              .any((definition) => definition.tier == _selectedAwardTier);
-        })
-        .toList(growable: false);
+    final awardCoverage =
+        const RoleAwardProgressService().buildCoverageSummary();
+    final visibleRoles = roleCatalog.where((role) {
+      if (_selectedAwardRoleId != null && role.id != _selectedAwardRoleId) {
+        return false;
+      }
+      if (_selectedAwardTier == null) {
+        return true;
+      }
+      return roleAwardsForRoleId(role.id)
+          .any((definition) => definition.tier == _selectedAwardTier);
+    }).toList(growable: false);
 
     return CBPrismScaffold(
       title: 'HALL OF FAME',
@@ -198,7 +195,8 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
               onRefresh: _loadStats,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.only(top: 16, bottom: 32, left: 16, right: 16),
+                padding: const EdgeInsets.only(
+                    top: 16, bottom: 32, left: 16, right: 16),
                 children: [
                   if (_stats.isEmpty)
                     CBGlassTile(
@@ -250,11 +248,10 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                     ),
                   _buildRoleAwardFilters(scheme, visibleRoles.length),
                   const SizedBox(height: 16),
-                  ...visibleRoles
-                      .map((role) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _buildRoleAwardCard(role, scheme),
-                          )),
+                  ...visibleRoles.map((role) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildRoleAwardCard(role, scheme),
+                      )),
                 ],
               ),
             ),
@@ -468,9 +465,9 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                 child: Text(
                   '#${index + 1} ${stat.playerName.toUpperCase()}',
                   style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
-                  ),
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                      ),
                 ),
               ),
               CBBadge(
@@ -487,7 +484,8 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
               _buildCompactStat('WINS', '${stat.gamesWon}', scheme),
               const SizedBox(width: 24),
               Expanded(
-                child: _buildCompactStat('MAIN', stat.mostPlayedRole.toUpperCase(), scheme),
+                child: _buildCompactStat(
+                    'MAIN', stat.mostPlayedRole.toUpperCase(), scheme),
               ),
             ],
           ),

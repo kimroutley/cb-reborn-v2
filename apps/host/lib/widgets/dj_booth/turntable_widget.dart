@@ -27,7 +27,7 @@ class _TurntableWidgetState extends State<TurntableWidget> {
   final List<GodModeFeature> _features = GodModeFeature.values;
 
   void _onPanUpdate(DragUpdateDetails details) {
-    final center = Offset(150, 150);
+    const center = Offset(150, 150);
     final angle = (details.localPosition - center).direction;
     setState(() {
       _angle = angle;

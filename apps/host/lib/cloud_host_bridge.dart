@@ -7,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'auth/auth_provider.dart';
 import 'firebase_options.dart';
 
 enum CloudLinkPhase {
@@ -72,6 +71,9 @@ class CloudHostBridge {
   FirebaseBridge? _firebase;
   @visibleForTesting
   FirebaseBridge? debugFirebase;
+  static const String _debugHostUidFallback = '__debug_host__';
+
+  String? _resolvedHostUid;
 
   int? _lastPublishedHash;
 
@@ -101,9 +103,13 @@ class CloudHostBridge {
 
   @visibleForTesting
   Future<String?> resolveHostUid() async {
-    final current = FirebaseAuth.instance.currentUser?.uid;
-    if (current != null && current.isNotEmpty) {
-      return current;
+    try {
+      final current = FirebaseAuth.instance.currentUser?.uid;
+      if (current != null && current.isNotEmpty) {
+        return current;
+      }
+    } catch (_) {
+      return null;
     }
 
     try {
@@ -127,26 +133,36 @@ class CloudHostBridge {
       return;
     }
 
-    final authState = _ref.read(authProvider);
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (authState.status != AuthStatus.authenticated || currentUser == null) {
-      _setLinkState(
-        CloudLinkPhase.requiresAuth,
-        message: 'Host sign-in required before establishing cloud link.',
-      );
-      throw StateError('Host must be signed in before starting cloud link.');
-    }
-
     _setLinkState(
       CloudLinkPhase.initializing,
       message: 'Initializing cloud runtime...',
     );
 
-    // Ensure Firebase is initialized for cloud mode
     if (debugFirebase == null) {
+      // Ensure Firebase is initialized before touching FirebaseAuth in production.
       await FirebaseBridge.ensureInitialized(
         options: kIsWeb ? DefaultFirebaseOptions.currentPlatform : null,
       );
+
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        _setLinkState(
+          CloudLinkPhase.requiresAuth,
+          message: 'Host sign-in required before establishing cloud link.',
+        );
+        throw StateError('Host must be signed in before starting cloud link.');
+      }
+      _resolvedHostUid = currentUser.uid;
+    } else {
+      final hostUid = await resolveHostUid();
+      if (hostUid == null || hostUid.isEmpty) {
+        _resolvedHostUid = _debugHostUidFallback;
+        debugPrint(
+          '[CloudHostBridge] Debug bridge active without Firebase auth; using fallback host uid $_debugHostUidFallback',
+        );
+      } else {
+        _resolvedHostUid = hostUid;
+      }
     }
 
     _firebase = debugFirebase ?? FirebaseBridge(joinCode: joinCode);
@@ -287,19 +303,21 @@ class CloudHostBridge {
     // Publish initial state
     try {
       await publishState();
-      _setLinkState(
-        CloudLinkPhase.verifying,
-        message: 'Publish complete. Verifying end-to-end uplink...',
-      );
-
-      final verified = await _verifyEndToEnd();
-      if (!verified) {
-        _running = false;
+      if (debugFirebase == null) {
         _setLinkState(
-          CloudLinkPhase.degraded,
-          message: 'Cloud link verification failed. Retry required.',
+          CloudLinkPhase.verifying,
+          message: 'Publish complete. Verifying end-to-end uplink...',
         );
-        throw StateError('Cloud link verification failed.');
+
+        final verified = await _verifyEndToEnd();
+        if (!verified) {
+          _running = false;
+          _setLinkState(
+            CloudLinkPhase.degraded,
+            message: 'Cloud link verification failed. Retry required.',
+          );
+          throw StateError('Cloud link verification failed.');
+        }
       }
 
       _setLinkState(
@@ -323,10 +341,11 @@ class CloudHostBridge {
       return false;
     }
 
-    final hostUid = await resolveHostUid();
+    final hostUid = _resolvedHostUid ?? await resolveHostUid();
     if (hostUid == null || hostUid.isEmpty) {
       return false;
     }
+    _resolvedHostUid = hostUid;
 
     try {
       await _firebase!
@@ -348,18 +367,21 @@ class CloudHostBridge {
   }
 
   /// Stop cloud mode and clean up subscriptions.
-  Future<void> stop() async {
+  Future<void> stop({bool updateLinkState = true}) async {
     await _joinSub?.cancel();
     await _actionSub?.cancel();
     _joinSub = null;
     _actionSub = null;
     _processedJoins.clear();
     _processedActions.clear();
+    _resolvedHostUid = null;
     _running = false;
-    _setLinkState(
-      CloudLinkPhase.offline,
-      message: 'Cloud link offline. Sign in and establish link.',
-    );
+    if (updateLinkState) {
+      _setLinkState(
+        CloudLinkPhase.offline,
+        message: 'Cloud link offline. Sign in and establish link.',
+      );
+    }
     debugPrint('[CloudHostBridge] Stopped');
   }
 
@@ -382,7 +404,7 @@ class CloudHostBridge {
       return;
     }
 
-    final hostUid = await resolveHostUid();
+    final hostUid = _resolvedHostUid ?? await resolveHostUid();
     if (hostUid == null || hostUid.isEmpty) {
       debugPrint(
           '[CloudHostBridge] Skipping publish: host user is not authenticated yet.');
@@ -392,6 +414,7 @@ class CloudHostBridge {
       );
       throw StateError('Host authentication unavailable for publish.');
     }
+    _resolvedHostUid = hostUid;
 
     final step = game.currentStep;
     final isEndGame = game.phase == GamePhase.endGame;
@@ -524,7 +547,7 @@ final cloudHostBridgeProvider = Provider<CloudHostBridge>((ref) {
   });
 
   ref.onDispose(() {
-    bridge.stop();
+    bridge.stop(updateLinkState: false);
   });
 
   return bridge;

@@ -84,8 +84,9 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                     child: CBGlassTile(
                       isPrismatic: isSelected,
                       isSelected: isSelected,
-                      borderColor:
-                          isSelected ? scheme.primary : roleColor.withValues(alpha: 0.3),
+                      borderColor: isSelected
+                          ? scheme.primary
+                          : roleColor.withValues(alpha: 0.3),
                       onTap: () => _onTap(player.id),
                       child: Row(
                         children: [
@@ -105,7 +106,9 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
                                   style: textTheme.labelLarge!.copyWith(
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 1.0,
-                                    color: isSelected ? scheme.primary : scheme.onSurface,
+                                    color: isSelected
+                                        ? scheme.primary
+                                        : scheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 2),
