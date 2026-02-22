@@ -11,6 +11,7 @@ import 'package:hive_ce/hive.dart';
 const _activeGameBox = 'active_game';
 const _gameRecordsBox = 'game_records';
 const _sessionsBoxKey = 'games_night_sessions';
+const _bridgeProcessingBox = 'bridge_processing';
 const _activeGameKey = 'game_state';
 const _activeSessionKey = 'session_state';
 const _activeSavedAtKey = 'saved_at';
@@ -92,6 +93,7 @@ class PersistenceService {
   late Box<String> _activeBox;
   late Box<String> _recordsBox;
   late Box<String> _sessionsBox;
+  Box<String>? _bridgeBox;
   late final RoleAwardPersistence roleAwards;
 
   /// Initialise Hive and open boxes. Call once at app startup.
@@ -143,6 +145,10 @@ class PersistenceService {
     );
     service._sessionsBox = await Hive.openBox<String>(
       _sessionsBoxKey,
+      encryptionCipher: cipher,
+    );
+    service._bridgeBox = await Hive.openBox<String>(
+      _bridgeProcessingBox,
       encryptionCipher: cipher,
     );
     service.roleAwards = RoleAwardPersistence(
@@ -213,12 +219,14 @@ class PersistenceService {
   static PersistenceService initWithBoxes(
     Box<String> activeBox,
     Box<String> recordsBox,
-    Box<String> sessionsBox,
-  ) {
+    Box<String> sessionsBox, {
+    Box<String>? bridgeBox,
+  }) {
     final service = PersistenceService._();
     service._activeBox = activeBox;
     service._recordsBox = recordsBox;
     service._sessionsBox = sessionsBox;
+    service._bridgeBox = bridgeBox;
     service.roleAwards = RoleAwardPersistence(
       recordsBox: recordsBox,
       gameRecordsLoader: service.loadGameRecords,
@@ -462,6 +470,23 @@ class PersistenceService {
     );
   }
 
+  // ────────────────── Bridge Processing ──────────────────
+
+  /// Mark a bridge event ID (join or action) as processed.
+  void markBridgeIdProcessed(String id) {
+    _bridgeBox?.put(id, '1');
+  }
+
+  /// Returns true if the given bridge event ID has already been processed.
+  bool isBridgeIdProcessed(String id) {
+    return _bridgeBox?.containsKey(id) ?? false;
+  }
+
+  /// Clear all persisted processed bridge IDs.
+  Future<void> clearBridgePersistence() async {
+    await _bridgeBox?.clear();
+  }
+
   // ────────────────── Lifecycle ──────────────────
 
   // ────────────────── Games Night Sessions ──────────────────
@@ -572,6 +597,7 @@ class PersistenceService {
     await _activeBox.close();
     await _recordsBox.close();
     await _sessionsBox.close();
+    await _bridgeBox?.close();
     _instance = null;
   }
 
