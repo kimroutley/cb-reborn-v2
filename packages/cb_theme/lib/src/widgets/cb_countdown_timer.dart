@@ -23,6 +23,7 @@ class CBCountdownTimer extends StatefulWidget {
 class _CBCountdownTimerState extends State<CBCountdownTimer> {
   late int _remaining;
   late final Stream<int> _timerStream;
+  StreamSubscription<int>? _subscription;
 
   @override
   void initState() {
@@ -33,7 +34,7 @@ class _CBCountdownTimerState extends State<CBCountdownTimer> {
       (tick) => widget.seconds - tick - 1,
     ).take(widget.seconds);
 
-    _timerStream.listen((seconds) {
+    _subscription = _timerStream.listen((seconds) {
       if (mounted) {
         setState(() => _remaining = seconds);
         if (_remaining <= 5) {
@@ -45,6 +46,12 @@ class _CBCountdownTimerState extends State<CBCountdownTimer> {
         widget.onComplete?.call();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 
   @override
