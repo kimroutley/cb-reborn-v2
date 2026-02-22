@@ -1,5 +1,6 @@
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:cb_theme/src/widgets/cb_role_avatar.dart';
 
 enum CBMessageStyle {
   standard,
