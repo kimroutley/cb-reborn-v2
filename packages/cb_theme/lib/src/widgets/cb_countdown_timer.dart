@@ -50,7 +50,7 @@ class _CBCountdownTimerState extends State<CBCountdownTimer> {
 
   @override
   void dispose() {
-    unawaited(_subscription?.cancel());
+    _subscription?.cancel();
     super.dispose();
   }
 
