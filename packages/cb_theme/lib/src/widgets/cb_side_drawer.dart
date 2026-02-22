@@ -29,15 +29,15 @@ class CBSideDrawer extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Blur effect
         child: Container(
           decoration: BoxDecoration(
-            color: colorScheme.surface.withOpacity(0.1), // Subtle transparency for glassmorphism
+            color: colorScheme.surface.withValues(alpha: 0.1), // Subtle transparency for glassmorphism
             border: Border.all(
-              color: colorScheme.onSurface.withOpacity(0.1), // Light border
+              color: colorScheme.onSurface.withValues(alpha: 0.1), // Light border
             ),
             borderRadius: BorderRadius.circular(CBSpace.x3),
           ),
           child: NavigationDrawer(
             backgroundColor: Colors.transparent, // Make NavigationDrawer itself transparent
-            indicatorColor: colorScheme.secondaryContainer.withOpacity(0.7),
+            indicatorColor: colorScheme.secondaryContainer.withValues(alpha: 0.7),
             selectedIndex: selectedIndex,
             onDestinationSelected: onDestinationSelected,
             children: [
