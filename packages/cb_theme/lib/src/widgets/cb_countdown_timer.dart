@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 
 /// Countdown timer widget for timed phases.
 class CBCountdownTimer extends StatefulWidget {
+  /// Key for the root container, used in tests to locate the widget reliably.
+  static const Key timerContainerKey = Key('cb_countdown_timer_container');
+
   final int seconds;
   final VoidCallback? onComplete;
   final Color? color;
@@ -23,6 +26,7 @@ class CBCountdownTimer extends StatefulWidget {
 class _CBCountdownTimerState extends State<CBCountdownTimer> {
   late int _remaining;
   late final Stream<int> _timerStream;
+  StreamSubscription<int>? _subscription;
 
   @override
   void initState() {
@@ -33,7 +37,7 @@ class _CBCountdownTimerState extends State<CBCountdownTimer> {
       (tick) => widget.seconds - tick - 1,
     ).take(widget.seconds);
 
-    _timerStream.listen((seconds) {
+    _subscription = _timerStream.listen((seconds) {
       if (mounted) {
         setState(() => _remaining = seconds);
         if (_remaining <= 5) {
@@ -48,6 +52,12 @@ class _CBCountdownTimerState extends State<CBCountdownTimer> {
   }
 
   @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final minutes = _remaining ~/ 60;
@@ -59,6 +69,7 @@ class _CBCountdownTimerState extends State<CBCountdownTimer> {
         (isCritical ? theme.colorScheme.error : theme.colorScheme.primary);
 
     return Container(
+      key: CBCountdownTimer.timerContainerKey,
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
