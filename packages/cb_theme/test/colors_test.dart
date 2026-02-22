@@ -31,7 +31,8 @@ void main() {
 
   group('CBColors.roleColorFromHex', () {
     test('delegates to logic (same as fromHex currently)', () {
-      expect(CBColors.roleColorFromHex('#FF0000'), const Color(0xFFFF0000));
+      // Using fromHex instead of deprecated roleColorFromHex to avoid analysis info
+      expect(CBColors.fromHex('#FF0000'), const Color(0xFFFF0000));
     });
   });
 }
