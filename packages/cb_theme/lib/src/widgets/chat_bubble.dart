@@ -49,7 +49,6 @@ class CBMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final bool isSystem = _effectiveStyle == CBMessageStyle.system;
     final bool isNarrative = _effectiveStyle == CBMessageStyle.narrative;
 
