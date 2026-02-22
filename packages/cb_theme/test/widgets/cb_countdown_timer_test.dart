@@ -21,7 +21,7 @@ void main() {
 
       // Verify initial color (primary)
       final container = tester.widget<Container>(
-        find.byKey(const Key('cb_countdown_timer_container')),
+        find.byKey(CBCountdownTimer.timerContainerKey),
       );
       final decoration = container.decoration as BoxDecoration;
       final border = decoration.border as Border;
@@ -66,7 +66,7 @@ void main() {
       // Initial state > 30s
       expect(find.text('TIME REMAINING'), findsOneWidget);
       var container = tester.widget<Container>(
-        find.byKey(const Key('cb_countdown_timer_container')),
+        find.byKey(CBCountdownTimer.timerContainerKey),
       );
       var decoration = container.decoration as BoxDecoration;
       var border = decoration.border as Border;
@@ -78,7 +78,7 @@ void main() {
       // Critical state <= 30s
       expect(find.text('TIME RUNNING OUT'), findsOneWidget);
       container = tester.widget<Container>(
-        find.byKey(const Key('cb_countdown_timer_container')),
+        find.byKey(CBCountdownTimer.timerContainerKey),
       );
       decoration = container.decoration as BoxDecoration;
       border = decoration.border as Border;
@@ -163,7 +163,7 @@ void main() {
       );
 
       final container = tester.widget<Container>(
-        find.byKey(const Key('cb_countdown_timer_container')),
+        find.byKey(CBCountdownTimer.timerContainerKey),
       );
       final decoration = container.decoration as BoxDecoration;
       final border = decoration.border as Border;

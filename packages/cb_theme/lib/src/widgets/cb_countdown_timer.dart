@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 
 /// Countdown timer widget for timed phases.
 class CBCountdownTimer extends StatefulWidget {
+  /// Key for the root container, used in tests to locate the widget reliably.
+  static const Key timerContainerKey = Key('cb_countdown_timer_container');
+
   final int seconds;
   final VoidCallback? onComplete;
   final Color? color;
@@ -66,7 +69,7 @@ class _CBCountdownTimerState extends State<CBCountdownTimer> {
         (isCritical ? theme.colorScheme.error : theme.colorScheme.primary);
 
     return Container(
-      key: const Key('cb_countdown_timer_container'),
+      key: CBCountdownTimer.timerContainerKey,
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
