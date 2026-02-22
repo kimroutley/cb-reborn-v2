@@ -72,6 +72,8 @@ class CloudHostBridge {
   @visibleForTesting
   FirebaseBridge? debugFirebase;
   static const String _debugHostUidFallback = '__debug_host__';
+  static const int _baseRetryDelayMs = 200;
+  static const String _unknownGhostSenderName = 'Unknown';
 
   String? _resolvedHostUid;
 
@@ -176,10 +178,26 @@ class CloudHostBridge {
     _joinSub = _firebase!.subscribeToJoinRequests().listen(
       (snapshot) {
         for (final change in snapshot.docChanges) {
-          if (change.doc.id.isEmpty || _processedJoins.contains(change.doc.id)) {
-            continue;
+          final docId = change.doc.id;
+          if (docId.isEmpty) continue;
+
+          final persistenceKey = 'join:$docId';
+          if (_processedJoins.contains(docId)) continue;
+          try {
+            if (PersistenceService.instance.isBridgeIdProcessed(persistenceKey)) {
+              _processedJoins.add(docId);
+              continue;
+            }
+          } catch (_) {
+            // PersistenceService may not be available (e.g., offline fallback).
+            // In-memory deduplication via _processedJoins remains active.
           }
-          _processedJoins.add(change.doc.id);
+          _processedJoins.add(docId);
+          try {
+            PersistenceService.instance.markBridgeIdProcessed(persistenceKey);
+          } catch (_) {
+            // Non-critical: persistence dedup unavailable; in-memory set suffices.
+          }
 
           final data = change.doc.data();
           if (data == null) continue;
@@ -217,11 +235,26 @@ class CloudHostBridge {
     _actionSub = _firebase!.subscribeToActions().listen(
       (snapshot) {
         for (final change in snapshot.docChanges) {
-          if (change.doc.id.isEmpty ||
-              _processedActions.contains(change.doc.id)) {
-            continue;
+          final docId = change.doc.id;
+          if (docId.isEmpty) continue;
+
+          final persistenceKey = 'action:$docId';
+          if (_processedActions.contains(docId)) continue;
+          try {
+            if (PersistenceService.instance.isBridgeIdProcessed(persistenceKey)) {
+              _processedActions.add(docId);
+              continue;
+            }
+          } catch (_) {
+            // PersistenceService may not be available (e.g., offline fallback).
+            // In-memory deduplication via _processedActions remains active.
           }
-          _processedActions.add(change.doc.id);
+          _processedActions.add(docId);
+          try {
+            PersistenceService.instance.markBridgeIdProcessed(persistenceKey);
+          } catch (_) {
+            // Non-critical: persistence dedup unavailable; in-memory set suffices.
+          }
 
           final data = change.doc.data();
           if (data == null) continue;
@@ -476,6 +509,21 @@ class CloudHostBridge {
     // Build per-player private data (their own role, alliance, secret fields)
     final playerPrivateData = <String, Map<String, dynamic>>{};
     for (final p in game.players) {
+      final rawPrivateMessages = game.privateMessages[p.id] ?? const <String>[];
+      final ghostMessages = rawPrivateMessages
+          .where((m) => m.startsWith('[GHOST] '))
+          .map((m) {
+            final withoutPrefix = m.replaceFirst('[GHOST] ', '');
+            final colonIdx = withoutPrefix.indexOf(': ');
+            if (colonIdx == -1) {
+              return <String, dynamic>{'sender': _unknownGhostSenderName, 'message': withoutPrefix};
+            }
+            return <String, dynamic>{
+              'sender': withoutPrefix.substring(0, colonIdx),
+              'message': withoutPrefix.substring(colonIdx + 2),
+            };
+          })
+          .toList();
       playerPrivateData[p.id] = {
         'uid': p.authUid,
         'roleId': p.role.id,
@@ -492,15 +540,31 @@ class CloudHostBridge {
         'creepTargetId': p.creepTargetId,
         'whoreDeflectionUsed': p.whoreDeflectionUsed,
         'tabooNames': p.tabooNames,
-        'privateMessages': game.privateMessages[p.id] ?? [],
+        'privateMessages': rawPrivateMessages,
+        'ghost_messages': ghostMessages,
       };
     }
 
-    await _firebase!.publishState(
-      publicState: publicState,
-      playerPrivateData: playerPrivateData,
-    );
-    _lastPublishedHash = currentHash;
+    int attempt = 0;
+    const maxRetries = 3;
+    while (true) {
+      try {
+        await _firebase!.publishState(
+          publicState: publicState,
+          playerPrivateData: playerPrivateData,
+        );
+        _lastPublishedHash = currentHash;
+        return;
+      } catch (e) {
+        attempt++;
+        if (attempt >= maxRetries) {
+          rethrow;
+        }
+        final delay = Duration(milliseconds: _baseRetryDelayMs * (1 << attempt));
+        await Future.delayed(delay);
+        debugPrint('[CloudHostBridge] publishState retry $attempt after error: $e');
+      }
+    }
   }
 
   int _computeStateHash(GameState game, SessionState session) {

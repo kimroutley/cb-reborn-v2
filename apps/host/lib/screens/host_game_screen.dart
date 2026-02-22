@@ -10,6 +10,7 @@ import '../widgets/bottom_controls.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import 'end_game_view.dart';
+import 'host_chat_view.dart';
 import 'logs_view.dart';
 import 'stats_view.dart';
 
@@ -52,73 +53,94 @@ class HostGameScreen extends ConsumerWidget {
                 nav.setDestination(HostDestination.lobby);
               },
             )
-          : Column(
-              children: [
-                if (gameState.phase == GamePhase.lobby)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                    child: CBGlassTile(
-                      borderColor: Theme.of(context)
-                          .colorScheme
-                          .secondary
-                          .withValues(alpha: 0.35),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 10,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.link_rounded,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Game Control is active. Start game from Lobby when roster is ready.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.82),
-                                  ),
+          : DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  if (gameState.phase == GamePhase.lobby)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                      child: CBGlassTile(
+                        borderColor: Theme.of(context)
+                            .colorScheme
+                            .secondary
+                            .withValues(alpha: 0.35),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.link_rounded,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.secondary,
                             ),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () =>
-                                nav.setDestination(HostDestination.lobby),
-                            icon: const Icon(Icons.rocket_launch_rounded,
-                                size: 16),
-                            label: const Text('Lobby'),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Game Control is active. Start game from Lobby when roster is ready.',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.82),
+                                    ),
+                              ),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: () =>
+                                  nav.setDestination(HostDestination.lobby),
+                              icon: const Icon(Icons.rocket_launch_rounded,
+                                  size: 16),
+                              label: const Text('Lobby'),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                  TabBar(
+                    tabs: const [
+                      Tab(icon: Icon(Icons.history_edu_rounded), text: 'Logs'),
+                      Tab(
+                        icon: Icon(Icons.chat_bubble_outline_rounded),
+                        text: 'Chat',
+                      ),
+                    ],
+                    labelColor: Theme.of(context).colorScheme.secondary,
+                    unselectedLabelColor:
+                        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                    indicatorColor: Theme.of(context).colorScheme.secondary,
                   ),
-                Expanded(
-                  child: LogsView(
-                    gameState: gameState,
-                    onOpenCommand: () {},
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        LogsView(
+                          gameState: gameState,
+                          onOpenCommand: () {},
+                        ),
+                        HostChatView(gameState: gameState),
+                      ],
+                    ),
                   ),
-                ),
-                BottomControls(
-                  isLobby: false,
-                  isEndGame: false,
-                  playerCount: gameState.players.length,
-                  onAction: gameState.phase == GamePhase.lobby
-                      ? () => nav.setDestination(HostDestination.lobby)
-                      : controller.advancePhase,
-                  onAddMock: controller.addBot,
-                  eyesOpen: gameState.eyesOpen,
-                  onToggleEyes: controller.toggleEyes,
-                  onBack: () => nav.setDestination(HostDestination.lobby),
-                  requiredPlayers: Game.minPlayers,
-                )
-              ],
+                  BottomControls(
+                    isLobby: false,
+                    isEndGame: false,
+                    playerCount: gameState.players.length,
+                    onAction: gameState.phase == GamePhase.lobby
+                        ? () => nav.setDestination(HostDestination.lobby)
+                        : controller.advancePhase,
+                    onAddMock: controller.addBot,
+                    eyesOpen: gameState.eyesOpen,
+                    onToggleEyes: controller.toggleEyes,
+                    onBack: () => nav.setDestination(HostDestination.lobby),
+                    requiredPlayers: Game.minPlayers,
+                  ),
+                ],
+              ),
             ),
     );
   }

@@ -23,6 +23,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   String? _pendingClaimName;
   String? _cachedJoinCode;
   String? _cachedPlayerName;
+  bool _isClaimingInProgress = false;
   // Removed String? _claimedPlayerId; as it's now in PlayerGameState.myPlayerId
 
   @override
@@ -237,6 +238,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     _privateSub = null;
     _firebase = null;
     _pendingClaimName = null;
+    _isClaimingInProgress = false;
     state = const PlayerGameState(); // Reset to initial state
     debugPrint('[CloudPlayerBridge] Disconnected');
   }
@@ -356,11 +358,20 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       privateMessages[state.myPlayerId!] = _toStringList(myMessages);
     }
 
-    final ghostMessages = privateMessages[state.myPlayerId!]
-            ?.where((m) => m.startsWith('[GHOST] '))
-            .map((m) => m.replaceFirst('[GHOST] ', ''))
-            .toList() ??
-        const <String>[];
+    // Prefer structured ghost_messages field; fall back to parsing privateMessages.
+    final ghostMessagesRaw = data['ghost_messages'] as List<dynamic>?;
+    final List<String> ghostMessages;
+    if (ghostMessagesRaw != null) {
+      ghostMessages = ghostMessagesRaw
+          .map((m) => (m as Map<String, dynamic>)['message'] as String? ?? '')
+          .where((m) => m.isNotEmpty)
+          .toList();
+    } else {
+      ghostMessages = (privateMessages[state.myPlayerId!] ?? const <String>[])
+          .where((m) => m.startsWith('[GHOST] '))
+          .map((m) => m.replaceFirst('[GHOST] ', ''))
+          .toList();
+    }
 
     final updatedMyPlayerSnapshot =
         updatedPlayers.firstWhere((p) => p.id == state.myPlayerId);
@@ -398,6 +409,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   }
 
   void _attemptAutoClaim(PlayerGameState nextState) {
+    if (_isClaimingInProgress) return;
     if (!nextState.joinAccepted || nextState.myPlayerId != null) {
       return;
     }
@@ -420,7 +432,10 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
     if (candidate != null) {
       _pendingClaimName = null;
-      claimPlayer(candidate.id);
+      _isClaimingInProgress = true;
+      claimPlayer(candidate.id).whenComplete(() {
+        _isClaimingInProgress = false;
+      });
     }
   }
 }
