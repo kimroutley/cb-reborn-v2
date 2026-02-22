@@ -93,8 +93,6 @@ class PlayerApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch auth state to react to login/logout
-    // final authState = ref.watch(authProvider);
 
     return FutureBuilder<Color>(
       future: _seedFuture,
