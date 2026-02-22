@@ -107,7 +107,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
       await service.rebuildRoleAwardProgresses();
     }
     final allProgress =
-        service?.loadRoleAwardProgresses() ?? const <PlayerRoleAwardProgress>[];
+        service?.roleAwards?.loadRoleAwardProgresses() ?? const <PlayerRoleAwardProgress>[];
     final unlockedCounts = <String, int>{};
     final unlockedAwardIds = <String>{};
     for (final progress in allProgress) {
