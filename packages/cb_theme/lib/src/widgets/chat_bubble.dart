@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cb_theme/src/colors.dart';
 import 'package:cb_theme/src/widgets/cb_role_avatar.dart';
 
 enum CBMessageStyle {
@@ -50,10 +49,6 @@ class CBMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
     final bool isSystem = _effectiveStyle == CBMessageStyle.system;
     final bool isNarrative = _effectiveStyle == CBMessageStyle.narrative;
 
