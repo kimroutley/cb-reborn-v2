@@ -1,12 +1,12 @@
+import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:cb_theme/src/widgets/cb_role_avatar.dart';
 
 enum CBMessageStyle {
-  system, // Centered, pill-style, low emphasis
-  narrative, // Centered, story text, medium emphasis
-  standard, // Left/Right bubble (chat)
-  action, // Interactive/Command prompt style
-  result, // High impact outcome
+  standard,
+  system,
+  narrative,
+  whisper,
 }
 
 enum CBMessageGroupPosition {
@@ -16,7 +16,6 @@ enum CBMessageGroupPosition {
   bottom,
 }
 
-/// A modern, messaging-app style chat bubble.
 class CBMessageBubble extends StatelessWidget {
   final String sender;
   final String message;
@@ -102,23 +101,6 @@ class CBMessageBubble extends StatelessWidget {
     BorderRadius borderRadius;
 
     if (isSender) {
-      borderRadius = BorderRadius.only(
-        topLeft: radius,
-        topRight: (groupPosition == CBMessageGroupPosition.top ||
-                groupPosition == CBMessageGroupPosition.single)
-            ? radius
-            : smallRadius,
-        bottomLeft: radius,
-        bottomRight: (groupPosition == CBMessageGroupPosition.bottom ||
-                groupPosition == CBMessageGroupPosition.single)
-            ? smallRadius
-            : smallRadius, // Sender tail usually bottom right? Actually standard messaging apps smooth the corners between bubbles.
-        // Let's adopt standard messaging logic:
-        // Top: Top corners round, bottom same-side corner small
-        // Middle: Both same-side corners small
-        // Bottom: Top same-side corner small, bottom round (and maybe has tail)
-      );
-
       if (groupPosition == CBMessageGroupPosition.top) {
         borderRadius = const BorderRadius.only(
             topLeft: radius,
@@ -257,6 +239,7 @@ class CBMessageBubble extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ),
               ],
             ),
           ),

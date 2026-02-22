@@ -432,10 +432,10 @@ void main() {
         () async {
       await service.saveGameRecord(_fakeRecord());
 
-      final rebuilt = await service.rebuildRoleAwardProgresses();
+      final rebuilt = await service.roleAwards.rebuildRoleAwardProgresses();
       expect(rebuilt, isNotEmpty);
 
-      final byPlayer = service.loadRoleAwardProgressesByPlayer('p1');
+      final byPlayer = service.roleAwards.loadRoleAwardProgressesByPlayer('p1');
       expect(byPlayer.length, roleAwardsForRoleId(RoleIds.dealer).length);
 
       final rookie = byPlayer.firstWhere(
@@ -452,17 +452,17 @@ void main() {
         _fakeRecord(id: 'g2', winner: Team.clubStaff),
       );
 
-      await service.rebuildRoleAwardProgresses();
+      await service.roleAwards.rebuildRoleAwardProgresses();
 
       final dealerProgress =
-          service.loadRoleAwardProgressesByRole(RoleIds.dealer);
+          service.roleAwards.loadRoleAwardProgressesByRole(RoleIds.dealer);
       expect(dealerProgress, isNotEmpty);
 
       final rookieProgress =
-          service.loadRoleAwardProgressesByTier(RoleAwardTier.rookie);
+          service.roleAwards.loadRoleAwardProgressesByTier(RoleAwardTier.rookie);
       expect(rookieProgress, isNotEmpty);
 
-      final recent = service.loadRecentRoleAwardUnlocks(limit: 5);
+      final recent = service.roleAwards.loadRecentRoleAwardUnlocks(limit: 5);
       expect(recent.length, lessThanOrEqualTo(5));
       expect(recent.every((row) => row.isUnlocked), true);
     });
@@ -472,9 +472,9 @@ void main() {
       await service.saveGameRecord(_fakeRecord(id: 's2'));
       await service.saveGameRecord(_fakeRecord(id: 's3'));
 
-      await service.rebuildRoleAwardProgresses();
+      await service.roleAwards.rebuildRoleAwardProgresses();
 
-      final aliceRows = service.loadRoleAwardProgressesByPlayer('p1');
+      final aliceRows = service.roleAwards.loadRoleAwardProgressesByPlayer('p1');
       final survivalBonus = aliceRows.firstWhere(
         (row) {
           final definition = roleAwardDefinitionById(row.awardId);
@@ -489,13 +489,13 @@ void main() {
 
     test('clearRoleAwardProgresses removes award rows only', () async {
       await service.saveGameRecord(_fakeRecord(id: 'g1'));
-      await service.rebuildRoleAwardProgresses();
+      await service.roleAwards.rebuildRoleAwardProgresses();
 
-      expect(service.loadRoleAwardProgresses(), isNotEmpty);
+      expect(service.roleAwards.loadRoleAwardProgresses(), isNotEmpty);
 
-      await service.clearRoleAwardProgresses();
+      await service.roleAwards.clearRoleAwardProgresses();
 
-      expect(service.loadRoleAwardProgresses(), isEmpty);
+      expect(service.roleAwards.loadRoleAwardProgresses(), isEmpty);
       expect(service.loadGameRecords(), isNotEmpty);
     });
   });
