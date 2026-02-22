@@ -66,6 +66,7 @@ class _CBCountdownTimerState extends State<CBCountdownTimer> {
         (isCritical ? theme.colorScheme.error : theme.colorScheme.primary);
 
     return Container(
+      key: const Key('cb_countdown_timer_container'),
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
