@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../colors.dart';
-import '../layout.dart';
-
 /// Dark input field with glassmorphism styling.
 class CBTextField extends StatelessWidget {
   final TextEditingController? controller;
@@ -96,11 +93,11 @@ class CBTextField extends StatelessWidget {
       hintStyle: theme.textTheme.bodyMedium?.copyWith(
         color: scheme.onSurface.withValues(alpha: 0.4),
       ),
-      labelStyle: MaterialStateTextStyle.resolveWith((states) {
-        if (states.contains(MaterialState.focused)) {
+      labelStyle: WidgetStateTextStyle.resolveWith((states) {
+        if (states.contains(WidgetState.focused)) {
           return TextStyle(color: activeColor, fontWeight: FontWeight.bold);
         }
-        if (states.contains(MaterialState.error)) {
+        if (states.contains(WidgetState.error)) {
           return TextStyle(color: scheme.error);
         }
         return TextStyle(color: scheme.onSurface.withValues(alpha: 0.6));

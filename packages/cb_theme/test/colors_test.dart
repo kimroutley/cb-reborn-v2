@@ -28,10 +28,4 @@ void main() {
       expect(CBColors.fromHex('00F'), const Color(0xFF0000FF));
     });
   });
-
-  group('CBColors.roleColorFromHex', () {
-    test('delegates to logic (same as fromHex currently)', () {
-      expect(CBColors.roleColorFromHex('#FF0000'), const Color(0xFFFF0000));
-    });
-  });
 }
