@@ -360,6 +360,92 @@ class GameResolutionLogic {
         return '${actor.name} targeted ${target.name}.';
     }
   }
+
+
+  static GameState handleDeathTriggers(GameState state, String deadPlayerId) {
+    final deadPlayer = state.players.firstWhere((p) => p.id == deadPlayerId);
+    var updatedPlayers = List<Player>.from(state.players);
+    final history = <String>[];
+    final events = <GameEvent>[];
+
+    // 1. Clinger Trigger: If partner dies, Clinger dies.
+    for (final p in updatedPlayers
+        .where((p) => p.isAlive && p.role.id == RoleIds.clinger)) {
+      if (p.clingerPartnerId == deadPlayerId) {
+        updatedPlayers = updatedPlayers
+            .map(
+              (pl) => pl.id == p.id
+                  ? pl.copyWith(
+                      isAlive: false,
+                      deathDay: state.dayCount,
+                      deathReason: 'clinger_bond',
+                    )
+                  : pl,
+            )
+            .toList();
+        history.add('The Clinger ${p.name} died with their partner.');
+        events.add(
+          GameEvent.death(
+            playerId: p.id,
+            reason: 'clinger_bond',
+            day: state.dayCount,
+          ),
+        );
+      }
+    }
+
+    // 2. Creep Trigger: If target dies, Creep inherits role.
+    for (final p in updatedPlayers
+        .where((p) => p.isAlive && p.role.id == RoleIds.creep)) {
+      if (p.creepTargetId == deadPlayerId) {
+        updatedPlayers = updatedPlayers
+            .map(
+              (pl) => pl.id == p.id
+                  ? pl.copyWith(
+                      role: deadPlayer.role,
+                      alliance: deadPlayer.alliance,
+                      creepTargetId: null,
+                    )
+                  : pl,
+            )
+            .toList();
+        history.add(
+          'The Creep ${p.name} inherited the role of ${deadPlayer.role.name}.',
+        );
+      }
+    }
+
+    if (history.isNotEmpty) {
+      return state.copyWith(
+        players: updatedPlayers,
+        gameHistory: [...state.gameHistory, ...history],
+        eventLog: [...state.eventLog, ...events],
+      );
+    }
+
+    return state;
+  }
+
+  static GameState applyWinResult(GameState state, WinResult win) {
+    final winningReport = List<String>.from(win.report);
+    if (win.winner != Team.neutral) {
+      final livingManagers = state.players.where(
+        (p) => p.isAlive && p.role.id == RoleIds.clubManager,
+      );
+      if (livingManagers.isNotEmpty) {
+        final managerNames = livingManagers.map((p) => p.name).join(', ');
+        winningReport.add(
+          'Club Manager survived and wins with the house: $managerNames.',
+        );
+      }
+    }
+
+    return state.copyWith(
+      phase: GamePhase.endGame,
+      winner: win.winner,
+      endGameReport: winningReport,
+      scriptQueue: const [],
+      scriptIndex: 0,
+    );
+  }
 }
-
-

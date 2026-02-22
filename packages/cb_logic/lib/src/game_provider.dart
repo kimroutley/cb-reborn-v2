@@ -12,6 +12,11 @@ import 'scripting/step_key.dart';
 import 'day_actions/resolution/day_resolution.dart';
 import 'game_resolution_logic.dart';
 
+import 'game_controllers/player_controller.dart';
+import 'game_controllers/admin_controller.dart';
+import 'game_controllers/bot_controller.dart';
+import 'game_controllers/narration_controller.dart';
+
 part 'game_provider.g.dart';
 
 @Riverpod(keepAlive: true)
@@ -19,12 +24,14 @@ class Game extends _$Game {
   DateTime? _gameStartedAt;
   final Map<String, String> _stepNarrationOverrides = {};
   Timer? _persistDebounceTimer;
+  late GameNarrationController _narrationController;
 
   @override
   GameState build() {
     ref.onDispose(() {
       _persistDebounceTimer?.cancel();
     });
+    _narrationController = GameNarrationController(ref.read(geminiNarrationServiceProvider));
     return const GameState();
   }
 
@@ -196,74 +203,17 @@ class Game extends _$Game {
 
   /// Add a bot player to the game.
   void addBot() {
-    final botNames = [
-      'Auto-Pilot',
-      'Cyber-Punk',
-      'Synth-Wave',
-      'Neon-Glitch',
-      'Data-Stream',
-      'Bit-Crusher',
-      'Logic-Gate',
-      'Null-Pointer',
-    ];
-
-    // Find a unique name
-    String name = 'Bot';
-    for (final n in botNames) {
-      if (!state.players.any((p) => p.name == n)) {
-        name = n;
-        break;
-      }
-    }
-    if (state.players.any((p) => p.name == name)) {
-      name = _buildUniqueName('Bot');
-    }
-
-    final id = _buildUniquePlayerId(
-      'bot_${name.toLowerCase().replaceAll(' ', '_')}',
-    );
-
-    final newPlayer = Player(
-      id: id,
-      name: name,
-      role: roleCatalogMap['unassigned'] ?? roleCatalog.first,
-      alliance: Team.unknown,
-      isBot: true,
-    );
-    state = state.copyWith(players: [...state.players, newPlayer]);
+    state = GameBotController.addBot(state);
   }
 
   /// Simulate inputs for bots in the current step.
   int simulateBotTurns() {
-    final step = state.currentStep;
-    if (step == null) return 0;
-
-    if (_isDayVoteStep(step.id)) {
-      return _simulateDayVotes(stepId: step.id, botsOnly: true);
-    }
-
-    // 1. Check if the current step belongs to a specific player
-    final actorId = _extractActorId(step.id);
-    if (actorId != null) {
-      final actor = state.players.firstWhere(
-        (p) => p.id == actorId,
-        orElse: () => state.players.first,
-      );
-      if (actor.isBot && !state.actionLog.containsKey(step.id)) {
-        return _performRandomStepAction(step);
-      }
-    }
-    // 2. Fallback: Group action (no actor ID in step, check role)
-    else if (step.roleId != null && step.roleId != 'unassigned') {
-      final botsWithRole =
-          state.players.where((p) => p.role.id == step.roleId).toList();
-      if (botsWithRole.isNotEmpty && !state.actionLog.containsKey(step.id)) {
-        // If any bot has this role, we assume the bot(s) can act for the group
-        return _performRandomStepAction(step);
-      }
-    }
-
-    return 0;
+    return GameBotController.simulateBotTurns(
+      state,
+      ({required String stepId, String? targetId, String? voterId}) {
+        handleInteraction(stepId: stepId, targetId: targetId, voterId: voterId);
+      },
+    );
   }
 
   /// Simulate one batch of player inputs for the current step (Legacy method, kept for manual full simulation).
@@ -672,82 +622,10 @@ class Game extends _$Game {
   }
 
   /// Export the game log as a formatted string.
-  String exportGameLog() {
-    final buffer = StringBuffer();
-    buffer.writeln('=== CLUB BLACKOUT GAME LOG ===');
-    buffer.writeln('Date: ${DateTime.now().toIso8601String()}');
-    buffer.writeln('Day: ${state.dayCount}');
-    buffer.writeln('Phase: ${state.phase.name}');
-    buffer.writeln('Players: ${state.players.length}');
-    buffer.writeln('');
-    buffer.writeln('=== ROSTER ===');
-    for (final player in state.players) {
-      buffer.writeln(
-        '${player.name} - ${player.role.name} (${player.alliance.name}) - ${player.isAlive ? "Alive" : "Dead"}',
-      );
-    }
-    buffer.writeln('');
-    buffer.writeln('=== GAME HISTORY ===');
-    for (final event in state.gameHistory) {
-      buffer.writeln(event);
-    }
-    if (state.winner != null) {
-      buffer.writeln('');
-      buffer.writeln('=== WINNER ===');
-      buffer.writeln(state.winner.toString());
-    }
-    return buffer.toString();
-  }
+  String exportGameLog() => _narrationController.exportGameLog(state);
 
   /// Generate an AI-ready recap prompt for Gemini
-  String generateAIRecapPrompt(String style) {
-    final buffer = StringBuffer();
-
-    switch (style.toLowerCase()) {
-      case 'r-rated':
-        buffer.writeln('[R-RATED RECAP REQUEST]');
-        buffer.writeln(
-          'You are recapping a social deduction game called Club Blackout set in a nightclub.',
-        );
-        buffer.writeln(
-          'Be ironic, dramatic, and roast the players mercilessly.',
-        );
-        buffer.writeln(
-          'Use self-deprecating humor about the host and snarky commentary about player mistakes.',
-        );
-        break;
-      case 'spicy':
-        buffer.writeln('[SPICY CLUB-THEMED RECAP REQUEST]');
-        buffer.writeln(
-          'You are recapping a social deduction game called Club Blackout.',
-        );
-        buffer.writeln(
-          'Use club culture innuendo, bouncer jokes, and VIP lounge drama.',
-        );
-        break;
-      case 'pg':
-        buffer.writeln('[PG MYSTERY RECAP REQUEST]');
-        buffer.writeln(
-          'You are recapping a social deduction game called Club Blackout.',
-        );
-        buffer.writeln(
-          'Tell it like a dramatic mystery story suitable for all ages.',
-        );
-        break;
-    }
-
-    buffer.writeln('\n=== GAME LOG ===');
-    for (final event in state.gameHistory) {
-      buffer.writeln(event);
-    }
-
-    buffer.writeln('\n=== TASK ===');
-    buffer.writeln(
-      'Create a 200-300 word dramatic recap of this game. Make it memorable!',
-    );
-
-    return buffer.toString();
-  }
+  String generateAIRecapPrompt(String style) => _narrationController.generateAIRecapPrompt(state, style);
 
   /// Generate dynamic read-aloud narration from the last resolved night report
   /// using Gemini.
@@ -755,76 +633,20 @@ class Game extends _$Game {
     String? personalityId,
     String? voice,
     String? variationPrompt,
-  }) async {
-    if (state.lastNightReport.isEmpty) {
-      return null;
-    }
-
-    var effectiveVoice = voice ?? 'nightclub_noir';
-    var effectivePrompt = variationPrompt;
-
-    if (personalityId != null) {
-      final p = hostPersonalities.firstWhere(
-        (element) => element.id == personalityId,
-        orElse: () => hostPersonalities.first,
+  }) => _narrationController.generateDynamicNightNarration(
+        state,
+        personalityId: personalityId,
+        voice: voice,
+        variationPrompt: variationPrompt,
       );
-      effectiveVoice = p.voice;
-      effectivePrompt = [
-        effectivePrompt,
-        p.variationPrompt,
-      ].whereType<String>().join(' ');
-    }
-
-    final gemini = ref.read(geminiNarrationServiceProvider);
-    return gemini.generateNightNarration(
-      lastNightReport: state.lastNightReport,
-      dayCount: state.dayCount,
-      aliveCount: state.players.where((p) => p.isAlive).length,
-      voice: effectiveVoice,
-      variationPrompt: effectivePrompt,
-    );
-  }
 
   Future<String?> _generateCurrentStepNarrationVariation({
     String? personalityId,
   }) async {
-    final step = state.currentStep;
-    if (step == null || step.readAloudText.trim().isEmpty) {
-      return null;
-    }
-
-    var effectiveVoice = step.aiVariationVoice ?? 'nightclub_noir';
-    var effectivePrompt = step.aiVariationPrompt;
-
-    if (personalityId != null) {
-      final p = hostPersonalities.firstWhere(
-        (element) => element.id == personalityId,
-        orElse: () => hostPersonalities.first,
-      );
-      effectiveVoice = p.voice;
-      effectivePrompt = [
-        effectivePrompt,
-        p.variationPrompt,
-      ].whereType<String>().join(' ');
-    }
-
-    final gemini = ref.read(geminiNarrationServiceProvider);
-    final variation = await gemini.generateStepNarrationVariation(
-      baseReadAloudText: step.readAloudText,
-      stepTitle: step.title,
-      voice: effectiveVoice,
-      variationPrompt: effectivePrompt,
-    );
-
-    if (variation.trim().isEmpty) {
-      return null;
-    }
-    return variation;
+    return _narrationController.generateCurrentStepNarrationVariation(state, personalityId: personalityId);
   }
 
   /// Prepare a one-time narration override for the current step.
-  /// The next [emitStepToFeed] call will use this text instead of
-  /// `step.readAloudText`.
   Future<bool> prepareCurrentStepNarrationOverrideWithAi({
     String? personalityId,
   }) async {
@@ -973,16 +795,7 @@ class Game extends _$Game {
 
   /// Triggers a visual/sync effect on all player devices.
   void sendDirectorCommand(String command) {
-    // 1. Show in Host Feed
-    emitSystemToFeed('STIM: $command');
-
-    // 2. Send to Players via Bulletin Board (as a hidden system msg)
-    dispatchBulletin(title: 'SYSTEM', content: 'STIM:$command', type: 'system');
-
-    // 3. Log it
-    state = state.copyWith(
-      gameHistory: [...state.gameHistory, '[DIRECTOR] Triggered $command'],
-    );
+    state = GameAdminController.sendDirectorCommand(state, command);
   }
 
   void _resolveLastAction(String resolution) {
@@ -1446,16 +1259,6 @@ class Game extends _$Game {
     );
   }
 
-  void toggleEyes(bool open) {
-    state = state.copyWith(eyesOpen: open);
-    state = state.copyWith(
-      gameHistory: [
-        ...state.gameHistory,
-        'DIRECTOR: EYES ${open ? "OPEN" : "CLOSED"} COMMAND',
-      ],
-    );
-  }
-
   // --- SETTINGS ---
 
   void setSyncMode(SyncMode mode) {
@@ -1481,354 +1284,70 @@ class Game extends _$Game {
 
   /// Grant a host shield to a player for a given number of days.
   void grantHostShield(String playerId, int days) {
-    state = state.copyWith(
-      players: state.players
-          .map(
-            (p) => p.id == playerId
-                ? p.copyWith(
-                    hasHostShield: true,
-                    hostShieldExpiresDay: state.dayCount + days,
-                  )
-                : p,
-          )
-          .toList(),
-      gameHistory: [
-        ...state.gameHistory,
-        '[HOST] Granted $days-day shield to ${state.players.firstWhere((p) => p.id == playerId).name}',
-      ],
-    );
+    state = GameAdminController.grantHostShield(state, playerId, days);
     _persist();
   }
 
   // --- LOBBY ACTIONS ---
 
-  static final _whitespaceRegex = RegExp(r'\s+');
-
-  String _normalizeName(String value) {
-    return value.trim().toLowerCase().replaceAll(_whitespaceRegex, ' ');
-  }
-
-  String _buildUniqueName(String desired, {String? excludePlayerId}) {
-    final base = desired.trim();
-    if (base.isEmpty) {
-      return desired;
-    }
-
-    final existing = state.players
-        .where((p) => p.id != excludePlayerId)
-        .map((p) => _normalizeName(p.name))
-        .toSet();
-
-    var candidate = base;
-    var suffix = 2;
-    while (existing.contains(_normalizeName(candidate))) {
-      candidate = '$base ($suffix)';
-      suffix++;
-    }
-    return candidate;
-  }
-
-  String _buildUniquePlayerId(String baseId) {
-    final existingIds = state.players.map((p) => p.id).toSet();
-    var candidate = baseId;
-    var suffix = 2;
-    while (existingIds.contains(candidate)) {
-      candidate = '${baseId}_$suffix';
-      suffix++;
-    }
-    return candidate;
-  }
-
   void addPlayer(String name, {String? authUid}) {
-    final trimmedName = name.trim();
-    if (trimmedName.isEmpty) {
-      return;
-    }
-
-    if (authUid != null && authUid.isNotEmpty) {
-      final existingByUid = state.players.where((p) => p.authUid == authUid);
-      if (existingByUid.isNotEmpty) {
-        final existing = existingByUid.first;
-        final nextName = _buildUniqueName(
-          trimmedName,
-          excludePlayerId: existing.id,
-        );
-        state = state.copyWith(
-          players: state.players
-              .map(
-                (p) => p.id == existing.id
-                    ? p.copyWith(name: nextName, authUid: authUid)
-                    : p,
-              )
-              .toList(),
-        );
-        return;
-      }
-    }
-
-    if (state.players.length >= maxPlayers) {
-      return;
-    }
-
-    final canonicalName = _buildUniqueName(trimmedName);
-    final seedId = (authUid != null && authUid.isNotEmpty)
-        ? authUid.toLowerCase().replaceAll(RegExp(r'[^a-z0-9_]'), '_')
-        : canonicalName.toLowerCase().replaceAll(' ', '_');
-    final id = _buildUniquePlayerId(seedId);
-
-    final newPlayer = Player(
-      id: id,
-      name: canonicalName,
-      authUid: authUid,
-      role: Role(
-        id: 'unassigned',
-        name: 'Unassigned',
-        alliance: Team.unknown,
-        type: '',
-        description: '',
-        nightPriority: 0,
-        assetPath: '',
-        colorHex: '#000000',
-      ),
-      alliance: Team.unknown,
-    );
-    state = state.copyWith(players: [...state.players, newPlayer]);
+    state = GamePlayerController.addPlayer(state, name, authUid: authUid);
   }
 
   void removePlayer(String id) {
-    state = state.copyWith(
-      players: state.players.where((p) => p.id != id).toList(),
-    );
+    state = GamePlayerController.removePlayer(state, id);
   }
 
   void updatePlayerName(String id, String newName) {
-    final trimmed = newName.trim();
-    if (trimmed.isEmpty) {
-      return;
-    }
-
-    final updatedName = _buildUniqueName(trimmed, excludePlayerId: id);
-    state = state.copyWith(
-      players: state.players
-          .map((p) => p.id == id ? p.copyWith(name: updatedName) : p)
-          .toList(),
-    );
+    state = GamePlayerController.updatePlayerName(state, id, newName);
   }
 
   void mergePlayers({required String sourceId, required String targetId}) {
-    if (sourceId == targetId) {
-      return;
-    }
-
-    final source = state.players.where((p) => p.id == sourceId).toList();
-    final target = state.players.where((p) => p.id == targetId).toList();
-    if (source.isEmpty || target.isEmpty) {
-      return;
-    }
-
-    final src = source.first;
-    final tgt = target.first;
-    final mergedTarget = tgt.copyWith(
-      authUid: tgt.authUid ?? src.authUid,
-      name: _buildUniqueName(tgt.name, excludePlayerId: targetId),
-    );
-
-    state = state.copyWith(
-      players: state.players
-          .where((p) => p.id != sourceId)
-          .map((p) => p.id == targetId ? mergedTarget : p)
-          .toList(),
-      gameHistory: [
-        ...state.gameHistory,
-        '[HOST] Merged ${src.name} into ${mergedTarget.name}',
-      ],
-    );
+    state = GamePlayerController.mergePlayers(state, sourceId: sourceId, targetId: targetId);
   }
 
   void assignRole(String playerId, String roleId) {
-    final role = roleCatalogMap[roleId] ?? roleCatalog.first;
-    state = state.copyWith(
-      players: state.players
-          .map(
-            (p) => p.id == playerId
-                ? p.copyWith(
-                    role: role,
-                    alliance: role.alliance,
-                    lives: role.id == RoleIds.allyCat ? 9 : p.lives,
-                  )
-                : p,
-          )
-          .toList(),
-    );
+    state = GamePlayerController.assignRole(state, playerId, roleId);
   }
 
   // --- GOD MODE ACTIONS ---
 
   void forceKillPlayer(String id, {String reason = 'host_kick'}) {
-    final p = state.players.firstWhere(
-      (p) => p.id == id,
-      orElse: () => throw Exception('Player not found'),
-    );
-    if (!p.isAlive) return;
-
-    var updatedPlayers = state.players
-        .map(
-          (p) => p.id == id
-              ? p.copyWith(
-                  isAlive: false,
-                  deathReason: reason,
-                  deathDay: state.dayCount,
-                )
-              : p,
-        )
-        .toList();
-
-    state = state.copyWith(
-      players: updatedPlayers,
-      gameHistory: [...state.gameHistory, '${p.name} was removed by the host.'],
-      eventLog: [
-        ...state.eventLog,
-        GameEvent.death(playerId: id, reason: reason, day: state.dayCount),
-      ],
-    );
-
-    _handleDeathTriggers(id);
-    _checkAndResolveWinCondition(state.players);
+    state = GameAdminController.forceKillPlayer(state, id, reason: reason);
     _persist();
   }
 
   void _handleDeathTriggers(String deadPlayerId) {
-    final deadPlayer = state.players.firstWhere((p) => p.id == deadPlayerId);
-    var updatedPlayers = List<Player>.from(state.players);
-    final history = <String>[];
-    final events = <GameEvent>[];
-
-    // 1. Clinger Trigger: If partner dies, Clinger dies.
-    for (final p in updatedPlayers
-        .where((p) => p.isAlive && p.role.id == RoleIds.clinger)) {
-      if (p.clingerPartnerId == deadPlayerId) {
-        updatedPlayers = updatedPlayers
-            .map(
-              (pl) => pl.id == p.id
-                  ? pl.copyWith(
-                      isAlive: false,
-                      deathDay: state.dayCount,
-                      deathReason: 'clinger_bond',
-                    )
-                  : pl,
-            )
-            .toList();
-        history.add('The Clinger ${p.name} died with their partner.');
-        events.add(
-          GameEvent.death(
-            playerId: p.id,
-            reason: 'clinger_bond',
-            day: state.dayCount,
-          ),
-        );
-      }
-    }
-
-    // 2. Creep Trigger: If target dies, Creep inherits role.
-    for (final p in updatedPlayers
-        .where((p) => p.isAlive && p.role.id == RoleIds.creep)) {
-      if (p.creepTargetId == deadPlayerId) {
-        updatedPlayers = updatedPlayers
-            .map(
-              (pl) => pl.id == p.id
-                  ? pl.copyWith(
-                      role: deadPlayer.role,
-                      alliance: deadPlayer.alliance,
-                      creepTargetId: null,
-                    )
-                  : pl,
-            )
-            .toList();
-        history.add(
-          'The Creep ${p.name} inherited the role of ${deadPlayer.role.name}.',
-        );
-      }
-    }
-
-    if (history.isNotEmpty) {
-      state = state.copyWith(
-        players: updatedPlayers,
-        gameHistory: [...state.gameHistory, ...history],
-        eventLog: [...state.eventLog, ...events],
-      );
-      // Recursively handle triggers for newly dead players
-      for (final h in history) {
-        if (h.contains('died')) {
-          // This is a simplified check, ideally we'd track who died in this pass
-        }
-      }
-    }
+    state = GameResolutionLogic.handleDeathTriggers(state, deadPlayerId);
   }
 
   void revivePlayer(String id) {
-    final p = state.players.firstWhere((p) => p.id == id);
-    if (p.isAlive) return;
-    state = state.copyWith(
-      players: state.players
-          .map(
-            (p) => p.id == id
-                ? p.copyWith(isAlive: true, deathReason: null, deathDay: null)
-                : p,
-          )
-          .toList(),
-      gameHistory: [...state.gameHistory, '[HOST] Revived ${p.name}'],
-    );
+    state = GameAdminController.revivePlayer(state, id);
     _persist();
   }
 
   void togglePlayerMute(String id, bool muted) {
-    state = state.copyWith(
-      players: state.players
-          .map((p) => p.id == id ? p.copyWith(isMuted: muted) : p)
-          .toList(),
-      gameHistory: [
-        ...state.gameHistory,
-        '[HOST] ${muted ? "Muted" : "Unmuted"} ${state.players.firstWhere((p) => p.id == id).name}',
-      ],
-    );
+    state = GameAdminController.togglePlayerMute(state, id, muted);
     _persist();
   }
 
   void setSinBin(String id, bool binned) {
-    state = state.copyWith(
-      players: state.players
-          .map((p) => p.id == id ? p.copyWith(isSinBinned: binned) : p)
-          .toList(),
-      gameHistory: [
-        ...state.gameHistory,
-        '[HOST] ${binned ? "Sin binned" : "Released"} ${state.players.firstWhere((p) => p.id == id).name}',
-      ],
-    );
+    state = GameAdminController.setSinBin(state, id, binned);
     _persist();
   }
 
   void setShadowBan(String id, bool banned) {
-    state = state.copyWith(
-      players: state.players
-          .map((p) => p.id == id ? p.copyWith(isShadowBanned: banned) : p)
-          .toList(),
-      gameHistory: [
-        ...state.gameHistory,
-        '[HOST] ${banned ? "Shadow banned" : "Unbanned"} ${state.players.firstWhere((p) => p.id == id).name}',
-      ],
-    );
+    state = GameAdminController.setShadowBan(state, id, banned);
     _persist();
   }
 
   void kickPlayer(String id, String reason) {
-    forceKillPlayer(id);
-    state = state.copyWith(
-      gameHistory: [
-        ...state.gameHistory,
-        '[HOST] Kicked player - Reason: $reason',
-      ],
-    );
+    state = GameAdminController.kickPlayer(state, id, reason);
     _persist();
+  }
+
+  void toggleEyes(bool open) {
+    state = GameAdminController.toggleEyes(state, open);
   }
 
   // --- GAME FLOW ---
@@ -2127,26 +1646,7 @@ class Game extends _$Game {
   void _checkAndResolveWinCondition(List<Player> players) {
     final win = GameResolutionLogic.checkWinCondition(players);
     if (win != null) {
-      final winningReport = List<String>.from(win.report);
-      if (win.winner != Team.neutral) {
-        final livingManagers = players.where(
-          (p) => p.isAlive && p.role.id == RoleIds.clubManager,
-        );
-        if (livingManagers.isNotEmpty) {
-          final managerNames = livingManagers.map((p) => p.name).join(', ');
-          winningReport.add(
-            'Club Manager survived and wins with the house: $managerNames.',
-          );
-        }
-      }
-
-      state = state.copyWith(
-        phase: GamePhase.endGame,
-        winner: win.winner,
-        endGameReport: winningReport,
-        scriptQueue: const [],
-        scriptIndex: 0,
-      );
+      state = GameResolutionLogic.applyWinResult(state, win);
       archiveGame();
     }
   }
