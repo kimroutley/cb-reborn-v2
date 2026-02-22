@@ -117,6 +117,11 @@ void main() {
           return null;
         },
       );
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null);
+        log.clear();
+      });
 
       addTearDown(() {
         tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
