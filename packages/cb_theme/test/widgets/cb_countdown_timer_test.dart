@@ -21,7 +21,8 @@ void main() {
 
       // Verify initial color (primary)
       final container = tester.widget<Container>(
-          find.byKey(const Key('cb_countdown_timer_container')));
+        find.byKey(const Key('cb_countdown_timer_container')),
+      );
       final decoration = container.decoration as BoxDecoration;
       final border = decoration.border as Border;
 
@@ -65,7 +66,8 @@ void main() {
       // Initial state > 30s
       expect(find.text('TIME REMAINING'), findsOneWidget);
       var container = tester.widget<Container>(
-          find.byKey(const Key('cb_countdown_timer_container')));
+        find.byKey(const Key('cb_countdown_timer_container')),
+      );
       var decoration = container.decoration as BoxDecoration;
       var border = decoration.border as Border;
       expect(border.top.color, theme.colorScheme.primary);
@@ -76,7 +78,8 @@ void main() {
       // Critical state <= 30s
       expect(find.text('TIME RUNNING OUT'), findsOneWidget);
       container = tester.widget<Container>(
-          find.byKey(const Key('cb_countdown_timer_container')));
+        find.byKey(const Key('cb_countdown_timer_container')),
+      );
       decoration = container.decoration as BoxDecoration;
       border = decoration.border as Border;
       expect(border.top.color, theme.colorScheme.error);
@@ -120,6 +123,13 @@ void main() {
         log.clear();
       });
 
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        );
+      });
+
       // Start with 6 seconds
       await tester.pumpWidget(
         const MaterialApp(
@@ -160,7 +170,8 @@ void main() {
       );
 
       final container = tester.widget<Container>(
-          find.byKey(const Key('cb_countdown_timer_container')));
+        find.byKey(const Key('cb_countdown_timer_container')),
+      );
       final decoration = container.decoration as BoxDecoration;
       final border = decoration.border as Border;
       expect(border.top.color, customColor);
