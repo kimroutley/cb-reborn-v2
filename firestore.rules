@@ -53,7 +53,8 @@ service cloud.firestore {
       // ── Join Requests Subcollection ──
       match /joins/{joinId} {
         // Anyone can create a join request with valid data
-        allow create: if isValidJoinRequest() && isAuthenticated();
+        allow create: if isValidJoinRequest() && isAuthenticated()
+          && get(/databases/$(database)/documents/games/$(joinCode)).data.phase == 'lobby';
         
         // Host can read and delete join requests
         allow read, delete: if isAuthenticated();
