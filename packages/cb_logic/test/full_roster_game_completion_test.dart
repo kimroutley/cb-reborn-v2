@@ -205,7 +205,9 @@ void main() {
       game.startGame();
 
       // Advance to Night 1
-      while(container.read(gameProvider).phase != GamePhase.night) { game.advancePhase(); }
+      while(container.read(gameProvider).phase != GamePhase.night) {
+        game.advancePhase();
+      }
 
       // Whore selects Scapegoat
       final whoreStep = 'whore_act_${whore.id}_1';
@@ -264,7 +266,9 @@ void main() {
       game.startGame();
 
       // Setup -> Night 1
-      while(container.read(gameProvider).phase != GamePhase.night) { game.advancePhase(); }
+      while(container.read(gameProvider).phase != GamePhase.night) {
+        game.advancePhase();
+      }
 
       // Dealer kills Second Wind
       final dealerStep = 'dealer_act_${dealer.id}_1';
