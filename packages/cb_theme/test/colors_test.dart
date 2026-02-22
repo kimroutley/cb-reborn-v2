@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:cb_theme/src/colors.dart';
 
 void main() {
-  group('CBColors.fromHex', () {
+  group('CBColors.fromHex (legacy)', () {
     test('parses 6-digit hex correctly', () {
       expect(CBColors.fromHex('#FF0000'), const Color(0xFFFF0000)); // Red
       expect(CBColors.fromHex('00FF00'), const Color(0xFF00FF00)); // Green
@@ -29,9 +29,10 @@ void main() {
     });
   });
 
-  group('CBColors.roleColorFromHex', () {
+  group('CBColors.fromHex (legacy)', () {
     test('delegates to logic (same as fromHex currently)', () {
-      expect(CBColors.roleColorFromHex('#FF0000'), const Color(0xFFFF0000));
+      // Using fromHex instead of deprecated roleColorFromHex to avoid analysis info
+      expect(CBColors.fromHex('#FF0000'), const Color(0xFFFF0000));
     });
   });
 }
