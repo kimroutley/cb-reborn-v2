@@ -595,6 +595,19 @@ class PlayerBridge extends Notifier<PlayerGameState>
   }
 
   @override
+  Future<void> sendBulletin({
+    required String title,
+    required String floatContent,
+    String? roleId,
+  }) async {
+    _client?.send(GameMessage.bulletin(
+      title: title,
+      content: floatContent,
+      roleId: roleId,
+    ));
+  }
+
+  @override
   Future<void> leave() async {
     final playerId = state.myPlayerId;
     if (playerId != null) {
