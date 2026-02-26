@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'analytics_service.dart';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:cb_models/cb_models.dart';
@@ -58,7 +59,8 @@ class Game extends _$Game {
       if (saved == null) return false;
       final (gameState, _) = saved;
       state = gameState;
-      _gameStartedAt = DateTime.now(); // approximate
+      _gameStartedAt = DateTime.now();
+      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name); // approximate
       return true;
     } catch (_) {
       return false;
@@ -132,6 +134,7 @@ class Game extends _$Game {
       final (gameState, _) = saved;
       state = gameState;
       _gameStartedAt = DateTime.now();
+      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
       return true;
     } catch (_) {
       return false;
@@ -195,6 +198,7 @@ class Game extends _$Game {
       );
 
       _gameStartedAt = DateTime.now();
+      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
       _persist();
       return true;
     } catch (_) {
@@ -1383,6 +1387,7 @@ class Game extends _$Game {
       sessionController.clearRoleConfirmations();
       sessionController.setForceStartOverride(false);
       _gameStartedAt = DateTime.now();
+      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
       _persist();
       return true;
     }
@@ -1403,6 +1408,7 @@ class Game extends _$Game {
     sessionController.clearRoleConfirmations();
     sessionController.setForceStartOverride(false);
     _gameStartedAt = DateTime.now();
+      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
     _persist();
     return true;
   }
@@ -1651,6 +1657,7 @@ class Game extends _$Game {
   void _checkAndResolveWinCondition(List<Player> players) {
     final win = GameResolutionLogic.checkWinCondition(players);
     if (win != null) {
+      AnalyticsService.logGameCompleted(winner: win.winner.name, dayCount: state.dayCount, duration: DateTime.now().difference(_gameStartedAt ?? DateTime.now()));
       state = GameResolutionLogic.applyWinResult(state, win);
       archiveGame();
     }

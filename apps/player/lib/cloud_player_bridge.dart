@@ -23,6 +23,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   String? _pendingClaimName;
   String? _cachedJoinCode;
   String? _cachedPlayerName;
+  Map<String, dynamic>? _cachedPrivateData;
   bool _isClaimingInProgress = false;
   // Removed String? _claimedPlayerId; as it's now in PlayerGameState.myPlayerId
 
@@ -312,13 +313,18 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       myPlayerSnapshot: updatedMyPlayerSnapshot, // Set updated snapshot
     );
 
-    _attemptAutoClaim(state);
-    _persistSessionCache();
+    if (_cachedPrivateData != null) {
+      _applyPrivateState(_cachedPrivateData!);
+    } else {
+      _attemptAutoClaim(state);
+      _persistSessionCache();
+    }
   }
 
   /// Merge private state (role, alliance, etc.) into the existing
   /// player snapshot for the claimed player.
   void _applyPrivateState(Map<String, dynamic> data) {
+    _cachedPrivateData = data;
     if (state.myPlayerId == null) return;
 
     final updatedPlayers = state.players.map((p) {
@@ -348,8 +354,16 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         whoreDeflectionUsed:
             data['whoreDeflectionUsed'] as bool? ?? p.whoreDeflectionUsed,
         tabooNames: _toStringList(data['tabooNames']),
+        currentBetTargetId: data['currentBetTargetId'] as String? ?? p.currentBetTargetId,
       );
     }).toList();
+
+    // Merge dead pool bet
+    final deadPoolBets = Map<String, String>.from(state.deadPoolBets);
+    final myDeadPoolTarget = data['deadPoolTargetId'] as String?;
+    if (myDeadPoolTarget != null) {
+      deadPoolBets[state.myPlayerId!] = myDeadPoolTarget;
+    }
 
     // Also merge private messages
     final privateMessages = <String, List<String>>{...state.privateMessages};
@@ -378,6 +392,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
     state = state.copyWith(
       players: updatedPlayers,
+      deadPoolBets: deadPoolBets,
       privateMessages: privateMessages,
       ghostChatMessages: ghostMessages,
       myPlayerSnapshot: updatedMyPlayerSnapshot,

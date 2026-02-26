@@ -4,6 +4,8 @@ import '../widgets.dart'; // Import to get CBPanel, CBSectionHeader, CBAllianceG
 
 class CBIndexedHandbook extends StatefulWidget {
   final GameState? gameState;
+  final int activeCategoryIndex;
+  final ValueChanged<int>? onCategoryChanged;
 
   final int activeCategoryIndex;
   final ValueChanged<int>? onCategoryChanged;
@@ -166,6 +168,9 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
     if (widget.activeCategoryIndex != index) {
         widget.onCategoryChanged?.call(index);
     }
+
+    // Notify parent
+    widget.onCategoryChanged?.call(index);
 
     // Approximate height-based scrolling
     double offset = 0;
