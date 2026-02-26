@@ -4,9 +4,7 @@ import 'package:cb_player/widgets/profile_action_buttons.dart';
 
 void main() {
   Widget wrap(Widget child) {
-    return MaterialApp(
-      home: Scaffold(body: child),
-    );
+    return MaterialApp(home: Scaffold(body: child));
   }
 
   testWidgets('save button is disabled when canSave is false', (tester) async {

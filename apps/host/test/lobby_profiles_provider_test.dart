@@ -16,7 +16,9 @@ class MockFirestore extends Fake implements FirebaseFirestore {
   @override
   CollectionReference<Map<String, dynamic>> collection(String collectionPath) {
     return collections.putIfAbsent(
-        collectionPath, () => MockCollectionReference(collectionPath));
+      collectionPath,
+      () => MockCollectionReference(collectionPath),
+    );
   }
 }
 
@@ -43,11 +45,7 @@ class MockCollectionReference extends Fake
     Iterable<Object?>? whereNotIn,
     bool? isNull,
   }) {
-    final query = MockQuery(
-      this,
-      field: field,
-      whereIn: whereIn,
-    );
+    final query = MockQuery(this, field: field, whereIn: whereIn);
     queries.add(query);
     return query;
   }
@@ -148,9 +146,7 @@ void main() {
 
     mockFirestore = MockFirestore();
     container = ProviderContainer(
-      overrides: [
-        firestoreProvider.overrideWithValue(mockFirestore),
-      ],
+      overrides: [firestoreProvider.overrideWithValue(mockFirestore)],
     );
   });
 
@@ -234,7 +230,10 @@ void main() {
     expect(profiles['user_00']?['username'], 'User Zero');
     expect(profiles['user_05']?['username'], 'User Five');
     expect(profiles['user_10']?['username'], 'User Ten');
-    expect(profiles['user_01'], isNull); // Was requested but not returned in snapshot
+    expect(
+      profiles['user_01'],
+      isNull,
+    ); // Was requested but not returned in snapshot
 
     profileStream.close();
   });
@@ -258,7 +257,10 @@ void main() {
     ]);
     await Future.delayed(const Duration(milliseconds: 10));
 
-    expect(container.read(lobbyProfilesProvider).value!['u1']!['username'], 'Initial');
+    expect(
+      container.read(lobbyProfilesProvider).value!['u1']!['username'],
+      'Initial',
+    );
 
     // Update emit
     query.emit([
@@ -266,7 +268,10 @@ void main() {
     ]);
     await Future.delayed(const Duration(milliseconds: 10));
 
-    expect(container.read(lobbyProfilesProvider).value!['u1']!['username'], 'Updated');
+    expect(
+      container.read(lobbyProfilesProvider).value!['u1']!['username'],
+      'Updated',
+    );
 
     profileStream.close();
   });

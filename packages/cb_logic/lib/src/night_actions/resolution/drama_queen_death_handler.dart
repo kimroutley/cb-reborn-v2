@@ -6,7 +6,7 @@ import 'default_death_handler.dart';
 
 class DramaQueenDeathHandler implements DeathHandler {
   DramaQueenDeathHandler({DefaultDeathHandler? defaultDeathHandler})
-      : _defaultDeathHandler = defaultDeathHandler ?? DefaultDeathHandler();
+    : _defaultDeathHandler = defaultDeathHandler ?? DefaultDeathHandler();
 
   final DefaultDeathHandler _defaultDeathHandler;
 

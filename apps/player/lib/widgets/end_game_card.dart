@@ -76,9 +76,7 @@ class EndGameCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '$winnerName WIN',
-            style: textTheme.displaySmall!.copyWith(
-              color: scheme.onSurface,
-            ),
+            style: textTheme.displaySmall!.copyWith(color: scheme.onSurface),
           ),
           const SizedBox(height: 16),
           if (report.isNotEmpty) ...[

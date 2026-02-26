@@ -27,8 +27,12 @@ class HostAuthScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildUIForState(BuildContext context, WidgetRef ref,
-      AuthState authState, ColorScheme scheme) {
+  Widget _buildUIForState(
+    BuildContext context,
+    WidgetRef ref,
+    AuthState authState,
+    ColorScheme scheme,
+  ) {
     switch (authState.status) {
       case AuthStatus.authenticated:
         if (Navigator.of(context).canPop()) {
@@ -85,8 +89,9 @@ class _AuthSplash extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final notifier = ref.read(authProvider.notifier);
     final currentLink = Uri.base.toString();
-    final isSignInLink =
-        FirebaseAuth.instance.isSignInWithEmailLink(currentLink);
+    final isSignInLink = FirebaseAuth.instance.isSignInWithEmailLink(
+      currentLink,
+    );
 
     return Center(
       child: SingleChildScrollView(
@@ -109,7 +114,9 @@ class _AuthSplash extends ConsumerWidget {
                     ],
                   ),
                   border: Border.all(
-                      color: scheme.primary.withValues(alpha: 0.5), width: 2),
+                    color: scheme.primary.withValues(alpha: 0.5),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: scheme.primary.withValues(alpha: 0.2),
@@ -155,13 +162,16 @@ class _AuthSplash extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: scheme.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(99),
                       border: Border.all(
-                          color: scheme.primary.withValues(alpha: 0.3)),
+                        color: scheme.primary.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Text(
                       'ARCHITECT PROTOCOL',
@@ -215,9 +225,10 @@ class _AuthSplash extends ConsumerWidget {
                     Row(
                       children: [
                         Expanded(
-                            child: Divider(
-                                color:
-                                    scheme.onSurface.withValues(alpha: 0.1))),
+                          child: Divider(
+                            color: scheme.onSurface.withValues(alpha: 0.1),
+                          ),
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
@@ -230,9 +241,10 @@ class _AuthSplash extends ConsumerWidget {
                           ),
                         ),
                         Expanded(
-                            child: Divider(
-                                color:
-                                    scheme.onSurface.withValues(alpha: 0.1))),
+                          child: Divider(
+                            color: scheme.onSurface.withValues(alpha: 0.1),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -243,9 +255,11 @@ class _AuthSplash extends ConsumerWidget {
                       hintText: 'REGISTERED EMAIL',
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.alternate_email_rounded,
-                            size: 20,
-                            color: scheme.primary.withValues(alpha: 0.5)),
+                        prefixIcon: Icon(
+                          Icons.alternate_email_rounded,
+                          size: 20,
+                          color: scheme.primary.withValues(alpha: 0.5),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -272,12 +286,16 @@ class _AuthSplash extends ConsumerWidget {
                           color: scheme.error.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: scheme.error.withValues(alpha: 0.3)),
+                            color: scheme.error.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.gpp_bad_rounded,
-                                color: scheme.error, size: 24),
+                            Icon(
+                              Icons.gpp_bad_rounded,
+                              color: scheme.error,
+                              size: 24,
+                            ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Text(
@@ -314,7 +332,10 @@ class _AuthSplash extends ConsumerWidget {
   }
 
   Widget _buildGoogleButton(
-      BuildContext context, AuthNotifier notifier, ColorScheme scheme) {
+    BuildContext context,
+    AuthNotifier notifier,
+    ColorScheme scheme,
+  ) {
     return InkWell(
       onTap: () {
         HapticService.heavy();
@@ -342,9 +363,10 @@ class _AuthSplash extends ConsumerWidget {
               'assets/images/google_logo.png',
               height: 24,
               errorBuilder: (context, error, stackTrace) => Icon(
-                  Icons.account_circle_outlined,
-                  color: scheme.primary,
-                  size: 24),
+                Icons.account_circle_outlined,
+                color: scheme.primary,
+                size: 24,
+              ),
             ),
             const SizedBox(width: 16),
             Text(
@@ -383,7 +405,9 @@ class _LinkSentMessage extends ConsumerWidget {
                 shape: BoxShape.circle,
                 color: scheme.tertiary.withValues(alpha: 0.1),
                 border: Border.all(
-                    color: scheme.tertiary.withValues(alpha: 0.5), width: 2),
+                  color: scheme.tertiary.withValues(alpha: 0.5),
+                  width: 2,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: scheme.tertiary.withValues(alpha: 0.2),
@@ -391,8 +415,11 @@ class _LinkSentMessage extends ConsumerWidget {
                   ),
                 ],
               ),
-              child: Icon(Icons.mark_email_read_rounded,
-                  color: scheme.tertiary, size: 64),
+              child: Icon(
+                Icons.mark_email_read_rounded,
+                color: scheme.tertiary,
+                size: 64,
+              ),
             ),
             const SizedBox(height: 48),
             Text(
@@ -416,7 +443,7 @@ class _LinkSentMessage extends ConsumerWidget {
             CBGhostButton(
               label: 'USE DIFFERENT CREDENTIALS',
               onPressed: () => notifier.reset(),
-            )
+            ),
           ],
         ),
       ),
@@ -463,8 +490,11 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
           children: [
             Hero(
               tag: 'auth_icon',
-              child:
-                  Icon(Icons.badge_rounded, color: scheme.secondary, size: 100),
+              child: Icon(
+                Icons.badge_rounded,
+                color: scheme.secondary,
+                size: 100,
+              ),
             ),
             const SizedBox(height: 48),
             Text(
@@ -495,11 +525,14 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                     controller: notifier.usernameController,
                     hintText: 'MANAGER NAME',
                     autofocus: true,
-                    textStyle: textTheme.headlineSmall!
-                        .copyWith(color: scheme.onSurface),
+                    textStyle: textTheme.headlineSmall!.copyWith(
+                      color: scheme.onSurface,
+                    ),
                     decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.person_pin_rounded,
-                          color: scheme.secondary),
+                      prefixIcon: Icon(
+                        Icons.person_pin_rounded,
+                        color: scheme.secondary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -507,8 +540,10 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                     controller: _publicPlayerIdController,
                     hintText: 'PUBLIC PLAYER ID (OPTIONAL)',
                     decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.alternate_email_rounded,
-                          color: scheme.secondary),
+                      prefixIcon: Icon(
+                        Icons.alternate_email_rounded,
+                        color: scheme.secondary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -524,14 +559,17 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: avatarChoices.map((emoji) {
-                      final selected = emoji == _selectedAvatar;
-                      return _AvatarEmojiChip(
-                        emoji: emoji,
-                        selected: selected,
-                        onTap: () => setState(() => _selectedAvatar = emoji),
-                      );
-                    }).toList(growable: false),
+                    children: avatarChoices
+                        .map((emoji) {
+                          final selected = emoji == _selectedAvatar;
+                          return _AvatarEmojiChip(
+                            emoji: emoji,
+                            selected: selected,
+                            onTap: () =>
+                                setState(() => _selectedAvatar = emoji),
+                          );
+                        })
+                        .toList(growable: false),
                   ),
                   const SizedBox(height: 32),
                   CBPrimaryButton(
@@ -600,10 +638,7 @@ class _AvatarEmojiChip extends StatelessWidget {
                 : scheme.outline.withValues(alpha: 0.35),
           ),
         ),
-        child: Text(
-          emoji,
-          style: const TextStyle(fontSize: 18),
-        ),
+        child: Text(emoji, style: const TextStyle(fontSize: 18)),
       ),
     );
   }

@@ -21,9 +21,7 @@ GamesNightRecord _fakeSession({
     isActive: false,
     gameIds: List.generate(gameCount, (index) => 'game_$index'),
     playerNames: List.generate(10, (index) => 'Player $index'),
-    playerGamesCount: {
-      for (var i = 0; i < 10; i++) 'Player $i': gameCount,
-    },
+    playerGamesCount: {for (var i = 0; i < 10; i++) 'Player $i': gameCount},
   );
 }
 
@@ -75,7 +73,9 @@ void main() {
     final sessions = await service.loadAllSessions();
     stopwatch.stop();
 
-    print('Loaded ${sessions.length} sessions in ${stopwatch.elapsedMilliseconds}ms');
+    print(
+      'Loaded ${sessions.length} sessions in ${stopwatch.elapsedMilliseconds}ms',
+    );
 
     expect(sessions.length, recordCount);
   });

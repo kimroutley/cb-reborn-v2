@@ -14,10 +14,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
     final launchUri = Uri.base;
-    final hasJoinPayload = launchUri.queryParameters.containsKey('code') &&
+    final hasJoinPayload =
+        launchUri.queryParameters.containsKey('code') &&
         (launchUri.queryParameters.containsKey('mode') ||
             launchUri.path.contains('join'));
     final initialJoinUrl = hasJoinPayload ? launchUri.toString() : null;
@@ -35,45 +37,52 @@ Future<void> main() async {
   } catch (e) {
     final scheme = CBTheme.buildColorScheme(CBTheme.defaultSeedColor);
     final theme = CBTheme.buildTheme(scheme);
-    runApp(MaterialApp(
-      theme: theme,
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: CBNeonBackground(
-          child: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: CBInsets.panel,
-                child: CBPanel(
-                  borderColor: scheme.error,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.error_outline, color: scheme.error, size: 48),
-                      const SizedBox(height: CBSpace.x4),
-                      Text(
-                        'Club Blackout Failed to Load',
-                        style:
-                            CBTypography.h2.copyWith(color: scheme.onSurface),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: CBSpace.x2),
-                      Text(
-                        'Error: $e',
-                        style: CBTypography.body.copyWith(
+    runApp(
+      MaterialApp(
+        theme: theme,
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          body: CBNeonBackground(
+            child: SafeArea(
+              child: Center(
+                child: Padding(
+                  padding: CBInsets.panel,
+                  child: CBPanel(
+                    borderColor: scheme.error,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
                           color: scheme.error,
+                          size: 48,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: CBSpace.x6),
-                      Text(
-                        "Troubleshooting:\n1. Ensure Google authentication is enabled in Firebase Console.\n2. Verify Firestore rules allow user_profiles/{uid} create/read.",
-                        style: CBTypography.body.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.7),
+                        const SizedBox(height: CBSpace.x4),
+                        Text(
+                          'Club Blackout Failed to Load',
+                          style: CBTypography.h2.copyWith(
+                            color: scheme.onSurface,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                        const SizedBox(height: CBSpace.x2),
+                        Text(
+                          'Error: $e',
+                          style: CBTypography.body.copyWith(
+                            color: scheme.error,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: CBSpace.x6),
+                        Text(
+                          "Troubleshooting:\n1. Ensure Google authentication is enabled in Firebase Console.\n2. Verify Firestore rules allow user_profiles/{uid} create/read.",
+                          style: CBTypography.body.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.7),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -81,7 +90,7 @@ Future<void> main() async {
           ),
         ),
       ),
-    ));
+    );
   }
 }
 
@@ -100,7 +109,8 @@ class PlayerApp extends ConsumerWidget {
       future: _seedFuture,
       builder: (context, snapshot) => DynamicColorBuilder(
         builder: (lightDynamic, darkDynamic) {
-          final seed = snapshot.data ??
+          final seed =
+              snapshot.data ??
               darkDynamic?.primary ??
               lightDynamic?.primary ??
               CBTheme.defaultSeedColor;

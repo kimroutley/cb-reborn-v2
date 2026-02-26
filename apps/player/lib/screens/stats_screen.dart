@@ -78,8 +78,11 @@ class StatsScreen extends ConsumerWidget {
                 },
                 child: Row(
                   children: [
-                    Icon(Icons.emoji_events_rounded,
-                        color: scheme.primary, size: 32),
+                    Icon(
+                      Icons.emoji_events_rounded,
+                      color: scheme.primary,
+                      size: 32,
+                    ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -114,7 +117,11 @@ class StatsScreen extends ConsumerWidget {
   }
 
   Widget _buildStatRow(
-      String label, String value, Color color, BuildContext context) {
+    String label,
+    String value,
+    Color color,
+    BuildContext context,
+  ) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Row(

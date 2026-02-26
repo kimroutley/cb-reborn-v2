@@ -78,9 +78,11 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
                   Row(
                     children: [
-                      Icon(Icons.contrast_rounded,
-                          color: scheme.onSurface.withValues(alpha: 0.7),
-                          size: 20),
+                      Icon(
+                        Icons.contrast_rounded,
+                        color: scheme.onSurface.withValues(alpha: 0.7),
+                        size: 20,
+                      ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
@@ -88,9 +90,7 @@ class SettingsScreen extends ConsumerWidget {
                           children: [
                             Text(
                               'HIGH CONTRAST MODE',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge!
+                              style: Theme.of(context).textTheme.labelLarge!
                                   .copyWith(
                                     color: scheme.onSurface,
                                     fontWeight: FontWeight.bold,
@@ -98,12 +98,11 @@ class SettingsScreen extends ConsumerWidget {
                             ),
                             Text(
                               'COMING SOON',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall!
+                              style: Theme.of(context).textTheme.bodySmall!
                                   .copyWith(
-                                    color:
-                                        scheme.onSurface.withValues(alpha: 0.4),
+                                    color: scheme.onSurface.withValues(
+                                      alpha: 0.4,
+                                    ),
                                     fontStyle: FontStyle.italic,
                                   ),
                             ),
@@ -173,11 +172,7 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
         ),
-        CBSwitch(
-          value: value,
-          onChanged: onChanged,
-          color: color,
-        ),
+        CBSwitch(value: value, onChanged: onChanged, color: color),
       ],
     );
   }

@@ -8,20 +8,32 @@ void main() {
       const statsZero = PlayerStats(playerId: '1', gamesPlayed: 0, gamesWon: 0);
       expect(statsZero.winRate, 0.0);
 
-      const statsHalf =
-          PlayerStats(playerId: '1', gamesPlayed: 10, gamesWon: 5);
+      const statsHalf = PlayerStats(
+        playerId: '1',
+        gamesPlayed: 10,
+        gamesWon: 5,
+      );
       expect(statsHalf.winRate, 50.0);
 
-      const statsFull =
-          PlayerStats(playerId: '1', gamesPlayed: 10, gamesWon: 10);
+      const statsFull = PlayerStats(
+        playerId: '1',
+        gamesPlayed: 10,
+        gamesWon: 10,
+      );
       expect(statsFull.winRate, 100.0);
 
-      const statsNone =
-          PlayerStats(playerId: '1', gamesPlayed: 10, gamesWon: 0);
+      const statsNone = PlayerStats(
+        playerId: '1',
+        gamesPlayed: 10,
+        gamesWon: 0,
+      );
       expect(statsNone.winRate, 0.0);
 
-      const statsOneThird =
-          PlayerStats(playerId: '1', gamesPlayed: 3, gamesWon: 1);
+      const statsOneThird = PlayerStats(
+        playerId: '1',
+        gamesPlayed: 3,
+        gamesWon: 1,
+      );
       expect(statsOneThird.winRate, closeTo(33.33, 0.01));
     });
 
@@ -42,10 +54,7 @@ void main() {
     test('favoriteRole returns correct role name for most played role', () {
       final stats = PlayerStats(
         playerId: '1',
-        rolesPlayed: {
-          RoleIds.partyAnimal: 2,
-          RoleIds.dealer: 5,
-        },
+        rolesPlayed: {RoleIds.partyAnimal: 2, RoleIds.dealer: 5},
       );
       expect(stats.favoriteRole, 'The Dealer');
     });
@@ -56,20 +65,14 @@ void main() {
       // Map literal preserves insertion order.
       final stats = PlayerStats(
         playerId: '1',
-        rolesPlayed: {
-          RoleIds.partyAnimal: 5,
-          RoleIds.dealer: 5,
-        },
+        rolesPlayed: {RoleIds.partyAnimal: 5, RoleIds.dealer: 5},
       );
       // 'dealer' is inserted second, so it should be the favorite.
       expect(stats.favoriteRole, 'The Dealer');
 
       final stats2 = PlayerStats(
         playerId: '1',
-        rolesPlayed: {
-          RoleIds.dealer: 5,
-          RoleIds.partyAnimal: 5,
-        },
+        rolesPlayed: {RoleIds.dealer: 5, RoleIds.partyAnimal: 5},
       );
       // 'party_animal' is inserted second, so it should be the favorite.
       expect(stats2.favoriteRole, 'The Party Animal');
@@ -92,10 +95,7 @@ void main() {
         rolesPlayed: {RoleIds.partyAnimal: 5},
       );
 
-      final updated = stats.copyWith(
-        gamesPlayed: 6,
-        gamesWon: 3,
-      );
+      final updated = stats.copyWith(gamesPlayed: 6, gamesWon: 3);
 
       expect(updated.playerId, '1');
       expect(updated.gamesPlayed, 6);

@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('drawer asks to discard unsaved profile changes', (tester) async {
     final lobbyLabel = hostDestinations
-      .firstWhere((d) => d.destination == HostDestination.lobby)
+        .firstWhere((d) => d.destination == HostDestination.lobby)
         .label;
 
     final container = ProviderContainer();
@@ -23,11 +23,7 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(
-          home: Scaffold(
-            body: CustomDrawer(),
-          ),
-        ),
+        child: const MaterialApp(home: Scaffold(body: CustomDrawer())),
       ),
     );
 

@@ -64,7 +64,9 @@ class EffectsOverlay extends ConsumerWidget {
   }
 
   Widget _buildToastEffect(
-      BuildContext context, Map<String, dynamic>? payload) {
+    BuildContext context,
+    Map<String, dynamic>? payload,
+  ) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
@@ -82,7 +84,9 @@ class EffectsOverlay extends ConsumerWidget {
                   filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 20),
+                      vertical: 12,
+                      horizontal: 20,
+                    ),
                     decoration: BoxDecoration(
                       color: scheme.surfaceContainerLow.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(16),

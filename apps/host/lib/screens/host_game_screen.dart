@@ -58,10 +58,9 @@ class HostGameScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                     child: CBGlassTile(
-                      borderColor: Theme.of(context)
-                          .colorScheme
-                          .secondary
-                          .withValues(alpha: 0.35),
+                      borderColor: Theme.of(
+                        context,
+                      ).colorScheme.secondary.withValues(alpha: 0.35),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 10,
@@ -77,9 +76,7 @@ class HostGameScreen extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               'Game Control is active. Start game from Lobby when roster is ready.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
@@ -91,8 +88,10 @@ class HostGameScreen extends ConsumerWidget {
                           OutlinedButton.icon(
                             onPressed: () =>
                                 nav.setDestination(HostDestination.lobby),
-                            icon: const Icon(Icons.rocket_launch_rounded,
-                                size: 16),
+                            icon: const Icon(
+                              Icons.rocket_launch_rounded,
+                              size: 16,
+                            ),
                             label: const Text('Lobby'),
                           ),
                         ],
@@ -100,10 +99,7 @@ class HostGameScreen extends ConsumerWidget {
                     ),
                   ),
                 Expanded(
-                  child: LogsView(
-                    gameState: gameState,
-                    onOpenCommand: () {},
-                  ),
+                  child: LogsView(gameState: gameState, onOpenCommand: () {}),
                 ),
                 BottomControls(
                   isLobby: false,
@@ -117,7 +113,7 @@ class HostGameScreen extends ConsumerWidget {
                   onToggleEyes: controller.toggleEyes,
                   onBack: () => nav.setDestination(HostDestination.lobby),
                   requiredPlayers: Game.minPlayers,
-                )
+                ),
               ],
             ),
     );

@@ -5,8 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:cb_player/screens/games_night_recap_screen.dart';
 
 void main() {
-  testWidgets('GamesNightRecapScreen renders correctly',
-      (WidgetTester tester) async {
+  testWidgets('GamesNightRecapScreen renders correctly', (
+    WidgetTester tester,
+  ) async {
     final now = DateTime.now();
     final session = GamesNightRecord(
       id: 'session-123',
@@ -38,10 +39,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
-        home: GamesNightRecapScreen(
-          session: session,
-          games: games,
-        ),
+        home: GamesNightRecapScreen(session: session, games: games),
       ),
     );
 

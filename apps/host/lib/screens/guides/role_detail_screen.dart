@@ -63,10 +63,7 @@ class RoleDetailScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  CBBadge(
-                    text: 'OPERATIVE CLASS: ${role.type}',
-                    color: accent,
-                  ),
+                  CBBadge(text: 'OPERATIVE CLASS: ${role.type}', color: accent),
                   const SizedBox(height: 12),
                   Text(
                     role.description,
@@ -82,10 +79,7 @@ class RoleDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      role.ability!,
-                      style: textTheme.bodyMedium,
-                    ),
+                    Text(role.ability!, style: textTheme.bodyMedium),
                   ],
                 ],
               ),
@@ -107,10 +101,9 @@ class RoleDetailScreen extends StatelessWidget {
                       role.tacticalTip,
                       style: textTheme.bodyMedium?.copyWith(
                         height: 1.5,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.7),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                     if (role.hasBinaryChoiceAtStart &&
@@ -128,7 +121,7 @@ class RoleDetailScreen extends StatelessWidget {
                         'At the start of the game, this player will choose between: ${role.choices.join(' or ')}.',
                         style: textTheme.bodyMedium,
                       ),
-                    ]
+                    ],
                   ],
                 ),
               ),

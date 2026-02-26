@@ -31,11 +31,9 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
   }
 
   void _sendMessage() {
-    ref.read(chatProvider.notifier).sendMessage(
-          widget.playerId,
-          widget.playerName,
-          _controller.text,
-        );
+    ref
+        .read(chatProvider.notifier)
+        .sendMessage(widget.playerId, widget.playerName, _controller.text);
     _controller.clear();
     _scrollToBottom();
   }
@@ -150,9 +148,7 @@ class _MessageBubble extends StatelessWidget {
               width: 6,
               height: 6,
               margin: const EdgeInsets.only(top: 6, right: 8),
-              decoration: BoxDecoration(
-                color: scheme.primary,
-              ),
+              decoration: BoxDecoration(color: scheme.primary),
             ),
           Expanded(
             child: Column(

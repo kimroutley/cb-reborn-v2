@@ -14,13 +14,13 @@ void main() {
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-      return 1; // Return success for all calls
-    });
+          return 1; // Return success for all calls
+        });
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(globalChannel, (MethodCall methodCall) async {
-      return 1; // Return success for all calls
-    });
+          return 1; // Return success for all calls
+        });
 
     SharedPreferences.setMockInitialValues({});
   });

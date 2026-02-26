@@ -19,8 +19,9 @@ class _FakePlayerStatsNotifier extends PlayerStatsNotifier {
 }
 
 void main() {
-  testWidgets('Stats action opens Hall of Fame destination',
-      (WidgetTester tester) async {
+  testWidgets('Stats action opens Hall of Fame destination', (
+    WidgetTester tester,
+  ) async {
     final container = ProviderContainer(
       overrides: [
         playerStatsProvider.overrideWith(_FakePlayerStatsNotifier.new),

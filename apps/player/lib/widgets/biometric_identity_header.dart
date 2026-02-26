@@ -91,7 +91,7 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
                   color: widget.roleColor.withValues(alpha: 0.15),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
-                )
+                ),
               ],
             ),
             child: Row(
@@ -119,9 +119,11 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
                               value: _revealAnimation.value,
                               strokeWidth: 3,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                  widget.roleColor),
-                              backgroundColor:
-                                  widget.roleColor.withValues(alpha: 0.1),
+                                widget.roleColor,
+                              ),
+                              backgroundColor: widget.roleColor.withValues(
+                                alpha: 0.1,
+                              ),
                             ),
                           );
                         },
@@ -141,8 +143,10 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1.5,
                           shadows: _isRevealed
-                              ? CBColors.textGlow(widget.roleColor,
-                                  intensity: 0.4)
+                              ? CBColors.textGlow(
+                                  widget.roleColor,
+                                  intensity: 0.4,
+                                )
                               : null,
                         ),
                       ),

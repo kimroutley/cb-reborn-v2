@@ -106,7 +106,10 @@ List<GameRecord> _generateEventBasedGames() {
       GameEvent.death(playerId: 'david', reason: 'murder', day: 1),
       GameEvent.vote(voterId: 'alice', targetId: 'bob', day: 2),
       GameEvent.vote(
-          voterId: 'charlie', targetId: 'bob', day: 2), // Added 2nd vote
+        voterId: 'charlie',
+        targetId: 'bob',
+        day: 2,
+      ), // Added 2nd vote
       GameEvent.kill(killerId: 'eve', victimId: 'charlie', day: 2),
       GameEvent.death(playerId: 'charlie', reason: 'murder', day: 2),
     ],

@@ -15,5 +15,5 @@ class PlayerProfileDirtyNotifier extends Notifier<bool> {
 
 final playerProfileDirtyProvider =
     NotifierProvider<PlayerProfileDirtyNotifier, bool>(
-  PlayerProfileDirtyNotifier.new,
-);
+      PlayerProfileDirtyNotifier.new,
+    );

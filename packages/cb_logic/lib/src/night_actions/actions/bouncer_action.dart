@@ -9,8 +9,9 @@ class BouncerAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final bouncers =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final bouncers = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final bouncer in bouncers) {
       if (context.redirectedActions.containsKey(bouncer.id) ||

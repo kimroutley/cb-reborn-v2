@@ -41,17 +41,18 @@ class PlayerAuthScreen extends ConsumerWidget {
             ),
           ),
           if (isLoading)
-            _AuthLoadingDialog(
-              title: loadingTitle,
-              subtitle: loadingSubtitle,
-            ),
+            _AuthLoadingDialog(title: loadingTitle, subtitle: loadingSubtitle),
         ],
       ),
     );
   }
 
-  Widget _buildUIForState(BuildContext context, WidgetRef ref,
-      AuthState authState, ColorScheme scheme) {
+  Widget _buildUIForState(
+    BuildContext context,
+    WidgetRef ref,
+    AuthState authState,
+    ColorScheme scheme,
+  ) {
     switch (authState.status) {
       case AuthStatus.initial:
         return const _AuthBootScreen(key: ValueKey('auth_boot'));
@@ -107,10 +108,7 @@ class _AuthBootScreen extends StatelessWidget {
 }
 
 class _AuthLoadingDialog extends StatelessWidget {
-  const _AuthLoadingDialog({
-    required this.title,
-    required this.subtitle,
-  });
+  const _AuthLoadingDialog({required this.title, required this.subtitle});
 
   final String title;
   final String subtitle;
@@ -191,7 +189,9 @@ class _AuthSplash extends ConsumerWidget {
                     ],
                   ),
                   border: Border.all(
-                      color: scheme.primary.withAlpha(128), width: 2),
+                    color: scheme.primary.withAlpha(128),
+                    width: 2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: scheme.primary.withAlpha(51),
@@ -237,13 +237,17 @@ class _AuthSplash extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                        color: scheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(99),
-                        border: Border.all(
-                            color: scheme.primary.withValues(alpha: 0.3))),
+                      color: scheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(99),
+                      border: Border.all(
+                        color: scheme.primary.withValues(alpha: 0.3),
+                      ),
+                    ),
                     child: Text(
                       'MEMBERS ONLY',
                       style: textTheme.labelSmall?.copyWith(
@@ -279,10 +283,7 @@ class _AuthSplash extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'GUEST LIST CHECK',
-                      style: textTheme.headlineSmall,
-                    ),
+                    Text('GUEST LIST CHECK', style: textTheme.headlineSmall),
                     const SizedBox(height: 8),
                     Text(
                       'Show your invite to the Bouncer.',
@@ -301,14 +302,19 @@ class _AuthSplash extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                            color: scheme.error.withAlpha(25),
-                            borderRadius: BorderRadius.circular(12),
-                            border:
-                                Border.all(color: scheme.error.withAlpha(102))),
+                          color: scheme.error.withAlpha(25),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: scheme.error.withAlpha(102),
+                          ),
+                        ),
                         child: Row(
                           children: [
-                            Icon(Icons.gpp_bad_rounded,
-                                color: scheme.error, size: 24),
+                            Icon(
+                              Icons.gpp_bad_rounded,
+                              color: scheme.error,
+                              size: 24,
+                            ),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Text(
@@ -345,7 +351,10 @@ class _AuthSplash extends ConsumerWidget {
   }
 
   Widget _buildGoogleButton(
-      BuildContext context, AuthNotifier notifier, ColorScheme scheme) {
+    BuildContext context,
+    AuthNotifier notifier,
+    ColorScheme scheme,
+  ) {
     return InkWell(
       onTap: () {
         HapticFeedback.heavyImpact();
@@ -379,11 +388,11 @@ class _AuthSplash extends ConsumerWidget {
             Text(
               'SHOW VIP PASS (GOOGLE)',
               style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    letterSpacing: 1.5,
-                    fontSize: 14,
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
+                letterSpacing: 1.5,
+                fontSize: 14,
+                color: scheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -432,8 +441,11 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
           children: [
             Hero(
               tag: 'auth_icon',
-              child:
-                  Icon(Icons.badge_rounded, color: scheme.secondary, size: 80),
+              child: Icon(
+                Icons.badge_rounded,
+                color: scheme.secondary,
+                size: 80,
+              ),
             ),
             const SizedBox(height: 32),
             Text(
@@ -474,11 +486,14 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                     controller: notifier.usernameController,
                     hintText: 'YOUR MONIKER',
                     autofocus: true,
-                    textStyle: textTheme.headlineSmall!
-                        .copyWith(color: scheme.onSurface),
+                    textStyle: textTheme.headlineSmall!.copyWith(
+                      color: scheme.onSurface,
+                    ),
                     decoration: InputDecoration(
-                      prefixIcon:
-                          Icon(Icons.person_outline, color: scheme.secondary),
+                      prefixIcon: Icon(
+                        Icons.person_outline,
+                        color: scheme.secondary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -486,8 +501,10 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                     controller: _publicPlayerIdController,
                     hintText: 'PUBLIC PLAYER ID (OPTIONAL)',
                     decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.alternate_email_rounded,
-                          color: scheme.secondary),
+                      prefixIcon: Icon(
+                        Icons.alternate_email_rounded,
+                        color: scheme.secondary,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -503,14 +520,17 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: avatarChoices.map((emoji) {
-                      final selected = emoji == _selectedAvatar;
-                      return _AvatarEmojiChip(
-                        emoji: emoji,
-                        selected: selected,
-                        onTap: () => setState(() => _selectedAvatar = emoji),
-                      );
-                    }).toList(growable: false),
+                    children: avatarChoices
+                        .map((emoji) {
+                          final selected = emoji == _selectedAvatar;
+                          return _AvatarEmojiChip(
+                            emoji: emoji,
+                            selected: selected,
+                            onTap: () =>
+                                setState(() => _selectedAvatar = emoji),
+                          );
+                        })
+                        .toList(growable: false),
                   ),
                   const SizedBox(height: 32),
                   CBPrimaryButton(
@@ -522,8 +542,8 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                         : () {
                             HapticFeedback.heavyImpact();
                             notifier.saveUsername(
-                              publicPlayerId:
-                                  _publicPlayerIdController.text.trim(),
+                              publicPlayerId: _publicPlayerIdController.text
+                                  .trim(),
                               avatarEmoji: _selectedAvatar,
                             );
                           },
@@ -582,10 +602,7 @@ class _AvatarEmojiChip extends StatelessWidget {
                 : scheme.outline.withValues(alpha: 0.35),
           ),
         ),
-        child: Text(
-          emoji,
-          style: const TextStyle(fontSize: 18),
-        ),
+        child: Text(emoji, style: const TextStyle(fontSize: 18)),
       ),
     );
   }

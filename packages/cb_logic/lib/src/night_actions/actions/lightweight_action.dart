@@ -9,8 +9,9 @@ class LightweightAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final lightweights =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final lightweights = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final lightweight in lightweights) {
       if (context.redirectedActions.containsKey(lightweight.id) ||
@@ -40,7 +41,9 @@ class LightweightAction implements NightActionStrategy {
         }
 
         context.addPrivateMessage(
-            lightweight.id, 'You banned ${target.name}\'s name.');
+          lightweight.id,
+          'You banned ${target.name}\'s name.',
+        );
         context.addReport('LW banned ${target.name}\'s name.');
         context.addTeaser('A name is now FORBIDDEN.');
       }

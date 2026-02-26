@@ -15,8 +15,10 @@ class GodModeControls extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
     final alivePlayers = gameState.players.where((p) => p.isAlive).toList();
-    final alivePlayerIds =
-        gameState.players.where((p) => p.isAlive).map((p) => p.id).toSet();
+    final alivePlayerIds = gameState.players
+        .where((p) => p.isAlive)
+        .map((p) => p.id)
+        .toSet();
     final pendingDramaSwapTargetIds = <String>{};
     for (final dramaQueen in gameState.players.where(
       (p) => p.role.id == RoleIds.dramaQueen && p.isAlive,
@@ -70,16 +72,19 @@ class GodModeControls extends ConsumerWidget {
               ),
             )
           else
-            ...alivePlayers.map((player) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildPlayerControlTile(
-                    context,
-                    ref,
-                    player,
-                    hasPendingDramaSwap:
-                        pendingDramaSwapTargetIds.contains(player.id),
+            ...alivePlayers.map(
+              (player) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildPlayerControlTile(
+                  context,
+                  ref,
+                  player,
+                  hasPendingDramaSwap: pendingDramaSwapTargetIds.contains(
+                    player.id,
                   ),
-                )),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -123,10 +128,7 @@ class GodModeControls extends ConsumerWidget {
                 ),
               ),
               if (hasPendingDramaSwap)
-                CBBadge(
-                  text: 'PENDING SWAP',
-                  color: scheme.secondary,
-                ),
+                CBBadge(text: 'PENDING SWAP', color: scheme.secondary),
             ],
           ),
           subtitle: Text(
@@ -174,8 +176,9 @@ class GodModeControls extends ConsumerWidget {
                         onTap: () => _toggleMute(context, ref, player),
                       ),
                       _ActionChip(
-                        label:
-                            player.hasHostShield ? 'DISPELS SHIELD' : 'SHIELD',
+                        label: player.hasHostShield
+                            ? 'DISPELS SHIELD'
+                            : 'SHIELD',
                         icon: Icons.shield_rounded,
                         color: scheme.primary,
                         onTap: () => _grantShield(context, ref, player),
@@ -252,12 +255,15 @@ class GodModeControls extends ConsumerWidget {
                 onPressed: () {
                   ref.read(gameProvider.notifier).forceKillPlayer(player.id);
                   Navigator.pop(context);
-                  showThemedSnackBar(context, '${player.name} ELIMINATED',
-                      accentColor: scheme.error);
+                  showThemedSnackBar(
+                    context,
+                    '${player.name} ELIMINATED',
+                    accentColor: scheme.error,
+                  );
                 },
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -268,9 +274,11 @@ class GodModeControls extends ConsumerWidget {
     ref
         .read(gameProvider.notifier)
         .togglePlayerMute(player.id, !player.isMuted);
-    showThemedSnackBar(context,
-        '${player.name.toUpperCase()} ${player.isMuted ? 'UNMUTED' : 'MUTED'}',
-        accentColor: scheme.secondary);
+    showThemedSnackBar(
+      context,
+      '${player.name.toUpperCase()} ${player.isMuted ? 'UNMUTED' : 'MUTED'}',
+      accentColor: scheme.secondary,
+    );
   }
 
   void _grantShield(BuildContext context, WidgetRef ref, Player player) {
@@ -332,7 +340,7 @@ class GodModeControls extends ConsumerWidget {
                 onPressed: () => Navigator.pop(context),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -340,9 +348,11 @@ class GodModeControls extends ConsumerWidget {
 
   void _toggleSinBin(BuildContext context, WidgetRef ref, Player player) {
     ref.read(gameProvider.notifier).setSinBin(player.id, !player.isSinBinned);
-    showThemedSnackBar(context,
-        '${player.name.toUpperCase()} ${player.isSinBinned ? 'RELEASED' : 'SENT TO SIN BIN'}',
-        accentColor: CBColors.coolGrey);
+    showThemedSnackBar(
+      context,
+      '${player.name.toUpperCase()} ${player.isSinBinned ? 'RELEASED' : 'SENT TO SIN BIN'}',
+      accentColor: CBColors.coolGrey,
+    );
   }
 
   void _toggleShadowBan(BuildContext context, WidgetRef ref, Player player) {
@@ -394,13 +404,15 @@ class GodModeControls extends ConsumerWidget {
                       .read(gameProvider.notifier)
                       .setShadowBan(player.id, !player.isShadowBanned);
                   Navigator.pop(context);
-                  showThemedSnackBar(context,
-                      '${player.name.toUpperCase()} ${player.isShadowBanned ? 'UNBANNED' : 'SHADOW BANNED'}',
-                      accentColor: scheme.secondary);
+                  showThemedSnackBar(
+                    context,
+                    '${player.name.toUpperCase()} ${player.isShadowBanned ? 'UNBANNED' : 'SHADOW BANNED'}',
+                    accentColor: scheme.secondary,
+                  );
                 },
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -452,16 +464,22 @@ class GodModeControls extends ConsumerWidget {
                 label: 'EJECT',
                 backgroundColor: scheme.error,
                 onPressed: () {
-                  ref.read(gameProvider.notifier).kickPlayer(player.id,
-                      reason.isEmpty ? 'No reason provided' : reason);
+                  ref
+                      .read(gameProvider.notifier)
+                      .kickPlayer(
+                        player.id,
+                        reason.isEmpty ? 'No reason provided' : reason,
+                      );
                   Navigator.pop(context);
                   showThemedSnackBar(
-                      context, '${player.name.toUpperCase()} EJECTED',
-                      accentColor: scheme.error);
+                    context,
+                    '${player.name.toUpperCase()} EJECTED',
+                    accentColor: scheme.error,
+                  );
                 },
               ),
             ],
-          )
+          ),
         ],
       ),
     );

@@ -45,9 +45,7 @@ class CustomDrawer extends ConsumerWidget {
       PlayerDestination.stats,
       PlayerDestination.hallOfFame,
     };
-    const gamesNightGroup = <PlayerDestination>{
-      PlayerDestination.gamesNight,
-    };
+    const gamesNightGroup = <PlayerDestination>{PlayerDestination.gamesNight};
     const walletGroup = <PlayerDestination>{
       PlayerDestination.profile,
       PlayerDestination.claim,
@@ -76,8 +74,9 @@ class CustomDrawer extends ConsumerWidget {
       ...otherDestinations,
     ];
 
-    final selectedIndex = drawerDestinations
-        .indexWhere((config) => config.destination == currentDestination);
+    final selectedIndex = drawerDestinations.indexWhere(
+      (config) => config.destination == currentDestination,
+    );
 
     return CBSideDrawer(
       selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
@@ -104,8 +103,11 @@ class CustomDrawer extends ConsumerWidget {
           }
         } catch (_) {}
       },
-      drawerHeader:
-          _buildDrawerHeader(context, theme, scheme), // Pass the header
+      drawerHeader: _buildDrawerHeader(
+        context,
+        theme,
+        scheme,
+      ), // Pass the header
       children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
@@ -183,7 +185,10 @@ class CustomDrawer extends ConsumerWidget {
   }
 
   Widget _buildDrawerHeader(
-      BuildContext context, ThemeData theme, ColorScheme scheme) {
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme scheme,
+  ) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(

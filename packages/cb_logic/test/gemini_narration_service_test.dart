@@ -19,17 +19,20 @@ void main() {
               {
                 'content': {
                   'parts': [
-                    {'text': 'Generated narration text.'}
-                  ]
-                }
-              }
-            ]
+                    {'text': 'Generated narration text.'},
+                  ],
+                },
+              },
+            ],
           }),
           200,
         );
       });
 
-      final service = GeminiNarrationService(client: client, apiKey: validApiKey);
+      final service = GeminiNarrationService(
+        client: client,
+        apiKey: validApiKey,
+      );
       final result = await service.generateNightNarration(
         lastNightReport: ['Player A died.'],
       );
@@ -42,7 +45,10 @@ void main() {
         return http.Response('Internal Server Error', 500);
       });
 
-      final service = GeminiNarrationService(client: client, apiKey: validApiKey);
+      final service = GeminiNarrationService(
+        client: client,
+        apiKey: validApiKey,
+      );
       final result = await service.generateNightNarration(
         lastNightReport: ['Player A died.'],
       );
@@ -52,44 +58,59 @@ void main() {
       expect(result, contains('By sunrise, the room had fewer certainties'));
     });
 
-    test('generateNightNarration returns fallback on malformed response', () async {
-      final client = MockClient((request) async {
-        return http.Response(jsonEncode({'candidates': []}), 200);
-      });
+    test(
+      'generateNightNarration returns fallback on malformed response',
+      () async {
+        final client = MockClient((request) async {
+          return http.Response(jsonEncode({'candidates': []}), 200);
+        });
 
-      final service = GeminiNarrationService(client: client, apiKey: validApiKey);
-      final result = await service.generateNightNarration(
-        lastNightReport: ['Player A died.'],
-      );
+        final service = GeminiNarrationService(
+          client: client,
+          apiKey: validApiKey,
+        );
+        final result = await service.generateNightNarration(
+          lastNightReport: ['Player A died.'],
+        );
 
-      expect(result, contains('Player A died.'));
-    });
+        expect(result, contains('Player A died.'));
+      },
+    );
 
-    test('generateNightNarration returns fallback on network exception', () async {
-      final client = MockClient((request) async {
-        throw http.ClientException('Network error');
-      });
+    test(
+      'generateNightNarration returns fallback on network exception',
+      () async {
+        final client = MockClient((request) async {
+          throw http.ClientException('Network error');
+        });
 
-      final service = GeminiNarrationService(client: client, apiKey: validApiKey);
-      final result = await service.generateNightNarration(
-        lastNightReport: ['Player A died.'],
-      );
+        final service = GeminiNarrationService(
+          client: client,
+          apiKey: validApiKey,
+        );
+        final result = await service.generateNightNarration(
+          lastNightReport: ['Player A died.'],
+        );
 
-      expect(result, contains('Player A died.'));
-    });
+        expect(result, contains('Player A died.'));
+      },
+    );
 
-    test('generateNightNarration uses fallback when no API key provided', () async {
-      // Create service without API key (and assuming env var is empty in test env)
-      final service = GeminiNarrationService();
-      // Note: We can't easily mock the internal client if we don't pass it,
-      // but if no API key is present, it shouldn't even call the client.
+    test(
+      'generateNightNarration uses fallback when no API key provided',
+      () async {
+        // Create service without API key (and assuming env var is empty in test env)
+        final service = GeminiNarrationService();
+        // Note: We can't easily mock the internal client if we don't pass it,
+        // but if no API key is present, it shouldn't even call the client.
 
-      final result = await service.generateNightNarration(
-        lastNightReport: ['Player A died.'],
-      );
+        final result = await service.generateNightNarration(
+          lastNightReport: ['Player A died.'],
+        );
 
-      expect(result, contains('Player A died.'));
-    });
+        expect(result, contains('Player A died.'));
+      },
+    );
 
     test('generatePersonalityPreview returns text on success', () async {
       final client = MockClient((request) async {
@@ -99,17 +120,20 @@ void main() {
               {
                 'content': {
                   'parts': [
-                    {'text': 'I am your host.'}
-                  ]
-                }
-              }
-            ]
+                    {'text': 'I am your host.'},
+                  ],
+                },
+              },
+            ],
           }),
           200,
         );
       });
 
-      final service = GeminiNarrationService(client: client, apiKey: validApiKey);
+      final service = GeminiNarrationService(
+        client: client,
+        apiKey: validApiKey,
+      );
       final result = await service.generatePersonalityPreview(
         voice: 'host_hype',
         variationPrompt: 'Energetic',
@@ -118,33 +142,45 @@ void main() {
       expect(result, 'I am your host.');
     });
 
-    test('generatePersonalityPreview returns error message on API error', () async {
-      final client = MockClient((request) async {
-        return http.Response('Error', 500);
-      });
+    test(
+      'generatePersonalityPreview returns error message on API error',
+      () async {
+        final client = MockClient((request) async {
+          return http.Response('Error', 500);
+        });
 
-      final service = GeminiNarrationService(client: client, apiKey: validApiKey);
-      final result = await service.generatePersonalityPreview(
-        voice: 'host_hype',
-        variationPrompt: 'Energetic',
-      );
+        final service = GeminiNarrationService(
+          client: client,
+          apiKey: validApiKey,
+        );
+        final result = await service.generatePersonalityPreview(
+          voice: 'host_hype',
+          variationPrompt: 'Energetic',
+        );
 
-      expect(result, 'The club is silent tonight. (API Error)');
-    });
+        expect(result, 'The club is silent tonight. (API Error)');
+      },
+    );
 
-    test('generatePersonalityPreview returns error message on exception', () async {
-      final client = MockClient((request) async {
-        throw Exception('Boom');
-      });
+    test(
+      'generatePersonalityPreview returns error message on exception',
+      () async {
+        final client = MockClient((request) async {
+          throw Exception('Boom');
+        });
 
-      final service = GeminiNarrationService(client: client, apiKey: validApiKey);
-      final result = await service.generatePersonalityPreview(
-        voice: 'host_hype',
-        variationPrompt: 'Energetic',
-      );
+        final service = GeminiNarrationService(
+          client: client,
+          apiKey: validApiKey,
+        );
+        final result = await service.generatePersonalityPreview(
+          voice: 'host_hype',
+          variationPrompt: 'Energetic',
+        );
 
-      expect(result, 'Connection lost in the static. Try again later.');
-    });
+        expect(result, 'Connection lost in the static. Try again later.');
+      },
+    );
 
     test('generateStepNarrationVariation returns text on success', () async {
       final client = MockClient((request) async {
@@ -154,17 +190,20 @@ void main() {
               {
                 'content': {
                   'parts': [
-                    {'text': 'Step variation.'}
-                  ]
-                }
-              }
-            ]
+                    {'text': 'Step variation.'},
+                  ],
+                },
+              },
+            ],
           }),
           200,
         );
       });
 
-      final service = GeminiNarrationService(client: client, apiKey: validApiKey);
+      final service = GeminiNarrationService(
+        client: client,
+        apiKey: validApiKey,
+      );
       final result = await service.generateStepNarrationVariation(
         baseReadAloudText: 'Original text.',
       );
@@ -172,20 +211,26 @@ void main() {
       expect(result, 'Step variation.');
     });
 
-    test('generateStepNarrationVariation returns fallback on API error', () async {
-      final client = MockClient((request) async {
-        return http.Response('Error', 500);
-      });
+    test(
+      'generateStepNarrationVariation returns fallback on API error',
+      () async {
+        final client = MockClient((request) async {
+          return http.Response('Error', 500);
+        });
 
-      final service = GeminiNarrationService(client: client, apiKey: validApiKey);
-      final result = await service.generateStepNarrationVariation(
-        baseReadAloudText: 'Original text.',
-        voice: 'nightclub_noir',
-      );
+        final service = GeminiNarrationService(
+          client: client,
+          apiKey: validApiKey,
+        );
+        final result = await service.generateStepNarrationVariation(
+          baseReadAloudText: 'Original text.',
+          voice: 'nightclub_noir',
+        );
 
-      // Fallback format: "$styleLead $baseReadAloudText"
-      expect(result, contains('Original text.'));
-      expect(result, contains('Neon-noir tone.'));
-    });
+        // Fallback format: "$styleLead $baseReadAloudText"
+        expect(result, contains('Original text.'));
+        expect(result, contains('Neon-noir tone.'));
+      },
+    );
   });
 }

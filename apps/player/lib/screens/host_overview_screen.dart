@@ -39,7 +39,9 @@ class HostOverviewScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(20),
             children: [
               CBSectionHeader(
-                  title: 'CONNECTION STATUS', color: connectionColor),
+                title: 'CONNECTION STATUS',
+                color: connectionColor,
+              ),
               const SizedBox(height: 16),
               CBGlassTile(
                 borderColor: connectionColor,
@@ -48,51 +50,58 @@ class HostOverviewScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.wifi_rounded,
-                            color: connectionColor, size: 24),
+                        Icon(
+                          Icons.wifi_rounded,
+                          color: connectionColor,
+                          size: 24,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text('HOST CONNECTION',
-                              style: Theme.of(context).textTheme.titleMedium),
+                          child: Text(
+                            'HOST CONNECTION',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(connectionStatus,
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(color: connectionColor)),
+                    Text(
+                      connectionStatus,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelLarge?.copyWith(color: connectionColor),
+                    ),
                     const SizedBox(height: 10),
                     Text(
                       'Phase: $phaseLabel',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.75)),
+                        color: scheme.onSurface.withValues(alpha: 0.75),
+                      ),
                     ),
                     if (gameState.hostName != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 4.0),
                         child: Text(
                           'Host: ${gameState.hostName}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
+                          style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.75)),
+                                color: scheme.onSurface.withValues(alpha: 0.75),
+                              ),
                         ),
                       ),
                     const SizedBox(height: 4),
                     Text(
                       'Day: ${gameState.dayCount}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.75)),
+                        color: scheme.onSurface.withValues(alpha: 0.75),
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Players: ${gameState.players.length}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.75)),
+                        color: scheme.onSurface.withValues(alpha: 0.75),
+                      ),
                     ),
                   ],
                 ),
@@ -107,29 +116,34 @@ class HostOverviewScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.settings_input_component_rounded,
-                            color: scheme.primary, size: 24),
+                        Icon(
+                          Icons.settings_input_component_rounded,
+                          color: scheme.primary,
+                          size: 24,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text('CURRENT STEP',
-                              style: Theme.of(context).textTheme.titleMedium),
+                          child: Text(
+                            'CURRENT STEP',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
                       gameState.currentStep?.title ?? 'WAITING FOR HOST',
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelLarge
-                          ?.copyWith(color: scheme.primary),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelLarge?.copyWith(color: scheme.primary),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       gameState.currentStep?.instructionText ??
                           'No active directive yet.',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.75)),
+                        color: scheme.onSurface.withValues(alpha: 0.75),
+                      ),
                     ),
                   ],
                 ),

@@ -2,10 +2,7 @@ import 'package:cb_logic/src/day_actions/resolution/day_resolution.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Role _role(
-  String id, {
-  Team alliance = Team.partyAnimals,
-}) {
+Role _role(String id, {Team alliance = Team.partyAnimals}) {
   return roleCatalogMap[id] ??
       Role(
         id: id,
@@ -47,8 +44,9 @@ class _MutatingHandler implements DayResolutionHandler {
   DayResolutionResult handle(DayResolutionContext context) {
     final updatedPlayers = List<Player>.from(context.players);
     final first = updatedPlayers.first;
-    updatedPlayers[0] =
-        first.copyWith(role: _role(RoleIds.dealer, alliance: Team.clubStaff));
+    updatedPlayers[0] = first.copyWith(
+      role: _role(RoleIds.dealer, alliance: Team.clubStaff),
+    );
 
     return DayResolutionResult(
       players: updatedPlayers,
@@ -77,33 +75,35 @@ class _ReadingHandler implements DayResolutionHandler {
 
 void main() {
   group('DayResolutionStrategy', () {
-    test('aggregates outputs and propagates updated players through handlers',
-        () {
-      final initialPlayers = [
-        _player('p1', 'One', _role(RoleIds.partyAnimal)),
-        _player('p2', 'Two', _role(RoleIds.partyAnimal)),
-        _player('p3', 'Three', _role(RoleIds.partyAnimal)),
-      ];
+    test(
+      'aggregates outputs and propagates updated players through handlers',
+      () {
+        final initialPlayers = [
+          _player('p1', 'One', _role(RoleIds.partyAnimal)),
+          _player('p2', 'Two', _role(RoleIds.partyAnimal)),
+          _player('p3', 'Three', _role(RoleIds.partyAnimal)),
+        ];
 
-      final strategy = DayResolutionStrategy(
-        handlers: [_MutatingHandler(), _ReadingHandler()],
-      );
+        final strategy = DayResolutionStrategy(
+          handlers: [_MutatingHandler(), _ReadingHandler()],
+        );
 
-      final result = strategy.execute(
-        DayResolutionContext(
-          players: initialPlayers,
-          votesByVoter: const {'p2': 'p1'},
-          dayCount: 2,
-        ),
-      );
+        final result = strategy.execute(
+          DayResolutionContext(
+            players: initialPlayers,
+            votesByVoter: const {'p2': 'p1'},
+            dayCount: 2,
+          ),
+        );
 
-      expect(result.players.first.role.id, RoleIds.dealer);
-      expect(result.lines, ['mutated', 'saw:${RoleIds.dealer}']);
-      expect(result.events.length, 2);
-      expect((result.events[0] as GameEventDeath).reason, 'from_handler_1');
-      expect((result.events[1] as GameEventDeath).reason, 'from_handler_2');
-      expect(result.deathTriggerVictimIds, ['p2', 'p3']);
-    });
+        expect(result.players.first.role.id, RoleIds.dealer);
+        expect(result.lines, ['mutated', 'saw:${RoleIds.dealer}']);
+        expect(result.events.length, 2);
+        expect((result.events[0] as GameEventDeath).reason, 'from_handler_1');
+        expect((result.events[1] as GameEventDeath).reason, 'from_handler_2');
+        expect(result.deathTriggerVictimIds, ['p2', 'p3']);
+      },
+    );
 
     test('default handler order preserves expected chained outcome', () {
       final players = [
@@ -133,8 +133,11 @@ void main() {
           deathReason: 'exile',
           deathDay: 1,
         ),
-        _player('dealer', 'Dealer',
-            _role(RoleIds.dealer, alliance: Team.clubStaff)),
+        _player(
+          'dealer',
+          'Dealer',
+          _role(RoleIds.dealer, alliance: Team.clubStaff),
+        ),
         _player('buddy', 'Buddy', _role(RoleIds.partyAnimal)),
         _player('observer', 'Observer', _role(RoleIds.sober)),
       ];
@@ -172,8 +175,10 @@ void main() {
       expect(buddy.deathReason, 'predator_retaliation');
       expect(result.deathTriggerVictimIds, ['buddy']);
       expect(result.events.length, 1);
-      expect((result.events.single as GameEventDeath).reason,
-          'predator_retaliation');
+      expect(
+        (result.events.single as GameEventDeath).reason,
+        'predator_retaliation',
+      );
     });
 
     test('predator retaliation follows explicit selected target', () {
@@ -186,18 +191,18 @@ void main() {
           deathReason: 'exile',
           deathDay: 1,
         ),
-        _player('dealer', 'Dealer',
-            _role(RoleIds.dealer, alliance: Team.clubStaff)),
+        _player(
+          'dealer',
+          'Dealer',
+          _role(RoleIds.dealer, alliance: Team.clubStaff),
+        ),
         _player('buddy', 'Buddy', _role(RoleIds.partyAnimal)),
       ];
 
       final result = DayResolutionStrategy().execute(
         DayResolutionContext(
           players: players,
-          votesByVoter: const {
-            'dealer': 'pred',
-            'buddy': 'pred',
-          },
+          votesByVoter: const {'dealer': 'pred', 'buddy': 'pred'},
           dayCount: 1,
           predatorRetaliationChoices: const {'pred': 'buddy'},
         ),
@@ -222,18 +227,18 @@ void main() {
           deathReason: 'exile',
           deathDay: 1,
         ),
-        _player('dealer', 'Dealer',
-            _role(RoleIds.dealer, alliance: Team.clubStaff)),
+        _player(
+          'dealer',
+          'Dealer',
+          _role(RoleIds.dealer, alliance: Team.clubStaff),
+        ),
         _player('buddy', 'Buddy', _role(RoleIds.partyAnimal)),
       ];
 
       final result = DayResolutionStrategy().execute(
         DayResolutionContext(
           players: players,
-          votesByVoter: const {
-            'dealer': 'tea',
-            'buddy': 'tea',
-          },
+          votesByVoter: const {'dealer': 'tea', 'buddy': 'tea'},
           dayCount: 1,
           teaSpillerRevealChoices: const {'tea': 'buddy'},
         ),
@@ -253,8 +258,11 @@ void main() {
           deathReason: 'exile',
           deathDay: 1,
         ),
-        _player('dealer', 'Dealer',
-            _role(RoleIds.dealer, alliance: Team.clubStaff)),
+        _player(
+          'dealer',
+          'Dealer',
+          _role(RoleIds.dealer, alliance: Team.clubStaff),
+        ),
         _player('buddy', 'Buddy', _role(RoleIds.partyAnimal)),
         _player('sober', 'Sober', _role(RoleIds.sober)),
       ];
@@ -262,10 +270,7 @@ void main() {
       final result = DayResolutionStrategy().execute(
         DayResolutionContext(
           players: players,
-          votesByVoter: const {
-            'dealer': 'drama',
-            'buddy': 'drama',
-          },
+          votesByVoter: const {'dealer': 'drama', 'buddy': 'drama'},
           dayCount: 1,
           dramaQueenSwapChoices: const {'drama': 'dealer,sober'},
         ),
@@ -279,41 +284,47 @@ void main() {
       expect(sober.role.id, RoleIds.dealer);
       expect(buddy.role.id, RoleIds.partyAnimal);
       expect(
-        result.lines
-            .any((line) => line.contains('Dealer and Sober swapped roles')),
+        result.lines.any(
+          (line) => line.contains('Dealer and Sober swapped roles'),
+        ),
         isTrue,
       );
     });
 
-    test('dead pool handler settles ghost bets and requests dead-pool clear',
-        () {
-      final players = [
-        _player(
-          'tea',
-          'Tea',
-          _role(RoleIds.teaSpiller),
-          isAlive: false,
-          deathReason: 'exile',
-          deathDay: 1,
-        ),
-        _player('dealer', 'Dealer', _role(RoleIds.dealer))
-            .copyWith(isAlive: false, currentBetTargetId: 'tea'),
-      ];
+    test(
+      'dead pool handler settles ghost bets and requests dead-pool clear',
+      () {
+        final players = [
+          _player(
+            'tea',
+            'Tea',
+            _role(RoleIds.teaSpiller),
+            isAlive: false,
+            deathReason: 'exile',
+            deathDay: 1,
+          ),
+          _player(
+            'dealer',
+            'Dealer',
+            _role(RoleIds.dealer),
+          ).copyWith(isAlive: false, currentBetTargetId: 'tea'),
+        ];
 
-      final result = DayResolutionStrategy().execute(
-        DayResolutionContext(
-          players: players,
-          votesByVoter: const {'dealer': 'tea'},
-          dayCount: 1,
-          exiledPlayerId: 'tea',
-        ),
-      );
+        final result = DayResolutionStrategy().execute(
+          DayResolutionContext(
+            players: players,
+            votesByVoter: const {'dealer': 'tea'},
+            dayCount: 1,
+            exiledPlayerId: 'tea',
+          ),
+        );
 
-      final dealer = result.players.firstWhere((p) => p.id == 'dealer');
-      expect(dealer.currentBetTargetId, isNull);
-      expect(dealer.penalties.last, contains('[DEAD POOL] WON'));
-      expect(result.clearDeadPoolBets, isTrue);
-    });
+        final dealer = result.players.firstWhere((p) => p.id == 'dealer');
+        expect(dealer.currentBetTargetId, isNull);
+        expect(dealer.penalties.last, contains('[DEAD POOL] WON'));
+        expect(result.clearDeadPoolBets, isTrue);
+      },
+    );
 
     test('includes exiled player in death triggers even without handlers', () {
       final players = [

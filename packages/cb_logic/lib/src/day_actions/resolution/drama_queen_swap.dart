@@ -16,11 +16,13 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
   final privateMessages = <String, List<String>>{};
   var updatedPlayers = [...players];
 
-  final exiledDramaQueens = updatedPlayers.where((p) =>
-      !p.isAlive &&
-      p.deathReason != null &&
-      triggeringDeathReasons.contains(p.deathReason) &&
-      p.role.id == RoleIds.dramaQueen);
+  final exiledDramaQueens = updatedPlayers.where(
+    (p) =>
+        !p.isAlive &&
+        p.deathReason != null &&
+        triggeringDeathReasons.contains(p.deathReason) &&
+        p.role.id == RoleIds.dramaQueen,
+  );
 
   for (final dramaQueen in exiledDramaQueens) {
     final aliveTargets = updatedPlayers
@@ -38,20 +40,19 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
         .where((id) => aliveTargets.any((p) => p.id == id))
         .toList();
 
-    final selectedSwapIds = rawSelectedSwapIds.length == 2 &&
+    final selectedSwapIds =
+        rawSelectedSwapIds.length == 2 &&
             rawSelectedSwapIds[0] != rawSelectedSwapIds[1]
         ? rawSelectedSwapIds
         : const <String>[];
 
-    final preferredTargets = [
-      dramaQueen.dramaQueenTargetAId,
-      dramaQueen.dramaQueenTargetBId,
-    ]
-        .whereType<String>()
-        .where((id) => id.isNotEmpty && id != dramaQueen.id)
-        .toSet()
-        .where((id) => aliveTargets.any((p) => p.id == id))
-        .toList();
+    final preferredTargets =
+        [dramaQueen.dramaQueenTargetAId, dramaQueen.dramaQueenTargetBId]
+            .whereType<String>()
+            .where((id) => id.isNotEmpty && id != dramaQueen.id)
+            .toSet()
+            .where((id) => aliveTargets.any((p) => p.id == id))
+            .toList();
 
     final votersAgainst = votesByVoter.entries
         .where((e) => e.value == dramaQueen.id)
@@ -99,10 +100,14 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
       'Drama Queen reveal: ${targetA.name} is now ${targetB.role.name}, ${targetB.name} is now ${targetA.role.name}.',
     );
 
-    privateMessages.putIfAbsent(targetA.id, () => []).add(
+    privateMessages
+        .putIfAbsent(targetA.id, () => [])
+        .add(
           'Drama Queen trigger: You were swapped with ${targetB.name}. Your new role is ${targetB.role.name}.',
         );
-    privateMessages.putIfAbsent(targetB.id, () => []).add(
+    privateMessages
+        .putIfAbsent(targetB.id, () => [])
+        .add(
           'Drama Queen trigger: You were swapped with ${targetA.name}. Your new role is ${targetA.role.name}.',
         );
   }

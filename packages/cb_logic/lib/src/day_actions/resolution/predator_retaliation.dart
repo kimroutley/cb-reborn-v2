@@ -18,8 +18,10 @@ PredatorRetaliationResolution resolvePredatorRetaliation({
   final retaliationEvents = <GameEvent>[];
   final retaliationVictimIds = <String>[];
 
-  final exiledPredators = updatedPlayers.where((p) =>
-      !p.isAlive && p.deathReason == 'exile' && p.role.id == RoleIds.predator);
+  final exiledPredators = updatedPlayers.where(
+    (p) =>
+        !p.isAlive && p.deathReason == 'exile' && p.role.id == RoleIds.predator,
+  );
 
   for (final predator in exiledPredators) {
     final votersAgainst = votesByVoter.entries
@@ -47,8 +49,9 @@ PredatorRetaliationResolution resolvePredatorRetaliation({
       if (voterId == predator.id) {
         continue;
       }
-      final voterMatches =
-          updatedPlayers.where((p) => p.id == voterId).toList();
+      final voterMatches = updatedPlayers
+          .where((p) => p.id == voterId)
+          .toList();
       if (voterMatches.isEmpty) {
         continue;
       }
@@ -73,8 +76,9 @@ PredatorRetaliationResolution resolvePredatorRetaliation({
       return p;
     }).toList();
 
-    final retaliationTarget =
-        updatedPlayers.firstWhere((p) => p.id == retaliationTargetId);
+    final retaliationTarget = updatedPlayers.firstWhere(
+      (p) => p.id == retaliationTargetId,
+    );
     retaliationVictimIds.add(retaliationTargetId);
     retaliationLines.add(
       'Predator struck back: ${retaliationTarget.name} was taken down in retaliation.',

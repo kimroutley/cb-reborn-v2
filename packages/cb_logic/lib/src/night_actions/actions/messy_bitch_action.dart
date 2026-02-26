@@ -9,8 +9,9 @@ class MessyBitchAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final messyBitches =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final messyBitches = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final bitch in messyBitches) {
       if (context.redirectedActions.containsKey(bitch.id) ||
@@ -28,7 +29,9 @@ class MessyBitchAction implements NightActionStrategy {
       if (targetId != null) {
         final target = context.getPlayer(targetId);
         context.addPrivateMessage(
-            bitch.id, 'You leaked info on ${target.name}.');
+          bitch.id,
+          'You leaked info on ${target.name}.',
+        );
         context.addReport('MB spread rumor on ${target.name}.');
         context.addTeaser('Juicy rumors about ${target.name}...');
         context.updatePlayer(target.copyWith(hasRumour: true));

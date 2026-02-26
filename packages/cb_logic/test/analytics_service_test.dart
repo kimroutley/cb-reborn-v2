@@ -136,7 +136,10 @@ void main() {
     });
 
     test('logError logs correct event', () async {
-      await AnalyticsService.logError('Something went wrong', stackTrace: 'stack...');
+      await AnalyticsService.logError(
+        'Something went wrong',
+        stackTrace: 'stack...',
+      );
 
       expect(mockProvider.events.length, 1);
       final event = mockProvider.events.first;
@@ -153,9 +156,7 @@ void main() {
       expect(mockProvider.events.length, 1);
       final event = mockProvider.events.first;
       expect(event['name'], 'app_error');
-      expect(event['parameters'], {
-        'error': 'Simple error',
-      });
+      expect(event['parameters'], {'error': 'Simple error'});
     });
   });
 }

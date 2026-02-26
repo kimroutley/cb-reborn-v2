@@ -21,24 +21,15 @@ enum CloudLinkPhase {
 
 @immutable
 class CloudLinkState {
-  const CloudLinkState({
-    required this.phase,
-    this.message,
-  });
+  const CloudLinkState({required this.phase, this.message});
 
   final CloudLinkPhase phase;
   final String? message;
 
   bool get isVerified => phase == CloudLinkPhase.verified;
 
-  CloudLinkState copyWith({
-    CloudLinkPhase? phase,
-    String? message,
-  }) {
-    return CloudLinkState(
-      phase: phase ?? this.phase,
-      message: message,
-    );
+  CloudLinkState copyWith({CloudLinkPhase? phase, String? message}) {
+    return CloudLinkState(phase: phase ?? this.phase, message: message);
   }
 }
 
@@ -58,8 +49,8 @@ class CloudLinkStateNotifier extends Notifier<CloudLinkState> {
 
 final cloudLinkStateProvider =
     NotifierProvider<CloudLinkStateNotifier, CloudLinkState>(
-  CloudLinkStateNotifier.new,
-);
+      CloudLinkStateNotifier.new,
+    );
 
 /// Cloud-mode host bridge using Firebase Firestore.
 ///
@@ -87,16 +78,10 @@ class CloudHostBridge {
 
   CloudHostBridge(this._ref);
 
-  void _setLinkState(
-    CloudLinkPhase phase, {
-    String? message,
-  }) {
-    _ref.read(cloudLinkStateProvider.notifier).update(
-      CloudLinkState(
-        phase: phase,
-        message: message,
-      ),
-    );
+  void _setLinkState(CloudLinkPhase phase, {String? message}) {
+    _ref
+        .read(cloudLinkStateProvider.notifier)
+        .update(CloudLinkState(phase: phase, message: message));
   }
 
   String get joinCode => _ref.read(sessionProvider).joinCode;
@@ -176,7 +161,8 @@ class CloudHostBridge {
     _joinSub = _firebase!.subscribeToJoinRequests().listen(
       (snapshot) {
         for (final change in snapshot.docChanges) {
-          if (change.doc.id.isEmpty || _processedJoins.contains(change.doc.id)) {
+          if (change.doc.id.isEmpty ||
+              _processedJoins.contains(change.doc.id)) {
             continue;
           }
           _processedJoins.add(change.doc.id);
@@ -194,7 +180,9 @@ class CloudHostBridge {
                     (p) => p.name.trim().toLowerCase() == name.toLowerCase(),
                   );
             if (!hasExisting) {
-              _ref.read(gameProvider.notifier).addPlayer(
+              _ref
+                  .read(gameProvider.notifier)
+                  .addPlayer(
                     name,
                     authUid: uid?.isNotEmpty == true ? uid : null,
                   );
@@ -227,37 +215,46 @@ class CloudHostBridge {
           if (data == null) continue;
 
           final type = data['type'] as String?;
-          final payload = (data['payload'] as Map?)
-                  ?.map((key, value) => MapEntry(key.toString(), value)) ??
+          final payload =
+              (data['payload'] as Map?)?.map(
+                (key, value) => MapEntry(key.toString(), value),
+              ) ??
               const <String, dynamic>{};
 
           if (type == 'dead_pool_bet') {
             final playerId = data['playerId'] as String? ?? '';
             final targetPlayerId =
                 (data['targetId'] as String?) ??
-                    (data['targetPlayerId'] as String?) ??
-                    (payload['targetPlayerId'] as String?) ??
-                    '';
+                (data['targetPlayerId'] as String?) ??
+                (payload['targetPlayerId'] as String?) ??
+                '';
             if (playerId.isNotEmpty && targetPlayerId.isNotEmpty) {
-              _ref.read(gameProvider.notifier).placeDeadPoolBet(
+              _ref
+                  .read(gameProvider.notifier)
+                  .placeDeadPoolBet(
                     playerId: playerId,
                     targetPlayerId: targetPlayerId,
                   );
               debugPrint(
-                  '[CloudHostBridge] Dead-pool bet: $playerId -> $targetPlayerId');
+                '[CloudHostBridge] Dead-pool bet: $playerId -> $targetPlayerId',
+              );
             }
             continue;
           }
 
           if (type == 'ghost_chat') {
             final playerId = data['playerId'] as String? ?? '';
-            final playerName = (data['playerName'] as String?) ??
+            final playerName =
+                (data['playerName'] as String?) ??
                 (payload['playerName'] as String?);
-            final message = (data['message'] as String?) ??
+            final message =
+                (data['message'] as String?) ??
                 (payload['message'] as String?) ??
                 '';
             if (playerId.isNotEmpty && message.trim().isNotEmpty) {
-              _ref.read(gameProvider.notifier).addGhostChatMessage(
+              _ref
+                  .read(gameProvider.notifier)
+                  .addGhostChatMessage(
                     senderPlayerId: playerId,
                     senderPlayerName: playerName,
                     message: message.trim(),
@@ -281,7 +278,9 @@ class CloudHostBridge {
           final playerId = data['playerId'] as String?;
 
           if (stepId.isNotEmpty) {
-            _ref.read(gameProvider.notifier).handleInteraction(
+            _ref
+                .read(gameProvider.notifier)
+                .handleInteraction(
                   stepId: stepId,
                   targetId: targetId ?? '',
                   voterId: playerId,
@@ -407,7 +406,8 @@ class CloudHostBridge {
     final hostUid = _resolvedHostUid ?? await resolveHostUid();
     if (hostUid == null || hostUid.isEmpty) {
       debugPrint(
-          '[CloudHostBridge] Skipping publish: host user is not authenticated yet.');
+        '[CloudHostBridge] Skipping publish: host user is not authenticated yet.',
+      );
       _setLinkState(
         CloudLinkPhase.degraded,
         message: 'Publish blocked: host authentication unavailable.',
@@ -421,22 +421,24 @@ class CloudHostBridge {
 
     // Build public player list (filtered — no secret role data)
     final publicPlayers = game.players
-        .map((p) => {
-              'id': p.id,
-              'name': p.name,
-              'isAlive': p.isAlive,
-              'deathDay': p.deathDay,
-              'hasRumour': p.hasRumour,
-              'drinksOwed': p.drinksOwed,
-              'currentBetTargetId': p.currentBetTargetId,
-              'penalties': p.penalties,
-              // Hide role info in public doc
-              'roleId': isEndGame ? p.role.id : 'hidden',
-              'roleName': isEndGame ? p.role.name : 'Unknown',
-              'roleDescription': isEndGame ? p.role.description : '',
-              'roleColorHex': isEndGame ? p.role.colorHex : '#888888',
-              'alliance': isEndGame ? p.alliance.name : 'unknown',
-            })
+        .map(
+          (p) => {
+            'id': p.id,
+            'name': p.name,
+            'isAlive': p.isAlive,
+            'deathDay': p.deathDay,
+            'hasRumour': p.hasRumour,
+            'drinksOwed': p.drinksOwed,
+            'currentBetTargetId': p.currentBetTargetId,
+            'penalties': p.penalties,
+            // Hide role info in public doc
+            'roleId': isEndGame ? p.role.id : 'hidden',
+            'roleName': isEndGame ? p.role.name : 'Unknown',
+            'roleDescription': isEndGame ? p.role.description : '',
+            'roleColorHex': isEndGame ? p.role.colorHex : '#888888',
+            'alliance': isEndGame ? p.alliance.name : 'unknown',
+          },
+        )
         .toList();
 
     final publicState = <String, dynamic>{
@@ -458,13 +460,16 @@ class CloudHostBridge {
             }
           : null,
       'winner': game.winner?.name,
-      'endGameReport':
-          game.endGameReport.isNotEmpty ? game.endGameReport : null,
+      'endGameReport': game.endGameReport.isNotEmpty
+          ? game.endGameReport
+          : null,
       'voteTally': game.dayVoteTally.isNotEmpty ? game.dayVoteTally : null,
-      'votesByVoter':
-          game.dayVotesByVoter.isNotEmpty ? game.dayVotesByVoter : null,
-      'nightReport':
-          game.lastNightReport.isNotEmpty ? game.lastNightReport : null,
+      'votesByVoter': game.dayVotesByVoter.isNotEmpty
+          ? game.dayVotesByVoter
+          : null,
+      'nightReport': game.lastNightReport.isNotEmpty
+          ? game.lastNightReport
+          : null,
       'dayReport': game.lastDayReport.isNotEmpty ? game.lastDayReport : null,
       'claimedPlayerIds': session.claimedPlayerIds,
       'roleConfirmedPlayerIds': roleConfirmedPlayerIds,

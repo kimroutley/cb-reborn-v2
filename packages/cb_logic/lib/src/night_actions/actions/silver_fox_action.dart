@@ -9,8 +9,9 @@ class SilverFoxAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final silverFoxes =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final silverFoxes = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final fox in silverFoxes) {
       if (context.redirectedActions.containsKey(fox.id) ||

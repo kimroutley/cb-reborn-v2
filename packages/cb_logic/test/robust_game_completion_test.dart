@@ -11,13 +11,19 @@ void _addPlayers(Game game, int count) {
 
 void _assertStateInvariants(GameState state) {
   final ids = state.players.map((p) => p.id).toList();
-  expect(ids.toSet().length, ids.length,
-      reason: 'Player IDs must remain unique.');
+  expect(
+    ids.toSet().length,
+    ids.length,
+    reason: 'Player IDs must remain unique.',
+  );
 
   for (final p in state.players) {
     if (p.isAlive) {
-      expect(p.isSinBinned, isFalse,
-          reason: 'Alive player ${p.name} should not be sin-binned.');
+      expect(
+        p.isSinBinned,
+        isFalse,
+        reason: 'Alive player ${p.name} should not be sin-binned.',
+      );
     }
   }
 
@@ -37,8 +43,11 @@ void _assertStateInvariants(GameState state) {
   }
 
   if (state.phase == GamePhase.endGame) {
-    expect(state.winner, isNotNull,
-        reason: 'End game state must have a winner.');
+    expect(
+      state.winner,
+      isNotNull,
+      reason: 'End game state must have a winner.',
+    );
   }
 }
 
@@ -64,11 +73,11 @@ void _runUntilEndOrFail(
     if (step != null) {
       final isInteractive =
           step.actionType == ScriptActionType.selectPlayer ||
-              step.actionType == ScriptActionType.selectTwoPlayers ||
-              step.actionType == ScriptActionType.binaryChoice ||
-              step.actionType == ScriptActionType.multiSelect ||
-              step.actionType == ScriptActionType.optional ||
-              step.id.startsWith('day_vote_');
+          step.actionType == ScriptActionType.selectTwoPlayers ||
+          step.actionType == ScriptActionType.binaryChoice ||
+          step.actionType == ScriptActionType.multiSelect ||
+          step.actionType == ScriptActionType.optional ||
+          step.id.startsWith('day_vote_');
 
       if (isInteractive) {
         game.simulatePlayersForCurrentStep();
@@ -162,8 +171,11 @@ void main() {
           _addPlayers(game, 11);
 
           final started = game.startGame();
-          expect(started, isTrue,
-              reason: 'Game must start for $style run ${i + 1}.');
+          expect(
+            started,
+            isTrue,
+            reason: 'Game must start for $style run ${i + 1}.',
+          );
 
           _runUntilEndOrFail(
             container,
@@ -173,10 +185,16 @@ void main() {
           );
 
           final finalState = container.read(gameProvider);
-          expect(finalState.phase, GamePhase.endGame,
-              reason: 'Expected endGame for $style run ${i + 1}.');
-          expect(finalState.winner, isNotNull,
-              reason: 'Winner missing for $style run ${i + 1}.');
+          expect(
+            finalState.phase,
+            GamePhase.endGame,
+            reason: 'Expected endGame for $style run ${i + 1}.',
+          );
+          expect(
+            finalState.winner,
+            isNotNull,
+            reason: 'Winner missing for $style run ${i + 1}.',
+          );
 
           totalRuns++;
           container.dispose();

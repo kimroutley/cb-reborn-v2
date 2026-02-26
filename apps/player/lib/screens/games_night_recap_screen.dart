@@ -59,10 +59,9 @@ class GamesNightRecapScreen extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         DateFormat('MMM dd, yyyy').format(session.startedAt),
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: scheme.primary),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: scheme.primary),
                       ),
                       const SizedBox(height: 16),
                       _buildStatsSummary(context, scheme),
@@ -84,8 +83,8 @@ class GamesNightRecapScreen extends StatelessWidget {
                     child: Text(
                       "No games recorded for this session.",
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.7),
-                          ),
+                        color: scheme.onSurface.withValues(alpha: 0.7),
+                      ),
                     ),
                   )
                 else
@@ -171,7 +170,11 @@ class GamesNightRecapScreen extends StatelessWidget {
   }
 
   Widget _buildGameTile(
-      BuildContext context, int number, GameRecord game, ColorScheme scheme) {
+    BuildContext context,
+    int number,
+    GameRecord game,
+    ColorScheme scheme,
+  ) {
     final isPartyWin = game.winner == Team.partyAnimals;
     final winColor = isPartyWin ? scheme.primary : scheme.secondary;
     final winnerName = isPartyWin ? "PARTY ANIMALS" : "CLUB STAFF";
@@ -189,8 +192,10 @@ class GamesNightRecapScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(isPartyWin ? Icons.celebration : Icons.security,
-                    color: winColor),
+                Icon(
+                  isPartyWin ? Icons.celebration : Icons.security,
+                  color: winColor,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -203,27 +208,32 @@ class GamesNightRecapScreen extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               'WINNER: $winnerName • $durationStr',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: winColor),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: winColor),
             ),
             const SizedBox(height: 12),
-            Text("ROSTER (${game.playerCount})",
-                style: CBTypography.labelSmall
-                    .copyWith(color: scheme.onSurface.withValues(alpha: 0.6))),
+            Text(
+              "ROSTER (${game.playerCount})",
+              style: CBTypography.labelSmall.copyWith(
+                color: scheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: game.roster
-                  .map((p) => CBBadge(
+                  .map(
+                    (p) => CBBadge(
                       text: p.name,
                       color: p.alive
                           ? scheme.primary
-                          : scheme.error.withValues(alpha: 0.7)))
+                          : scheme.error.withValues(alpha: 0.7),
+                    ),
+                  )
                   .toList(),
-            )
+            ),
           ],
         ),
       ),

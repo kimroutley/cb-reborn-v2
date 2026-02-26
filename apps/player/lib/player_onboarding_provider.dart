@@ -3,13 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class PlayerOnboardingState {
   final bool awaitingStartConfirmation;
 
-  const PlayerOnboardingState({
-    this.awaitingStartConfirmation = false,
-  });
+  const PlayerOnboardingState({this.awaitingStartConfirmation = false});
 
-  PlayerOnboardingState copyWith({
-    bool? awaitingStartConfirmation,
-  }) {
+  PlayerOnboardingState copyWith({bool? awaitingStartConfirmation}) {
     return PlayerOnboardingState(
       awaitingStartConfirmation:
           awaitingStartConfirmation ?? this.awaitingStartConfirmation,
@@ -32,5 +28,5 @@ class PlayerOnboardingNotifier extends Notifier<PlayerOnboardingState> {
 
 final playerOnboardingProvider =
     NotifierProvider<PlayerOnboardingNotifier, PlayerOnboardingState>(
-  PlayerOnboardingNotifier.new,
-);
+      PlayerOnboardingNotifier.new,
+    );

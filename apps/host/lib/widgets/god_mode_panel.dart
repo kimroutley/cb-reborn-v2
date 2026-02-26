@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cb_logic/cb_logic.dart';
@@ -9,8 +9,11 @@ class GodModePanel extends ConsumerWidget {
   final GameState gameState;
   final Game controller;
 
-  const GodModePanel(
-      {super.key, required this.gameState, required this.controller});
+  const GodModePanel({
+    super.key,
+    required this.gameState,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,11 +27,13 @@ class GodModePanel extends ConsumerWidget {
         const SizedBox(height: CBSpace.x6),
         Padding(
           padding: const EdgeInsets.only(left: CBSpace.x1, bottom: CBSpace.x3),
-          child: Text("PLAYER MANIPULATION",
-              style: CBTypography.micro.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.45),
-                letterSpacing: 2,
-              )),
+          child: Text(
+            "PLAYER MANIPULATION",
+            style: CBTypography.micro.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.45),
+              letterSpacing: 2,
+            ),
+          ),
         ),
         ...gameState.players.map((p) => _buildPlayerTacticalCard(context, p)),
       ],
@@ -36,7 +41,9 @@ class GodModePanel extends ConsumerWidget {
   }
 
   Widget _buildDirectorCommands(
-      BuildContext context, CloudHostBridge hostBridge) {
+    BuildContext context,
+    CloudHostBridge hostBridge,
+  ) {
     final scheme = Theme.of(context).colorScheme;
     return CBPanel(
       borderColor: scheme.secondary.withValues(alpha: 0.4),
@@ -53,18 +60,30 @@ class GodModePanel extends ConsumerWidget {
             spacing: CBSpace.x3,
             runSpacing: CBSpace.x3,
             children: [
-              _buildCmdButton(context, "NEON FLICKER", Icons.lightbulb_outline,
-                  () {
-                controller.sendDirectorCommand('flicker');
-              }),
-              _buildCmdButton(context, "SYSTEM GLITCH", Icons.settings_ethernet,
-                  () {
-                controller.sendDirectorCommand('glitch');
-              }),
-              _buildCmdButton(context, "RANDOM RUMOUR", Icons.record_voice_over,
-                  () {
-                // Logic for injecting random rumour - already implemented in DashboardView
-              }),
+              _buildCmdButton(
+                context,
+                "NEON FLICKER",
+                Icons.lightbulb_outline,
+                () {
+                  controller.sendDirectorCommand('flicker');
+                },
+              ),
+              _buildCmdButton(
+                context,
+                "SYSTEM GLITCH",
+                Icons.settings_ethernet,
+                () {
+                  controller.sendDirectorCommand('glitch');
+                },
+              ),
+              _buildCmdButton(
+                context,
+                "RANDOM RUMOUR",
+                Icons.record_voice_over,
+                () {
+                  // Logic for injecting random rumour - already implemented in DashboardView
+                },
+              ),
               _buildCmdButton(context, "VOICE OF GOD", Icons.volume_up, () {
                 _showVoiceOfGodDialog(context, hostBridge);
               }),
@@ -76,7 +95,11 @@ class GodModePanel extends ConsumerWidget {
   }
 
   Widget _buildCmdButton(
-      BuildContext context, String label, IconData icon, VoidCallback onTap) {
+    BuildContext context,
+    String label,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     final scheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () {
@@ -86,7 +109,9 @@ class GodModePanel extends ConsumerWidget {
       borderRadius: BorderRadius.circular(CBRadius.sm),
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: CBSpace.x4, vertical: CBSpace.x3),
+          horizontal: CBSpace.x4,
+          vertical: CBSpace.x3,
+        ),
         decoration: BoxDecoration(
           color: scheme.secondary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(CBRadius.sm),
@@ -114,8 +139,9 @@ class GodModePanel extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: CBSpace.x3),
       child: CBPanel(
-        borderColor:
-            (player.isAlive ? roleColor : scheme.error).withValues(alpha: 0.4),
+        borderColor: (player.isAlive ? roleColor : scheme.error).withValues(
+          alpha: 0.4,
+        ),
         child: InkWell(
           onTap: () => _showTacticalMenu(context, player),
           child: Column(
@@ -129,21 +155,18 @@ class GodModePanel extends ConsumerWidget {
                       children: [
                         Text(
                           player.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall!
+                          style: Theme.of(context).textTheme.headlineSmall!
                               .copyWith(
-                                color:
-                                    player.isAlive ? roleColor : scheme.error,
+                                color: player.isAlive
+                                    ? roleColor
+                                    : scheme.error,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           player.role.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall!
+                          style: Theme.of(context).textTheme.bodySmall!
                               .copyWith(
                                 color:
                                     (player.isAlive ? roleColor : scheme.error)
@@ -163,14 +186,18 @@ class GodModePanel extends ConsumerWidget {
                   if (player.isSinBinned)
                     Padding(
                       padding: const EdgeInsets.only(left: CBSpace.x2),
-                      child:
-                          CBBadge(text: "SIN BINNED", color: scheme.secondary),
+                      child: CBBadge(
+                        text: "SIN BINNED",
+                        color: scheme.secondary,
+                      ),
                     ),
                   if (player.isShadowBanned)
                     Padding(
                       padding: const EdgeInsets.only(left: CBSpace.x2),
                       child: CBBadge(
-                          text: "SHADOW BANNED", color: scheme.tertiary),
+                        text: "SHADOW BANNED",
+                        color: scheme.tertiary,
+                      ),
                     ),
                   if (player.isMuted)
                     Padding(
@@ -178,10 +205,12 @@ class GodModePanel extends ConsumerWidget {
                       child: CBBadge(text: "MUTED", color: scheme.primary),
                     ),
                   const Spacer(),
-                  Text("TAP FOR TACTICAL MENU",
-                      style: CBTypography.nano.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.6),
-                      )),
+                  Text(
+                    "TAP FOR TACTICAL MENU",
+                    style: CBTypography.nano.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -278,7 +307,9 @@ class GodModePanel extends ConsumerWidget {
                       CBColors.yellow,
                       () {
                         controller.setShadowBan(
-                            player.id, !player.isShadowBanned);
+                          player.id,
+                          !player.isShadowBanned,
+                        );
                         Navigator.pop(context);
                       },
                     ),
@@ -302,8 +333,13 @@ class GodModePanel extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuAction(BuildContext context, String label, IconData icon,
-      Color color, VoidCallback onTap) {
+  Widget _buildMenuAction(
+    BuildContext context,
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     final textTheme = Theme.of(context).textTheme;
     return InkWell(
       onTap: onTap,
@@ -320,9 +356,13 @@ class GodModePanel extends ConsumerWidget {
           children: [
             Icon(icon, size: 18, color: color),
             const SizedBox(width: CBSpace.x3),
-            Text(label,
-                style: textTheme.labelSmall!
-                    .copyWith(color: color, fontWeight: FontWeight.bold)),
+            Text(
+              label,
+              style: textTheme.labelSmall!.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
@@ -342,11 +382,11 @@ class GodModePanel extends ConsumerWidget {
           Text(
             'VOICE OF GOD',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: scheme.primary,
-                  letterSpacing: 1.6,
-                  fontWeight: FontWeight.bold,
-                  shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
-                ),
+              color: scheme.primary,
+              letterSpacing: 1.6,
+              fontWeight: FontWeight.bold,
+              shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
+            ),
           ),
           const SizedBox(height: 16),
           CBTextField(
@@ -377,7 +417,7 @@ class GodModePanel extends ConsumerWidget {
                 },
               ),
             ],
-          )
+          ),
         ],
       ),
     );

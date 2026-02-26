@@ -170,8 +170,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
     });
 
     try {
-      final repository =
-          ProfileRepository(firestore: FirebaseFirestore.instance);
+      final repository = ProfileRepository(
+        firestore: FirebaseFirestore.instance,
+      );
       final isAvailable = await repository.isUsernameAvailable(
         username,
         excludingUid: user.uid,
@@ -220,13 +221,12 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
         final user = authSnapshot.data;
         if (user == null || user.email == null) {
           final currentLink = Uri.base.toString();
-          final isSignInLink =
-              FirebaseAuth.instance.isSignInWithEmailLink(currentLink);
+          final isSignInLink = FirebaseAuth.instance.isSignInWithEmailLink(
+            currentLink,
+          );
 
           return Scaffold(
-            appBar: AppBar(
-              title: const Text('PLAYER LOGIN'),
-            ),
+            appBar: AppBar(title: const Text('PLAYER LOGIN')),
             body: CBNeonBackground(
               child: Center(
                 child: SingleChildScrollView(
@@ -259,8 +259,8 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                           label: _isSendingLink
                               ? 'Sending Link...'
                               : (_isLinkSent
-                                  ? 'Resend Link'
-                                  : 'Send Sign-In Link'),
+                                    ? 'Resend Link'
+                                    : 'Send Sign-In Link'),
                           onPressed: (_isSendingLink || _isCompletingLink)
                               ? null
                               : _sendEmailLink,
@@ -283,7 +283,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                                       return;
                                     }
                                     _completeEmailLinkSignIn(
-                                        currentLink, email);
+                                      currentLink,
+                                      email,
+                                    );
                                   },
                           ),
                         ],
@@ -292,11 +294,12 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                           Text(
                             'Check your inbox and open the sign-in link on this device.',
                             textAlign: TextAlign.center,
-                            style:
-                                Theme.of(context).textTheme.bodyLarge!.copyWith(
-                                      color: scheme.onSurface
-                                          .withAlpha((255 * 0.75).round()),
-                                    ),
+                            style: Theme.of(context).textTheme.bodyLarge!
+                                .copyWith(
+                                  color: scheme.onSurface.withAlpha(
+                                    (255 * 0.75).round(),
+                                  ),
+                                ),
                           ),
                         ],
                         if (_error != null) ...[
@@ -304,9 +307,7 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                           Text(
                             _error!,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge!
+                            style: Theme.of(context).textTheme.bodyLarge!
                                 .copyWith(color: scheme.error),
                           ),
                         ],
@@ -335,9 +336,7 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
             }
 
             return Scaffold(
-              appBar: AppBar(
-                title: const Text('CREATE USERNAME'),
-              ),
+              appBar: AppBar(title: const Text('CREATE USERNAME')),
               body: CBNeonBackground(
                 child: Center(
                   child: SingleChildScrollView(
@@ -349,9 +348,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                              'Welcome ${ProfileRepository.maskEmail(user.email)}',
-                              style:
-                                  Theme.of(context).textTheme.headlineMedium),
+                            'Welcome ${ProfileRepository.maskEmail(user.email)}',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             'Choose a unique username linked to this account.',
@@ -381,9 +380,7 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                             Text(
                               _error!,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge!
+                              style: Theme.of(context).textTheme.bodyLarge!
                                   .copyWith(color: scheme.error),
                             ),
                           ],

@@ -164,10 +164,7 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
 
     try {
       await FirebaseAuth.instance
-          .signInWithEmailLink(
-            email: normalizedEmail,
-            emailLink: link,
-          )
+          .signInWithEmailLink(email: normalizedEmail, emailLink: link)
           .timeout(_completeLinkTimeout);
       await _clearPendingEmail();
     } on FirebaseAuthException catch (e) {
@@ -223,8 +220,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
     });
 
     try {
-      final repository =
-          ProfileRepository(firestore: FirebaseFirestore.instance);
+      final repository = ProfileRepository(
+        firestore: FirebaseFirestore.instance,
+      );
       final isAvailable = await repository.isUsernameAvailable(
         username,
         excludingUid: user.uid,
@@ -280,8 +278,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
           }
 
           final currentLink = _latestAuthLink ?? Uri.base.toString();
-          final isSignInLink =
-              FirebaseAuth.instance.isSignInWithEmailLink(currentLink);
+          final isSignInLink = FirebaseAuth.instance.isSignInWithEmailLink(
+            currentLink,
+          );
 
           return Scaffold(
             appBar: AppBar(
@@ -299,8 +298,11 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                         key: const ValueKey('host_login_header'),
                         child: Column(
                           children: [
-                            Icon(Icons.vpn_key_rounded,
-                                color: scheme.primary, size: 64),
+                            Icon(
+                              Icons.vpn_key_rounded,
+                              color: scheme.primary,
+                              size: 64,
+                            ),
                             const SizedBox(height: 24),
                             Text(
                               'ESTABLISH IDENTITY',
@@ -336,8 +338,10 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                                 hintText: 'SECURE EMAIL ADDRESS',
                                 keyboardType: TextInputType.emailAddress,
                                 decoration: InputDecoration(
-                                  prefixIcon: Icon(Icons.email_outlined,
-                                      color: scheme.primary),
+                                  prefixIcon: Icon(
+                                    Icons.email_outlined,
+                                    color: scheme.primary,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 24),
@@ -345,8 +349,8 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                                 label: _isSendingLink
                                     ? 'SENDING ENCRYPTED LINK...'
                                     : (_isLinkSent
-                                        ? 'RESEND ACCESS LINK'
-                                        : 'SEND SIGN-IN LINK'),
+                                          ? 'RESEND ACCESS LINK'
+                                          : 'SEND SIGN-IN LINK'),
                                 onPressed: (_isSendingLink || _isCompletingLink)
                                     ? null
                                     : _sendEmailLink,
@@ -358,7 +362,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                                   onPressed: _isCompletingLink
                                       ? null
                                       : () => _completeEmailLinkSignIn(
-                                          currentLink, _emailController.text),
+                                          currentLink,
+                                          _emailController.text,
+                                        ),
                                   color: scheme.tertiary,
                                 ),
                               ],
@@ -368,8 +374,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                                   'SIGN-IN LINK SENT. CHECK YOUR EMAIL AND OPEN IT HERE.',
                                   textAlign: TextAlign.center,
                                   style: textTheme.bodySmall!.copyWith(
-                                    color: scheme.onSurface
-                                        .withValues(alpha: 0.72),
+                                    color: scheme.onSurface.withValues(
+                                      alpha: 0.72,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -378,8 +385,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                                 Text(
                                   _error!,
                                   textAlign: TextAlign.center,
-                                  style: textTheme.bodySmall!
-                                      .copyWith(color: scheme.error),
+                                  style: textTheme.bodySmall!.copyWith(
+                                    color: scheme.error,
+                                  ),
                                 ),
                               ],
                             ],
@@ -443,22 +451,28 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text('WELCOME, AGENT',
-                              style: textTheme.headlineSmall!
-                                  .copyWith(color: scheme.secondary)),
+                          Text(
+                            'WELCOME, AGENT',
+                            style: textTheme.headlineSmall!.copyWith(
+                              color: scheme.secondary,
+                            ),
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'CHOOSE YOUR HOST MONIKER. THIS WILL BE YOUR PUBLIC IDENTITY IN THE CLUB.',
                             style: textTheme.bodySmall!.copyWith(
-                                color: scheme.onSurface.withValues(alpha: 0.7)),
+                              color: scheme.onSurface.withValues(alpha: 0.7),
+                            ),
                           ),
                           const SizedBox(height: 32),
                           CBTextField(
                             controller: _usernameController,
                             hintText: 'HOST USERNAME',
                             decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.person_outline,
-                                  color: scheme.secondary),
+                              prefixIcon: Icon(
+                                Icons.person_outline,
+                                color: scheme.secondary,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 32),
@@ -481,8 +495,9 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                             Text(
                               _error!,
                               textAlign: TextAlign.center,
-                              style: textTheme.bodySmall!
-                                  .copyWith(color: scheme.error),
+                              style: textTheme.bodySmall!.copyWith(
+                                color: scheme.error,
+                              ),
                             ),
                           ],
                         ],
@@ -516,7 +531,10 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                   child: Column(
                     children: [
                       const CBRoleAvatar(
-                          color: CBColors.neonPurple, size: 80, pulsing: true),
+                        color: CBColors.neonPurple,
+                        size: 80,
+                        pulsing: true,
+                      ),
                       const SizedBox(height: 24),
                       Text(
                         'SELECT HOSTING PERSONALITY',
@@ -546,18 +564,20 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: GameStyle.values
-                        .map((style) => Padding(
-                              padding: const EdgeInsets.only(bottom: 16.0),
-                              child: CBGlassTile(
-                                isSelected: _selectedStyle == style,
-                                onTap: () =>
-                                    setState(() => _selectedStyle = style),
-                                child: ListTile(
-                                  title: Text(style.label),
-                                  subtitle: Text(style.description),
-                                ),
+                        .map(
+                          (style) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: CBGlassTile(
+                              isSelected: _selectedStyle == style,
+                              onTap: () =>
+                                  setState(() => _selectedStyle = style),
+                              child: ListTile(
+                                title: Text(style.label),
+                                subtitle: Text(style.description),
                               ),
-                            ))
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                 ),

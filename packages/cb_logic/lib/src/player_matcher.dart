@@ -83,7 +83,7 @@ class PlayerMatcher {
 
     final entries = List<_PlayerEntry>.generate(
       names.length,
-      (i) => _PlayerEntry(i, names[i], canonicalizeName(names[i]))
+      (i) => _PlayerEntry(i, names[i], canonicalizeName(names[i])),
     );
 
     // Sort by length to optimize comparisons

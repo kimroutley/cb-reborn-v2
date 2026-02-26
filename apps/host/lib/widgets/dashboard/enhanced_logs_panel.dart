@@ -76,8 +76,11 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
           CBTextField(
             hintText: 'SEARCH AUDIT STREAM...',
             decoration: InputDecoration(
-              prefixIcon:
-                  Icon(Icons.search_rounded, color: scheme.primary, size: 18),
+              prefixIcon: Icon(
+                Icons.search_rounded,
+                color: scheme.primary,
+                size: 18,
+              ),
             ),
             onChanged: (value) {
               setState(() => _searchQuery = value);
@@ -103,15 +106,16 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
                   itemBuilder: (context, index) {
                     final log = filteredLogs[filteredLogs.length - 1 - index];
                     final isHost = log.contains('[HOST]');
-                    final isSystem = log.contains('──') ||
+                    final isSystem =
+                        log.contains('──') ||
                         log.contains('NIGHT') ||
                         log.contains('DAY');
 
                     final logColor = isHost
                         ? scheme.error
                         : isSystem
-                            ? scheme.secondary
-                            : scheme.onSurface.withValues(alpha: 0.8);
+                        ? scheme.secondary
+                        : scheme.onSurface.withValues(alpha: 0.8);
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -177,7 +181,8 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
     if (_searchQuery.isNotEmpty) {
       filtered = filtered
           .where(
-              (log) => log.toLowerCase().contains(_searchQuery.toLowerCase()))
+            (log) => log.toLowerCase().contains(_searchQuery.toLowerCase()),
+          )
           .toList();
     }
 

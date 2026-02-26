@@ -140,54 +140,51 @@ void main() {
       expect(find.text('SYNCING SESSION...'), findsOneWidget);
       expect(find.text('PRINT YOUR ID CARD'), findsNothing);
       expect(find.text('SYNCING PLAYER PROFILE...'), findsOneWidget);
-      expect(find.text('Preparing your identity and restoring session state.'),
-          findsOneWidget);
-    },
-  );
-
-  testWidgets(
-    'HomeScreen shows modal loading dialog while connecting',
-    (tester) async {
-      final joinCompleter = Completer<void>();
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            cloudPlayerBridgeProvider.overrideWith(
-              () => _DelayedCloudBridge(joinCompleter),
-            ),
-            playerBridgeProvider.overrideWith(() => _NoopPlayerBridge()),
-            authProvider.overrideWith(
-              () => _StubAuthNotifier(
-                  const AuthState(AuthStatus.unauthenticated)),
-            ),
-          ],
-          child: MaterialApp(
-            theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
-            home: const HomeScreen(),
-          ),
-        ),
-      );
-
-      await tester.enterText(
-        find.byType(CBTextField).first,
-        'NEON-ABCDEF',
-      );
-      await tester.tap(find.text('INITIATE UPLINK'));
-      await tester.pump();
-
-      expect(find.text('CONNECTING TO HOST...'), findsOneWidget);
       expect(
-          find.text('Hang tight while we sync your invite.'), findsOneWidget);
-      expect(find.text('CONNECTING...'), findsOneWidget);
-
-      joinCompleter.complete();
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
-
-      expect(find.text('CONNECTING TO HOST...'), findsNothing);
+        find.text('Preparing your identity and restoring session state.'),
+        findsOneWidget,
+      );
     },
   );
+
+  testWidgets('HomeScreen shows modal loading dialog while connecting', (
+    tester,
+  ) async {
+    final joinCompleter = Completer<void>();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          cloudPlayerBridgeProvider.overrideWith(
+            () => _DelayedCloudBridge(joinCompleter),
+          ),
+          playerBridgeProvider.overrideWith(() => _NoopPlayerBridge()),
+          authProvider.overrideWith(
+            () =>
+                _StubAuthNotifier(const AuthState(AuthStatus.unauthenticated)),
+          ),
+        ],
+        child: MaterialApp(
+          theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(CBTextField).first, 'NEON-ABCDEF');
+    await tester.tap(find.text('INITIATE UPLINK'));
+    await tester.pump();
+
+    expect(find.text('CONNECTING TO HOST...'), findsOneWidget);
+    expect(find.text('Hang tight while we sync your invite.'), findsOneWidget);
+    expect(find.text('CONNECTING...'), findsOneWidget);
+
+    joinCompleter.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('CONNECTING TO HOST...'), findsNothing);
+  });
 
   testWidgets(
     'ClaimScreen shows loading placeholder when identities have not synced yet',
@@ -197,10 +194,7 @@ void main() {
           overrides: [
             cloudPlayerBridgeProvider.overrideWith(
               () => _SeededCloudBridge(
-                const PlayerGameState(
-                  players: [],
-                  joinAccepted: true,
-                ),
+                const PlayerGameState(players: [], joinAccepted: true),
               ),
             ),
           ],

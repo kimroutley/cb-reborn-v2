@@ -9,8 +9,9 @@ class MessyBitchKillAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final messyBitches =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final messyBitches = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final bitch in messyBitches) {
       if (context.redirectedActions.containsKey(bitch.id) ||
@@ -32,7 +33,9 @@ class MessyBitchKillAction implements NightActionStrategy {
         context.killedPlayerIds.add(targetId);
         context.killSources[targetId] = 'messy_bitch';
         context.addPrivateMessage(
-            bitch.id, 'Score settled with ${target.name}.');
+          bitch.id,
+          'Score settled with ${target.name}.',
+        );
         context.addTeaser('Score settled.');
         context.addReport('MB killed ${target.name}.');
         context.updatePlayer(bitch.copyWith(messyBitchKillUsed: true));

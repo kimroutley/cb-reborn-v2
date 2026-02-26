@@ -26,8 +26,9 @@ class PlayerStats {
     if (rolesPlayed.isEmpty) {
       return 'N/A';
     }
-    final roleId =
-        rolesPlayed.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+    final roleId = rolesPlayed.entries
+        .reduce((a, b) => a.value > b.value ? a : b)
+        .key;
     final role = roleCatalogMap[roleId];
     return role?.name ?? roleId.replaceAll('_', ' ');
   }
@@ -52,7 +53,7 @@ class PlayerStatsNotifier extends Notifier<PlayerStats> {
     // Watch the player bridge for ID changes
     final activePlayerId =
         ref.watch(playerBridgeProvider.select((s) => s.myPlayerId)) ??
-            'player_1';
+        'player_1';
 
     // Initial state
     final stats = PlayerStats(playerId: activePlayerId);
@@ -80,8 +81,11 @@ class PlayerStatsNotifier extends Notifier<PlayerStats> {
         if (record.winner == playerInRecord.alliance) {
           gamesWon++;
         }
-        rolesPlayed.update(playerInRecord.roleId, (value) => value + 1,
-            ifAbsent: () => 1);
+        rolesPlayed.update(
+          playerInRecord.roleId,
+          (value) => value + 1,
+          ifAbsent: () => 1,
+        );
       }
     }
 

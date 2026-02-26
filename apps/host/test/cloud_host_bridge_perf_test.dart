@@ -74,8 +74,11 @@ void main() {
     await bridge.start();
 
     // Initial publish happens in start()
-    expect(mockFirebase.publishCount, 1,
-        reason: 'Should publish once on start');
+    expect(
+      mockFirebase.publishCount,
+      1,
+      reason: 'Should publish once on start',
+    );
 
     // Trigger an irrelevant change: emitSystemToFeed updates feedEvents but not public state
     container
@@ -86,8 +89,11 @@ void main() {
     await Future.microtask(() {});
 
     // OPTIMIZED BEHAVIOR: It should NOT publish.
-    expect(mockFirebase.publishCount, 1,
-        reason: 'Should NOT publish on feed update (optimized)');
+    expect(
+      mockFirebase.publishCount,
+      1,
+      reason: 'Should NOT publish on feed update (optimized)',
+    );
 
     // Trigger a relevant change: add players (updates players list)
     container.read(gameProvider.notifier).addPlayer('P1');
@@ -99,8 +105,11 @@ void main() {
     await Future.microtask(() {});
 
     // 1 (start) + 0 (feed) + 4 (adds) = 5
-    expect(mockFirebase.publishCount, 5,
-        reason: 'Should publish on each player add');
+    expect(
+      mockFirebase.publishCount,
+      5,
+      reason: 'Should publish on each player add',
+    );
 
     // Start game -> advancePhase -> publish
     container.read(gameProvider.notifier).startGame();

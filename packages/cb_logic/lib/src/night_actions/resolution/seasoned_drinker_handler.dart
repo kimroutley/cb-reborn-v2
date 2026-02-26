@@ -11,8 +11,9 @@ class SeasonedDrinkerHandler implements DeathHandler {
         victim.lives > 1 &&
         targetedByDealer) {
       context.updatePlayer(victim.copyWith(lives: victim.lives - 1));
-      context.report
-          .add('Seasoned Drinker ${victim.name} lost a life but survived.');
+      context.report.add(
+        'Seasoned Drinker ${victim.name} lost a life but survived.',
+      );
       context.teasers.add('A seasoned patron took a hit but kept going.');
       return true; // Prevent default death
     }

@@ -34,9 +34,7 @@ class VoteTallyPanel extends StatelessWidget {
           for (final entry in sorted) ...[
             Text(
               '${_nameForId(entry.key)}: ${entry.value}',
-              style: textTheme.bodyLarge!.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w700),
             ),
             if (votesByVoter.isNotEmpty)
               Padding(

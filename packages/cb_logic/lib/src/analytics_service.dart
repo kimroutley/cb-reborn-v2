@@ -2,8 +2,10 @@
 abstract class AnalyticsProvider {
   Future<void> setAnalyticsCollectionEnabled(bool enabled);
   Future<void> logScreenView({String? screenName, String? screenClass});
-  Future<void> logEvent(
-      {required String name, Map<String, Object>? parameters});
+  Future<void> logEvent({
+    required String name,
+    Map<String, Object>? parameters,
+  });
 }
 
 /// Analytics service for tracking game events.
@@ -78,10 +80,7 @@ class AnalyticsService {
     if (!_enabled) return;
     await _provider?.logEvent(
       name: 'night_action',
-      parameters: {
-        'role_id': roleId,
-        'action_type': actionType,
-      },
+      parameters: {'role_id': roleId, 'action_type': actionType},
     );
   }
 
@@ -96,10 +95,7 @@ class AnalyticsService {
     if (!_enabled) return;
     await _provider?.logEvent(
       name: 'player_death',
-      parameters: {
-        'role_id': roleId,
-        'cause_of_death': causeOfDeath,
-      },
+      parameters: {'role_id': roleId, 'cause_of_death': causeOfDeath},
     );
   }
 

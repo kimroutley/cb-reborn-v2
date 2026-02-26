@@ -13,10 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/custom_drawer.dart';
 
-enum PlayerSyncMode {
-  local,
-  cloud,
-}
+enum PlayerSyncMode { local, cloud }
 
 const List<Duration> _resumeRetrySchedule = <Duration>[
   Duration(seconds: 2),
@@ -84,8 +81,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // Connection State
   PlayerSyncMode _mode = PlayerSyncMode.cloud; // Default to cloud
   final TextEditingController _joinCodeController = TextEditingController();
-  final TextEditingController _hostIpController =
-      TextEditingController(text: 'ws://192.168.1.'); // Default local IP hint
+  final TextEditingController _hostIpController = TextEditingController(
+    text: 'ws://192.168.1.',
+  ); // Default local IP hint
   String? _connectionError;
   bool _isConnecting = false;
 
@@ -178,7 +176,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final cloudState = ref.read(cloudPlayerBridgeProvider);
     final alreadyConnectedOutsideLobby =
         (playerState.isConnected && playerState.phase != 'lobby') ||
-            (cloudState.isConnected && cloudState.phase != 'lobby');
+        (cloudState.isConnected && cloudState.phase != 'lobby');
 
     if (alreadyConnectedOutsideLobby) {
       _cancelResumeAutoReconnect(resetAttempts: true);
@@ -435,16 +433,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             label: _isConnecting
                                 ? 'CONNECTING...'
                                 : 'INITIATE UPLINK',
-                            onPressed:
-                                _isConnecting ? null : _connectFromButton,
+                            onPressed: _isConnecting
+                                ? null
+                                : _connectFromButton,
                           ),
                           if (_connectionError != null) ...[
                             const SizedBox(height: 16),
                             Text(
                               _connectionError!,
                               textAlign: TextAlign.center,
-                              style: textTheme.bodySmall!
-                                  .copyWith(color: scheme.error),
+                              style: textTheme.bodySmall!.copyWith(
+                                color: scheme.error,
+                              ),
                             ),
                           ],
                         ],
@@ -502,10 +502,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 }
 
 class _LoadingDialogOverlay extends StatelessWidget {
-  const _LoadingDialogOverlay({
-    required this.title,
-    required this.subtitle,
-  });
+  const _LoadingDialogOverlay({required this.title, required this.subtitle});
 
   final String title;
   final String subtitle;

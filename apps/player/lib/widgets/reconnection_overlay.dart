@@ -5,10 +5,7 @@ import 'package:cb_theme/cb_theme.dart';
 class ReconnectionOverlay extends StatelessWidget {
   final bool isReconnecting;
 
-  const ReconnectionOverlay({
-    super.key,
-    required this.isReconnecting,
-  });
+  const ReconnectionOverlay({super.key, required this.isReconnecting});
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +20,7 @@ class ReconnectionOverlay extends StatelessWidget {
           children: [
             const CBBreathingSpinner(size: 48),
             const SizedBox(height: 24),
-            Text(
-              'Reconnecting to game...',
-              style: textTheme.displaySmall!,
-            ),
+            Text('Reconnecting to game...', style: textTheme.displaySmall!),
             const SizedBox(height: 8),
             Text(
               'Please wait while we restore your connection',

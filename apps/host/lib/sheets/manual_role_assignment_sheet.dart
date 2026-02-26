@@ -13,8 +13,9 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
     final controller = ref.read(gameProvider.notifier);
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final assignableRoles =
-        roleCatalog.where((role) => role.id != 'unassigned').toList();
+    final assignableRoles = roleCatalog
+        .where((role) => role.id != 'unassigned')
+        .toList();
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -60,7 +61,12 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                     data: role.id,
                     feedback: Material(
                       type: MaterialType.transparency,
-                      child: _buildRoleSourceChip(role, roleColor, context, isDragging: true),
+                      child: _buildRoleSourceChip(
+                        role,
+                        roleColor,
+                        context,
+                        isDragging: true,
+                      ),
                     ),
                     childWhenDragging: Opacity(
                       opacity: 0.3,
@@ -83,12 +89,15 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final player = currentState.players[index];
                 final hasRole = player.role.id != 'unassigned';
-                final roleColor = hasRole ? CBColors.fromHex(player.role.colorHex) : scheme.outlineVariant;
+                final roleColor = hasRole
+                    ? CBColors.fromHex(player.role.colorHex)
+                    : scheme.outlineVariant;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: DragTarget<String>(
-                    onWillAcceptWithDetails: (details) => details.data != player.role.id,
+                    onWillAcceptWithDetails: (details) =>
+                        details.data != player.role.id,
                     onAcceptWithDetails: (details) {
                       HapticService.medium();
                       controller.assignRole(player.id, details.data);
@@ -100,7 +109,9 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                         isPrismatic: isHovering || hasRole,
                         borderColor: isHovering
                             ? scheme.secondary
-                            : (hasRole ? roleColor : scheme.outline.withValues(alpha: 0.3)),
+                            : (hasRole
+                                  ? roleColor
+                                  : scheme.outline.withValues(alpha: 0.3)),
                         padding: const EdgeInsets.all(12),
                         child: Row(
                           children: [
@@ -122,9 +133,15 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                                     ),
                                   ),
                                   Text(
-                                    hasRole ? player.role.name.toUpperCase() : 'PENDING ASSIGNMENT',
+                                    hasRole
+                                        ? player.role.name.toUpperCase()
+                                        : 'PENDING ASSIGNMENT',
                                     style: textTheme.labelSmall?.copyWith(
-                                      color: hasRole ? roleColor : scheme.onSurface.withValues(alpha: 0.5),
+                                      color: hasRole
+                                          ? roleColor
+                                          : scheme.onSurface.withValues(
+                                              alpha: 0.5,
+                                            ),
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -136,7 +153,10 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                               IconButton(
                                 icon: const Icon(Icons.close_rounded, size: 18),
                                 color: scheme.onSurface.withValues(alpha: 0.3),
-                                onPressed: () => controller.assignRole(player.id, 'unassigned'),
+                                onPressed: () => controller.assignRole(
+                                  player.id,
+                                  'unassigned',
+                                ),
                               ),
                           ],
                         ),
@@ -158,7 +178,12 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildRoleSourceChip(Role role, Color color, BuildContext context, {bool isDragging = false}) {
+  Widget _buildRoleSourceChip(
+    Role role,
+    Color color,
+    BuildContext context, {
+    bool isDragging = false,
+  }) {
     final textTheme = Theme.of(context).textTheme;
     return CBGlassTile(
       isPrismatic: true,
@@ -169,7 +194,12 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.badge_rounded, color: color, size: 24, shadows: CBColors.iconGlow(color, intensity: 0.3)),
+            Icon(
+              Icons.badge_rounded,
+              color: color,
+              size: 24,
+              shadows: CBColors.iconGlow(color, intensity: 0.3),
+            ),
             const SizedBox(height: 8),
             Text(
               role.name.toUpperCase(),

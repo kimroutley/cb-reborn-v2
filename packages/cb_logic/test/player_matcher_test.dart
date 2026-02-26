@@ -121,7 +121,10 @@ void main() {
         final duplicates = PlayerMatcher.findDuplicates(names);
 
         expect(duplicates.length, 1);
-        expect(duplicates['Alice'], unorderedEquals(['Alice', 'Alike', 'Alic']));
+        expect(
+          duplicates['Alice'],
+          unorderedEquals(['Alice', 'Alike', 'Alic']),
+        );
       });
 
       test('detects transitive duplicates', () {
@@ -139,7 +142,10 @@ void main() {
 
         expect(duplicates.length, 1);
         // Should form a single cluster due to transitive matching
-        expect(duplicates['aaaa'], unorderedEquals(['aaaa', 'aaab', 'aabb', 'abbb']));
+        expect(
+          duplicates['aaaa'],
+          unorderedEquals(['aaaa', 'aaab', 'aabb', 'abbb']),
+        );
       });
     });
 

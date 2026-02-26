@@ -9,8 +9,9 @@ class RoofiAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final roofis =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final roofis = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final roofi in roofis) {
       // Pre-emptive actions cannot be blocked or redirected in the same night
@@ -41,7 +42,8 @@ class RoofiAction implements NightActionStrategy {
             }
             final blockedVictim = context.getPlayer(blockedVictimId);
             context.addReport(
-                'Roofi blocked ${target.name}\'s kill on ${blockedVictim.name}.');
+              'Roofi blocked ${target.name}\'s kill on ${blockedVictim.name}.',
+            );
           }
         }
 

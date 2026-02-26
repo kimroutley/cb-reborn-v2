@@ -150,9 +150,15 @@ void main() {
 
     test('clearGameSlot removes only selected slot', () async {
       await service.saveGameSlot(
-          'slot_1', _fakeGameState(dayCount: 1), _fakeSession());
+        'slot_1',
+        _fakeGameState(dayCount: 1),
+        _fakeSession(),
+      );
       await service.saveGameSlot(
-          'slot_2', _fakeGameState(dayCount: 5), _fakeSession());
+        'slot_2',
+        _fakeGameState(dayCount: 5),
+        _fakeSession(),
+      );
 
       await service.clearGameSlot('slot_2');
 
@@ -215,10 +221,7 @@ void main() {
     });
 
     test('loadActiveGameDetailed reports partial snapshot', () async {
-      await activeBox.put(
-        'game_state',
-        jsonEncode(_fakeGameState().toJson()),
-      );
+      await activeBox.put('game_state', jsonEncode(_fakeGameState().toJson()));
 
       final result = service.loadActiveGameDetailed();
       expect(result.data, isNull);
@@ -249,22 +252,24 @@ void main() {
       expect(service.loadActiveGameDetailed().hasAnyData, false);
     });
 
-    test('loadGameSlotDetailed reports partial snapshot for that slot only',
-        () async {
-      await activeBox.put(
-        'game_state::slot_3',
-        jsonEncode(_fakeGameState().toJson()),
-      );
+    test(
+      'loadGameSlotDetailed reports partial snapshot for that slot only',
+      () async {
+        await activeBox.put(
+          'game_state::slot_3',
+          jsonEncode(_fakeGameState().toJson()),
+        );
 
-      final slot3 = service.loadGameSlotDetailed('slot_3');
-      expect(slot3.data, isNull);
-      expect(slot3.failure, ActiveGameLoadFailure.partialSnapshot);
-      expect(slot3.hasAnyData, true);
+        final slot3 = service.loadGameSlotDetailed('slot_3');
+        expect(slot3.data, isNull);
+        expect(slot3.failure, ActiveGameLoadFailure.partialSnapshot);
+        expect(slot3.hasAnyData, true);
 
-      final slot1 = service.loadGameSlotDetailed('slot_1');
-      expect(slot1.hasAnyData, false);
-      expect(slot1.failure, isNull);
-    });
+        final slot1 = service.loadGameSlotDetailed('slot_1');
+        expect(slot1.hasAnyData, false);
+        expect(slot1.failure, isNull);
+      },
+    );
   });
 
   // ═══════════════════════════════════════════════
@@ -372,9 +377,7 @@ void main() {
     });
 
     test('does not count neutral wins as partyAnimals wins', () async {
-      await service.saveGameRecord(
-        _fakeRecord(id: 'n1', winner: Team.neutral),
-      );
+      await service.saveGameRecord(_fakeRecord(id: 'n1', winner: Team.neutral));
 
       final stats = service.computeStats();
       expect(stats.totalGames, 1);
@@ -428,23 +431,26 @@ void main() {
   // ═══════════════════════════════════════════════
 
   group('Role Award Progress', () {
-    test('rebuildRoleAwardProgresses creates deterministic progress rows',
-        () async {
-      await service.saveGameRecord(_fakeRecord());
+    test(
+      'rebuildRoleAwardProgresses creates deterministic progress rows',
+      () async {
+        await service.saveGameRecord(_fakeRecord());
 
-      final rebuilt = await service.rebuildRoleAwardProgresses();
-      expect(rebuilt, isNotEmpty);
+        final rebuilt = await service.rebuildRoleAwardProgresses();
+        expect(rebuilt, isNotEmpty);
 
-      final byPlayer = service.loadRoleAwardProgressesByPlayer('p1');
-      expect(byPlayer.length, roleAwardsForRoleId(RoleIds.dealer).length);
+        final byPlayer = service.loadRoleAwardProgressesByPlayer('p1');
+        expect(byPlayer.length, roleAwardsForRoleId(RoleIds.dealer).length);
 
-      final rookie = byPlayer.firstWhere(
-        (row) =>
-            roleAwardDefinitionById(row.awardId)?.tier == RoleAwardTier.rookie,
-      );
-      expect(rookie.progressValue, 1);
-      expect(rookie.isUnlocked, true);
-    });
+        final rookie = byPlayer.firstWhere(
+          (row) =>
+              roleAwardDefinitionById(row.awardId)?.tier ==
+              RoleAwardTier.rookie,
+        );
+        expect(rookie.progressValue, 1);
+        expect(rookie.isUnlocked, true);
+      },
+    );
 
     test('query helpers filter by role, tier, and recent unlocks', () async {
       await service.saveGameRecord(_fakeRecord(id: 'g1'));
@@ -454,12 +460,14 @@ void main() {
 
       await service.rebuildRoleAwardProgresses();
 
-      final dealerProgress =
-          service.loadRoleAwardProgressesByRole(RoleIds.dealer);
+      final dealerProgress = service.loadRoleAwardProgressesByRole(
+        RoleIds.dealer,
+      );
       expect(dealerProgress, isNotEmpty);
 
-      final rookieProgress =
-          service.loadRoleAwardProgressesByTier(RoleAwardTier.rookie);
+      final rookieProgress = service.loadRoleAwardProgressesByTier(
+        RoleAwardTier.rookie,
+      );
       expect(rookieProgress, isNotEmpty);
 
       final recent = service.loadRecentRoleAwardUnlocks(limit: 5);
@@ -475,13 +483,11 @@ void main() {
       await service.rebuildRoleAwardProgresses();
 
       final aliceRows = service.loadRoleAwardProgressesByPlayer('p1');
-      final survivalBonus = aliceRows.firstWhere(
-        (row) {
-          final definition = roleAwardDefinitionById(row.awardId);
-          return definition?.tier == RoleAwardTier.bonus &&
-              definition?.unlockRule['metric'] == 'survivals';
-        },
-      );
+      final survivalBonus = aliceRows.firstWhere((row) {
+        final definition = roleAwardDefinitionById(row.awardId);
+        return definition?.tier == RoleAwardTier.bonus &&
+            definition?.unlockRule['metric'] == 'survivals';
+      });
 
       expect(survivalBonus.progressValue, 3);
       expect(survivalBonus.isUnlocked, true);

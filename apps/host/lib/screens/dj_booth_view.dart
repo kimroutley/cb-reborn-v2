@@ -54,9 +54,7 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                       Text(
                         'WELCOME TO THE DJ BOOTH',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
+                        style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(
                               color: scheme.onSurface,
                               fontWeight: FontWeight.w800,
@@ -68,9 +66,8 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                         'Under Construction',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: scheme.onSurfaceVariant
-                                  .withValues(alpha: 0.9),
-                            ),
+                          color: scheme.onSurfaceVariant.withValues(alpha: 0.9),
+                        ),
                       ),
                       const SizedBox(height: CBSpace.x10),
                       CBPrimaryButton(
@@ -95,7 +92,8 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                                     onAddMock: () {},
                                     eyesOpen: false,
                                     onToggleEyes: (_) {},
-                                    onBack: () => Navigator.of(context).maybePop(),
+                                    onBack: () =>
+                                        Navigator.of(context).maybePop(),
                                   ),
                                 ),
                               ),

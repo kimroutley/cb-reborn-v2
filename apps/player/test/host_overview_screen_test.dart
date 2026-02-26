@@ -45,21 +45,27 @@ class MockPlayerBridge extends PlayerBridge {
   @override
   Future<void> claimPlayer(String playerId) async {}
   @override
-  Future<void> vote(
-      {required String voterId, required String targetId}) async {}
+  Future<void> vote({
+    required String voterId,
+    required String targetId,
+  }) async {}
   @override
-  Future<void> sendAction(
-      {required String stepId,
-      required String targetId,
-      String? voterId}) async {}
+  Future<void> sendAction({
+    required String stepId,
+    required String targetId,
+    String? voterId,
+  }) async {}
   @override
-  Future<void> placeDeadPoolBet(
-      {required String playerId, required String targetPlayerId}) async {}
+  Future<void> placeDeadPoolBet({
+    required String playerId,
+    required String targetPlayerId,
+  }) async {}
   @override
-  Future<void> sendGhostChat(
-      {required String playerId,
-      required String message,
-      String? playerName}) async {}
+  Future<void> sendGhostChat({
+    required String playerId,
+    required String message,
+    String? playerName,
+  }) async {}
   @override
   Future<void> leave() async {}
   @override
@@ -67,8 +73,9 @@ class MockPlayerBridge extends PlayerBridge {
 }
 
 void main() {
-  testWidgets('HostOverviewScreen displays day count and player count',
-      (WidgetTester tester) async {
+  testWidgets('HostOverviewScreen displays day count and player count', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -76,7 +83,8 @@ void main() {
         ],
         child: MaterialApp(
           theme: CBTheme.buildTheme(
-              CBTheme.buildColorScheme(null)), // Use the app theme
+            CBTheme.buildColorScheme(null),
+          ), // Use the app theme
           home: const HostOverviewScreen(),
         ),
       ),

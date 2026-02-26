@@ -69,19 +69,13 @@ void main() {
 
   group('shouldNavigateToClaim', () {
     test('returns true when mounted and not currently navigating', () {
-      final allowed = shouldNavigateToClaim(
-        isNavigating: false,
-        mounted: true,
-      );
+      final allowed = shouldNavigateToClaim(isNavigating: false, mounted: true);
 
       expect(allowed, isTrue);
     });
 
     test('returns false when already navigating', () {
-      final allowed = shouldNavigateToClaim(
-        isNavigating: true,
-        mounted: true,
-      );
+      final allowed = shouldNavigateToClaim(isNavigating: true, mounted: true);
 
       expect(allowed, isFalse);
     });

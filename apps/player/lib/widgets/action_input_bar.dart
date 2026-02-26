@@ -45,13 +45,15 @@ class _ActionInputBarState extends State<ActionInputBar> {
     final isVoting = widget.gameState.currentStep?.isVote ?? false;
     final isNightAction = _isMyNightAction();
     final isDead = !widget.gameState.players
-        .firstWhere((p) => p.id == widget.playerId,
-            orElse: () => PlayerSnapshot(
-                  id: widget.playerId,
-                  name: '',
-                  roleId: '',
-                  roleName: '',
-                ))
+        .firstWhere(
+          (p) => p.id == widget.playerId,
+          orElse: () => PlayerSnapshot(
+            id: widget.playerId,
+            name: '',
+            roleId: '',
+            roleName: '',
+          ),
+        )
         .isAlive;
 
     return Container(
@@ -59,9 +61,7 @@ class _ActionInputBarState extends State<ActionInputBar> {
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest,
         border: Border(
-          top: BorderSide(
-            color: scheme.primary.withValues(alpha: 0.3),
-          ),
+          top: BorderSide(color: scheme.primary.withValues(alpha: 0.3)),
         ),
       ),
       child: SafeArea(
@@ -74,8 +74,9 @@ class _ActionInputBarState extends State<ActionInputBar> {
                 width: double.infinity,
                 child: CBPrimaryButton(
                   label: isVoting ? 'CAST VOTE' : 'PERFORM ACTION',
-                  onPressed:
-                      isVoting ? widget.onVotePressed : widget.onActionPressed,
+                  onPressed: isVoting
+                      ? widget.onVotePressed
+                      : widget.onActionPressed,
                 ),
               ),
               const SizedBox(height: 12),

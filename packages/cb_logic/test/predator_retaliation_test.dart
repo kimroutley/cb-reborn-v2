@@ -2,20 +2,16 @@ import 'package:cb_logic/src/day_actions/resolution/predator_retaliation.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Role _role(
-  String id, {
-  Team alliance = Team.partyAnimals,
-}) =>
-    Role(
-      id: id,
-      name: id,
-      alliance: alliance,
-      type: 'Test',
-      description: 'Test role',
-      nightPriority: 100,
-      assetPath: '',
-      colorHex: '#000000',
-    );
+Role _role(String id, {Team alliance = Team.partyAnimals}) => Role(
+  id: id,
+  name: id,
+  alliance: alliance,
+  type: 'Test',
+  description: 'Test role',
+  nightPriority: 100,
+  assetPath: '',
+  colorHex: '#000000',
+);
 
 Player _player(
   String id,
@@ -24,16 +20,15 @@ Player _player(
   bool isAlive = true,
   String? deathReason,
   int? deathDay,
-}) =>
-    Player(
-      id: id,
-      name: name,
-      role: role,
-      alliance: role.alliance,
-      isAlive: isAlive,
-      deathReason: deathReason,
-      deathDay: deathDay,
-    );
+}) => Player(
+  id: id,
+  name: name,
+  role: role,
+  alliance: role.alliance,
+  isAlive: isAlive,
+  deathReason: deathReason,
+  deathDay: deathDay,
+);
 
 void main() {
   group('resolvePredatorRetaliation', () {
@@ -43,16 +38,19 @@ void main() {
       final buddyRole = _role(RoleIds.partyAnimal);
 
       final players = [
-        _player('pred', 'Predator', predatorRole,
-            isAlive: false, deathReason: 'exile', deathDay: 1),
+        _player(
+          'pred',
+          'Predator',
+          predatorRole,
+          isAlive: false,
+          deathReason: 'exile',
+          deathDay: 1,
+        ),
         _player('dealer', 'Dealer', dealerRole),
         _player('buddy', 'Buddy', buddyRole),
       ];
 
-      final votesByVoter = {
-        'dealer': 'pred',
-        'buddy': 'pred',
-      };
+      final votesByVoter = {'dealer': 'pred', 'buddy': 'pred'};
 
       final result = resolvePredatorRetaliation(
         players: players,
@@ -76,16 +74,19 @@ void main() {
       final buddyRole = _role(RoleIds.partyAnimal);
 
       final players = [
-        _player('pred', 'Predator', predatorRole,
-            isAlive: false, deathReason: 'exile', deathDay: 1),
+        _player(
+          'pred',
+          'Predator',
+          predatorRole,
+          isAlive: false,
+          deathReason: 'exile',
+          deathDay: 1,
+        ),
         _player('dealer', 'Dealer', dealerRole),
         _player('buddy', 'Buddy', buddyRole),
       ];
 
-      final votesByVoter = {
-        'dealer': 'pred',
-        'buddy': 'pred',
-      };
+      final votesByVoter = {'dealer': 'pred', 'buddy': 'pred'};
 
       final result = resolvePredatorRetaliation(
         players: players,
@@ -97,8 +98,10 @@ void main() {
       expect(dealer.isAlive, isFalse);
       expect(dealer.deathReason, 'predator_retaliation');
       expect(dealer.deathDay, 1);
-      expect(result.lines.single,
-          'Predator struck back: Dealer was taken down in retaliation.');
+      expect(
+        result.lines.single,
+        'Predator struck back: Dealer was taken down in retaliation.',
+      );
       expect(result.events.single, isA<GameEventDeath>());
       final event = result.events.single as GameEventDeath;
       expect(event.reason, 'predator_retaliation');
@@ -111,17 +114,26 @@ void main() {
       final buddyRole = _role(RoleIds.partyAnimal);
 
       final players = [
-        _player('pred', 'Predator', predatorRole,
-            isAlive: false, deathReason: 'exile', deathDay: 1),
-        _player('dealer', 'Dealer', dealerRole,
-            isAlive: false, deathReason: 'exile', deathDay: 1),
+        _player(
+          'pred',
+          'Predator',
+          predatorRole,
+          isAlive: false,
+          deathReason: 'exile',
+          deathDay: 1,
+        ),
+        _player(
+          'dealer',
+          'Dealer',
+          dealerRole,
+          isAlive: false,
+          deathReason: 'exile',
+          deathDay: 1,
+        ),
         _player('buddy', 'Buddy', buddyRole),
       ];
 
-      final votesByVoter = {
-        'dealer': 'pred',
-        'buddy': 'pred',
-      };
+      final votesByVoter = {'dealer': 'pred', 'buddy': 'pred'};
 
       final result = resolvePredatorRetaliation(
         players: players,

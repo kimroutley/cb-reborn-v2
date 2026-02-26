@@ -17,10 +17,7 @@ class GuidesScreen extends ConsumerWidget {
     return CBPrismScaffold(
       title: 'THE BLACKBOOK',
       drawer: const CustomDrawer(currentDestination: HostDestination.guides),
-      body: CBGuideScreen(
-        gameState: gameState,
-        localPlayer: null,
-      ),
+      body: CBGuideScreen(gameState: gameState, localPlayer: null),
     );
   }
 }

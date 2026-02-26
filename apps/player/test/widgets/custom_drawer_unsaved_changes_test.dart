@@ -41,10 +41,7 @@ void main() {
               size: Size(1200, 2400),
               textScaler: TextScaler.noScaling,
             ),
-            child: Scaffold(
-              drawer: CustomDrawer(),
-              body: SizedBox.expand(),
-            ),
+            child: Scaffold(drawer: CustomDrawer(), body: SizedBox.expand()),
           ),
         ),
       ),

@@ -2,20 +2,16 @@ import 'package:cb_logic/src/day_actions/resolution/tea_spiller_reveal.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Role _role(
-  String id, {
-  Team alliance = Team.partyAnimals,
-}) =>
-    Role(
-      id: id,
-      name: id,
-      alliance: alliance,
-      type: 'Test',
-      description: 'Test role',
-      nightPriority: 100,
-      assetPath: '',
-      colorHex: '#000000',
-    );
+Role _role(String id, {Team alliance = Team.partyAnimals}) => Role(
+  id: id,
+  name: id,
+  alliance: alliance,
+  type: 'Test',
+  description: 'Test role',
+  nightPriority: 100,
+  assetPath: '',
+  colorHex: '#000000',
+);
 
 Player _player(
   String id,
@@ -23,15 +19,14 @@ Player _player(
   Role role, {
   bool isAlive = true,
   String? deathReason,
-}) =>
-    Player(
-      id: id,
-      name: name,
-      role: role,
-      alliance: role.alliance,
-      isAlive: isAlive,
-      deathReason: deathReason,
-    );
+}) => Player(
+  id: id,
+  name: name,
+  role: role,
+  alliance: role.alliance,
+  isAlive: isAlive,
+  deathReason: deathReason,
+);
 
 void main() {
   group('resolveTeaSpillerReveals', () {
@@ -41,18 +36,20 @@ void main() {
       final buddyRole = _role(RoleIds.partyAnimal);
 
       final players = [
-        _player('tea', 'Tea', teaSpillerRole,
-            isAlive: false, deathReason: 'exile'),
+        _player(
+          'tea',
+          'Tea',
+          teaSpillerRole,
+          isAlive: false,
+          deathReason: 'exile',
+        ),
         _player('dealer', 'Dealer', dealerRole),
         _player('buddy', 'Buddy', buddyRole),
       ];
 
       final lines = resolveTeaSpillerReveals(
         players: players,
-        votesByVoter: {
-          'dealer': 'tea',
-          'buddy': 'tea',
-        },
+        votesByVoter: {'dealer': 'tea', 'buddy': 'tea'},
       );
 
       expect(lines.length, 1);
@@ -64,8 +61,13 @@ void main() {
       final dealerRole = _role(RoleIds.dealer, alliance: Team.clubStaff);
 
       final players = [
-        _player('tea', 'Tea', teaSpillerRole,
-            isAlive: false, deathReason: 'exile'),
+        _player(
+          'tea',
+          'Tea',
+          teaSpillerRole,
+          isAlive: false,
+          deathReason: 'exile',
+        ),
         _player('dealer', 'Dealer', dealerRole),
       ];
 
@@ -83,18 +85,20 @@ void main() {
       final buddyRole = _role(RoleIds.partyAnimal);
 
       final players = [
-        _player('tea', 'Tea', teaSpillerRole,
-            isAlive: false, deathReason: 'exile'),
+        _player(
+          'tea',
+          'Tea',
+          teaSpillerRole,
+          isAlive: false,
+          deathReason: 'exile',
+        ),
         _player('dealer', 'Dealer', dealerRole),
         _player('buddy', 'Buddy', buddyRole),
       ];
 
       final lines = resolveTeaSpillerReveals(
         players: players,
-        votesByVoter: {
-          'dealer': 'tea',
-          'buddy': 'tea',
-        },
+        votesByVoter: {'dealer': 'tea', 'buddy': 'tea'},
         teaSpillerRevealChoices: const {'tea': 'buddy'},
       );
 

@@ -4,10 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum CachedSyncMode {
-  local,
-  cloud,
-}
+enum CachedSyncMode { local, cloud }
 
 @immutable
 class PlayerSessionCacheEntry {
@@ -142,5 +139,5 @@ class PlayerSessionCacheRepository {
 
 final playerSessionCacheRepositoryProvider =
     Provider<PlayerSessionCacheRepository>(
-  (ref) => const PlayerSessionCacheRepository(),
-);
+      (ref) => const PlayerSessionCacheRepository(),
+    );

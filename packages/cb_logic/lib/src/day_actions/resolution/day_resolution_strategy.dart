@@ -24,13 +24,14 @@ import 'package:cb_models/cb_models.dart';
 ///   `test/day_resolution_strategy_test.dart`.
 class DayResolutionStrategy {
   DayResolutionStrategy({List<DayResolutionHandler>? handlers})
-      : handlers = handlers ??
-            const [
-              DeadPoolHandler(),
-              TeaSpillerHandler(),
-              DramaQueenHandler(),
-              PredatorRetaliationHandler(),
-            ];
+    : handlers =
+          handlers ??
+          const [
+            DeadPoolHandler(),
+            TeaSpillerHandler(),
+            DramaQueenHandler(),
+            PredatorRetaliationHandler(),
+          ];
 
   final List<DayResolutionHandler> handlers;
 

@@ -11,5 +11,5 @@ class PendingJoinUrlNotifier extends Notifier<String?> {
 
 final pendingJoinUrlProvider =
     NotifierProvider<PendingJoinUrlNotifier, String?>(
-  PendingJoinUrlNotifier.new,
-);
+      PendingJoinUrlNotifier.new,
+    );

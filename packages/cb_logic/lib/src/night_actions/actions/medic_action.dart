@@ -9,8 +9,9 @@ class MedicAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final medics =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final medics = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final medic in medics) {
       if (context.redirectedActions.containsKey(medic.id) ||

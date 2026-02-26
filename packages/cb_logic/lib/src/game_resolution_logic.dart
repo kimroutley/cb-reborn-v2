@@ -1,4 +1,4 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:cb_models/cb_models.dart';
 import 'night_actions/night_actions.dart';
 
@@ -51,10 +51,12 @@ class GameResolutionLogic {
     // 1. Assign Dealer(s)
     for (var i = 0; i < staffCount; i++) {
       final p = shuffledPlayers.removeAt(0);
-      assigned.add(p.copyWith(
-        role: roleCatalogMap[RoleIds.dealer]!,
-        alliance: Team.clubStaff,
-      ));
+      assigned.add(
+        p.copyWith(
+          role: roleCatalogMap[RoleIds.dealer]!,
+          alliance: Team.clubStaff,
+        ),
+      );
     }
 
     // 2. Assign Required roles if any
@@ -86,8 +88,9 @@ class GameResolutionLogic {
       final p = shuffledPlayers.removeAt(0);
       if (remainingRoles.isEmpty) {
         final partyAnimal = roleCatalogMap[RoleIds.partyAnimal]!;
-        assigned
-            .add(p.copyWith(role: partyAnimal, alliance: partyAnimal.alliance));
+        assigned.add(
+          p.copyWith(role: partyAnimal, alliance: partyAnimal.alliance),
+        );
         continue;
       }
 
@@ -97,8 +100,9 @@ class GameResolutionLogic {
     }
 
     // 4. Special Initialization for multi-life roles
-    final actualStaffCount =
-        assigned.where((p) => p.alliance == Team.clubStaff).length;
+    final actualStaffCount = assigned
+        .where((p) => p.alliance == Team.clubStaff)
+        .length;
     assigned = assigned.map((p) {
       if (p.role.id == RoleIds.seasonedDrinker) {
         return p.copyWith(lives: actualStaffCount);
@@ -112,9 +116,7 @@ class GameResolutionLogic {
     return assigned;
   }
 
-  static NightResolution resolveNightActions(
-    GameState gameState,
-  ) {
+  static NightResolution resolveNightActions(GameState gameState) {
     final players = gameState.players;
     final log = gameState.actionLog;
     final dayCount = gameState.dayCount;
@@ -148,7 +150,8 @@ class GameResolutionLogic {
       for (var i = 0; i < actionStrategies.length; i++)
         actionStrategies[i].roleId: i,
     };
-    final sortedStrategies = [...actionStrategies]..sort((a, b) {
+    final sortedStrategies = [...actionStrategies]
+      ..sort((a, b) {
         if (a.roleId == RoleIds.dealer && b.roleId == RoleIds.roofi) return -1;
         if (a.roleId == RoleIds.roofi && b.roleId == RoleIds.dealer) return 1;
         final roleA = roleCatalogMap[a.roleId];
@@ -157,8 +160,9 @@ class GameResolutionLogic {
         final priorityB = roleB?.nightPriority ?? 999;
         final byPriority = priorityA.compareTo(priorityB);
         if (byPriority != 0) return byPriority;
-        return (strategyOrder[a.roleId] ?? 0)
-            .compareTo(strategyOrder[b.roleId] ?? 0);
+        return (strategyOrder[a.roleId] ?? 0).compareTo(
+          strategyOrder[b.roleId] ?? 0,
+        );
       });
 
     // Execute strategies in order
@@ -203,8 +207,9 @@ class GameResolutionLogic {
     for (final p in players) {
       if (p.alibiDay == dayCount && filteredTally.containsKey(p.id)) {
         filteredTally.remove(p.id);
-        report
-            .add('${p.name} has an airtight alibi and cannot be exiled today.');
+        report.add(
+          '${p.name} has an airtight alibi and cannot be exiled today.',
+        );
       }
     }
 
@@ -286,11 +291,9 @@ class GameResolutionLogic {
       return p;
     }).toList();
 
-    events.add(GameEvent.death(
-      playerId: victimId,
-      reason: 'exile',
-      day: dayCount,
-    ));
+    events.add(
+      GameEvent.death(playerId: victimId, reason: 'exile', day: dayCount),
+    );
 
     return DayResolution(
       players: updatedPlayers,
@@ -304,8 +307,9 @@ class GameResolutionLogic {
 
     // Messy Bitch solo win: if every living player has heard a rumour and
     // at least one living Messy Bitch remains.
-    final livingMessyBitches =
-        livingPlayers.where((p) => p.role.id == RoleIds.messyBitch).toList();
+    final livingMessyBitches = livingPlayers
+        .where((p) => p.role.id == RoleIds.messyBitch)
+        .toList();
     if (livingMessyBitches.isNotEmpty &&
         livingPlayers.isNotEmpty &&
         livingPlayers.every((p) => p.hasRumour)) {
@@ -333,13 +337,15 @@ class GameResolutionLogic {
 
     if (hadStaff && staff == 0) {
       return WinResult(
-          winner: Team.partyAnimals,
-          report: ['All Dealers have been eliminated. Party Animals win!']);
+        winner: Team.partyAnimals,
+        report: ['All Dealers have been eliminated. Party Animals win!'],
+      );
     }
     if (staff >= pa && staff > 0) {
       return WinResult(
-          winner: Team.clubStaff,
-          report: ['The Dealers have taken over the club. Staff win!']);
+        winner: Team.clubStaff,
+        report: ['The Dealers have taken over the club. Staff win!'],
+      );
     }
     return null;
   }
@@ -361,5 +367,3 @@ class GameResolutionLogic {
     }
   }
 }
-
-

@@ -26,8 +26,8 @@ class NightResolutionContext {
     required this.log,
     required this.dayCount,
     required Map<String, List<String>> privateMessages,
-  })  : _players = List<Player>.from(players),
-        _privateMessages = Map<String, List<String>>.from(privateMessages);
+  }) : _players = List<Player>.from(players),
+       _privateMessages = Map<String, List<String>>.from(privateMessages);
 
   List<Player> get players => _players;
   Map<String, List<String>> get privateMessages => _privateMessages;

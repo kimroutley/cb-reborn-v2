@@ -92,7 +92,9 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
       await prefs.setDouble(_keyMusicVolume, next.musicVolume);
       await prefs.setBool(_keyHighContrast, next.highContrast);
       await prefs.setBool(
-          _keyGeminiNarrationEnabled, next.geminiNarrationEnabled);
+        _keyGeminiNarrationEnabled,
+        next.geminiNarrationEnabled,
+      );
       await prefs.setString(_keyHostPersonalityId, next.hostPersonalityId);
     } catch (e) {
       // Best-effort
@@ -144,5 +146,5 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
 
 final hostSettingsProvider =
     NotifierProvider<HostSettingsNotifier, HostSettings>(
-  HostSettingsNotifier.new,
-);
+      HostSettingsNotifier.new,
+    );

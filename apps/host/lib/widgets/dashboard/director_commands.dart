@@ -71,13 +71,15 @@ class DirectorCommands extends ConsumerWidget {
     final rumour = rumourTemplates[Random().nextInt(rumourTemplates.length)]
         .replaceAll('{player}', target.name);
 
-    ref.read(gameProvider.notifier).dispatchBulletin(
-          title: 'RUMOUR MILL',
-          content: rumour,
-          type: 'event',
-        );
+    ref
+        .read(gameProvider.notifier)
+        .dispatchBulletin(title: 'RUMOUR MILL', content: rumour, type: 'event');
 
-    showThemedSnackBar(context, 'RUMOR DISPATCHED TO ALL NODES', accentColor: Theme.of(context).colorScheme.secondary);
+    showThemedSnackBar(
+      context,
+      'RUMOR DISPATCHED TO ALL NODES',
+      accentColor: Theme.of(context).colorScheme.secondary,
+    );
   }
 
   void _voiceOfGod(BuildContext context, WidgetRef ref) {
@@ -104,7 +106,9 @@ class DirectorCommands extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'Transmit a high-priority global announcement to all patrons.',
-            style: textTheme.bodySmall!.copyWith(color: scheme.onSurface.withValues(alpha: 0.6)),
+            style: textTheme.bodySmall!.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.6),
+            ),
           ),
           const SizedBox(height: 24),
           CBTextField(
@@ -126,19 +130,24 @@ class DirectorCommands extends ConsumerWidget {
                 label: 'BROADCAST',
                 onPressed: () {
                   if (message.isNotEmpty) {
-                    ref.read(gameProvider.notifier).dispatchBulletin(
+                    ref
+                        .read(gameProvider.notifier)
+                        .dispatchBulletin(
                           title: 'HOST ANNOUNCEMENT',
                           content: message,
                           type: 'urgent',
                         );
                     Navigator.pop(context);
                     showThemedSnackBar(
-                        context, 'GLOBAL ANNOUNCEMENT TRANSMITTED', accentColor: scheme.primary);
+                      context,
+                      'GLOBAL ANNOUNCEMENT TRANSMITTED',
+                      accentColor: scheme.primary,
+                    );
                   }
                 },
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -177,7 +186,12 @@ class _DirectorActionButton extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: color, size: 24, shadows: CBColors.iconGlow(color, intensity: 0.3)),
+            Icon(
+              icon,
+              color: color,
+              size: 24,
+              shadows: CBColors.iconGlow(color, intensity: 0.3),
+            ),
             const SizedBox(height: 12),
             Text(
               label,

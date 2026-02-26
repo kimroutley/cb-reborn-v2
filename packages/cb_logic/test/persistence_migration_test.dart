@@ -48,9 +48,7 @@ class MockFlutterSecureStoragePlatform extends FlutterSecureStoragePlatform
   }
 
   @override
-  Future<void> deleteAll({
-    required Map<String, String> options,
-  }) async {
+  Future<void> deleteAll({required Map<String, String> options}) async {
     storage.clear();
   }
 
@@ -123,10 +121,16 @@ void main() {
     // Note: The service keeps the boxes open, so Hive should return the open instances.
 
     final cipher = HiveAesCipher(key);
-    final encryptedActiveBox = await Hive.openBox<String>('active_game', encryptionCipher: cipher);
+    final encryptedActiveBox = await Hive.openBox<String>(
+      'active_game',
+      encryptionCipher: cipher,
+    );
     expect(encryptedActiveBox.get('game_state'), '{"test": "active_data"}');
 
-    final encryptedRecordsBox = await Hive.openBox<String>('game_records', encryptionCipher: cipher);
+    final encryptedRecordsBox = await Hive.openBox<String>(
+      'game_records',
+      encryptionCipher: cipher,
+    );
     expect(encryptedRecordsBox.get('record_1'), '{"test": "record_data"}');
 
     // 5. Verify unencrypted access fails (proof of encryption)
@@ -139,7 +143,8 @@ void main() {
     // Now try to open without key
     // We disable crashRecovery to ensure it throws instead of "recovering" (wiping) the file
     expect(
-      () async => await Hive.openBox<String>('active_game', crashRecovery: false),
+      () async =>
+          await Hive.openBox<String>('active_game', crashRecovery: false),
       throwsA(isA<HiveError>()),
     );
   });

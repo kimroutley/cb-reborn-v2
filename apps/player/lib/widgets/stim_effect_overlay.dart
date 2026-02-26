@@ -30,8 +30,10 @@ class _StimEffectOverlayState extends State<StimEffectOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _flashAnimation =
-        Tween<double>(begin: 0.0, end: 1.0).animate(_flashController);
+    _flashAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_flashController);
   }
 
   @override
@@ -46,8 +48,9 @@ class _StimEffectOverlayState extends State<StimEffectOverlay>
 
     // Check for STIM commands (Director Mode)
     if (widget.bulletinBoard.length > oldWidget.bulletinBoard.length) {
-      final newEntries =
-          widget.bulletinBoard.sublist(oldWidget.bulletinBoard.length);
+      final newEntries = widget.bulletinBoard.sublist(
+        oldWidget.bulletinBoard.length,
+      );
       for (final entry in newEntries) {
         if (entry.content.startsWith('STIM:')) {
           _triggerStim(entry.content.substring(5).trim());
@@ -68,7 +71,9 @@ class _StimEffectOverlayState extends State<StimEffectOverlay>
       setState(() => _flashColor = scheme.tertiary);
       _flashController.repeat(reverse: true);
       Future.delayed(
-          const Duration(milliseconds: 800), () => _flashController.stop());
+        const Duration(milliseconds: 800),
+        () => _flashController.stop(),
+      );
     } else if (command == 'BASS DROP') {
       // Blackout then flash
       setState(() => _flashColor = scheme.onSurface);
@@ -89,8 +94,9 @@ class _StimEffectOverlayState extends State<StimEffectOverlay>
             animation: _flashAnimation,
             builder: (context, child) {
               return Container(
-                color: _flashColor
-                    .withAlpha((_flashAnimation.value * 0.3 * 255).toInt()),
+                color: _flashColor.withAlpha(
+                  (_flashAnimation.value * 0.3 * 255).toInt(),
+                ),
               );
             },
           ),

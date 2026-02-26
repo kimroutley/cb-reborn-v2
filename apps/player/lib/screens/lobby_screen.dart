@@ -91,7 +91,11 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
   }
 
   Widget _buildGuideRow(
-      BuildContext context, IconData icon, String title, String description) {
+    BuildContext context,
+    IconData icon,
+    String title,
+    String description,
+  ) {
     final scheme = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,16 +109,16 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
               Text(
                 title,
                 style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.7),
-                    ),
+                  color: scheme.onSurface.withValues(alpha: 0.7),
+                ),
               ),
             ],
           ),
@@ -144,8 +148,9 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
     setState(() => _savingName = true);
     try {
-      final repository =
-          ProfileRepository(firestore: FirebaseFirestore.instance);
+      final repository = ProfileRepository(
+        firestore: FirebaseFirestore.instance,
+      );
       final isAvailable = await repository.isUsernameAvailable(
         candidate,
         excludingUid: user.uid,
@@ -255,14 +260,14 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     final (statusIcon, statusColor) = switch (status.tone) {
       _LobbyStatusTone.readyToJoin => (Icons.flash_on_rounded, scheme.tertiary),
       _LobbyStatusTone.waitingPlayers => (
-          Icons.groups_rounded,
-          scheme.secondary
-        ),
+        Icons.groups_rounded,
+        scheme.secondary,
+      ),
       _LobbyStatusTone.setup => (Icons.badge_rounded, scheme.primary),
       _LobbyStatusTone.waitingHost => (
-          Icons.hourglass_top_rounded,
-          scheme.onSurfaceVariant
-        ),
+        Icons.hourglass_top_rounded,
+        scheme.onSurfaceVariant,
+      ),
     };
 
     return CBPrismScaffold(
@@ -412,9 +417,4 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
   }
 }
 
-enum _LobbyStatusTone {
-  waitingPlayers,
-  waitingHost,
-  setup,
-  readyToJoin,
-}
+enum _LobbyStatusTone { waitingPlayers, waitingHost, setup, readyToJoin }

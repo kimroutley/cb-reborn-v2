@@ -69,18 +69,21 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       _firebase = FirebaseBridge(joinCode: code);
 
       // Subscribe to public game state
-      _gameSub = _firebase!.subscribeToGame().listen((snapshot) {
-        final data = snapshot.data();
-        if (data == null) return;
-        _applyPublicState(data);
-        if (!firstSnapshotReady.isCompleted) {
-          firstSnapshotReady.complete();
-        }
-      }, onError: (error) {
-        if (!firstSnapshotReady.isCompleted) {
-          firstSnapshotReady.completeError(error);
-        }
-      });
+      _gameSub = _firebase!.subscribeToGame().listen(
+        (snapshot) {
+          final data = snapshot.data();
+          if (data == null) return;
+          _applyPublicState(data);
+          if (!firstSnapshotReady.isCompleted) {
+            firstSnapshotReady.complete();
+          }
+        },
+        onError: (error) {
+          if (!firstSnapshotReady.isCompleted) {
+            firstSnapshotReady.completeError(error);
+          }
+        },
+      );
 
       // Wait for the first public game snapshot before declaring the join
       // successful. This prevents false-positive "connected" UI states when
@@ -116,8 +119,9 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
   @override
   Future<void> joinGame(String joinCode, String playerName) async {
-    final resolvedName =
-        playerName.trim().isEmpty ? 'Player' : playerName.trim();
+    final resolvedName = playerName.trim().isEmpty
+        ? 'Player'
+        : playerName.trim();
     _pendingClaimName = resolvedName;
     _cachedPlayerName = resolvedName;
     await joinWithCode(joinCode);
@@ -245,7 +249,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
   void _applyPublicState(Map<String, dynamic> data) {
     final playersRaw = data['players'] as List<dynamic>?;
-    final players = playersRaw
+    final players =
+        playersRaw
             ?.map((e) => PlayerSnapshot.fromMap(e as Map<String, dynamic>))
             .toList() ??
         [];
@@ -257,30 +262,24 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     final tally = tallyRaw?.map((k, v) => MapEntry(k, v as int)) ?? {};
 
     final votesByVoterRaw = data['votesByVoter'] as Map<String, dynamic>?;
-    final votesByVoter = votesByVoterRaw?.map(
-          (k, v) => MapEntry(k, v as String),
-        ) ??
-        {};
+    final votesByVoter =
+        votesByVoterRaw?.map((k, v) => MapEntry(k, v as String)) ?? {};
 
     final privatesRaw = data['privateMessages'] as Map<String, dynamic>?;
-    final privates = privatesRaw?.map(
-          (k, v) => MapEntry(k, _toStringList(v)),
-        ) ??
-        {};
+    final privates =
+        privatesRaw?.map((k, v) => MapEntry(k, _toStringList(v))) ?? {};
 
     final deadPoolRaw = data['deadPoolBets'] as Map<String, dynamic>?;
-    final deadPoolBets = deadPoolRaw?.map(
-          (k, v) => MapEntry(k, v.toString()),
-        ) ??
-        {};
+    final deadPoolBets =
+        deadPoolRaw?.map((k, v) => MapEntry(k, v.toString())) ?? {};
 
     final phase = data['phase'] as String? ?? 'lobby';
 
     // Determine myPlayerId and myPlayerSnapshot after receiving new players list
     final String? updatedMyPlayerId =
         state.myPlayerId != null && players.any((p) => p.id == state.myPlayerId)
-            ? state.myPlayerId
-            : null;
+        ? state.myPlayerId
+        : null;
     final PlayerSnapshot? updatedMyPlayerSnapshot = updatedMyPlayerId != null
         ? players.firstWhere((p) => p.id == updatedMyPlayerId)
         : null;
@@ -341,7 +340,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         hasReviveToken: data['hasReviveToken'] as bool? ?? p.hasReviveToken,
         secondWindPendingConversion:
             data['secondWindPendingConversion'] as bool? ??
-                p.secondWindPendingConversion,
+            p.secondWindPendingConversion,
         creepTargetId: data['creepTargetId'] as String? ?? p.creepTargetId,
         whoreDeflectionUsed:
             data['whoreDeflectionUsed'] as bool? ?? p.whoreDeflectionUsed,
@@ -356,14 +355,16 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       privateMessages[state.myPlayerId!] = _toStringList(myMessages);
     }
 
-    final ghostMessages = privateMessages[state.myPlayerId!]
+    final ghostMessages =
+        privateMessages[state.myPlayerId!]
             ?.where((m) => m.startsWith('[GHOST] '))
             .map((m) => m.replaceFirst('[GHOST] ', ''))
             .toList() ??
         const <String>[];
 
-    final updatedMyPlayerSnapshot =
-        updatedPlayers.firstWhere((p) => p.id == state.myPlayerId);
+    final updatedMyPlayerSnapshot = updatedPlayers.firstWhere(
+      (p) => p.id == state.myPlayerId,
+    );
 
     state = state.copyWith(
       players: updatedPlayers,
@@ -428,5 +429,5 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 /// Riverpod provider for [CloudPlayerBridge].
 final cloudPlayerBridgeProvider =
     NotifierProvider<CloudPlayerBridge, PlayerGameState>(() {
-  return CloudPlayerBridge();
-});
+      return CloudPlayerBridge();
+    });

@@ -17,28 +17,34 @@ class DefaultDeathHandler implements DeathHandler {
       teaserMsg = 'Someone settled the score with extreme prejudice.';
     }
 
-    context.updatePlayer(victim.copyWith(
-      isAlive: false,
-      deathDay: context.dayCount,
-      deathReason: reason,
-    ));
+    context.updatePlayer(
+      victim.copyWith(
+        isAlive: false,
+        deathDay: context.dayCount,
+        deathReason: reason,
+      ),
+    );
     context.report.add(reportMsg);
     context.teasers.add(teaserMsg);
 
-    context.events.add(GameEvent.death(
-      playerId: victim.id,
-      reason: reason,
-      day: context.dayCount,
-    ));
+    context.events.add(
+      GameEvent.death(
+        playerId: victim.id,
+        reason: reason,
+        day: context.dayCount,
+      ),
+    );
 
     // Attribute kills to specific dealers
     for (final entry in context.dealerAttacks.entries) {
       if (entry.value == victim.id) {
-        context.events.add(GameEvent.kill(
-          killerId: entry.key,
-          victimId: victim.id,
-          day: context.dayCount,
-        ));
+        context.events.add(
+          GameEvent.kill(
+            killerId: entry.key,
+            victimId: victim.id,
+            day: context.dayCount,
+          ),
+        );
       }
     }
     return true; // Handled

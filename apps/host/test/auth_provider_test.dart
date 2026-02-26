@@ -153,15 +153,13 @@ class FakeUserRepository extends Fake implements UserRepository {
   Future<bool> isUsernameAvailable(
     String username, {
     String? excludingUid,
-  }) async =>
-      true;
+  }) async => true;
 
   @override
   Future<bool> isPublicPlayerIdAvailable(
     String publicPlayerId, {
     String? excludingUid,
-  }) async =>
-      true;
+  }) async => true;
 }
 
 class FakeUserCredential extends Fake implements UserCredential {
@@ -195,8 +193,9 @@ class FakeCollectionReference extends Fake
 class FakeDocumentReference extends Fake
     implements DocumentReference<Map<String, dynamic>> {
   @override
-  Future<DocumentSnapshot<Map<String, dynamic>>> get(
-      [GetOptions? options]) async {
+  Future<DocumentSnapshot<Map<String, dynamic>>> get([
+    GetOptions? options,
+  ]) async {
     return FakeDocumentSnapshot();
   }
 }
@@ -267,35 +266,43 @@ void main() {
     expect(storedEmail, 'test@example.com');
   });
 
-  test('Completing sign in via deep link reads and deletes email from storage',
-      () async {
-    await mockStorage.write(
-        key: 'host_email_link_pending', value: 'saved@example.com');
+  test(
+    'Completing sign in via deep link reads and deletes email from storage',
+    () async {
+      await mockStorage.write(
+        key: 'host_email_link_pending',
+        value: 'saved@example.com',
+      );
 
-    final container = ProviderContainer(
-      overrides: [
-        secureStorageProvider.overrideWithValue(mockStorage),
-        firebaseAuthProvider.overrideWithValue(mockAuth),
-        firestoreProvider.overrideWithValue(mockFirestore),
-        appLinksProvider.overrideWithValue(mockAppLinks),
-        authServiceProvider.overrideWithValue(fakeAuthService),
-        userRepositoryProvider.overrideWithValue(fakeUserRepository),
-      ],
-    );
-    addTearDown(container.dispose);
+      final container = ProviderContainer(
+        overrides: [
+          secureStorageProvider.overrideWithValue(mockStorage),
+          firebaseAuthProvider.overrideWithValue(mockAuth),
+          firestoreProvider.overrideWithValue(mockFirestore),
+          appLinksProvider.overrideWithValue(mockAppLinks),
+          authServiceProvider.overrideWithValue(fakeAuthService),
+          userRepositoryProvider.overrideWithValue(fakeUserRepository),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    // Watch the provider to initialize the notifier and start listening to links
-    final _ = container.read(authProvider);
+      // Watch the provider to initialize the notifier and start listening to links
+      final _ = container.read(authProvider);
 
-    // Simulate incoming link
-    mockAppLinks.simulateLink(Uri.parse('https://example.com/signIn?code=123'));
+      // Simulate incoming link
+      mockAppLinks.simulateLink(
+        Uri.parse('https://example.com/signIn?code=123'),
+      );
 
-    // Wait for async operations to complete
-    await Future.delayed(Duration.zero);
-    await Future.delayed(Duration.zero);
+      // Wait for async operations to complete
+      await Future.delayed(Duration.zero);
+      await Future.delayed(Duration.zero);
 
-    // Verify storage is cleared
-    final storedEmail = await mockStorage.read(key: 'host_email_link_pending');
-    expect(storedEmail, isNull);
-  });
+      // Verify storage is cleared
+      final storedEmail = await mockStorage.read(
+        key: 'host_email_link_pending',
+      );
+      expect(storedEmail, isNull);
+    },
+  );
 }

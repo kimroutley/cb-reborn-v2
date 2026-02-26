@@ -80,15 +80,11 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
   }
 
   String _buildPlayerJoinUrl(String joinCode) {
-    return Uri.https(
-      _playerJoinHost,
-      '/join',
-      {
-        'mode': 'cloud',
-        'code': joinCode,
-        'autoconnect': '1',
-      },
-    ).toString();
+    return Uri.https(_playerJoinHost, '/join', {
+      'mode': 'cloud',
+      'code': joinCode,
+      'autoconnect': '1',
+    }).toString();
   }
 
   Future<void> _copyToClipboard(
@@ -120,25 +116,26 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
           Text(
             'JOIN SESSION BEACON',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
-                ),
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'CODE: $joinCode',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontFamily: 'RobotoMono',
-                  fontWeight: FontWeight.w700,
-                ),
+              color: Theme.of(context).colorScheme.onSurface,
+              fontFamily: 'RobotoMono',
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 16),
           Center(
             child: CBGlassTile(
-              borderColor:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.45),
+              borderColor: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.45),
               padding: const EdgeInsets.all(16),
               child: QrImageView(
                 data: joinUrl,
@@ -212,7 +209,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     final scheme = Theme.of(context).colorScheme;
     final joinUrl = _buildPlayerJoinUrl(session.joinCode);
     final isCloudVerified = linkState.isVerified;
-    final isCloudBusy = linkState.phase == CloudLinkPhase.initializing ||
+    final isCloudBusy =
+        linkState.phase == CloudLinkPhase.initializing ||
         linkState.phase == CloudLinkPhase.publishing ||
         linkState.phase == CloudLinkPhase.verifying;
     final hasCloudError = linkState.phase == CloudLinkPhase.degraded;
@@ -235,7 +233,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
           // ── SYSTEM STATUS ──
           CBMessageBubble(
             sender: 'SYSTEM',
-            message: "ESTABLISHING CLUB CONNECTION... BROADCASTING ON CODE: ${session.joinCode}",
+            message:
+                "ESTABLISHING CLUB CONNECTION... BROADCASTING ON CODE: ${session.joinCode}",
             style: CBMessageStyle.system,
             color: scheme.primary,
           ),
@@ -256,10 +255,10 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                 Text(
                   'SCAN TO OPEN PLAYER JOIN SESSION',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.72),
-                        letterSpacing: 1.1,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: scheme.onSurface.withValues(alpha: 0.72),
+                    letterSpacing: 1.1,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 AnimatedSwitcher(
@@ -268,63 +267,63 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                   switchOutCurve: Curves.easeInCubic,
                   child: CBGlassTile(
                     key: ValueKey(cloudStatusKey),
-                  borderColor: isCloudVerified
+                    borderColor: isCloudVerified
                         ? scheme.tertiary.withValues(alpha: 0.45)
-                    : (hasCloudError
-                      ? scheme.error.withValues(alpha: 0.45)
-                      : (requiresAuth
-                        ? scheme.secondary.withValues(alpha: 0.45)
-                        : scheme.primary.withValues(alpha: 0.35))),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        : (hasCloudError
+                              ? scheme.error.withValues(alpha: 0.45)
+                              : (requiresAuth
+                                    ? scheme.secondary.withValues(alpha: 0.45)
+                                    : scheme.primary.withValues(alpha: 0.35))),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     child: Row(
                       children: [
                         Icon(
-                      isCloudVerified
+                          isCloudVerified
                               ? Icons.cloud_done_rounded
-                        : (hasCloudError
-                          ? Icons.cloud_off_rounded
-                          : (requiresAuth
-                            ? Icons.lock_outline_rounded
-                            : Icons.cloud_sync_rounded)),
+                              : (hasCloudError
+                                    ? Icons.cloud_off_rounded
+                                    : (requiresAuth
+                                          ? Icons.lock_outline_rounded
+                                          : Icons.cloud_sync_rounded)),
                           size: 16,
-                      color: isCloudVerified
+                          color: isCloudVerified
                               ? scheme.tertiary
-                        : (hasCloudError
-                          ? scheme.error
-                          : (requiresAuth
-                            ? scheme.secondary
-                            : scheme.primary)),
+                              : (hasCloudError
+                                    ? scheme.error
+                                    : (requiresAuth
+                                          ? scheme.secondary
+                                          : scheme.primary)),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                      isCloudVerified
-                        ? 'CLOUD LINK: VERIFIED'
-                        : (hasCloudError
-                          ? 'CLOUD LINK: DEGRADED'
-                          : (requiresAuth
-                            ? 'CLOUD LINK: SIGN-IN REQUIRED'
-                            : (isCloudBusy
-                              ? 'CLOUD LINK: ESTABLISHING...'
-                              : 'CLOUD LINK: OFFLINE'))),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            isCloudVerified
+                                ? 'CLOUD LINK: VERIFIED'
+                                : (hasCloudError
+                                      ? 'CLOUD LINK: DEGRADED'
+                                      : (requiresAuth
+                                            ? 'CLOUD LINK: SIGN-IN REQUIRED'
+                                            : (isCloudBusy
+                                                  ? 'CLOUD LINK: ESTABLISHING...'
+                                                  : 'CLOUD LINK: OFFLINE'))),
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
-                          color: isCloudVerified
+                                  color: isCloudVerified
                                       ? scheme.tertiary
-                            : (hasCloudError
-                              ? scheme.error
-                              : (requiresAuth
-                                ? scheme.secondary
-                                : scheme.primary)),
+                                      : (hasCloudError
+                                            ? scheme.error
+                                            : (requiresAuth
+                                                  ? scheme.secondary
+                                                  : scheme.primary)),
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1.0,
                                 ),
                           ),
                         ),
-                    if (hasCloudError)
+                        if (hasCloudError)
                           IconButton(
                             tooltip: 'Retry cloud link',
                             visualDensity: VisualDensity.compact,
@@ -344,8 +343,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                   Text(
                     linkState.message!,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.72),
-                        ),
+                      color: scheme.onSurface.withValues(alpha: 0.72),
+                    ),
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -353,8 +352,9 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                   children: [
                     Expanded(
                       child: CBPrimaryButton(
-                        label:
-                            isCloudVerified ? 'RE-VERIFY LINK' : 'ESTABLISH LINK',
+                        label: isCloudVerified
+                            ? 'RE-VERIFY LINK'
+                            : 'ESTABLISH LINK',
                         icon: Icons.cloud_sync_rounded,
                         onPressed: isCloudBusy ? null : _bootstrapCloudRuntime,
                       ),
@@ -375,8 +375,10 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                   duration: const Duration(milliseconds: 220),
                   opacity: isCloudVerified ? 1 : 0.82,
                   child: CBGlassTile(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     borderColor: scheme.primary.withValues(alpha: 0.35),
                     child: Row(
                       children: [
@@ -389,9 +391,7 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                         Expanded(
                           child: Text(
                             'JOIN CODE: ${session.joinCode}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: scheme.primary,
                                   fontFamily: 'RobotoMono',
@@ -459,12 +459,12 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                             Text(
                               isCloudVerified
                                   ? 'TAP TO EXPAND'
-                                : 'LINK NOT VERIFIED YET',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
+                                  : 'LINK NOT VERIFIED YET',
+                              style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
-                                    color: scheme.primary.withValues(alpha: 0.8),
+                                    color: scheme.primary.withValues(
+                                      alpha: 0.8,
+                                    ),
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: 1.0,
                                   ),
@@ -477,8 +477,10 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                 ),
                 const SizedBox(height: 12),
                 CBGlassTile(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   borderColor: scheme.primary.withValues(alpha: 0.2),
                   child: Row(
                     children: [
@@ -486,7 +488,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                         child: SelectableText(
                           joinUrl,
                           maxLines: 2,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
                                 color: scheme.primary,
                                 fontFamily: 'RobotoMono',
                               ),
@@ -536,20 +539,25 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                   currentValue: SyncMode.cloud.name.toUpperCase(),
                   nextValue: 'LOCKED',
                   color: scheme.primary,
-                  onTap: () {}
+                  onTap: () {},
                 ),
                 const SizedBox(height: 12),
                 _buildConfigOption(
                   context,
                   label: 'GAME STYLE',
                   currentValue: gameState.gameStyle.label.toUpperCase(),
-                  nextValue: GameStyle.values[(gameState.gameStyle.index + 1) % GameStyle.values.length].label.toUpperCase(),
+                  nextValue: GameStyle
+                      .values[(gameState.gameStyle.index + 1) %
+                          GameStyle.values.length]
+                      .label
+                      .toUpperCase(),
                   color: scheme.secondary,
                   onTap: () {
                     const styles = GameStyle.values;
-                    final next = styles[(gameState.gameStyle.index + 1) % styles.length];
+                    final next =
+                        styles[(gameState.gameStyle.index + 1) % styles.length];
                     controller.setGameStyle(next);
-                  }
+                  },
                 ),
                 if (isManual) ...[
                   const SizedBox(height: 16),
@@ -682,7 +690,11 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(Icons.cached_rounded, size: 14, color: color.withValues(alpha: 0.5)),
+              Icon(
+                Icons.cached_rounded,
+                size: 14,
+                color: color.withValues(alpha: 0.5),
+              ),
             ],
           ),
         ],

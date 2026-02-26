@@ -9,8 +9,9 @@ class WhoreAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final whores =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final whores = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final whore in whores) {
       if (context.redirectedActions.containsKey(whore.id) ||

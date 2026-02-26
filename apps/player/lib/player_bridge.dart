@@ -113,18 +113,21 @@ class PlayerGameState {
           .toList(growable: false),
       'eyesOpen': eyesOpen,
       'winner': winner,
-      'endGameReport':
-          endGameReport.take(_cacheReportLimit).toList(growable: false),
+      'endGameReport': endGameReport
+          .take(_cacheReportLimit)
+          .toList(growable: false),
       'voteTally': voteTally,
       'votesByVoter': votesByVoter,
-      'nightReport':
-          nightReport.take(_cacheReportLimit).toList(growable: false),
+      'nightReport': nightReport
+          .take(_cacheReportLimit)
+          .toList(growable: false),
       'dayReport': dayReport.take(_cacheReportLimit).toList(growable: false),
       'privateMessages': privateMessages,
       'claimedPlayerIds': claimedPlayerIds,
       'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
-      'gameHistory':
-          gameHistory.take(_cacheHistoryLimit).toList(growable: false),
+      'gameHistory': gameHistory
+          .take(_cacheHistoryLimit)
+          .toList(growable: false),
       'deadPoolBets': deadPoolBets,
       'ghostChatMessages': ghostChatMessages
           .take(_cacheGhostMessageLimit)
@@ -138,7 +141,8 @@ class PlayerGameState {
   }
 
   factory PlayerGameState.fromCacheMap(Map<String, dynamic> map) {
-    final players = (map['players'] as List<dynamic>?)
+    final players =
+        (map['players'] as List<dynamic>?)
             ?.whereType<Map<String, dynamic>>()
             .map(PlayerSnapshot.fromMap)
             .toList(growable: false) ??
@@ -154,7 +158,8 @@ class PlayerGameState {
       }
     }
 
-    final bulletin = (map['bulletinBoard'] as List<dynamic>?)
+    final bulletin =
+        (map['bulletinBoard'] as List<dynamic>?)
             ?.whereType<Map<String, dynamic>>()
             .map(BulletinEntry.fromJson)
             .toList(growable: false) ??
@@ -314,16 +319,19 @@ class PlayerGameState {
       deadPoolBets: deadPoolBets ?? this.deadPoolBets,
       ghostChatMessages: ghostChatMessages ?? this.ghostChatMessages,
       isConnected: isConnected ?? this.isConnected,
-      joinError:
-          joinError == _undefined ? this.joinError : joinError as String?,
+      joinError: joinError == _undefined
+          ? this.joinError
+          : joinError as String?,
       joinAccepted: joinAccepted ?? this.joinAccepted,
-      claimError:
-          claimError == _undefined ? this.claimError : claimError as String?,
+      claimError: claimError == _undefined
+          ? this.claimError
+          : claimError as String?,
       kickedMessage: kickedMessage == _undefined
           ? this.kickedMessage
           : kickedMessage as String?,
-      myPlayerId:
-          myPlayerId == _undefined ? this.myPlayerId : myPlayerId as String?,
+      myPlayerId: myPlayerId == _undefined
+          ? this.myPlayerId
+          : myPlayerId as String?,
       myPlayerSnapshot: myPlayerSnapshot == _undefined
           ? this.myPlayerSnapshot
           : myPlayerSnapshot as PlayerSnapshot?,
@@ -370,7 +378,8 @@ class StepSnapshot {
       instructionText: map['instructionText'] as String? ?? '',
       actionType: map['actionType'] as String? ?? 'readAloud',
       roleId: map['roleId'] as String?,
-      options: (map['options'] as List<dynamic>?)
+      options:
+          (map['options'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
@@ -417,7 +426,8 @@ class PlayerBridge extends Notifier<PlayerGameState>
   static PlayerClient Function({
     void Function(GameMessage)? onMessage,
     void Function(PlayerConnectionState)? onConnectionChanged,
-  })? mockClientFactory;
+  })?
+  mockClientFactory;
 
   PlayerClient? _client;
   PlayerConnectionState _connectionState = PlayerConnectionState.disconnected;
@@ -459,10 +469,11 @@ class PlayerBridge extends Notifier<PlayerGameState>
           prevState == PlayerConnectionState.reconnecting &&
           state.myPlayerId != null) {
         debugPrint(
-            '[PlayerBridge] Reconnected — sending player_reconnect for ${state.myPlayerId}');
-        _client?.send(GameMessage.playerReconnect(
-          claimedPlayerIds: [state.myPlayerId!],
-        ));
+          '[PlayerBridge] Reconnected — sending player_reconnect for ${state.myPlayerId}',
+        );
+        _client?.send(
+          GameMessage.playerReconnect(claimedPlayerIds: [state.myPlayerId!]),
+        );
       }
 
       // Preserve join/claim state across reconnection
@@ -513,11 +524,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
   // ─── OUTBOUND ─────────────────────────────────
 
   void joinWithCode(String code, {String? playerName, String? authUid}) {
-    _client?.joinWithCode(
-      code,
-      playerName: playerName,
-      uid: authUid,
-    );
+    _client?.joinWithCode(code, playerName: playerName, uid: authUid);
   }
 
   @override
@@ -529,8 +536,9 @@ class PlayerBridge extends Notifier<PlayerGameState>
       uid = null;
     }
 
-    final resolvedName =
-        playerName.trim().isEmpty ? 'Player' : playerName.trim();
+    final resolvedName = playerName.trim().isEmpty
+        ? 'Player'
+        : playerName.trim();
     _pendingClaimName = resolvedName;
     _cachedJoinCode = joinCode.trim().toUpperCase();
     _cachedPlayerName = resolvedName;
@@ -554,11 +562,13 @@ class PlayerBridge extends Notifier<PlayerGameState>
     required String targetId,
     String? voterId,
   }) async {
-    _client?.send(GameMessage.playerAction(
-      stepId: stepId,
-      targetId: targetId,
-      voterId: voterId,
-    ));
+    _client?.send(
+      GameMessage.playerAction(
+        stepId: stepId,
+        targetId: targetId,
+        voterId: voterId,
+      ),
+    );
   }
 
   @override
@@ -571,10 +581,9 @@ class PlayerBridge extends Notifier<PlayerGameState>
     required String playerId,
     required String targetPlayerId,
   }) async {
-    _client?.send(GameMessage.playerBet(
-      playerId: playerId,
-      targetPlayerId: targetPlayerId,
-    ));
+    _client?.send(
+      GameMessage.playerBet(playerId: playerId, targetPlayerId: targetPlayerId),
+    );
   }
 
   @override
@@ -587,11 +596,13 @@ class PlayerBridge extends Notifier<PlayerGameState>
     if (trimmed.isEmpty) {
       return;
     }
-    _client?.send(GameMessage.ghostChat(
-      playerId: playerId,
-      message: trimmed,
-      playerName: playerName,
-    ));
+    _client?.send(
+      GameMessage.ghostChat(
+        playerId: playerId,
+        message: trimmed,
+        playerName: playerName,
+      ),
+    );
   }
 
   @override
@@ -638,10 +649,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
         final error = msg.payload['error'] as String?;
         debugPrint('[PlayerBridge] Join ${accepted ? "accepted" : "rejected"}');
         if (accepted) {
-          state = state.copyWith(
-            joinAccepted: true,
-            joinError: null,
-          );
+          state = state.copyWith(joinAccepted: true, joinError: null);
         } else {
           state = state.copyWith(
             joinAccepted: false,
@@ -655,8 +663,9 @@ class PlayerBridge extends Notifier<PlayerGameState>
         final playerId = msg.payload['playerId'] as String?;
         debugPrint('[PlayerBridge] Claim ${success ? "ok" : "failed"}');
         if (success && playerId != null) {
-          final claimedPlayer =
-              state.players.firstWhere((p) => p.id == playerId);
+          final claimedPlayer = state.players.firstWhere(
+            (p) => p.id == playerId,
+          );
           state = state.copyWith(
             claimedPlayerIds: [...state.claimedPlayerIds, playerId],
             claimError: null,
@@ -664,9 +673,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
             myPlayerSnapshot: claimedPlayer,
           );
         } else {
-          state = state.copyWith(
-            claimError: 'Could not claim player',
-          );
+          state = state.copyWith(claimError: 'Could not claim player');
         }
         _persistSessionCache();
         break;
@@ -689,7 +696,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
           state = state.copyWith(
             ghostChatMessages: [
               ...state.ghostChatMessages,
-              '$playerName: $message'
+              '$playerName: $message',
             ],
           );
         }
@@ -701,7 +708,8 @@ class PlayerBridge extends Notifier<PlayerGameState>
 
   void _applyStateSync(Map<String, dynamic> payload) {
     final prevPhase = state.phase;
-    final players = (payload['players'] as List<dynamic>?)
+    final players =
+        (payload['players'] as List<dynamic>?)
             ?.map((e) => PlayerSnapshot.fromMap(e as Map<String, dynamic>))
             .toList() ??
         [];
@@ -710,7 +718,8 @@ class PlayerBridge extends Notifier<PlayerGameState>
     final step = stepData != null ? StepSnapshot.fromMap(stepData) : null;
 
     final bulletinRaw = payload['bulletinBoard'] as List<dynamic>?;
-    final bulletin = bulletinRaw
+    final bulletin =
+        bulletinRaw
             ?.map((e) => BulletinEntry.fromJson(e as Map<String, dynamic>))
             .toList() ??
         [];
@@ -721,30 +730,24 @@ class PlayerBridge extends Notifier<PlayerGameState>
     final tally = tallyRaw?.map((k, v) => MapEntry(k, v as int)) ?? {};
 
     final votesByVoterRaw = payload['votesByVoter'] as Map<String, dynamic>?;
-    final votesByVoter = votesByVoterRaw?.map(
-          (k, v) => MapEntry(k, v as String),
-        ) ??
-        {};
+    final votesByVoter =
+        votesByVoterRaw?.map((k, v) => MapEntry(k, v as String)) ?? {};
 
     final privatesRaw = payload['privateMessages'] as Map<String, dynamic>?;
-    final privates = privatesRaw?.map(
-          (k, v) => MapEntry(k, _toStringList(v)),
-        ) ??
-        {};
+    final privates =
+        privatesRaw?.map((k, v) => MapEntry(k, _toStringList(v))) ?? {};
 
     final deadPoolRaw = payload['deadPoolBets'] as Map<String, dynamic>?;
-    final deadPoolBets = deadPoolRaw?.map(
-          (k, v) => MapEntry(k, v.toString()),
-        ) ??
-        {};
+    final deadPoolBets =
+        deadPoolRaw?.map((k, v) => MapEntry(k, v.toString())) ?? {};
 
     final phase = payload['phase'] as String? ?? 'lobby';
 
     // Determine myPlayerId and myPlayerSnapshot after receiving new players list
     final String? updatedMyPlayerId =
         state.myPlayerId != null && players.any((p) => p.id == state.myPlayerId)
-            ? state.myPlayerId
-            : null;
+        ? state.myPlayerId
+        : null;
     final PlayerSnapshot? updatedMyPlayerSnapshot = updatedMyPlayerId != null
         ? players.firstWhere((p) => p.id == updatedMyPlayerId)
         : null;
@@ -868,7 +871,8 @@ class PlayerBridge extends Notifier<PlayerGameState>
 }
 
 /// Riverpod provider for [PlayerBridge].
-final playerBridgeProvider =
-    NotifierProvider<PlayerBridge, PlayerGameState>(() {
-  return PlayerBridge();
-});
+final playerBridgeProvider = NotifierProvider<PlayerBridge, PlayerGameState>(
+  () {
+    return PlayerBridge();
+  },
+);

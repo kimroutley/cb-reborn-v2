@@ -11,8 +11,8 @@ class AuthService {
   final GoogleSignIn _googleSignIn;
 
   AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
-      : _auth = auth,
-        _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
+    : _auth = auth,
+      _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
 
   FirebaseAuth get _firebaseAuth => _auth ?? FirebaseAuth.instance;
 
@@ -33,8 +33,9 @@ class AuthService {
       return _firebaseAuth.authStateChanges();
     }
 
-    return Stream<void>.fromFuture(_ensureFirebaseInitialized())
-        .asyncExpand((_) => _firebaseAuth.authStateChanges());
+    return Stream<void>.fromFuture(
+      _ensureFirebaseInitialized(),
+    ).asyncExpand((_) => _firebaseAuth.authStateChanges());
   }
 
   User? get currentUser => (_auth != null || Firebase.apps.isNotEmpty)
@@ -64,7 +65,10 @@ class AuthService {
     required String emailLink,
   }) async {
     await _ensureFirebaseInitialized();
-    return _firebaseAuth.signInWithEmailLink(email: email, emailLink: emailLink);
+    return _firebaseAuth.signInWithEmailLink(
+      email: email,
+      emailLink: emailLink,
+    );
   }
 
   Future<UserCredential> signInWithGoogle() async {

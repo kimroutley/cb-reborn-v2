@@ -19,8 +19,10 @@ void showPlayerRoster(
       final alive = gameState.players.where((p) => p.isAlive).toList();
       final dead = gameState.players.where((p) => !p.isAlive).toList();
       final isInGame = gameState.phase != GamePhase.lobby;
-      final alivePlayerIds =
-          gameState.players.where((p) => p.isAlive).map((p) => p.id).toSet();
+      final alivePlayerIds = gameState.players
+          .where((p) => p.isAlive)
+          .map((p) => p.id)
+          .toSet();
       final pendingDramaSwapTargetIds = <String>{};
       for (final dramaQueen in gameState.players.where(
         (p) => p.role.id == RoleIds.dramaQueen && p.isAlive,
@@ -75,8 +77,9 @@ void showPlayerRoster(
                   RosterTile(
                     player: p,
                     isClaimed: claimedIds.contains(p.id),
-                    hasPendingDramaSwap:
-                        pendingDramaSwapTargetIds.contains(p.id),
+                    hasPendingDramaSwap: pendingDramaSwapTargetIds.contains(
+                      p.id,
+                    ),
                   ),
               ],
               const SizedBox(height: CBSpace.x4),

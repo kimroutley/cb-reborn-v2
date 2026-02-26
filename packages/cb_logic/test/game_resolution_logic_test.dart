@@ -16,7 +16,8 @@ void main() {
         name: 'Player $id',
         alliance: alliance,
         isAlive: isAlive,
-        role: role ??
+        role:
+            role ??
             const Role(
               id: 'dummy_role',
               name: 'Dummy Role',
@@ -61,9 +62,7 @@ void main() {
     });
 
     test('returns Staff win when only Staff remain', () {
-      final players = [
-        createPlayer(id: '1', alliance: Team.clubStaff),
-      ];
+      final players = [createPlayer(id: '1', alliance: Team.clubStaff)];
       final result = GameResolutionLogic.checkWinCondition(players);
       expect(result, isNotNull);
       expect(result!.winner, Team.clubStaff);
@@ -80,16 +79,17 @@ void main() {
     });
 
     test(
-        'returns Party Animals win even if all players are dead (if staff existed)',
-        () {
-      final players = [
-        createPlayer(id: '1', alliance: Team.clubStaff, isAlive: false),
-        createPlayer(id: '2', alliance: Team.partyAnimals, isAlive: false),
-      ];
-      final result = GameResolutionLogic.checkWinCondition(players);
-      expect(result, isNotNull);
-      expect(result!.winner, Team.partyAnimals);
-    });
+      'returns Party Animals win even if all players are dead (if staff existed)',
+      () {
+        final players = [
+          createPlayer(id: '1', alliance: Team.clubStaff, isAlive: false),
+          createPlayer(id: '2', alliance: Team.partyAnimals, isAlive: false),
+        ];
+        final result = GameResolutionLogic.checkWinCondition(players);
+        expect(result, isNotNull);
+        expect(result!.winner, Team.partyAnimals);
+      },
+    );
 
     test('returns null if there were never any Staff', () {
       final players = [
@@ -119,80 +119,97 @@ void main() {
     });
 
     test(
-        'Game continues if Neutral players tip the balance to not meeting win conditions',
-        () {
-      // 1 Staff, 2 PA, 1 Neutral -> Staff: 1, PA: 2 -> No win.
-      final players = [
-        createPlayer(id: '1', alliance: Team.clubStaff),
-        createPlayer(id: '2', alliance: Team.partyAnimals),
-        createPlayer(id: '3', alliance: Team.partyAnimals),
-        createPlayer(id: '4', alliance: Team.neutral),
-      ];
-      final result = GameResolutionLogic.checkWinCondition(players);
-      expect(result, isNull);
-    });
+      'Game continues if Neutral players tip the balance to not meeting win conditions',
+      () {
+        // 1 Staff, 2 PA, 1 Neutral -> Staff: 1, PA: 2 -> No win.
+        final players = [
+          createPlayer(id: '1', alliance: Team.clubStaff),
+          createPlayer(id: '2', alliance: Team.partyAnimals),
+          createPlayer(id: '3', alliance: Team.partyAnimals),
+          createPlayer(id: '4', alliance: Team.neutral),
+        ];
+        final result = GameResolutionLogic.checkWinCondition(players);
+        expect(result, isNull);
+      },
+    );
 
     test(
-        'returns Neutral win when living Messy Bitch has spread rumor to all living players',
-        () {
-      final messyBitchRole = roleCatalogMap[RoleIds.messyBitch]!;
-      final players = [
-        createPlayer(
-          id: '1',
-          alliance: Team.neutral,
-          role: messyBitchRole,
-        ).copyWith(hasRumour: true),
-        createPlayer(id: '2', alliance: Team.clubStaff)
-            .copyWith(hasRumour: true),
-        createPlayer(id: '3', alliance: Team.partyAnimals)
-            .copyWith(hasRumour: true),
-      ];
+      'returns Neutral win when living Messy Bitch has spread rumor to all living players',
+      () {
+        final messyBitchRole = roleCatalogMap[RoleIds.messyBitch]!;
+        final players = [
+          createPlayer(
+            id: '1',
+            alliance: Team.neutral,
+            role: messyBitchRole,
+          ).copyWith(hasRumour: true),
+          createPlayer(
+            id: '2',
+            alliance: Team.clubStaff,
+          ).copyWith(hasRumour: true),
+          createPlayer(
+            id: '3',
+            alliance: Team.partyAnimals,
+          ).copyWith(hasRumour: true),
+        ];
 
-      final result = GameResolutionLogic.checkWinCondition(players);
-      expect(result, isNotNull);
-      expect(result!.winner, Team.neutral);
-    });
-
-    test('does not return Neutral win if not all living players have rumor',
-        () {
-      final messyBitchRole = roleCatalogMap[RoleIds.messyBitch]!;
-      final players = [
-        createPlayer(
-          id: '1',
-          alliance: Team.neutral,
-          role: messyBitchRole,
-        ).copyWith(hasRumour: true),
-        createPlayer(id: '2', alliance: Team.clubStaff)
-            .copyWith(hasRumour: true),
-        createPlayer(id: '3', alliance: Team.partyAnimals)
-            .copyWith(hasRumour: false),
-      ];
-
-      final result = GameResolutionLogic.checkWinCondition(players);
-      expect(result, isNotNull);
-      expect(result!.winner, isNot(Team.neutral));
-    });
+        final result = GameResolutionLogic.checkWinCondition(players);
+        expect(result, isNotNull);
+        expect(result!.winner, Team.neutral);
+      },
+    );
 
     test(
-        'does not return Neutral win when Messy Bitch is dead even if all living have rumor',
-        () {
-      final messyBitchRole = roleCatalogMap[RoleIds.messyBitch]!;
-      final players = [
-        createPlayer(
-          id: '1',
-          alliance: Team.neutral,
-          role: messyBitchRole,
-          isAlive: false,
-        ).copyWith(hasRumour: true),
-        createPlayer(id: '2', alliance: Team.clubStaff)
-            .copyWith(hasRumour: true),
-        createPlayer(id: '3', alliance: Team.partyAnimals)
-            .copyWith(hasRumour: true),
-      ];
+      'does not return Neutral win if not all living players have rumor',
+      () {
+        final messyBitchRole = roleCatalogMap[RoleIds.messyBitch]!;
+        final players = [
+          createPlayer(
+            id: '1',
+            alliance: Team.neutral,
+            role: messyBitchRole,
+          ).copyWith(hasRumour: true),
+          createPlayer(
+            id: '2',
+            alliance: Team.clubStaff,
+          ).copyWith(hasRumour: true),
+          createPlayer(
+            id: '3',
+            alliance: Team.partyAnimals,
+          ).copyWith(hasRumour: false),
+        ];
 
-      final result = GameResolutionLogic.checkWinCondition(players);
-      expect(result, isNotNull);
-      expect(result!.winner, isNot(Team.neutral));
-    });
+        final result = GameResolutionLogic.checkWinCondition(players);
+        expect(result, isNotNull);
+        expect(result!.winner, isNot(Team.neutral));
+      },
+    );
+
+    test(
+      'does not return Neutral win when Messy Bitch is dead even if all living have rumor',
+      () {
+        final messyBitchRole = roleCatalogMap[RoleIds.messyBitch]!;
+        final players = [
+          createPlayer(
+            id: '1',
+            alliance: Team.neutral,
+            role: messyBitchRole,
+            isAlive: false,
+          ).copyWith(hasRumour: true),
+          createPlayer(
+            id: '2',
+            alliance: Team.clubStaff,
+          ).copyWith(hasRumour: true),
+          createPlayer(
+            id: '3',
+            alliance: Team.partyAnimals,
+          ).copyWith(hasRumour: true),
+        ];
+
+        final result = GameResolutionLogic.checkWinCondition(players);
+        expect(result, isNotNull);
+        expect(result!.winner, isNot(Team.neutral));
+      },
+    );
   });
 }

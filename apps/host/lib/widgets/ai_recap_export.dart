@@ -23,8 +23,9 @@ Future<void> showAIRecapExportMenu({
         const SizedBox(height: CBSpace.x2),
         Text(
           'Select a personality style for Gemini to summarize the session.',
-          style: textTheme.bodySmall!
-              .copyWith(color: scheme.onSurface.withValues(alpha: 0.6)),
+          style: textTheme.bodySmall!.copyWith(
+            color: scheme.onSurface.withValues(alpha: 0.6),
+          ),
         ),
         const SizedBox(height: CBSpace.x6),
         _RecapOption(
@@ -97,9 +98,9 @@ class _RecapOption extends StatelessWidget {
               child: Text(
                 label,
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

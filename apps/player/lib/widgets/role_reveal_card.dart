@@ -57,10 +57,7 @@ class RoleRevealCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            player.roleName,
-            style: textTheme.headlineSmall,
-          ),
+          Text(player.roleName, style: textTheme.headlineSmall),
           Text(
             player.alliance.toString().toUpperCase(),
             style: textTheme.bodyMedium,

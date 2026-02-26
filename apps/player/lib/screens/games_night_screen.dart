@@ -51,10 +51,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
       extendBodyBehindAppBar: true,
       drawer: const CustomDrawer(),
       appBar: AppBar(
-        title: Text(
-          'BAR TAB',
-          style: Theme.of(context).textTheme.titleLarge!,
-        ),
+        title: Text('BAR TAB', style: Theme.of(context).textTheme.titleLarge!),
         centerTitle: true,
       ),
       body: CBNeonBackground(
@@ -66,30 +63,35 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(
-                        vertical: 24, horizontal: 20),
+                      vertical: 24,
+                      horizontal: 20,
+                    ),
                     children: [
                       CBSectionHeader(
-                          title: 'YOUR SESSION HISTORY',
-                          color: scheme.tertiary),
+                        title: 'YOUR SESSION HISTORY',
+                        color: scheme.tertiary,
+                      ),
                       const SizedBox(height: 16),
                       if (_sessions.isEmpty)
                         CBPanel(
                           padding: const EdgeInsets.all(16),
                           child: Text(
                             'No game sessions found. Play a game to see your history here.',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
-                                    color: scheme.onSurface
-                                        .withValues(alpha: 0.75)),
+                                  color: scheme.onSurface.withValues(
+                                    alpha: 0.75,
+                                  ),
+                                ),
                           ),
                         )
                       else
-                        ..._sessions
-                            .map((s) => _buildSessionEntry(context, s, scheme)),
+                        ..._sessions.map(
+                          (s) => _buildSessionEntry(context, s, scheme),
+                        ),
                       const SizedBox(
-                          height: 120), // Provide some bottom padding
+                        height: 120,
+                      ), // Provide some bottom padding
                     ],
                   ),
                 ),
@@ -99,9 +101,13 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
   }
 
   Widget _buildSessionEntry(
-      BuildContext context, GamesNightRecord session, ColorScheme scheme) {
-    final gamesInSession =
-        _gameRecords.where((g) => session.gameIds.contains(g.id)).toList();
+    BuildContext context,
+    GamesNightRecord session,
+    ColorScheme scheme,
+  ) {
+    final gamesInSession = _gameRecords
+        .where((g) => session.gameIds.contains(g.id))
+        .toList();
     final wins = gamesInSession
         .where((g) => g.winner == Team.partyAnimals)
         .length; // Simplified for player view
@@ -154,10 +160,9 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
             const SizedBox(height: 6),
             Text(
               '$totalGames game${totalGames == 1 ? '' : 's'}, $wins win${wins == 1 ? '' : 's'} • $dateRange',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: accentColor),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: accentColor),
             ),
           ],
         ),

@@ -6,7 +6,6 @@ import '../host_destinations.dart';
 import '../host_navigation.dart';
 import '../profile_edit_guard.dart';
 
-
 class CustomDrawer extends ConsumerWidget {
   final HostDestination? currentDestination;
   final ValueChanged<HostDestination>? onDrawerItemTap;
@@ -52,15 +51,9 @@ class CustomDrawer extends ConsumerWidget {
       HostDestination.game,
       HostDestination.guides,
     };
-    const statsAndAwardsGroup = <HostDestination>{
-      HostDestination.hallOfFame,
-    };
-    const gamesNightGroup = <HostDestination>{
-      HostDestination.gamesNight,
-    };
-    const walletGroup = <HostDestination>{
-      HostDestination.profile,
-    };
+    const statsAndAwardsGroup = <HostDestination>{HostDestination.hallOfFame};
+    const gamesNightGroup = <HostDestination>{HostDestination.gamesNight};
+    const walletGroup = <HostDestination>{HostDestination.profile};
     const otherGroup = <HostDestination>{
       HostDestination.home,
       HostDestination.saveLoad,
@@ -87,8 +80,9 @@ class CustomDrawer extends ConsumerWidget {
       ...otherDestinations,
     ];
 
-    final selectedIndex = drawerDestinations
-        .indexWhere((d) => d.destination == activeDestination);
+    final selectedIndex = drawerDestinations.indexWhere(
+      (d) => d.destination == activeDestination,
+    );
 
     return CBSideDrawer(
       selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
@@ -126,7 +120,11 @@ class CustomDrawer extends ConsumerWidget {
           }
         } catch (_) {}
       },
-      drawerHeader: _buildDrawerHeader(context, theme, colorScheme), // Pass the header
+      drawerHeader: _buildDrawerHeader(
+        context,
+        theme,
+        colorScheme,
+      ), // Pass the header
       children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
@@ -137,10 +135,12 @@ class CustomDrawer extends ConsumerWidget {
         ),
         const SizedBox(height: CBSpace.x2),
 
-        ...gameplayDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...gameplayDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
@@ -150,10 +150,12 @@ class CustomDrawer extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...statsAndAwardsDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...statsAndAwardsDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
@@ -164,10 +166,12 @@ class CustomDrawer extends ConsumerWidget {
         ),
         const SizedBox(height: CBSpace.x2),
 
-        ...gamesNightDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...gamesNightDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
@@ -177,10 +181,12 @@ class CustomDrawer extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...walletDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...walletDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
@@ -190,17 +196,23 @@ class CustomDrawer extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...otherDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...otherDestinations.map(
+          (dest) => NavigationDrawerDestination(
+            icon: Icon(dest.icon),
+            label: Text(dest.label),
+          ),
+        ),
 
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildDrawerHeader(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+  Widget _buildDrawerHeader(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme colorScheme,
+  ) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         CBSpace.x6,

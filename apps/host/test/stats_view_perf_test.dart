@@ -50,8 +50,9 @@ void main() {
     PersistenceService.initWithBoxes(activeBox, recordsBox, sessionsBox);
   });
 
-  testWidgets('StatsView builds items lazily (optimized)',
-      (WidgetTester tester) async {
+  testWidgets('StatsView builds items lazily (optimized)', (
+    WidgetTester tester,
+  ) async {
     // 1. Populate recordsBox with 1000 items
     for (int i = 0; i < 1000; i++) {
       final record = GameRecord(
@@ -71,11 +72,7 @@ void main() {
     // 2. Pump StatsView
     await tester.pumpWidget(
       const MaterialApp(
-        home: Scaffold(
-          body: StatsView(
-            gameState: GameState(),
-          ),
-        ),
+        home: Scaffold(body: StatsView(gameState: GameState())),
       ),
     );
     await tester.pump();
@@ -88,9 +85,12 @@ void main() {
     final ListView listView = tester.widget(listViewFinder);
     final delegate = listView.childrenDelegate;
 
-    expect(delegate, isA<SliverChildBuilderDelegate>(),
-        reason:
-            'Should be using SliverChildBuilderDelegate (ListView.builder) for lazy loading');
+    expect(
+      delegate,
+      isA<SliverChildBuilderDelegate>(),
+      reason:
+          'Should be using SliverChildBuilderDelegate (ListView.builder) for lazy loading',
+    );
 
     // If it is a builder, verify we can scroll and more items appear (optional, but confirms functionality)
     // But testing the delegate type is sufficient to prove the structural change.

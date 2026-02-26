@@ -12,7 +12,7 @@ void main() {
         phase: 'night',
         dayCount: 2,
         players: [
-          {'id': 'alice', 'name': 'Alice', 'isAlive': true}
+          {'id': 'alice', 'name': 'Alice', 'isAlive': true},
         ],
         voteTally: {'alice': 3},
         votesByVoter: {'bob': 'alice'},
@@ -93,8 +93,10 @@ void main() {
 
     test('joinCodeResponse roundtrips', () {
       final accepted = GameMessage.joinCodeResponse(accepted: true);
-      final rejected =
-          GameMessage.joinCodeResponse(accepted: false, error: 'wrong code');
+      final rejected = GameMessage.joinCodeResponse(
+        accepted: false,
+        error: 'wrong code',
+      );
 
       final restoredAccepted = GameMessage.fromJson(accepted.toJson());
       expect(restoredAccepted.payload['accepted'], true);
@@ -190,7 +192,8 @@ void main() {
 
     test('fromJson handles unknown type', () {
       final msg = GameMessage.fromJson(
-          '{"type":"unknown_type","payload":{"key":"val"}}');
+        '{"type":"unknown_type","payload":{"key":"val"}}',
+      );
       expect(msg.type, 'unknown_type');
       expect(msg.payload['key'], 'val');
     });

@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('PersonalityPickerModal renders list of personalities', (tester) async {
+  testWidgets('PersonalityPickerModal renders list of personalities', (
+    tester,
+  ) async {
     const selectedId = 'the_cynic';
 
     await tester.pumpWidget(
@@ -31,7 +33,9 @@ void main() {
     }
   });
 
-  testWidgets('PersonalityPickerModal highlights selected personality', (tester) async {
+  testWidgets('PersonalityPickerModal highlights selected personality', (
+    tester,
+  ) async {
     // Assuming 'the_cynic' is the first personality or one of them.
     final p = hostPersonalities.first;
     final selectedId = p.id;
@@ -69,7 +73,9 @@ void main() {
     expect(otherIconFinder, findsNothing);
   });
 
-  testWidgets('PersonalityPickerModal triggers callback on selection', (tester) async {
+  testWidgets('PersonalityPickerModal triggers callback on selection', (
+    tester,
+  ) async {
     String? selectedId;
     // Select one that is NOT the initially selected one
     final initialP = hostPersonalities.first;

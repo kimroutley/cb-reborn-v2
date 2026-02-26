@@ -80,8 +80,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       );
     }
 
-    final roleColor =
-        Color(int.parse(player.roleColorHex.replaceAll('#', '0xff')));
+    final roleColor = Color(
+      int.parse(player.roleColorHex.replaceAll('#', '0xff')),
+    );
     final isRoleConfirmed = gameState.roleConfirmedPlayerIds.contains(playerId);
 
     return Theme(
@@ -114,7 +115,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   // Private Messages
                   if (gameState.privateMessages.containsKey(playerId))
                     ..._buildPrivateMessages(
-                        gameState.privateMessages[playerId]!, scheme),
+                      gameState.privateMessages[playerId]!,
+                      scheme,
+                    ),
 
                   // Current Step Narration
                   if (newStep != null && newStep.readAloudText.isNotEmpty)
@@ -138,22 +141,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         bottomNavigationBar: (gameState.phase == 'setup' && !isRoleConfirmed)
             ? _buildSetupConfirmBar(context, bridge, playerId, roleColor)
             : canAct
-                ? _buildGameActionBar(
-                    context,
-                    newStep,
-                    roleColor,
-                    player,
-                    gameState,
-                    playerId,
-                    bridge,
-                  )
-                : null,
+            ? _buildGameActionBar(
+                context,
+                newStep,
+                roleColor,
+                player,
+                gameState,
+                playerId,
+                bridge,
+              )
+            : null,
       ),
     );
   }
 
   List<Widget> _buildBulletinList(
-      List<BulletinEntry> entries, ColorScheme scheme) {
+    List<BulletinEntry> entries,
+    ColorScheme scheme,
+  ) {
     if (entries.isEmpty) return [];
 
     final widgets = <Widget>[];
@@ -172,7 +177,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           : scheme.primary;
       final senderName = role.id == 'unassigned' ? entry.title : role.name;
 
-      final isPrevSameSender = prevEntry != null &&
+      final isPrevSameSender =
+          prevEntry != null &&
           prevEntry.title == entry.title; // Simplified check
       final isNextSameSender =
           nextEntry != null && nextEntry.title == entry.title;
@@ -186,22 +192,26 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         groupPos = CBMessageGroupPosition.top;
       }
 
-      widgets.add(CBMessageBubble(
-        sender: senderName,
-        message: entry.content,
-        style: entry.type == 'system'
-            ? CBMessageStyle.system
-            : CBMessageStyle.narrative,
-        color: color,
-        avatarAsset: entry.roleId != null ? role.assetPath : null,
-        groupPosition: groupPos,
-      ));
+      widgets.add(
+        CBMessageBubble(
+          sender: senderName,
+          message: entry.content,
+          style: entry.type == 'system'
+              ? CBMessageStyle.system
+              : CBMessageStyle.narrative,
+          color: color,
+          avatarAsset: entry.roleId != null ? role.assetPath : null,
+          groupPosition: groupPos,
+        ),
+      );
     }
     return widgets;
   }
 
   List<Widget> _buildPrivateMessages(
-      List<String> messages, ColorScheme scheme) {
+    List<String> messages,
+    ColorScheme scheme,
+  ) {
     if (messages.isEmpty) return [];
 
     final widgets = <Widget>[];
@@ -223,21 +233,27 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         }
       }
 
-      widgets.add(CBMessageBubble(
-        sender: 'SECURITY',
-        message: msg,
-        style: CBMessageStyle.standard,
-        color: scheme.tertiary,
-        isSender: false,
-        avatarAsset: 'assets/roles/security.png',
-        groupPosition: groupPos,
-      ));
+      widgets.add(
+        CBMessageBubble(
+          sender: 'SECURITY',
+          message: msg,
+          style: CBMessageStyle.standard,
+          color: scheme.tertiary,
+          isSender: false,
+          avatarAsset: 'assets/roles/security.png',
+          groupPosition: groupPos,
+        ),
+      );
     }
     return widgets;
   }
 
-  Widget _buildSetupConfirmBar(BuildContext context, PlayerBridgeActions bridge,
-      String playerId, Color color) {
+  Widget _buildSetupConfirmBar(
+    BuildContext context,
+    PlayerBridgeActions bridge,
+    String playerId,
+    Color color,
+  ) {
     return SafeArea(
       top: false,
       child: Padding(

@@ -145,8 +145,11 @@ void main() {
       ...reactiveSteps,
     ];
 
-    expect(auditSteps, isNotEmpty,
-        reason: 'No interactive bot-role steps discovered for audit.');
+    expect(
+      auditSteps,
+      isNotEmpty,
+      reason: 'No interactive bot-role steps discovered for audit.',
+    );
 
     for (final step in auditSteps) {
       var players = dayRoster;
@@ -181,14 +184,14 @@ void main() {
 
       final phase =
           step.id.contains('_setup_') || step.id.startsWith('medic_choice_')
-              ? GamePhase.setup
-              : (step.id.startsWith('day_') ||
-                      step.id.startsWith('second_wind_convert_') ||
-                      step.id.startsWith('tea_spiller_reveal_') ||
-                      step.id.startsWith('predator_retaliation_') ||
-                      step.id.startsWith('drama_queen_vendetta_'))
-                  ? GamePhase.day
-                  : GamePhase.night;
+          ? GamePhase.setup
+          : (step.id.startsWith('day_') ||
+                step.id.startsWith('second_wind_convert_') ||
+                step.id.startsWith('tea_spiller_reveal_') ||
+                step.id.startsWith('predator_retaliation_') ||
+                step.id.startsWith('drama_queen_vendetta_'))
+          ? GamePhase.day
+          : GamePhase.night;
 
       final dayCount = step.id.endsWith('_0') ? 0 : 1;
 

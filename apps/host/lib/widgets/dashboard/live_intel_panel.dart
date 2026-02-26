@@ -67,7 +67,11 @@ class LiveIntelPanel extends StatelessWidget {
           _winOddsBar(context, 'CLUB STAFF', staffOdds, scheme.secondary),
           const SizedBox(height: 12),
           _winOddsBar(
-              context, 'PARTY ANIMALS', 100 - staffOdds, scheme.tertiary),
+            context,
+            'PARTY ANIMALS',
+            100 - staffOdds,
+            scheme.tertiary,
+          ),
 
           const SizedBox(height: 24),
 
@@ -100,8 +104,9 @@ class LiveIntelPanel extends StatelessWidget {
                   child: _buildPlayerAvatar(
                     context,
                     player,
-                    hasPendingDramaSwap:
-                        pendingDramaSwapTargetIds.contains(player.id),
+                    hasPendingDramaSwap: pendingDramaSwapTargetIds.contains(
+                      player.id,
+                    ),
                   ),
                 );
               },
@@ -113,7 +118,11 @@ class LiveIntelPanel extends StatelessWidget {
   }
 
   Widget _winOddsBar(
-      BuildContext context, String label, int percentage, Color color) {
+    BuildContext context,
+    String label,
+    int percentage,
+    Color color,
+  ) {
     final textTheme = Theme.of(context).textTheme;
 
     return Column(

@@ -29,8 +29,9 @@ void main() {
     PersistenceService.initWithBoxes(_FakeBox(), _FakeBox(), _FakeBox());
   });
 
-  testWidgets('Home quick action opens Hall of Fame destination',
-      (WidgetTester tester) async {
+  testWidgets('Home quick action opens Hall of Fame destination', (
+    WidgetTester tester,
+  ) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 

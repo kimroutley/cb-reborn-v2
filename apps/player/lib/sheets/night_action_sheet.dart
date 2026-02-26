@@ -28,9 +28,7 @@ class NightActionSheet extends StatelessWidget {
           padding: CBInsets.screen,
           child: Text(
             'YOUR ACTION',
-            style: textTheme.labelLarge!.copyWith(
-              color: accent,
-            ),
+            style: textTheme.labelLarge!.copyWith(color: accent),
           ),
         ),
 

@@ -31,7 +31,8 @@ class _TurntableWidgetState extends State<TurntableWidget> {
     final angle = (details.localPosition - center).direction;
     setState(() {
       _angle = angle;
-      _selectedIndex = ((_angle / (2 * math.pi)) * _features.length).round() %
+      _selectedIndex =
+          ((_angle / (2 * math.pi)) * _features.length).round() %
           _features.length;
     });
   }
@@ -89,9 +90,9 @@ class _TurntableWidgetState extends State<TurntableWidget> {
                     _features[_selectedIndex].name.toUpperCase(),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

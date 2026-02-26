@@ -26,9 +26,7 @@ class SimulationModeBadgeAction extends ConsumerWidget {
         decoration: BoxDecoration(
           color: scheme.tertiary.withValues(alpha: 0.14),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: scheme.tertiary.withValues(alpha: 0.6),
-          ),
+          border: Border.all(color: scheme.tertiary.withValues(alpha: 0.6)),
           boxShadow: [
             BoxShadow(
               color: scheme.tertiary.withValues(alpha: 0.18),
@@ -48,10 +46,10 @@ class SimulationModeBadgeAction extends ConsumerWidget {
             Text(
               'SIMULATION MODE',
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: scheme.tertiary,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.9,
-                  ),
+                color: scheme.tertiary,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.9,
+              ),
             ),
           ],
         ),

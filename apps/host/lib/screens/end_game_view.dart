@@ -90,8 +90,13 @@ class EndGameView extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: CBGlassTile(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      borderColor: player.isAlive ? scheme.tertiary.withValues(alpha: 0.3) : scheme.error.withValues(alpha: 0.3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      borderColor: player.isAlive
+                          ? scheme.tertiary.withValues(alpha: 0.3)
+                          : scheme.error.withValues(alpha: 0.3),
                       child: Row(
                         children: [
                           CBRoleAvatar(
@@ -109,15 +114,21 @@ class EndGameView extends StatelessWidget {
                                   style: textTheme.labelLarge!.copyWith(
                                     color: player.isAlive
                                         ? scheme.onSurface
-                                        : scheme.onSurface.withValues(alpha: 0.5),
+                                        : scheme.onSurface.withValues(
+                                            alpha: 0.5,
+                                          ),
                                     fontWeight: FontWeight.w900,
-                                    decoration: player.isAlive ? null : TextDecoration.lineThrough,
+                                    decoration: player.isAlive
+                                        ? null
+                                        : TextDecoration.lineThrough,
                                   ),
                                 ),
                                 Text(
                                   player.role.name.toUpperCase(),
                                   style: textTheme.labelSmall!.copyWith(
-                                    color: CBColors.fromHex(player.role.colorHex),
+                                    color: CBColors.fromHex(
+                                      player.role.colorHex,
+                                    ),
                                     fontSize: 9,
                                     letterSpacing: 0.5,
                                   ),
@@ -136,13 +147,19 @@ class EndGameView extends StatelessWidget {
                               Team.clubStaff => scheme.primary,
                               Team.partyAnimals => scheme.secondary,
                               Team.neutral => CBColors.alertOrange,
-                              Team.unknown => scheme.onSurface.withValues(alpha: 0.5),
+                              Team.unknown => scheme.onSurface.withValues(
+                                alpha: 0.5,
+                              ),
                             },
                           ),
                           const SizedBox(width: 8),
                           Icon(
-                            player.isAlive ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                            color: player.isAlive ? scheme.tertiary : scheme.error,
+                            player.isAlive
+                                ? Icons.check_circle_rounded
+                                : Icons.cancel_rounded,
+                            color: player.isAlive
+                                ? scheme.tertiary
+                                : scheme.error,
                             size: 18,
                           ),
                         ],

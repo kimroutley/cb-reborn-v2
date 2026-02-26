@@ -24,8 +24,9 @@ class PlayerCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       child: CBPanel(
-        borderColor:
-            (player.isAlive ? roleColor : scheme.error).withValues(alpha: 0.4),
+        borderColor: (player.isAlive ? roleColor : scheme.error).withValues(
+          alpha: 0.4,
+        ),
         child: InkWell(
           onTap: onTap,
           child: Column(
@@ -67,8 +68,11 @@ class PlayerCard extends StatelessWidget {
                   ),
                   if (onDelete != null)
                     IconButton(
-                      icon: Icon(Icons.remove_circle_outline,
-                          color: scheme.error, size: 20),
+                      icon: Icon(
+                        Icons.remove_circle_outline,
+                        color: scheme.error,
+                        size: 20,
+                      ),
                       onPressed: onDelete,
                     ),
                 ],
@@ -83,7 +87,9 @@ class PlayerCard extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: CBBadge(
-                            text: 'SIN BINNED', color: scheme.secondary),
+                          text: 'SIN BINNED',
+                          color: scheme.secondary,
+                        ),
                       ),
                     if (player.isShadowBanned)
                       Padding(

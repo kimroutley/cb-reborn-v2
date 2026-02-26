@@ -7,11 +7,7 @@ class LiveDirectiveCard extends StatelessWidget {
   final StepSnapshot? step;
   final String phase;
 
-  const LiveDirectiveCard({
-    super.key,
-    required this.step,
-    required this.phase,
-  });
+  const LiveDirectiveCard({super.key, required this.step, required this.phase});
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +32,7 @@ class LiveDirectiveCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            text,
-            style: textTheme.bodySmall!,
-          ),
+          Text(text, style: textTheme.bodySmall!),
         ],
       ),
     );

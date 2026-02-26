@@ -29,7 +29,9 @@ void showPrivateMessages(BuildContext context, GameState gameState) {
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: CBSpace.x4, vertical: CBSpace.x2),
+                  horizontal: CBSpace.x4,
+                  vertical: CBSpace.x2,
+                ),
                 child: CBSectionHeader(title: 'Private Intel'),
               ),
               Expanded(
@@ -39,7 +41,8 @@ void showPrivateMessages(BuildContext context, GameState gameState) {
                   itemCount: entries.length,
                   itemBuilder: (ctx, i) {
                     final entry = entries[i];
-                    final playerName = gameState.players
+                    final playerName =
+                        gameState.players
                             .where((p) => p.id == entry.key)
                             .map((p) => p.name)
                             .firstOrNull ??
@@ -47,8 +50,9 @@ void showPrivateMessages(BuildContext context, GameState gameState) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: CBSpace.x3),
                       child: CBPanel(
-                        borderColor:
-                            CBColors.alertOrange.withValues(alpha: 0.4),
+                        borderColor: CBColors.alertOrange.withValues(
+                          alpha: 0.4,
+                        ),
                         padding: const EdgeInsets.all(CBSpace.x3),
                         margin: EdgeInsets.zero,
                         child: Column(
@@ -61,13 +65,15 @@ void showPrivateMessages(BuildContext context, GameState gameState) {
                             const SizedBox(height: CBSpace.x2),
                             for (final line in entry.value)
                               Padding(
-                                padding:
-                                    const EdgeInsets.only(bottom: CBSpace.x1),
+                                padding: const EdgeInsets.only(
+                                  bottom: CBSpace.x1,
+                                ),
                                 child: Text(
                                   line,
                                   style: textTheme.bodySmall!.copyWith(
-                                    color:
-                                        scheme.onSurface.withValues(alpha: 0.7),
+                                    color: scheme.onSurface.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
                               ),

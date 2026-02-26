@@ -26,10 +26,12 @@ class Session extends _$Session {
 
   void releasePlayer(String playerId) {
     state = state.copyWith(
-      claimedPlayerIds:
-          state.claimedPlayerIds.where((id) => id != playerId).toList(),
-      roleConfirmedPlayerIds:
-          state.roleConfirmedPlayerIds.where((id) => id != playerId).toList(),
+      claimedPlayerIds: state.claimedPlayerIds
+          .where((id) => id != playerId)
+          .toList(),
+      roleConfirmedPlayerIds: state.roleConfirmedPlayerIds
+          .where((id) => id != playerId)
+          .toList(),
     );
   }
 

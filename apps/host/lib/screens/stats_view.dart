@@ -9,11 +9,7 @@ import 'games_night_recap_screen.dart';
 class StatsView extends StatefulWidget {
   final GameState gameState;
   final VoidCallback? onOpenCommand;
-  const StatsView({
-    super.key,
-    required this.gameState,
-    this.onOpenCommand,
-  });
+  const StatsView({super.key, required this.gameState, this.onOpenCommand});
 
   @override
   State<StatsView> createState() => _StatsViewState();
@@ -50,9 +46,7 @@ class _StatsViewState extends State<StatsView> {
     final scheme = Theme.of(context).colorScheme;
 
     if (_loading) {
-      return const Center(
-        child: CBBreathingSpinner(),
-      );
+      return const Center(child: CBBreathingSpinner());
     }
 
     return Column(
@@ -97,8 +91,11 @@ class _StatsViewState extends State<StatsView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.bar_chart,
-              size: 80, color: scheme.surfaceContainerHighest),
+          Icon(
+            Icons.bar_chart,
+            size: 80,
+            color: scheme.surfaceContainerHighest,
+          ),
           const SizedBox(height: 24),
           Text(
             'NO GAME RECORDS',
@@ -233,16 +230,16 @@ class _StatsViewState extends State<StatsView> {
           Row(
             children: [
               Expanded(
-                  child: _statBox('ALIVE', '${alive.length}',
-                      scheme.tertiary)), // Migrated from CBColors.matrixGreen
+                child: _statBox('ALIVE', '${alive.length}', scheme.tertiary),
+              ), // Migrated from CBColors.matrixGreen
               const SizedBox(width: 8),
               Expanded(child: _statBox('STAFF', '$staff', scheme.secondary)),
               const SizedBox(width: 8),
               Expanded(child: _statBox('ANIMALS', '$animals', scheme.primary)),
               const SizedBox(width: 8),
               Expanded(
-                  child: _statBox('NEUTRALS', '$neutrals',
-                      scheme.error)), // Migrated from CBColors.alertOrange
+                child: _statBox('NEUTRALS', '$neutrals', scheme.error),
+              ), // Migrated from CBColors.alertOrange
             ],
           ),
           const SizedBox(height: 16),
@@ -294,10 +291,12 @@ class _StatsViewState extends State<StatsView> {
     final total = _stats.totalGames;
     if (total == 0) return const SizedBox.shrink();
 
-    final staffPct =
-        total > 0 ? (_stats.clubStaffWins / total * 100).round() : 0;
-    final paPct =
-        total > 0 ? (_stats.partyAnimalsWins / total * 100).round() : 0;
+    final staffPct = total > 0
+        ? (_stats.clubStaffWins / total * 100).round()
+        : 0;
+    final paPct = total > 0
+        ? (_stats.partyAnimalsWins / total * 100).round()
+        : 0;
     final neutralWins = total - _stats.clubStaffWins - _stats.partyAnimalsWins;
     final neutralPct = total > 0 ? (neutralWins / total * 100).round() : 0;
 
@@ -315,16 +314,20 @@ class _StatsViewState extends State<StatsView> {
               Expanded(child: _statBox('GAMES', '$total', scheme.primary)),
               const SizedBox(width: 8),
               Expanded(
-                  child: _statBox(
-                      'AVG PLAYERS',
-                      _stats.averagePlayerCount.toStringAsFixed(1),
-                      scheme.secondary)),
+                child: _statBox(
+                  'AVG PLAYERS',
+                  _stats.averagePlayerCount.toStringAsFixed(1),
+                  scheme.secondary,
+                ),
+              ),
               const SizedBox(width: 8),
               Expanded(
-                  child: _statBox(
-                      'AVG DAYS',
-                      _stats.averageDayCount.toStringAsFixed(1),
-                      scheme.error)), // Migrated from CBColors.alertOrange
+                child: _statBox(
+                  'AVG DAYS',
+                  _stats.averageDayCount.toStringAsFixed(1),
+                  scheme.error,
+                ),
+              ), // Migrated from CBColors.alertOrange
             ],
           ),
           const SizedBox(height: 20),
@@ -340,12 +343,17 @@ class _StatsViewState extends State<StatsView> {
           const SizedBox(height: 8),
           _winBar('CLUB STAFF', staffPct, scheme.secondary),
           const SizedBox(height: 6),
-          _winBar('PARTY ANIMALS', paPct,
-              scheme.tertiary), // Migrated from CBColors.matrixGreen
+          _winBar(
+            'PARTY ANIMALS',
+            paPct,
+            scheme.tertiary,
+          ), // Migrated from CBColors.matrixGreen
           const SizedBox(height: 6),
-          _winBar('NEUTRAL', neutralPct,
-              scheme.error), // Migrated from CBColors.alertOrange
-
+          _winBar(
+            'NEUTRAL',
+            neutralPct,
+            scheme.error,
+          ), // Migrated from CBColors.alertOrange
           // Top roles
           if (_stats.roleFrequency.isNotEmpty) ...[
             const SizedBox(height: 20),
@@ -357,11 +365,7 @@ class _StatsViewState extends State<StatsView> {
               ),
             ),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 6,
-              children: _topRoles(scheme),
-            ),
+            Wrap(spacing: 8, runSpacing: 6, children: _topRoles(scheme)),
           ],
         ],
       ),
@@ -424,7 +428,8 @@ class _StatsViewState extends State<StatsView> {
       ..sort((a, b) => b.value.compareTo(a.value));
     return sorted.take(8).map((e) {
       final wins = _stats.roleWinCount[e.key] ?? 0;
-      final roleName = roleCatalogMap[e.key]?.name ??
+      final roleName =
+          roleCatalogMap[e.key]?.name ??
           e.key.replaceAll('_', ' ').toUpperCase();
       return CBBadge(
         text: '$roleName ×${e.value} (W:$wins)',
@@ -462,8 +467,10 @@ class _StatsViewState extends State<StatsView> {
                 color: scheme.error, // Migrated from CBColors.bloodOrange
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(Icons.delete,
-                  color: scheme.onSurface), // Migrated from CBColors.voidBlack
+              child: Icon(
+                Icons.delete,
+                color: scheme.onSurface,
+              ), // Migrated from CBColors.voidBlack
             ),
             confirmDismiss: (_) => _confirmDelete(
               'Delete session "${session.sessionName}"?',
@@ -482,7 +489,10 @@ class _StatsViewState extends State<StatsView> {
   }
 
   Widget _buildSessionTile(
-      GamesNightRecord session, List<GameRecord> games, ColorScheme scheme) {
+    GamesNightRecord session,
+    List<GameRecord> games,
+    ColorScheme scheme,
+  ) {
     final textTheme = Theme.of(context).textTheme;
     final dateRange = session.endedAt != null
         ? '${DateFormat('MMM dd').format(session.startedAt)} - ${DateFormat('MMM dd, yyyy').format(session.endedAt!)}'
@@ -493,7 +503,8 @@ class _StatsViewState extends State<StatsView> {
       child: CBPanel(
         padding: const EdgeInsets.all(16),
         borderColor: session.isActive
-            ? scheme.tertiary // Migrated from CBColors.matrixGreen
+            ? scheme
+                  .tertiary // Migrated from CBColors.matrixGreen
             : scheme.outline.withValues(alpha: 0.2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,9 +515,9 @@ class _StatsViewState extends State<StatsView> {
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: CBBadge(
-                        text: 'ACTIVE',
-                        color: scheme
-                            .tertiary), // Migrated from CBColors.matrixGreen
+                      text: 'ACTIVE',
+                      color: scheme.tertiary,
+                    ), // Migrated from CBColors.matrixGreen
                   ),
                 Expanded(
                   child: Text(
@@ -514,7 +525,7 @@ class _StatsViewState extends State<StatsView> {
                     style: textTheme.headlineSmall!.copyWith(
                       color: session.isActive
                           ? scheme
-                              .tertiary // Migrated from CBColors.matrixGreen
+                                .tertiary // Migrated from CBColors.matrixGreen
                           : scheme.onSurface,
                     ),
                   ),
@@ -583,8 +594,9 @@ class _StatsViewState extends State<StatsView> {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
-        color:
-            scheme.error.withValues(alpha: 0.8), // Migrated from CBColors.dead
+        color: scheme.error.withValues(
+          alpha: 0.8,
+        ), // Migrated from CBColors.dead
         child: Icon(Icons.delete_forever, color: scheme.onSurface),
       ),
       onDismissed: (_) async {
@@ -615,13 +627,22 @@ class _StatsViewState extends State<StatsView> {
             Row(
               children: [
                 _miniStat(
-                    Icons.people_outline, '${record.playerCount}', scheme),
+                  Icons.people_outline,
+                  '${record.playerCount}',
+                  scheme,
+                ),
                 const SizedBox(width: 20),
                 _miniStat(
-                    Icons.wb_sunny_outlined, '${record.dayCount} days', scheme),
+                  Icons.wb_sunny_outlined,
+                  '${record.dayCount} days',
+                  scheme,
+                ),
                 const SizedBox(width: 20),
-                _miniStat(Icons.casino_outlined,
-                    '${record.rolesInPlay.length} roles', scheme),
+                _miniStat(
+                  Icons.casino_outlined,
+                  '${record.rolesInPlay.length} roles',
+                  scheme,
+                ),
               ],
             ),
             if (record.roster.isNotEmpty) ...[
@@ -633,7 +654,7 @@ class _StatsViewState extends State<StatsView> {
                   final color = snap.alive
                       ? scheme.tertiary
                       : scheme
-                          .error; // Migrated from CBColors.matrixGreen and CBColors.dead
+                            .error; // Migrated from CBColors.matrixGreen and CBColors.dead
                   return Text(
                     snap.name,
                     style: textTheme.bodySmall!.copyWith(
@@ -659,11 +680,7 @@ class _StatsViewState extends State<StatsView> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: scheme.primary.withValues(alpha: 0.7),
-        ),
+        Icon(icon, size: 16, color: scheme.primary.withValues(alpha: 0.7)),
         const SizedBox(width: 6),
         Text(
           value,
@@ -688,19 +705,17 @@ class _StatsViewState extends State<StatsView> {
           Text(
             'CLEAR ALL RECORDS',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                  letterSpacing: 1.6,
-                  fontWeight: FontWeight.bold,
-                  shadows: CBColors.textGlow(
-                    Theme.of(context).colorScheme.error,
-                    intensity: 0.55,
-                  ),
-                ),
+              color: Theme.of(context).colorScheme.error,
+              letterSpacing: 1.6,
+              fontWeight: FontWeight.bold,
+              shadows: CBColors.textGlow(
+                Theme.of(context).colorScheme.error,
+                intensity: 0.55,
+              ),
+            ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Delete all game history? This cannot be undone.',
-          ),
+          const Text('Delete all game history? This cannot be undone.'),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -717,7 +732,7 @@ class _StatsViewState extends State<StatsView> {
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],
-          )
+          ),
         ],
       ),
     ).then((confirmed) {
@@ -740,19 +755,19 @@ class _StatsViewState extends State<StatsView> {
           Text(
             title,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: scheme.error, // Migrated from CBColors.bloodOrange
-                  letterSpacing: 1.6,
-                  fontWeight: FontWeight.bold,
-                  shadows: CBColors.textGlow(scheme.error, intensity: 0.55),
-                ),
+              color: scheme.error, // Migrated from CBColors.bloodOrange
+              letterSpacing: 1.6,
+              fontWeight: FontWeight.bold,
+              shadows: CBColors.textGlow(scheme.error, intensity: 0.55),
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.75),
-                  height: 1.3,
-                ),
+              color: scheme.onSurface.withValues(alpha: 0.75),
+              height: 1.3,
+            ),
           ),
           const SizedBox(height: 24),
           Row(
@@ -771,7 +786,7 @@ class _StatsViewState extends State<StatsView> {
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],
-          )
+          ),
         ],
       ),
     );

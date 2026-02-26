@@ -23,8 +23,10 @@ class _TacticalMonitorState extends State<TacticalMonitor>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    _glowAnimation =
-        Tween<double>(begin: 0.3, end: 0.7).animate(_pulseController);
+    _glowAnimation = Tween<double>(
+      begin: 0.3,
+      end: 0.7,
+    ).animate(_pulseController);
   }
 
   @override
@@ -90,15 +92,20 @@ class _TacticalMonitorState extends State<TacticalMonitor>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(team,
-                style: textTheme.labelSmall!
-                    .copyWith(color: color.withValues(alpha: 0.8))),
-            Text("${(probability * 100).round()}%",
-                style: textTheme.labelSmall!.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                  shadows: CBColors.textGlow(color, intensity: 0.6),
-                )),
+            Text(
+              team,
+              style: textTheme.labelSmall!.copyWith(
+                color: color.withValues(alpha: 0.8),
+              ),
+            ),
+            Text(
+              "${(probability * 100).round()}%",
+              style: textTheme.labelSmall!.copyWith(
+                color: color,
+                fontWeight: FontWeight.bold,
+                shadows: CBColors.textGlow(color, intensity: 0.6),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -121,7 +128,9 @@ class _TacticalMonitorState extends State<TacticalMonitor>
                   borderRadius: BorderRadius.circular(2),
                   boxShadow: [
                     BoxShadow(
-                        color: color.withValues(alpha: 0.5), blurRadius: 8),
+                      color: color.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                    ),
                   ],
                 ),
               ),
@@ -140,10 +149,13 @@ class _TacticalMonitorState extends State<TacticalMonitor>
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
-          child: Text("PLAYER HEALTH RAIL",
-              style: textTheme.labelSmall!.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.45),
-                  letterSpacing: 2)),
+          child: Text(
+            "PLAYER HEALTH RAIL",
+            style: textTheme.labelSmall!.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.45),
+              letterSpacing: 2,
+            ),
+          ),
         ),
         SizedBox(
           height: 90,
@@ -185,9 +197,10 @@ class _TacticalMonitorState extends State<TacticalMonitor>
                   Text(
                     player.name.toUpperCase(),
                     style: textTheme.labelSmall!.copyWith(
-                        fontSize: 8,
-                        color: scheme.onSurface.withValues(alpha: 0.65),
-                        fontWeight: FontWeight.bold),
+                      fontSize: 8,
+                      color: scheme.onSurface.withValues(alpha: 0.65),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               );
@@ -226,13 +239,17 @@ class _TacticalMonitorState extends State<TacticalMonitor>
             children: [
               _buildIntelStat("ALIVE", "$alive", scheme.tertiary),
               _buildIntelStat(
-                  "DAY", "${widget.gameState.dayCount}", scheme.primary),
+                "DAY",
+                "${widget.gameState.dayCount}",
+                scheme.primary,
+              ),
               _buildIntelStat(
-                  "STABILITY",
-                  alive == 0
-                      ? "0%"
-                      : "${(alive / widget.gameState.players.length * 100).round()}%",
-                  scheme.secondary),
+                "STABILITY",
+                alive == 0
+                    ? "0%"
+                    : "${(alive / widget.gameState.players.length * 100).round()}%",
+                scheme.secondary,
+              ),
             ],
           ),
         ],
@@ -245,17 +262,23 @@ class _TacticalMonitorState extends State<TacticalMonitor>
     final scheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Text(value,
-            style: textTheme.displayMedium!.copyWith(
-                color: color,
-                fontSize: 28,
-                shadows: CBColors.textGlow(color, intensity: 0.4))),
+        Text(
+          value,
+          style: textTheme.displayMedium!.copyWith(
+            color: color,
+            fontSize: 28,
+            shadows: CBColors.textGlow(color, intensity: 0.4),
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(label,
-            style: textTheme.labelSmall!.copyWith(
-                fontSize: 9,
-                color: scheme.onSurface.withValues(alpha: 0.45),
-                letterSpacing: 1.5)),
+        Text(
+          label,
+          style: textTheme.labelSmall!.copyWith(
+            fontSize: 9,
+            color: scheme.onSurface.withValues(alpha: 0.45),
+            letterSpacing: 1.5,
+          ),
+        ),
       ],
     );
   }

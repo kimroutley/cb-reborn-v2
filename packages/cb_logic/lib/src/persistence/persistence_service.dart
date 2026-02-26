@@ -50,11 +50,7 @@ class ActiveGameLoadResult {
   }
 
   factory ActiveGameLoadResult.success((GameState, SessionState) data) {
-    return ActiveGameLoadResult._(
-      data: data,
-      failure: null,
-      hasAnyData: true,
-    );
+    return ActiveGameLoadResult._(data: data, failure: null, hasAnyData: true);
   }
 
   factory ActiveGameLoadResult.failure(
@@ -105,7 +101,8 @@ class PersistenceService {
 
     if (keyString == null) {
       // No key found. Check for legacy unencrypted data to migrate.
-      final hasLegacyData = await Hive.boxExists(_activeGameBox) ||
+      final hasLegacyData =
+          await Hive.boxExists(_activeGameBox) ||
           await Hive.boxExists(_gameRecordsBox) ||
           await Hive.boxExists(_sessionsBoxKey);
 
@@ -150,7 +147,8 @@ class PersistenceService {
 
   /// Migrates data from unencrypted boxes to encrypted boxes.
   static Future<void> _migrateLegacyData(
-      FlutterSecureStorage secureStorage) async {
+    FlutterSecureStorage secureStorage,
+  ) async {
     // 1. Open existing unencrypted boxes
     final activeBox = await Hive.openBox<String>(_activeGameBox);
     final recordsBox = await Hive.openBox<String>(_gameRecordsBox);
@@ -269,13 +267,10 @@ class PersistenceService {
     }
 
     try {
-      return ActiveGameLoadResult.success(
-        (
-          GameState.fromJson(jsonDecode(gameJson) as Map<String, dynamic>),
-          SessionState.fromJson(
-              jsonDecode(sessionJson) as Map<String, dynamic>),
-        ),
-      );
+      return ActiveGameLoadResult.success((
+        GameState.fromJson(jsonDecode(gameJson) as Map<String, dynamic>),
+        SessionState.fromJson(jsonDecode(sessionJson) as Map<String, dynamic>),
+      ));
     } catch (_) {
       return ActiveGameLoadResult.failure(
         ActiveGameLoadFailure.corruptedSnapshot,
@@ -448,33 +443,43 @@ class PersistenceService {
   }
 
   List<PlayerRoleAwardProgress> loadRoleAwardProgressesByRole(String roleId) {
-    return loadRoleAwardProgresses().where((progress) {
-      final definition = roleAwardDefinitionById(progress.awardId);
-      return definition?.roleId == roleId;
-    }).toList(growable: false);
+    return loadRoleAwardProgresses()
+        .where((progress) {
+          final definition = roleAwardDefinitionById(progress.awardId);
+          return definition?.roleId == roleId;
+        })
+        .toList(growable: false);
   }
 
   List<PlayerRoleAwardProgress> loadRoleAwardProgressesByTier(
     RoleAwardTier tier,
   ) {
-    return loadRoleAwardProgresses().where((progress) {
-      final definition = roleAwardDefinitionById(progress.awardId);
-      return definition?.tier == tier;
-    }).toList(growable: false);
+    return loadRoleAwardProgresses()
+        .where((progress) {
+          final definition = roleAwardDefinitionById(progress.awardId);
+          return definition?.tier == tier;
+        })
+        .toList(growable: false);
   }
 
   List<PlayerRoleAwardProgress> loadRecentRoleAwardUnlocks({int limit = 20}) {
-    final unlocked = loadRoleAwardProgresses()
-        .where((progress) => progress.isUnlocked && progress.unlockedAt != null)
-        .toList(growable: false)
-      ..sort((a, b) => b.unlockedAt!.compareTo(a.unlockedAt!));
+    final unlocked =
+        loadRoleAwardProgresses()
+            .where(
+              (progress) => progress.isUnlocked && progress.unlockedAt != null,
+            )
+            .toList(growable: false)
+          ..sort((a, b) => b.unlockedAt!.compareTo(a.unlockedAt!));
     return unlocked.take(limit).toList(growable: false);
   }
 
   Future<void> clearRoleAwardProgresses() async {
-    final keysToDelete = _recordsBox.keys.whereType<String>().where((key) {
-      return key.startsWith(_awardProgressKeyPrefix);
-    }).toList(growable: false);
+    final keysToDelete = _recordsBox.keys
+        .whereType<String>()
+        .where((key) {
+          return key.startsWith(_awardProgressKeyPrefix);
+        })
+        .toList(growable: false);
 
     for (final key in keysToDelete) {
       await _recordsBox.delete(key);
@@ -617,10 +622,12 @@ class PersistenceService {
       totalGames: records.length,
       clubStaffWins: staffWins,
       partyAnimalsWins: paWins,
-      averagePlayerCount:
-          records.isEmpty ? 0 : (totalPlayers / records.length).round(),
-      averageDayCount:
-          records.isEmpty ? 0 : (totalDays / records.length).round(),
+      averagePlayerCount: records.isEmpty
+          ? 0
+          : (totalPlayers / records.length).round(),
+      averageDayCount: records.isEmpty
+          ? 0
+          : (totalDays / records.length).round(),
       roleFrequency: roleFreq,
       roleWinCount: roleWins,
     );

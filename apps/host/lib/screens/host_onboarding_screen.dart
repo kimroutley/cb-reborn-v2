@@ -8,7 +8,8 @@ class HostOnboardingScreen extends ConsumerStatefulWidget {
   const HostOnboardingScreen({super.key});
 
   @override
-  ConsumerState<HostOnboardingScreen> createState() => _HostOnboardingScreenState();
+  ConsumerState<HostOnboardingScreen> createState() =>
+      _HostOnboardingScreenState();
 }
 
 class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
@@ -142,7 +143,10 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
                       color: scheme.primary,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 1.0,
-                      shadows: CBColors.textGlow(scheme.primary, intensity: 0.4),
+                      shadows: CBColors.textGlow(
+                        scheme.primary,
+                        intensity: 0.4,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -158,7 +162,7 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
                 ],
               ),
             ),
-             const SizedBox(height: 48),
+            const SizedBox(height: 48),
             CBGhostButton(
               label: 'BACK TO LOGIN',
               icon: Icons.arrow_back_rounded,

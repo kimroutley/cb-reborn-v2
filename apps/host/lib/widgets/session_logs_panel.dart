@@ -8,8 +8,11 @@ class SessionLogsPanel extends StatelessWidget {
   final GameState gameState;
   final Game controller;
 
-  const SessionLogsPanel(
-      {super.key, required this.gameState, required this.controller});
+  const SessionLogsPanel({
+    super.key,
+    required this.gameState,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +25,9 @@ class SessionLogsPanel extends StatelessWidget {
           child: Row(
             children: [
               CBBadge(
-                  text: "AI SYNC",
-                  color: scheme.primary), // Migrated from CBColors.neonBlue
+                text: "AI SYNC",
+                color: scheme.primary,
+              ), // Migrated from CBColors.neonBlue
               const Spacer(),
               _buildGeminiButton(context, scheme),
             ],
@@ -37,11 +41,12 @@ class SessionLogsPanel extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: scheme.surfaceContainerLow.withValues(alpha: 0.65),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
               border: Border.all(
-                  color: scheme.primary.withValues(
-                      alpha: 0.2)), // Migrated from CBColors.neonBlue
+                color: scheme.primary.withValues(alpha: 0.2),
+              ), // Migrated from CBColors.neonBlue
             ),
             child: ListView.builder(
               reverse: true,
@@ -85,8 +90,10 @@ class SessionLogsPanel extends StatelessWidget {
 
   Widget _buildGeminiButton(BuildContext context, ColorScheme scheme) {
     return IconButton(
-      icon: Icon(Icons.auto_awesome,
-          color: scheme.primary), // Migrated from CBColors.neonBlue
+      icon: Icon(
+        Icons.auto_awesome,
+        color: scheme.primary,
+      ), // Migrated from CBColors.neonBlue
       onPressed: () =>
           showAIRecapExportMenu(context: context, controller: controller),
       tooltip: "Export to Gemini",

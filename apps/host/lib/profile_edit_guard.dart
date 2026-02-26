@@ -15,5 +15,5 @@ class HostProfileDirtyNotifier extends Notifier<bool> {
 
 final hostProfileDirtyProvider =
     NotifierProvider<HostProfileDirtyNotifier, bool>(
-  HostProfileDirtyNotifier.new,
-);
+      HostProfileDirtyNotifier.new,
+    );

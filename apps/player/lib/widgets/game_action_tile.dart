@@ -43,11 +43,15 @@ class _GameActionTileState extends State<GameActionTile> {
             step: widget.step,
             onPlayerSelected: (targetId) {
               if (widget.step.isVote) {
-                widget.bridge
-                    .vote(voterId: widget.playerId, targetId: targetId);
+                widget.bridge.vote(
+                  voterId: widget.playerId,
+                  targetId: targetId,
+                );
               } else {
-                widget.bridge
-                    .sendAction(stepId: widget.step.id, targetId: targetId);
+                widget.bridge.sendAction(
+                  stepId: widget.step.id,
+                  targetId: targetId,
+                );
               }
 
               if (!isMultiSelect || targetId.contains(',')) {
@@ -74,8 +78,10 @@ class _GameActionTileState extends State<GameActionTile> {
                     color: widget.roleColor,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 2.0,
-                    shadows:
-                        CBColors.textGlow(widget.roleColor, intensity: 0.5),
+                    shadows: CBColors.textGlow(
+                      widget.roleColor,
+                      intensity: 0.5,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -88,7 +94,9 @@ class _GameActionTileState extends State<GameActionTile> {
                       foregroundColor: widget.roleColor,
                       onPressed: () {
                         widget.bridge.sendAction(
-                            stepId: widget.step.id, targetId: option);
+                          stepId: widget.step.id,
+                          targetId: option,
+                        );
                         Navigator.pop(context);
                       },
                     ),
@@ -183,7 +191,7 @@ class _GameActionTileState extends State<GameActionTile> {
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
-                      widget.roleColor.withValues(alpha: 0.5)
+                      widget.roleColor.withValues(alpha: 0.5),
                     ],
                   ),
                 ),
@@ -203,7 +211,7 @@ class _GameActionTileState extends State<GameActionTile> {
                   gradient: LinearGradient(
                     colors: [
                       widget.roleColor.withValues(alpha: 0.5),
-                      Colors.transparent
+                      Colors.transparent,
                     ],
                   ),
                 ),

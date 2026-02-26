@@ -274,7 +274,10 @@ class RecapGenerator {
                 .firstWhere(
                   (e) => e.playerId == player.id,
                   orElse: () => const GameEventDeath(
-                      playerId: '', reason: '', day: 1), // fallback
+                    playerId: '',
+                    reason: '',
+                    day: 1,
+                  ), // fallback
                 );
             if (deathEvent.playerId.isNotEmpty) {
               deathDay = deathEvent.day;

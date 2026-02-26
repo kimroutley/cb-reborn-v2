@@ -94,15 +94,13 @@ class FakeUserRepository implements UserRepository {
   Future<bool> isUsernameAvailable(
     String username, {
     String? excludingUid,
-  }) async =>
-      true;
+  }) async => true;
 
   @override
   Future<bool> isPublicPlayerIdAvailable(
     String publicPlayerId, {
     String? excludingUid,
-  }) async =>
-      true;
+  }) async => true;
 }
 
 // Fake AppLinks implementation
@@ -161,23 +159,25 @@ void main() {
     subscription.close();
   });
 
-  test('State becomes authenticated when user exists and has profile',
-      () async {
-    final subscription = container.listen(authProvider, (_, __) {});
+  test(
+    'State becomes authenticated when user exists and has profile',
+    () async {
+      final subscription = container.listen(authProvider, (_, __) {});
 
-    final user = FakeUser(uid: '123', email: 'test@example.com');
-    fakeUserRepository.setProfile('123', true);
+      final user = FakeUser(uid: '123', email: 'test@example.com');
+      fakeUserRepository.setProfile('123', true);
 
-    fakeAuthService.emitUser(user);
+      fakeAuthService.emitUser(user);
 
-    await Future.delayed(const Duration(milliseconds: 10));
+      await Future.delayed(const Duration(milliseconds: 10));
 
-    final authState = container.read(authProvider);
-    expect(authState.status, AuthStatus.authenticated);
-    expect(authState.user, user);
+      final authState = container.read(authProvider);
+      expect(authState.status, AuthStatus.authenticated);
+      expect(authState.user, user);
 
-    subscription.close();
-  });
+      subscription.close();
+    },
+  );
 
   test('State becomes needsProfile when user exists but no profile', () async {
     final subscription = container.listen(authProvider, (_, __) {});

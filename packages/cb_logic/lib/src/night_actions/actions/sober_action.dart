@@ -9,8 +9,9 @@ class SoberAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final sobers =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final sobers = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final sober in sobers) {
       // Pre-emptive actions cannot be blocked or redirected in the same night

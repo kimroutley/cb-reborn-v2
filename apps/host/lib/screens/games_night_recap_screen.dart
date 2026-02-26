@@ -54,10 +54,12 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
         totalDuration: totalDuration,
         uniquePlayers: widget.session.playerNames.length,
         gameSummaries: const [],
-        clubStaffWins:
-            widget.games.where((g) => g.winner == Team.clubStaff).length,
-        partyAnimalsWins:
-            widget.games.where((g) => g.winner == Team.partyAnimals).length,
+        clubStaffWins: widget.games
+            .where((g) => g.winner == Team.clubStaff)
+            .length,
+        partyAnimalsWins: widget.games
+            .where((g) => g.winner == Team.partyAnimals)
+            .length,
       );
     }
     _startTimer();
@@ -191,7 +193,9 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                     Row(
                       children: [
                         const CBConnectionDot(
-                            isConnected: true, label: "SESSION RECAP"),
+                          isConnected: true,
+                          label: "SESSION RECAP",
+                        ),
                         const SizedBox(width: 8),
                         const SimulationModeBadgeAction(),
                         const Spacer(),
@@ -223,9 +227,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 1000),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.25),
-      ),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.25)),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
         child: ColoredBox(color: scheme.surface.withValues(alpha: 0.2)),
@@ -265,8 +267,9 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                       borderRadius: BorderRadius.circular(2),
                       boxShadow: [
                         BoxShadow(
-                            color: scheme.onSurface.withValues(alpha: 0.5),
-                            blurRadius: 4),
+                          color: scheme.onSurface.withValues(alpha: 0.5),
+                          blurRadius: 4,
+                        ),
                       ],
                     ),
                   ),
@@ -287,8 +290,12 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
 
     if (_recap.mvp != null) {
       slides.add(
-        _buildAwardSlide("MVP", _recap.mvp!, Icons.emoji_events,
-            scheme.tertiary), // Previously CBColors.yellow
+        _buildAwardSlide(
+          "MVP",
+          _recap.mvp!,
+          Icons.emoji_events,
+          scheme.tertiary,
+        ), // Previously CBColors.yellow
       );
     }
     if (_recap.mainCharacter != null) {
@@ -336,34 +343,33 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.auto_awesome,
-              color: scheme.tertiary,
-              size: 80),
+          Icon(Icons.auto_awesome, color: scheme.tertiary, size: 80),
           const SizedBox(height: 32),
           Text(
             widget.session.sessionName.toUpperCase(),
             textAlign: TextAlign.center,
             style: textTheme.displayLarge!
-                .copyWith(
-                  color: scheme.onSurface,
-                  letterSpacing: 4,
-                )
-                .copyWith(
-                    shadows: CBColors.textGlow(scheme.tertiary)),
+                .copyWith(color: scheme.onSurface, letterSpacing: 4)
+                .copyWith(shadows: CBColors.textGlow(scheme.tertiary)),
           ),
           const SizedBox(height: 24),
           Text(
             "WHAT A NIGHT.",
             style: textTheme.labelSmall!.copyWith(
-                letterSpacing: 4,
-                color: scheme.onSurface.withValues(alpha: 0.5)),
+              letterSpacing: 4,
+              color: scheme.onSurface.withValues(alpha: 0.5),
+            ),
           ),
           const SizedBox(height: 64),
           _buildStatRow(
-              Icons.videogame_asset, "${_recap.totalGames} GAMES PLAYED"),
+            Icons.videogame_asset,
+            "${_recap.totalGames} GAMES PLAYED",
+          ),
           const SizedBox(height: 16),
-          _buildStatRow(Icons.timer,
-              "${_recap.totalDuration.inHours}H ${_recap.totalDuration.inMinutes % 60}M DURATION"),
+          _buildStatRow(
+            Icons.timer,
+            "${_recap.totalDuration.inHours}H ${_recap.totalDuration.inMinutes % 60}M DURATION",
+          ),
         ],
       ),
     );
@@ -381,9 +387,13 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
         children: [
           Icon(icon, color: scheme.onSurface.withValues(alpha: 0.7), size: 20),
           const SizedBox(width: 16),
-          Text(label,
-              style: textTheme.labelSmall!.copyWith(
-                  color: scheme.onSurface, fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: textTheme.labelSmall!.copyWith(
+              color: scheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -396,13 +406,12 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("THE GUEST LIST",
-              style: textTheme.headlineMedium!
-                  .copyWith(
-                      color: scheme.primary) // Previously CBColors.neonBlue
-                  .copyWith(
-                      shadows: CBColors.textGlow(
-                          scheme.primary))),
+          Text(
+            "THE GUEST LIST",
+            style: textTheme.headlineMedium!
+                .copyWith(color: scheme.primary) // Previously CBColors.neonBlue
+                .copyWith(shadows: CBColors.textGlow(scheme.primary)),
+          ),
           const SizedBox(height: 48),
           Wrap(
             spacing: 12,
@@ -410,22 +419,31 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
             alignment: WrapAlignment.center,
             children: widget.session.playerNames.map((name) {
               return CBBadge(
-                  text: name,
-                  color: scheme.primary); // Previously CBColors.neonBlue
+                text: name,
+                color: scheme.primary,
+              ); // Previously CBColors.neonBlue
             }).toList(),
           ),
           const SizedBox(height: 48),
-          Text("${_recap.uniquePlayers} LEGENDS ENTERED.\nSOME NEVER LEFT.",
-              textAlign: TextAlign.center,
-              style: textTheme.labelSmall!.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.4), height: 1.5)),
+          Text(
+            "${_recap.uniquePlayers} LEGENDS ENTERED.\nSOME NEVER LEFT.",
+            textAlign: TextAlign.center,
+            style: textTheme.labelSmall!.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.4),
+              height: 1.5,
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildAwardSlide(
-      String title, PlayerAward award, IconData icon, Color color) {
+    String title,
+    PlayerAward award,
+    IconData icon,
+    Color color,
+  ) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Padding(
@@ -433,10 +451,12 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(title,
-              style: textTheme.displayLarge!
-                  .copyWith(color: scheme.onSurface)
-                  .copyWith(shadows: CBColors.textGlow(color))),
+          Text(
+            title,
+            style: textTheme.displayLarge!
+                .copyWith(color: scheme.onSurface)
+                .copyWith(shadows: CBColors.textGlow(color)),
+          ),
           const SizedBox(height: 48),
           Container(
             padding: const EdgeInsets.all(32),
@@ -448,15 +468,22 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
             child: Icon(icon, size: 80, color: color),
           ),
           const SizedBox(height: 48),
-          Text(award.playerName.toUpperCase(),
-              style: textTheme.displayMedium!
-                  .copyWith(color: scheme.onSurface, fontSize: 36)),
+          Text(
+            award.playerName.toUpperCase(),
+            style: textTheme.displayMedium!.copyWith(
+              color: scheme.onSurface,
+              fontSize: 36,
+            ),
+          ),
           const SizedBox(height: 16),
-          Text(award.description.toUpperCase(),
-              textAlign: TextAlign.center,
-              style: textTheme.labelSmall!.copyWith(
-                  color: color.withValues(alpha: 0.8),
-                  fontWeight: FontWeight.bold)),
+          Text(
+            award.description.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: textTheme.labelSmall!.copyWith(
+              color: color.withValues(alpha: 0.8),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -469,9 +496,10 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("SPICIEST MOMENT",
-              style: textTheme.headlineMedium!.copyWith(
-                  color: scheme.error)), // Previously CBColors.bloodOrange
+          Text(
+            "SPICIEST MOMENT",
+            style: textTheme.headlineMedium!.copyWith(color: scheme.error),
+          ), // Previously CBColors.bloodOrange
           const SizedBox(height: 48),
           CBPanel(
             borderColor: scheme.error,
@@ -497,8 +525,10 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                 Text(
                   _recap.spiciestMoment ?? "NONE RECORDED",
                   textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium!
-                      .copyWith(height: 1.5, fontStyle: FontStyle.italic),
+                  style: textTheme.bodyMedium!.copyWith(
+                    height: 1.5,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ],
             ),
@@ -515,20 +545,28 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("NIGHT SUMMARY",
-              style: textTheme.headlineMedium!
-                  .copyWith(
-                      color: scheme.tertiary) // Previously CBColors.matrixGreen
-                  .copyWith(
-                      shadows: CBColors.textGlow(scheme.tertiary))),
+          Text(
+            "NIGHT SUMMARY",
+            style: textTheme.headlineMedium!
+                .copyWith(
+                  color: scheme.tertiary,
+                ) // Previously CBColors.matrixGreen
+                .copyWith(shadows: CBColors.textGlow(scheme.tertiary)),
+          ),
           const SizedBox(height: 48),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildLargeStat("STAFF WINS", _recap.clubStaffWins,
-                  scheme.secondary), // Previously CBColors.hotPink
-              _buildLargeStat("ANIMAL WINS", _recap.partyAnimalsWins,
-                  scheme.primary), // Previously CBColors.neonBlue
+              _buildLargeStat(
+                "STAFF WINS",
+                _recap.clubStaffWins,
+                scheme.secondary,
+              ), // Previously CBColors.hotPink
+              _buildLargeStat(
+                "ANIMAL WINS",
+                _recap.partyAnimalsWins,
+                scheme.primary,
+              ), // Previously CBColors.neonBlue
             ],
           ),
           const SizedBox(height: 64),
@@ -545,13 +583,17 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
     final textTheme = Theme.of(context).textTheme;
     return Column(
       children: [
-        Text("$value",
-            style:
-                textTheme.displayLarge!.copyWith(color: color, fontSize: 64)),
+        Text(
+          "$value",
+          style: textTheme.displayLarge!.copyWith(color: color, fontSize: 64),
+        ),
         const SizedBox(height: 8),
-        Text(label,
-            style: textTheme.labelSmall!
-                .copyWith(color: color.withValues(alpha: 0.5))),
+        Text(
+          label,
+          style: textTheme.labelSmall!.copyWith(
+            color: color.withValues(alpha: 0.5),
+          ),
+        ),
       ],
     );
   }

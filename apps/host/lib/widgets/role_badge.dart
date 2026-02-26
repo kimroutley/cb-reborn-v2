@@ -29,11 +29,8 @@ class RoleBadge extends StatelessWidget {
             role!.assetPath,
             width: 48,
             height: 48,
-            errorBuilder: (_, __, ___) => Icon(
-              Icons.person,
-              size: 48,
-              color: badgeColor,
-            ),
+            errorBuilder: (_, __, ___) =>
+                Icon(Icons.person, size: 48, color: badgeColor),
           ),
           const SizedBox(height: 6),
           CBBadge(text: role!.name, color: badgeColor),

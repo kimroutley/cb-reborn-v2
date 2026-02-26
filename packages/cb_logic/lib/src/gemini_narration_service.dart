@@ -10,8 +10,8 @@ final geminiNarrationServiceProvider = Provider<GeminiNarrationService>((ref) {
 
 class GeminiNarrationService {
   GeminiNarrationService({http.Client? client, String? apiKey})
-      : _client = client ?? http.Client(),
-        _injectedApiKey = apiKey;
+    : _client = client ?? http.Client(),
+      _injectedApiKey = apiKey;
 
   final http.Client _client;
   final String? _injectedApiKey;
@@ -47,7 +47,8 @@ class GeminiNarrationService {
     final key = _apiKey;
     if (key.isEmpty) {
       debugPrint(
-          '[GeminiNarrationService] No API key found. Using local fallback narration.');
+        '[GeminiNarrationService] No API key found. Using local fallback narration.',
+      );
       return _buildLocalFallbackNarration(lastNightReport, voice: voice);
     }
 
@@ -75,16 +76,14 @@ class GeminiNarrationService {
               ],
             },
           ],
-          'generationConfig': {
-            'temperature': 0.9,
-            'maxOutputTokens': 450,
-          },
+          'generationConfig': {'temperature': 0.9, 'maxOutputTokens': 450},
         }),
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         debugPrint(
-            '[GeminiNarrationService] API error ${response.statusCode}: ${response.body}');
+          '[GeminiNarrationService] API error ${response.statusCode}: ${response.body}',
+        );
         return _buildLocalFallbackNarration(lastNightReport, voice: voice);
       }
 
@@ -107,7 +106,8 @@ class GeminiNarrationService {
       return text.trim();
     } catch (e) {
       debugPrint(
-          '[GeminiNarrationService] Request failed, using local fallback: $e');
+        '[GeminiNarrationService] Request failed, using local fallback: $e',
+      );
       return _buildLocalFallbackNarration(lastNightReport, voice: voice);
     }
   }
@@ -126,7 +126,8 @@ class GeminiNarrationService {
       'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$key',
     );
 
-    final prompt = '''
+    final prompt =
+        '''
 You are generating a short "Introductory Teaser" to demonstrate your hosting personality for Club Blackout.
 Voice Style: $voice
 Personality Directive: $variationPrompt
@@ -152,10 +153,7 @@ Show off your unique style now:
               ],
             },
           ],
-          'generationConfig': {
-            'temperature': 0.95,
-            'maxOutputTokens': 150,
-          },
+          'generationConfig': {'temperature': 0.95, 'maxOutputTokens': 150},
         }),
       );
 
@@ -164,9 +162,11 @@ Show off your unique style now:
       }
 
       final payload = jsonDecode(response.body) as Map<String, dynamic>;
-      final text = (payload['candidates'] as List)
-          .first['content']['parts']
-          .first['text'] as String;
+      final text =
+          (payload['candidates'] as List)
+                  .first['content']['parts']
+                  .first['text']
+              as String;
       return text.trim();
     } catch (e) {
       return 'Connection lost in the static. Try again later.';
@@ -187,7 +187,8 @@ Show off your unique style now:
     final key = _apiKey;
     if (key.isEmpty) {
       debugPrint(
-          '[GeminiNarrationService] No API key found. Using local step fallback narration.');
+        '[GeminiNarrationService] No API key found. Using local step fallback narration.',
+      );
       return _buildLocalStepFallbackNarration(
         baseReadAloudText,
         voice: voice,
@@ -218,16 +219,14 @@ Show off your unique style now:
               ],
             },
           ],
-          'generationConfig': {
-            'temperature': 0.92,
-            'maxOutputTokens': 220,
-          },
+          'generationConfig': {'temperature': 0.92, 'maxOutputTokens': 220},
         }),
       );
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
         debugPrint(
-            '[GeminiNarrationService] API error ${response.statusCode}: ${response.body}');
+          '[GeminiNarrationService] API error ${response.statusCode}: ${response.body}',
+        );
         return _buildLocalStepFallbackNarration(
           baseReadAloudText,
           voice: voice,
@@ -258,7 +257,8 @@ Show off your unique style now:
       return text.trim();
     } catch (e) {
       debugPrint(
-          '[GeminiNarrationService] Step narration request failed, using local fallback: $e');
+        '[GeminiNarrationService] Step narration request failed, using local fallback: $e',
+      );
       return _buildLocalStepFallbackNarration(
         baseReadAloudText,
         voice: voice,

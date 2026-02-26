@@ -30,8 +30,9 @@ void main() {
     PersistenceService.initWithBoxes(_FakeBox(), _FakeBox(), _FakeBox());
   });
 
-  testWidgets('HostNavigationShell reacts to destination provider changes',
-      (WidgetTester tester) async {
+  testWidgets('HostNavigationShell reacts to destination provider changes', (
+    WidgetTester tester,
+  ) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
@@ -55,7 +56,10 @@ void main() {
         .read(hostNavigationProvider.notifier)
         .setDestination(HostDestination.lobby);
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.textContaining('BROADCASTING ON CODE'), findsAtLeastNWidgets(1));
+    expect(
+      find.textContaining('BROADCASTING ON CODE'),
+      findsAtLeastNWidgets(1),
+    );
     expect(find.text('JOIN BEACON'), findsOneWidget);
     expect(find.textContaining('CLOUD LINK:'), findsOneWidget);
     expect(find.byType(QrImageView), findsOneWidget);

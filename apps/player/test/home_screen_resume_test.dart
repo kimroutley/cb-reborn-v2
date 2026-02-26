@@ -116,56 +116,60 @@ void main() {
   });
 
   testWidgets(
-      'pending legacy local autoconnect URL is coerced to cloud reconnect flow',
-      (tester) async {
-    final playerBridge = _TrackingPlayerBridge();
-    final cloudBridge = _TrackingCloudBridge();
-    final pendingUrl = Uri(
-      path: '/join',
-      queryParameters: <String, String>{
-        'code': 'NEON-ABCDEF',
-        'mode': 'local',
-        'host': 'ws://192.168.1.44',
-        'autoconnect': '1',
-      },
-    ).toString();
-    final container = ProviderContainer(
-      overrides: [
-        playerBridgeProvider.overrideWith(() => playerBridge),
-        cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
-        pendingJoinUrlProvider
-            .overrideWith(() => _SeededPendingJoinUrlNotifier(pendingUrl)),
-        authProvider.overrideWith(
-          () => _StubAuthNotifier(const AuthState(AuthStatus.unauthenticated)),
+    'pending legacy local autoconnect URL is coerced to cloud reconnect flow',
+    (tester) async {
+      final playerBridge = _TrackingPlayerBridge();
+      final cloudBridge = _TrackingCloudBridge();
+      final pendingUrl = Uri(
+        path: '/join',
+        queryParameters: <String, String>{
+          'code': 'NEON-ABCDEF',
+          'mode': 'local',
+          'host': 'ws://192.168.1.44',
+          'autoconnect': '1',
+        },
+      ).toString();
+      final container = ProviderContainer(
+        overrides: [
+          playerBridgeProvider.overrideWith(() => playerBridge),
+          cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
+          pendingJoinUrlProvider.overrideWith(
+            () => _SeededPendingJoinUrlNotifier(pendingUrl),
+          ),
+          authProvider.overrideWith(
+            () =>
+                _StubAuthNotifier(const AuthState(AuthStatus.unauthenticated)),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
+            home: const HomeScreen(),
+          ),
         ),
-      ],
-    );
-    addTearDown(container.dispose);
+      );
 
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: MaterialApp(
-          theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
-          home: const HomeScreen(),
-        ),
-      ),
-    );
+      await _pumpFrames(tester);
 
-    await _pumpFrames(tester);
+      expect(playerBridge.connectCalls, 0);
+      expect(playerBridge.joinGameCalls, 0);
+      expect(playerBridge.lastConnectUrl, isNull);
+      expect(playerBridge.lastJoinCode, isNull);
+      expect(playerBridge.disconnectCalls, 1);
+      expect(cloudBridge.joinGameCalls, 1);
+      expect(cloudBridge.lastJoinCode, 'NEON-ABCDEF');
+      expect(container.read(pendingJoinUrlProvider), isNull);
+    },
+  );
 
-    expect(playerBridge.connectCalls, 0);
-    expect(playerBridge.joinGameCalls, 0);
-    expect(playerBridge.lastConnectUrl, isNull);
-    expect(playerBridge.lastJoinCode, isNull);
-    expect(playerBridge.disconnectCalls, 1);
-    expect(cloudBridge.joinGameCalls, 1);
-    expect(cloudBridge.lastJoinCode, 'NEON-ABCDEF');
-    expect(container.read(pendingJoinUrlProvider), isNull);
-  });
-
-  testWidgets('pending cloud autoconnect URL triggers cloud reconnect flow',
-      (tester) async {
+  testWidgets('pending cloud autoconnect URL triggers cloud reconnect flow', (
+    tester,
+  ) async {
     final playerBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
     final pendingUrl = Uri(
@@ -180,8 +184,9 @@ void main() {
       overrides: [
         playerBridgeProvider.overrideWith(() => playerBridge),
         cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
-        pendingJoinUrlProvider
-            .overrideWith(() => _SeededPendingJoinUrlNotifier(pendingUrl)),
+        pendingJoinUrlProvider.overrideWith(
+          () => _SeededPendingJoinUrlNotifier(pendingUrl),
+        ),
         authProvider.overrideWith(
           () => _StubAuthNotifier(const AuthState(AuthStatus.unauthenticated)),
         ),
@@ -207,8 +212,9 @@ void main() {
     expect(container.read(pendingJoinUrlProvider), isNull);
   });
 
-  testWidgets('pending cloud autoconnect retries after transient failure',
-      (tester) async {
+  testWidgets('pending cloud autoconnect retries after transient failure', (
+    tester,
+  ) async {
     final playerBridge = _TrackingPlayerBridge();
     final cloudBridge = _FlakyCloudBridge(1);
     final pendingUrl = Uri(
@@ -223,8 +229,9 @@ void main() {
       overrides: [
         playerBridgeProvider.overrideWith(() => playerBridge),
         cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
-        pendingJoinUrlProvider
-            .overrideWith(() => _SeededPendingJoinUrlNotifier(pendingUrl)),
+        pendingJoinUrlProvider.overrideWith(
+          () => _SeededPendingJoinUrlNotifier(pendingUrl),
+        ),
         authProvider.overrideWith(
           () => _StubAuthNotifier(const AuthState(AuthStatus.unauthenticated)),
         ),

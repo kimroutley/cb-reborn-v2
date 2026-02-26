@@ -9,8 +9,9 @@ class DealerAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final dealers =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final dealers = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final dealer in dealers) {
       if (context.redirectedActions.containsKey(dealer.id) ||

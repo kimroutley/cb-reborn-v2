@@ -32,9 +32,7 @@ class VoteSheet extends StatelessWidget {
             children: [
               Text(
                 'CAST VOTE',
-                style: textTheme.labelLarge!.copyWith(
-                  color: accent,
-                ),
+                style: textTheme.labelLarge!.copyWith(color: accent),
               ),
               const Spacer(),
               CBGhostButton(
@@ -50,12 +48,12 @@ class VoteSheet extends StatelessWidget {
         if (voteTally.isNotEmpty)
           Container(
             margin: const EdgeInsets.symmetric(
-                horizontal: CBSpace.x4, vertical: CBSpace.x2),
+              horizontal: CBSpace.x4,
+              vertical: CBSpace.x2,
+            ),
             padding: const EdgeInsets.all(CBSpace.x3),
             decoration: BoxDecoration(
-              border: Border.all(
-                color: accent.withValues(alpha: 0.3),
-              ),
+              border: Border.all(color: accent.withValues(alpha: 0.3)),
               color: accent.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(CBRadius.sm),
             ),
@@ -80,9 +78,7 @@ class VoteSheet extends StatelessWidget {
                         ),
                         Text(
                           '${entry.value}',
-                          style: textTheme.labelMedium!.copyWith(
-                            color: accent,
-                          ),
+                          style: textTheme.labelMedium!.copyWith(color: accent),
                         ),
                       ],
                     );

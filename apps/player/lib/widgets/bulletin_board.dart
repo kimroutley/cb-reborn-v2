@@ -68,12 +68,15 @@ class _CBBulletinBoardState extends State<CBBulletinBoard> {
       itemBuilder: (context, index) {
         final entry = widget.entries[index];
         final role = entry.roleId != null
-            ? roleCatalog.firstWhere((r) => r.id == entry.roleId,
-                orElse: () => roleCatalog.first)
+            ? roleCatalog.firstWhere(
+                (r) => r.id == entry.roleId,
+                orElse: () => roleCatalog.first,
+              )
             : null;
 
-        final color =
-            role != null ? CBColors.fromHex(role.colorHex) : scheme.primary;
+        final color = role != null
+            ? CBColors.fromHex(role.colorHex)
+            : scheme.primary;
 
         return CBMessageBubble(
           sender: role?.name ?? entry.title,

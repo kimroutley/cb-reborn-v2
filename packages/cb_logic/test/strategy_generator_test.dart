@@ -18,8 +18,13 @@ void main() {
   }
 
   // Helper to create a Player
-  Player createPlayer(String id, Role role,
-      {bool alive = true, int lives = 1, int? silencedDay}) {
+  Player createPlayer(
+    String id,
+    Role role, {
+    bool alive = true,
+    int lives = 1,
+    int? silencedDay,
+  }) {
     return Player(
       id: id,
       name: id,
@@ -63,9 +68,9 @@ void main() {
       final tips = StrategyGenerator.generateTips(role: unknown);
 
       expect(
-          tips,
-          contains(
-              "Survive the night and use your vote wisely during the day."));
+        tips,
+        contains("Survive the night and use your vote wisely during the day."),
+      );
     });
 
     group('Club Staff Alerts', () {
@@ -82,7 +87,9 @@ void main() {
         final tips = StrategyGenerator.generateTips(role: dealer, state: state);
 
         expect(
-            tips.any((t) => t.contains("Bouncer is currently ALIVE")), isTrue);
+          tips.any((t) => t.contains("Bouncer is currently ALIVE")),
+          isTrue,
+        );
       });
 
       test('warns when Medic is DEAD', () {
@@ -115,7 +122,9 @@ void main() {
         final tips = StrategyGenerator.generateTips(role: dealer, state: state);
 
         expect(
-            tips.any((t) => t.contains("Bouncer is currently ALIVE")), isTrue);
+          tips.any((t) => t.contains("Bouncer is currently ALIVE")),
+          isTrue,
+        );
         expect(tips.any((t) => t.contains("Medic is DEAD")), isTrue);
       });
 
@@ -134,7 +143,9 @@ void main() {
         final tips = StrategyGenerator.generateTips(role: dealer, state: state);
 
         expect(
-            tips.any((t) => t.contains("Bouncer is currently ALIVE")), isFalse);
+          tips.any((t) => t.contains("Bouncer is currently ALIVE")),
+          isFalse,
+        );
         expect(tips.any((t) => t.contains("Medic is DEAD")), isFalse);
       });
     });
@@ -152,11 +163,15 @@ void main() {
         ];
 
         final state = createGameState(players: players);
-        final tips =
-            StrategyGenerator.generateTips(role: medicRole, state: state);
+        final tips = StrategyGenerator.generateTips(
+          role: medicRole,
+          state: state,
+        );
 
         expect(
-            tips.any((t) => t.contains("Multiple Dealers are active")), isTrue);
+          tips.any((t) => t.contains("Multiple Dealers are active")),
+          isTrue,
+        );
       });
 
       test('does NOT warn when 2 or fewer Dealers are active', () {
@@ -170,11 +185,15 @@ void main() {
         ];
 
         final state = createGameState(players: players);
-        final tips =
-            StrategyGenerator.generateTips(role: medicRole, state: state);
+        final tips = StrategyGenerator.generateTips(
+          role: medicRole,
+          state: state,
+        );
 
-        expect(tips.any((t) => t.contains("Multiple Dealers are active")),
-            isFalse);
+        expect(
+          tips.any((t) => t.contains("Multiple Dealers are active")),
+          isFalse,
+        );
       });
     });
 
@@ -218,7 +237,9 @@ void main() {
         final tips = StrategyGenerator.generateTips(role: role, player: player);
 
         expect(
-            tips.any((t) => t.contains("You have 2 lives remaining")), isTrue);
+          tips.any((t) => t.contains("You have 2 lives remaining")),
+          isTrue,
+        );
       });
 
       test('does NOT show lives status when player has 1 life', () {
@@ -238,10 +259,15 @@ void main() {
         final state = createGameState(players: [player], dayCount: 2);
 
         final tips = StrategyGenerator.generateTips(
-            role: role, state: state, player: player);
+          role: role,
+          state: state,
+          player: player,
+        );
 
         expect(
-            tips.any((t) => t.contains("You are currently SILENCED")), isTrue);
+          tips.any((t) => t.contains("You are currently SILENCED")),
+          isTrue,
+        );
       });
 
       test('does NOT show silenced status when silencedDay mismatches', () {
@@ -252,10 +278,15 @@ void main() {
         final state = createGameState(players: [player], dayCount: 2);
 
         final tips = StrategyGenerator.generateTips(
-            role: role, state: state, player: player);
+          role: role,
+          state: state,
+          player: player,
+        );
 
         expect(
-            tips.any((t) => t.contains("You are currently SILENCED")), isFalse);
+          tips.any((t) => t.contains("You are currently SILENCED")),
+          isFalse,
+        );
       });
     });
 
@@ -265,7 +296,10 @@ void main() {
 
         // Only role provided
         final tips = StrategyGenerator.generateTips(
-            role: role, state: null, player: null);
+          role: role,
+          state: null,
+          player: null,
+        );
 
         // Should only contain base tip
         expect(tips.length, 1);
@@ -293,8 +327,9 @@ void main() {
         final tips = StrategyGenerator.generateTips(role: role, state: state);
 
         expect(
-            tips.any((t) => t.contains('public votes are currently stacked')),
-            isTrue);
+          tips.any((t) => t.contains('public votes are currently stacked')),
+          isTrue,
+        );
         expect(tips.any((t) => t.contains('vote is razor-thin')), isTrue);
       });
 
@@ -316,7 +351,9 @@ void main() {
         final tips = StrategyGenerator.generateTips(role: role, state: state);
 
         expect(
-            tips.any((t) => t.contains('Vote turnout is low (2/5)')), isTrue);
+          tips.any((t) => t.contains('Vote turnout is low (2/5)')),
+          isTrue,
+        );
       });
 
       test('adds heavy bar-tab pressure pattern from public player state', () {
@@ -346,8 +383,10 @@ void main() {
         final state = createGameState(players: players, dayCount: 3);
         final tips = StrategyGenerator.generateTips(role: role, state: state);
 
-        expect(tips.any((t) => t.contains('Multiple casualties hit Day 3')),
-            isTrue);
+        expect(
+          tips.any((t) => t.contains('Multiple casualties hit Day 3')),
+          isTrue,
+        );
       });
     });
   });

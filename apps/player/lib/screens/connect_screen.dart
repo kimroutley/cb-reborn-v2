@@ -213,8 +213,8 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     final toneIcon = _isConnecting
         ? Icons.cloud_sync_rounded
         : (error == null
-            ? Icons.cloud_done_rounded
-            : Icons.error_outline_rounded);
+              ? Icons.cloud_done_rounded
+              : Icons.error_outline_rounded);
     final toneTitle = _isConnecting
         ? 'UPLINK IN PROGRESS'
         : (error == null ? 'UPLINK READY' : 'UPLINK ISSUE DETECTED');
@@ -242,8 +242,10 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
             const Spacer(),
             IconButton(
               onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.close,
-                  color: scheme.onSurface.withValues(alpha: 0.6)),
+              icon: Icon(
+                Icons.close,
+                color: scheme.onSurface.withValues(alpha: 0.6),
+              ),
             ),
           ],
         ),
@@ -288,10 +290,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         ),
         const SizedBox(height: CBSpace.x4),
         // Local-only: Host IP
-        CBBadge(
-          text: 'JOIN URL (OPTIONAL)',
-          color: accent,
-        ),
+        CBBadge(text: 'JOIN URL (OPTIONAL)', color: accent),
         const SizedBox(height: CBSpace.x2),
         CBTextField(
           controller: joinUrlController,
@@ -320,10 +319,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         ),
         const SizedBox(height: CBSpace.x4),
 
-        CBBadge(
-          text: 'JOIN CODE',
-          color: accent,
-        ),
+        CBBadge(text: 'JOIN CODE', color: accent),
         const SizedBox(height: CBSpace.x2),
         CBTextField(
           controller: joinCodeController,
@@ -371,9 +367,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const ClaimScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const ClaimScreen()),
     ).then((_) {
       if (mounted) {
         _navigatingToClaim = false;
@@ -385,7 +379,9 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 class _JoinCodeFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     var text = newValue.text.toUpperCase().replaceAll('-', '');
     if (text.length > 10) text = text.substring(0, 10);
 

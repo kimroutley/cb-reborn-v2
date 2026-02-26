@@ -61,11 +61,8 @@ class RosterTile extends ConsumerWidget {
                     width: 20,
                     height: 20,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.circle,
-                      size: 12,
-                      color: allianceColor,
-                    ),
+                    errorBuilder: (_, __, ___) =>
+                        Icon(Icons.circle, size: 12, color: allianceColor),
                   ),
           ),
           const SizedBox(width: 10),
@@ -175,10 +172,9 @@ class RosterTile extends ConsumerWidget {
                       Text(
                         'Are you sure you want to eliminate ${player.name}?',
                         style: textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.75),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.75),
                           height: 1.3,
                         ),
                       ),
@@ -203,13 +199,16 @@ class RosterTile extends ConsumerWidget {
                             },
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 );
               },
-              child: Icon(Icons.dangerous,
-                  size: 18, color: theme.colorScheme.error),
+              child: Icon(
+                Icons.dangerous,
+                size: 18,
+                color: theme.colorScheme.error,
+              ),
             ),
           ],
         ],

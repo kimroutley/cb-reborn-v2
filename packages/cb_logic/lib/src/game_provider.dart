@@ -255,8 +255,9 @@ class Game extends _$Game {
     }
     // 2. Fallback: Group action (no actor ID in step, check role)
     else if (step.roleId != null && step.roleId != 'unassigned') {
-      final botsWithRole =
-          state.players.where((p) => p.role.id == step.roleId).toList();
+      final botsWithRole = state.players
+          .where((p) => p.role.id == step.roleId)
+          .toList();
       if (botsWithRole.isNotEmpty && !state.actionLog.containsKey(step.id)) {
         // If any bot has this role, we assume the bot(s) can act for the group
         return _performRandomStepAction(step);
@@ -1056,8 +1057,9 @@ class Game extends _$Game {
         if (voter.role.id == RoleIds.clinger &&
             voter.clingerPartnerId != null &&
             voter.clingerPartnerId!.isNotEmpty) {
-          final partnerMatches =
-              state.players.where((p) => p.id == voter.clingerPartnerId);
+          final partnerMatches = state.players.where(
+            (p) => p.id == voter.clingerPartnerId,
+          );
           if (partnerMatches.isNotEmpty) {
             final partner = partnerMatches.first;
             if (partner.isAlive) {
@@ -1191,8 +1193,10 @@ class Game extends _$Game {
       if (targetAId == targetBId) return;
       if (targetAId == dramaQueenId || targetBId == dramaQueenId) return;
 
-      final alivePlayerIds =
-          state.players.where((p) => p.isAlive).map((p) => p.id).toSet();
+      final alivePlayerIds = state.players
+          .where((p) => p.isAlive)
+          .map((p) => p.id)
+          .toSet();
       if (!alivePlayerIds.contains(targetAId) ||
           !alivePlayerIds.contains(targetBId)) {
         return;
@@ -1231,11 +1235,10 @@ class Game extends _$Game {
             final intelLine =
                 'You discreetly witnessed Dealer target ${target.name}.';
             final shouldAppend = existing.isEmpty || existing.last != intelLine;
-            updatedPrivates[wallflowerId] =
-                shouldAppend ? [...existing, intelLine] : existing;
-            state = state.copyWith(
-              privateMessages: updatedPrivates,
-            );
+            updatedPrivates[wallflowerId] = shouldAppend
+                ? [...existing, intelLine]
+                : existing;
+            state = state.copyWith(privateMessages: updatedPrivates);
           }
         }
       } else if (targetId == 'GAWKED') {
@@ -1310,8 +1313,11 @@ class Game extends _$Game {
     final target = _findPlayerById(targetId);
     if (actor == null || target == null) return;
 
-    final resultText =
-        GameResolutionLogic.getImmediateActionText(actor, target, state);
+    final resultText = GameResolutionLogic.getImmediateActionText(
+      actor,
+      target,
+      state,
+    );
 
     if (resultText.isNotEmpty) {
       emitResultToFeed(resultText, roleId: actor.role.id);
@@ -1704,8 +1710,9 @@ class Game extends _$Game {
     final events = <GameEvent>[];
 
     // 1. Clinger Trigger: If partner dies, Clinger dies.
-    for (final p in updatedPlayers
-        .where((p) => p.isAlive && p.role.id == RoleIds.clinger)) {
+    for (final p in updatedPlayers.where(
+      (p) => p.isAlive && p.role.id == RoleIds.clinger,
+    )) {
       if (p.clingerPartnerId == deadPlayerId) {
         updatedPlayers = updatedPlayers
             .map(
@@ -1730,8 +1737,9 @@ class Game extends _$Game {
     }
 
     // 2. Creep Trigger: If target dies, Creep inherits role.
-    for (final p in updatedPlayers
-        .where((p) => p.isAlive && p.role.id == RoleIds.creep)) {
+    for (final p in updatedPlayers.where(
+      (p) => p.isAlive && p.role.id == RoleIds.creep,
+    )) {
       if (p.creepTargetId == deadPlayerId) {
         updatedPlayers = updatedPlayers
             .map(
@@ -1842,15 +1850,18 @@ class Game extends _$Game {
 
     if (state.gameStyle == GameStyle.manual) {
       final allAssigned = state.players.every(
-          (p) => p.role.id != 'unassigned' && p.alliance != Team.unknown);
+        (p) => p.role.id != 'unassigned' && p.alliance != Team.unknown,
+      );
       if (!allAssigned) {
         return false;
       }
 
       state = state.copyWith(
         phase: GamePhase.setup,
-        scriptQueue: ScriptBuilder.buildSetupScript(state.players,
-            dayCount: state.dayCount),
+        scriptQueue: ScriptBuilder.buildSetupScript(
+          state.players,
+          dayCount: state.dayCount,
+        ),
         scriptIndex: 0,
         actionLog: const {},
         dayCount: 1,
@@ -1914,7 +1925,8 @@ class Game extends _$Game {
           .toSet();
       final confirmedIds = session.roleConfirmedPlayerIds.toSet();
       final allConfirmed = requiredIds.every(confirmedIds.contains);
-      final usesRoleConfirmationFlow = session.claimedPlayerIds.isNotEmpty ||
+      final usesRoleConfirmationFlow =
+          session.claimedPlayerIds.isNotEmpty ||
           session.roleConfirmedPlayerIds.isNotEmpty;
       if (usesRoleConfirmationFlow &&
           !allConfirmed &&
@@ -1996,8 +2008,9 @@ class Game extends _$Game {
           }
         }
 
-        final dayVotesSnapshot =
-            Map<String, String>.from(state.dayVotesByVoter);
+        final dayVotesSnapshot = Map<String, String>.from(
+          state.dayVotesByVoter,
+        );
         final res = GameResolutionLogic.resolveDayVote(
           state.players,
           state.dayVoteTally,
@@ -2062,10 +2075,12 @@ class Game extends _$Game {
 
         final predatorRetaliationChoices =
             _predatorRetaliationChoicesFromActionLog(state.dayCount);
-        final teaSpillerRevealChoices =
-            _teaSpillerRevealChoicesFromActionLog(state.dayCount);
-        final dramaQueenSwapChoices =
-            _dramaQueenSwapChoicesFromActionLog(state.dayCount);
+        final teaSpillerRevealChoices = _teaSpillerRevealChoicesFromActionLog(
+          state.dayCount,
+        );
+        final dramaQueenSwapChoices = _dramaQueenSwapChoicesFromActionLog(
+          state.dayCount,
+        );
 
         final dayResolution = DayResolutionStrategy().execute(
           DayResolutionContext(
@@ -2083,21 +2098,14 @@ class Game extends _$Game {
         state = state.copyWith(
           players:
               state.players, // Current state includes resolution + deadpool
-          lastDayReport: [
-            ...res.report,
-            ...dayResolution.lines,
-          ],
+          lastDayReport: [...res.report, ...dayResolution.lines],
           gameHistory: [
             ...state.gameHistory,
             '── DAY ${state.dayCount} RESOLVED ──',
             ...res.report,
             ...dayResolution.lines,
           ],
-          eventLog: [
-            ...state.eventLog,
-            ...res.events,
-            ...dayResolution.events,
-          ],
+          eventLog: [...state.eventLog, ...res.events, ...dayResolution.events],
           dayCount: state.dayCount + 1,
           phase: GamePhase.night,
           scriptQueue: ScriptBuilder.buildNightScript(
@@ -2108,8 +2116,9 @@ class Game extends _$Game {
           actionLog: const {},
           dayVoteTally: const {},
           dayVotesByVoter: const {},
-          deadPoolBets:
-              dayResolution.clearDeadPoolBets ? const {} : state.deadPoolBets,
+          deadPoolBets: dayResolution.clearDeadPoolBets
+              ? const {}
+              : state.deadPoolBets,
         );
 
         for (final victimId in dayResolution.deathTriggerVictimIds) {

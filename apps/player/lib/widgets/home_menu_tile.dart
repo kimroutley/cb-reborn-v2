@@ -46,9 +46,7 @@ class HomeMenuTile extends StatelessWidget {
                 Text(
                   title.toUpperCase(),
                   textAlign: TextAlign.center,
-                  style: textTheme.labelLarge!.copyWith(
-                    color: color,
-                  ),
+                  style: textTheme.labelLarge!.copyWith(color: color),
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: CBSpace.x2),

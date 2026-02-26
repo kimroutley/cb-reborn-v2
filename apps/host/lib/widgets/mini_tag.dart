@@ -8,8 +8,12 @@ class MiniTag extends StatelessWidget {
   final Color color;
   final String tooltip;
 
-  const MiniTag(
-      {super.key, required this.text, required this.color, this.tooltip = ''});
+  const MiniTag({
+    super.key,
+    required this.text,
+    required this.color,
+    this.tooltip = '',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,15 +36,17 @@ class MiniTag extends StatelessWidget {
                   color.withValues(alpha: 0.1),
                 ],
               ),
-              border:
-                  Border.all(color: color.withValues(alpha: 0.7), width: 0.6),
+              border: Border.all(
+                color: color.withValues(alpha: 0.7),
+                width: 0.6,
+              ),
               borderRadius: BorderRadius.circular(CBRadius.xs),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.1),
                   blurRadius: 3,
                   spreadRadius: 2,
-                )
+                ),
               ],
             ),
             child: Text(

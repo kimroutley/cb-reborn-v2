@@ -17,7 +17,8 @@ Future<String?> showStartSessionDialog(BuildContext context) async {
             letterSpacing: 2.0,
             fontWeight: FontWeight.bold,
             shadows: CBColors.textGlow(
-                scheme.tertiary), // Migrated from CBColors.matrixGreen
+              scheme.tertiary,
+            ), // Migrated from CBColors.matrixGreen
           ),
         ),
         const SizedBox(height: 8),
@@ -36,14 +37,16 @@ Future<String?> showStartSessionDialog(BuildContext context) async {
           decoration: InputDecoration(
             labelText: 'SESSION NAME',
             labelStyle: CBTypography.bodyMedium.copyWith(
-                color: scheme.tertiary.withValues(
-                    alpha: 0.7)), // Migrated from CBColors.matrixGreen
+              color: scheme.tertiary.withValues(alpha: 0.7),
+            ), // Migrated from CBColors.matrixGreen
             hintText: 'e.g. SATURDAY NIGHT FEVER',
-            hintStyle: CBTypography.bodyMedium
-                .copyWith(color: scheme.onSurface.withValues(alpha: 0.2)),
+            hintStyle: CBTypography.bodyMedium.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.2),
+            ),
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(
-                  color: scheme.tertiary), // Migrated from CBColors.matrixGreen
+                color: scheme.tertiary,
+              ), // Migrated from CBColors.matrixGreen
             ),
           ),
         ),
@@ -65,7 +68,7 @@ Future<String?> showStartSessionDialog(BuildContext context) async {
               },
             ),
           ],
-        )
+        ),
       ],
     ),
   );
@@ -116,7 +119,7 @@ Future<bool?> showConfirmationDialog(
               onPressed: () => Navigator.pop(context, true),
             ),
           ],
-        )
+        ),
       ],
     ),
   );

@@ -27,16 +27,15 @@ void showGameHistory(BuildContext context, GameState gameState) {
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: CBSpace.x4, vertical: CBSpace.x2),
+                  horizontal: CBSpace.x4,
+                  vertical: CBSpace.x2,
+                ),
                 child: CBSectionHeader(title: 'Game History'),
               ),
               if (history.isEmpty)
                 Expanded(
                   child: Center(
-                    child: Text(
-                      'No events yet.',
-                      style: textTheme.bodySmall!,
-                    ),
+                    child: Text('No events yet.', style: textTheme.bodySmall!),
                   ),
                 )
               else
@@ -53,11 +52,13 @@ void showGameHistory(BuildContext context, GameState gameState) {
                         child: Text(
                           line,
                           style: isHeader
-                              ? CBTypography.micro
-                                  .copyWith(color: scheme.primary)
+                              ? CBTypography.micro.copyWith(
+                                  color: scheme.primary,
+                                )
                               : CBTypography.monoSmall.copyWith(
-                                  color: CBColors.matrixGreen
-                                      .withValues(alpha: 0.85),
+                                  color: CBColors.matrixGreen.withValues(
+                                    alpha: 0.85,
+                                  ),
                                 ),
                         ),
                       );

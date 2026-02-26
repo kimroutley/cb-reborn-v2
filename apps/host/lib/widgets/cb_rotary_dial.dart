@@ -68,43 +68,45 @@ class _CBRotaryDialState extends State<CBRotaryDial> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final size = Size.square(constraints.maxWidth);
-      final theme = Theme.of(context);
-      final scheme = theme.colorScheme;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = Size.square(constraints.maxWidth);
+        final theme = Theme.of(context);
+        final scheme = theme.colorScheme;
 
-      final labelStyle = CBTypography.micro.copyWith(
-        color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
-      );
-      final valueStyle = CBTypography.heroNumber.copyWith(
-        color: scheme.onSurface,
-        fontWeight: FontWeight.w900,
-        shadows: CBColors.textGlow(widget.color, intensity: 0.5),
-      );
-      final maxStyle = theme.textTheme.labelLarge!.copyWith(
-        color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
-        fontWeight: FontWeight.w700,
-      );
+        final labelStyle = CBTypography.micro.copyWith(
+          color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
+        );
+        final valueStyle = CBTypography.heroNumber.copyWith(
+          color: scheme.onSurface,
+          fontWeight: FontWeight.w900,
+          shadows: CBColors.textGlow(widget.color, intensity: 0.5),
+        );
+        final maxStyle = theme.textTheme.labelLarge!.copyWith(
+          color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
+          fontWeight: FontWeight.w700,
+        );
 
-      return GestureDetector(
-        onPanUpdate: (details) => _handlePanUpdate(details, size),
-        child: CustomPaint(
-          size: size,
-          painter: _DialPainter(
-            angle: _currentAngle,
-            label: widget.label,
-            color: widget.color,
-            value: widget.value,
-            maxValue: widget.maxValue,
-            onSurface: scheme.onSurface,
-            outline: scheme.outlineVariant.withValues(alpha: 0.55),
-            labelStyle: labelStyle,
-            valueStyle: valueStyle,
-            maxStyle: maxStyle,
+        return GestureDetector(
+          onPanUpdate: (details) => _handlePanUpdate(details, size),
+          child: CustomPaint(
+            size: size,
+            painter: _DialPainter(
+              angle: _currentAngle,
+              label: widget.label,
+              color: widget.color,
+              value: widget.value,
+              maxValue: widget.maxValue,
+              onSurface: scheme.onSurface,
+              outline: scheme.outlineVariant.withValues(alpha: 0.55),
+              labelStyle: labelStyle,
+              valueStyle: valueStyle,
+              maxStyle: maxStyle,
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }
 
@@ -177,7 +179,10 @@ class _DialPainter extends CustomPainter {
     canvas.drawCircle(thumbOffset, 12, glowPaint);
     canvas.drawCircle(thumbOffset, 10, thumbPaint);
     canvas.drawCircle(
-        thumbOffset, 8, Paint()..color = color.withValues(alpha: 0.8));
+      thumbOffset,
+      8,
+      Paint()..color = color.withValues(alpha: 0.8),
+    );
 
     // Central Label
     final textPainter = TextPainter(
@@ -186,10 +191,7 @@ class _DialPainter extends CustomPainter {
     );
 
     // Label text
-    textPainter.text = TextSpan(
-      text: label.toUpperCase(),
-      style: labelStyle,
-    );
+    textPainter.text = TextSpan(text: label.toUpperCase(), style: labelStyle);
     textPainter.layout(minWidth: 0, maxWidth: size.width);
     textPainter.paint(canvas, center - Offset(textPainter.width / 2, 20));
 
@@ -199,8 +201,10 @@ class _DialPainter extends CustomPainter {
       style: valueStyle,
     );
     textPainter.layout(minWidth: 0, maxWidth: size.width);
-    textPainter.paint(canvas,
-        center - Offset(textPainter.width / 2, textPainter.height / 2 - 10));
+    textPainter.paint(
+      canvas,
+      center - Offset(textPainter.width / 2, textPainter.height / 2 - 10),
+    );
 
     // Max value text
     textPainter.text = TextSpan(

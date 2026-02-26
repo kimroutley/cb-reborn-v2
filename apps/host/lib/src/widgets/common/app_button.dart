@@ -44,7 +44,8 @@ class AppButton extends StatelessWidget {
                 ? theme.colorScheme.onPrimary
                 : theme.colorScheme.onSurface.withValues(alpha: 0.38),
           ),
-          child: child ??
+          child:
+              child ??
               (text != null
                   ? (isExpanded ? Center(child: Text(text!)) : Text(text!))
                   : const SizedBox.shrink()),

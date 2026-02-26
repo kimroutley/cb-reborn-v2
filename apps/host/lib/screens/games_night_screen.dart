@@ -53,52 +53,54 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
     return CBPrismScaffold(
       title: 'GAMES NIGHT',
       actions: const [SimulationModeBadgeAction()],
-      drawer: const CustomDrawer(currentDestination: HostDestination.gamesNight),
+      drawer: const CustomDrawer(
+        currentDestination: HostDestination.gamesNight,
+      ),
       body: _isLoading
           ? const Center(child: CBBreathingLoader())
           : RefreshIndicator(
-                onRefresh: _loadData,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-                  children: [
-                    CBSectionHeader(
-                      title: 'ACTIVE SESSION',
-                      icon: Icons.play_circle_outline_rounded,
-                      color: scheme.tertiary,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildActiveSessionPanel(context, activeSession, scheme),
-                    const SizedBox(height: 28),
-                    CBSectionHeader(
-                      title: 'RECENT SESSIONS',
-                      icon: Icons.history_rounded,
-                      color: scheme.primary,
-                    ),
-                    const SizedBox(height: 12),
-                    if (_sessions.isEmpty)
-                      CBPanel(
-                        padding: const EdgeInsets.all(16),
-                        borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
-                        child: Text(
-                          'No sessions yet. Start a Games Night to begin tracking rounds.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.75)),
-                        ),
-                      )
-                    else
-                      ..._sessions.map((s) =>
-                          _buildSessionDismissibleTile(context, s, scheme)),
-                    const SizedBox(height: 120),
-                  ],
+              onRefresh: _loadData,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 20,
                 ),
+                children: [
+                  CBSectionHeader(
+                    title: 'ACTIVE SESSION',
+                    icon: Icons.play_circle_outline_rounded,
+                    color: scheme.tertiary,
+                  ),
+                  const SizedBox(height: 12),
+                  _buildActiveSessionPanel(context, activeSession, scheme),
+                  const SizedBox(height: 28),
+                  CBSectionHeader(
+                    title: 'RECENT SESSIONS',
+                    icon: Icons.history_rounded,
+                    color: scheme.primary,
+                  ),
+                  const SizedBox(height: 12),
+                  if (_sessions.isEmpty)
+                    CBPanel(
+                      padding: const EdgeInsets.all(16),
+                      borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
+                      child: Text(
+                        'No sessions yet. Start a Games Night to begin tracking rounds.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.75),
+                        ),
+                      ),
+                    )
+                  else
+                    ..._sessions.map(
+                      (s) => _buildSessionDismissibleTile(context, s, scheme),
+                    ),
+                  const SizedBox(height: 120),
+                ],
               ),
+            ),
     );
   }
 
@@ -215,7 +217,9 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   color: scheme.error,
                   onPressed: () async {
                     final confirmed = await _confirmEndSession(
-                        context, scheme.error); // Pass scheme.error
+                      context,
+                      scheme.error,
+                    ); // Pass scheme.error
                     if (confirmed != true) return;
                     await ref.read(gamesNightProvider.notifier).endSession();
                     await _loadData();
@@ -277,8 +281,10 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
           color: scheme.error.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(Icons.delete_forever,
-            color: scheme.onSurface), // Updated to use scheme.onSurface
+        child: Icon(
+          Icons.delete_forever,
+          color: scheme.onSurface,
+        ), // Updated to use scheme.onSurface
       ),
       confirmDismiss: (direction) async {
         return await showConfirmationDialog(
@@ -295,7 +301,9 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
         await _loadData();
         if (context.mounted) {
           showThemedSnackBar(
-              context, 'Session "${session.sessionName}" deleted.');
+            context,
+            'Session "${session.sessionName}" deleted.',
+          );
         }
       },
       child: CBPanel(
@@ -311,10 +319,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        session.sessionName,
-                        style: textTheme.headlineSmall,
-                      ),
+                      Text(session.sessionName, style: textTheme.headlineSmall),
                       const SizedBox(height: 8),
                       Text(
                         '${session.gameIds.length} games • $date',

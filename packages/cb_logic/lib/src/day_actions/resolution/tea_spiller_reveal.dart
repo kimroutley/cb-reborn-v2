@@ -7,10 +7,12 @@ List<String> resolveTeaSpillerReveals({
 }) {
   final lines = <String>[];
 
-  final exiledTeaSpillers = players.where((p) =>
-      !p.isAlive &&
-      p.deathReason == 'exile' &&
-      p.role.id == RoleIds.teaSpiller);
+  final exiledTeaSpillers = players.where(
+    (p) =>
+        !p.isAlive &&
+        p.deathReason == 'exile' &&
+        p.role.id == RoleIds.teaSpiller,
+  );
 
   for (final teaSpiller in exiledTeaSpillers) {
     final votersAgainst = votesByVoter.entries
@@ -28,8 +30,9 @@ List<String> resolveTeaSpillerReveals({
       revealedVoterId = selectedRevealId;
     }
 
-    final revealedVoterMatches =
-        players.where((p) => p.id == revealedVoterId).toList();
+    final revealedVoterMatches = players
+        .where((p) => p.id == revealedVoterId)
+        .toList();
     if (revealedVoterMatches.isEmpty) {
       continue;
     }

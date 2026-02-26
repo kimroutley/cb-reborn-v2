@@ -9,11 +9,13 @@ class AttackDogAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final attackDogs = context.players.where((p) =>
-        p.isAlive &&
-        p.role.id == RoleIds.clinger &&
-        p.clingerFreedAsAttackDog &&
-        !p.clingerAttackDogUsed);
+    final attackDogs = context.players.where(
+      (p) =>
+          p.isAlive &&
+          p.role.id == RoleIds.clinger &&
+          p.clingerFreedAsAttackDog &&
+          !p.clingerAttackDogUsed,
+    );
 
     for (final dog in attackDogs) {
       if (context.redirectedActions.containsKey(dog.id) ||

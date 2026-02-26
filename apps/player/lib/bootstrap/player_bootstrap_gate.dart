@@ -158,9 +158,9 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
       'mode': 'cloud',
       'autoconnect': '1',
     };
-    ref.read(pendingJoinUrlProvider.notifier).setValue(
-          Uri(path: '/join', queryParameters: qp).toString(),
-        );
+    ref
+        .read(pendingJoinUrlProvider.notifier)
+        .setValue(Uri(path: '/join', queryParameters: qp).toString());
   }
 
   Future<void> _warmCriticalAssets() async {
@@ -177,7 +177,8 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
     for (final provider in imageProviders) {
       index += 1;
       await _setStatus(
-          'WARMING VISUAL ASSETS... ($index/${imageProviders.length})');
+        'WARMING VISUAL ASSETS... ($index/${imageProviders.length})',
+      );
       if (!mounted) {
         return;
       }
@@ -239,10 +240,12 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
                       child: LinearProgressIndicator(
                         value: _progress,
                         minHeight: 8,
-                        backgroundColor:
-                            scheme.onSurface.withValues(alpha: 0.15),
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(scheme.primary),
+                        backgroundColor: scheme.onSurface.withValues(
+                          alpha: 0.15,
+                        ),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          scheme.primary,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),

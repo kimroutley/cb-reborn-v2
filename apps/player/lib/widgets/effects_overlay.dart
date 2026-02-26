@@ -32,7 +32,9 @@ class EffectsOverlay extends ConsumerWidget {
   }
 
   Widget _buildFlickerEffect(
-      BuildContext context, Map<String, dynamic>? payload) {
+    BuildContext context,
+    Map<String, dynamic>? payload,
+  ) {
     return IgnorePointer(
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0.0, end: 0.3), // Black overlay opacity
@@ -52,7 +54,9 @@ class EffectsOverlay extends ConsumerWidget {
   }
 
   Widget _buildGlitchEffect(
-      BuildContext context, Map<String, dynamic>? payload) {
+    BuildContext context,
+    Map<String, dynamic>? payload,
+  ) {
     // A simple color overlay for now. More complex shaders would be ideal.
     return IgnorePointer(
       child: TweenAnimationBuilder<double>(
@@ -72,7 +76,9 @@ class EffectsOverlay extends ConsumerWidget {
   }
 
   Widget _buildToastEffect(
-      BuildContext context, Map<String, dynamic>? payload) {
+    BuildContext context,
+    Map<String, dynamic>? payload,
+  ) {
     final textTheme = Theme.of(context).textTheme;
     final message = payload?['message'] as String? ?? 'Host Announcement';
     // Using a basic overlay that fades out
@@ -89,15 +95,16 @@ class EffectsOverlay extends ConsumerWidget {
                   filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 20),
+                      vertical: 12,
+                      horizontal: 20,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withValues(alpha: 0.35),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.35),
                       ),
                       boxShadow: CBColors.boxGlow(
                         Theme.of(context).colorScheme.primary,

@@ -9,13 +9,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth_service.dart';
 import 'user_repository.dart';
 
-final firebaseAuthProvider =
-    Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
-final firestoreProvider =
-    Provider<FirebaseFirestore>((ref) => FirebaseFirestore.instance);
+final firebaseAuthProvider = Provider<FirebaseAuth>(
+  (ref) => FirebaseAuth.instance,
+);
+final firestoreProvider = Provider<FirebaseFirestore>(
+  (ref) => FirebaseFirestore.instance,
+);
 final appLinksProvider = Provider<AppLinks>((ref) => AppLinks());
-final secureStorageProvider =
-    Provider<FlutterSecureStorage>((ref) => const FlutterSecureStorage());
+final secureStorageProvider = Provider<FlutterSecureStorage>(
+  (ref) => const FlutterSecureStorage(),
+);
 
 @immutable
 class AuthState {
@@ -113,7 +116,9 @@ class AuthNotifier extends Notifier<AuthState> {
     final email = emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
       state = state.copyWith(
-          status: AuthStatus.error, error: 'Enter a valid secure email.');
+        status: AuthStatus.error,
+        error: 'Enter a valid secure email.',
+      );
       return;
     }
 
@@ -128,7 +133,9 @@ class AuthNotifier extends Notifier<AuthState> {
         iOSBundleId: 'com.clubblackout.cbHost',
       );
       await _authService.sendSignInLinkToEmail(
-          email: email, actionCodeSettings: actionCodeSettings);
+        email: email,
+        actionCodeSettings: actionCodeSettings,
+      );
       await _storage.write(key: _pendingEmailKey, value: email);
       state = const AuthState(AuthStatus.linkSent);
     } on FirebaseAuthException catch (e) {
@@ -144,9 +151,9 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> signInWithGoogle() async {
     state = state.copyWith(status: AuthStatus.loading);
     try {
-      await _authService
-          .signInWithGoogle()
-          .timeout(const Duration(seconds: 45));
+      await _authService.signInWithGoogle().timeout(
+        const Duration(seconds: 45),
+      );
 
       if (_authService.currentUser == null) {
         state = const AuthState(
@@ -246,14 +253,16 @@ class AuthNotifier extends Notifier<AuthState> {
       }
       return AuthState(AuthStatus.needsProfile, user: user);
     } on TimeoutException {
-      final hasIdentity = (user.displayName?.trim().isNotEmpty ?? false) ||
+      final hasIdentity =
+          (user.displayName?.trim().isNotEmpty ?? false) ||
           (user.email?.trim().isNotEmpty ?? false);
       return AuthState(
         hasIdentity ? AuthStatus.authenticated : AuthStatus.needsProfile,
         user: user,
       );
     } catch (_) {
-      final hasIdentity = (user.displayName?.trim().isNotEmpty ?? false) ||
+      final hasIdentity =
+          (user.displayName?.trim().isNotEmpty ?? false) ||
           (user.email?.trim().isNotEmpty ?? false);
       return AuthState(
         hasIdentity ? AuthStatus.authenticated : AuthStatus.needsProfile,
@@ -273,8 +282,9 @@ class AuthNotifier extends Notifier<AuthState> {
     if (user == null) return;
     if (username.length < 3) {
       state = state.copyWith(
-          status: AuthStatus.needsProfile,
-          error: 'Username must be at least 3 characters.');
+        status: AuthStatus.needsProfile,
+        error: 'Username must be at least 3 characters.',
+      );
       return;
     }
 
@@ -296,11 +306,11 @@ class AuthNotifier extends Notifier<AuthState> {
       }
 
       if (trimmedPublicPlayerId != null && trimmedPublicPlayerId.isNotEmpty) {
-        final publicPlayerIdAvailable =
-            await _userRepository.isPublicPlayerIdAvailable(
-          trimmedPublicPlayerId,
-          excludingUid: user.uid,
-        );
+        final publicPlayerIdAvailable = await _userRepository
+            .isPublicPlayerIdAvailable(
+              trimmedPublicPlayerId,
+              excludingUid: user.uid,
+            );
         if (!publicPlayerIdAvailable) {
           state = AuthState(
             AuthStatus.needsProfile,
@@ -318,8 +328,8 @@ class AuthNotifier extends Notifier<AuthState> {
         email: user.email,
         publicPlayerId:
             (trimmedPublicPlayerId == null || trimmedPublicPlayerId.isEmpty)
-                ? null
-                : trimmedPublicPlayerId,
+            ? null
+            : trimmedPublicPlayerId,
         avatarEmoji: (trimmedAvatarEmoji == null || trimmedAvatarEmoji.isEmpty)
             ? null
             : trimmedAvatarEmoji,
@@ -351,5 +361,6 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 }
 
-final authProvider =
-    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);

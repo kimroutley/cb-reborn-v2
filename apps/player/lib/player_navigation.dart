@@ -12,5 +12,5 @@ class PlayerNavigationNotifier extends Notifier<PlayerDestination> {
 
 final playerNavigationProvider =
     NotifierProvider<PlayerNavigationNotifier, PlayerDestination>(() {
-  return PlayerNavigationNotifier();
-});
+      return PlayerNavigationNotifier();
+    });

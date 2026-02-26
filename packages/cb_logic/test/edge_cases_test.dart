@@ -6,25 +6,27 @@ import 'package:riverpod/riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Helpers to build test data quickly.
-Role _role(String id,
-        {Team alliance = Team.partyAnimals, int priority = 100}) =>
-    Role(
-      id: id,
-      name: id.toUpperCase(),
-      alliance: alliance,
-      type: 'Test',
-      description: 'Test role',
-      nightPriority: priority,
-      assetPath: '',
-      colorHex: '#FF0000',
-    );
+Role _role(
+  String id, {
+  Team alliance = Team.partyAnimals,
+  int priority = 100,
+}) => Role(
+  id: id,
+  name: id.toUpperCase(),
+  alliance: alliance,
+  type: 'Test',
+  description: 'Test role',
+  nightPriority: priority,
+  assetPath: '',
+  colorHex: '#FF0000',
+);
 
 Player _player(String name, Role role, {Team? alliance}) => Player(
-      id: name.toLowerCase(),
-      name: name,
-      role: role,
-      alliance: alliance ?? role.alliance,
-    );
+  id: name.toLowerCase(),
+  name: name,
+  role: role,
+  alliance: alliance ?? role.alliance,
+);
 
 void _addMockPlayers(Game game, int count) {
   final names = [
@@ -37,7 +39,7 @@ void _addMockPlayers(Game game, int count) {
     'Grace',
     'Hank',
     'Ivy',
-    'Jack'
+    'Jack',
   ];
   for (var i = 0; i < count && i < names.length; i++) {
     game.addPlayer(names[i]);
@@ -87,10 +89,7 @@ void main() {
       final whoreId = state.players[0].id;
 
       // Targeting self should be handled gracefully
-      game.handleInteraction(
-        stepId: 'whore_act_$whoreId',
-        targetId: whoreId,
-      );
+      game.handleInteraction(stepId: 'whore_act_$whoreId', targetId: whoreId);
 
       // Verify the state is still valid
       final updated = container.read(gameProvider);
@@ -109,10 +108,7 @@ void main() {
       final whoreId = state.players[0].id;
       final targetId = state.players[1].id;
 
-      game.handleInteraction(
-        stepId: 'whore_act_$whoreId',
-        targetId: targetId,
-      );
+      game.handleInteraction(stepId: 'whore_act_$whoreId', targetId: targetId);
 
       final updated = container.read(gameProvider);
       expect(updated.players[0].whoreDeflectionTargetId, targetId);
@@ -261,9 +257,10 @@ void main() {
 
   group('Script Builder Edge Cases', () {
     test('night script skips dead players', () {
-      final dealer =
-          _player('D', _role('dealer', alliance: Team.clubStaff, priority: 10))
-              .copyWith(isAlive: false);
+      final dealer = _player(
+        'D',
+        _role('dealer', alliance: Team.clubStaff, priority: 10),
+      ).copyWith(isAlive: false);
       final steps = ScriptBuilder.buildNightScript([dealer], 1);
       // Dead dealer should not get a step
       expect(steps.any((s) => s.id.startsWith('dealer_act_')), false);
@@ -286,8 +283,9 @@ void main() {
 
     test('day script has discussion before vote', () {
       final steps = ScriptBuilder.buildDayScript(1);
-      final timerIdx =
-          steps.indexWhere((s) => s.actionType == ScriptActionType.showTimer);
+      final timerIdx = steps.indexWhere(
+        (s) => s.actionType == ScriptActionType.showTimer,
+      );
       final voteIdx = steps.indexWhere((s) => s.id.startsWith('day_vote_'));
       expect(timerIdx, lessThan(voteIdx));
     });
@@ -321,10 +319,7 @@ void main() {
       }
 
       final postNight = container.read(gameProvider);
-      expect(
-        postNight.phase,
-        anyOf(GamePhase.day, GamePhase.endGame),
-      );
+      expect(postNight.phase, anyOf(GamePhase.day, GamePhase.endGame));
     });
 
     test('game cannot start during active game', () {
@@ -422,8 +417,9 @@ void main() {
       game.startGame();
 
       final state = container.read(gameProvider);
-      final staff =
-          state.players.where((p) => p.alliance == Team.clubStaff).toList();
+      final staff = state.players
+          .where((p) => p.alliance == Team.clubStaff)
+          .toList();
 
       // Kill all staff
       for (final s in staff) {
@@ -471,11 +467,7 @@ void main() {
       );
 
       state = state.copyWith(
-        players: [
-          creepPlayer,
-          targetPlayer,
-          ...players.skip(2),
-        ],
+        players: [creepPlayer, targetPlayer, ...players.skip(2)],
       );
       container.read(gameProvider.notifier).state = state;
 
@@ -487,8 +479,9 @@ void main() {
       game.forceKillPlayer(targetPlayer.id);
 
       state = container.read(gameProvider);
-      final inheritedCreep =
-          state.players.firstWhere((p) => p.id == creepPlayer.id);
+      final inheritedCreep = state.players.firstWhere(
+        (p) => p.id == creepPlayer.id,
+      );
 
       // Verify Creep inherited the Bouncer role
       expect(inheritedCreep.role.id, 'bouncer');

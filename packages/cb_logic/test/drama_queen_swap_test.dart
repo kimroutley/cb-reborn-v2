@@ -2,20 +2,16 @@ import 'package:cb_logic/src/day_actions/resolution/drama_queen_swap.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Role _role(
-  String id, {
-  Team alliance = Team.partyAnimals,
-}) =>
-    Role(
-      id: id,
-      name: id,
-      alliance: alliance,
-      type: 'Test',
-      description: 'Test role',
-      nightPriority: 100,
-      assetPath: '',
-      colorHex: '#000000',
-    );
+Role _role(String id, {Team alliance = Team.partyAnimals}) => Role(
+  id: id,
+  name: id,
+  alliance: alliance,
+  type: 'Test',
+  description: 'Test role',
+  nightPriority: 100,
+  assetPath: '',
+  colorHex: '#000000',
+);
 
 Player _player(
   String id,
@@ -25,17 +21,16 @@ Player _player(
   String? deathReason,
   String? targetA,
   String? targetB,
-}) =>
-    Player(
-      id: id,
-      name: name,
-      role: role,
-      alliance: role.alliance,
-      isAlive: isAlive,
-      deathReason: deathReason,
-      dramaQueenTargetAId: targetA,
-      dramaQueenTargetBId: targetB,
-    );
+}) => Player(
+  id: id,
+  name: name,
+  role: role,
+  alliance: role.alliance,
+  isAlive: isAlive,
+  deathReason: deathReason,
+  dramaQueenTargetAId: targetA,
+  dramaQueenTargetBId: targetB,
+);
 
 void main() {
   group('resolveDramaQueenSwaps', () {
@@ -46,11 +41,15 @@ void main() {
       final soberRole = _role(RoleIds.sober);
 
       final players = [
-        _player('drama', 'Drama', dramaRole,
-            isAlive: false,
-            deathReason: 'exile',
-            targetA: 'dealer',
-            targetB: 'buddy'),
+        _player(
+          'drama',
+          'Drama',
+          dramaRole,
+          isAlive: false,
+          deathReason: 'exile',
+          targetA: 'dealer',
+          targetB: 'buddy',
+        ),
         _player('dealer', 'Dealer', dealerRole),
         _player('buddy', 'Buddy', buddyRole),
         _player('sober', 'Sober', soberRole),
@@ -58,10 +57,7 @@ void main() {
 
       final result = resolveDramaQueenSwaps(
         players: players,
-        votesByVoter: {
-          'dealer': 'drama',
-          'buddy': 'drama',
-        },
+        votesByVoter: {'dealer': 'drama', 'buddy': 'drama'},
       );
 
       final dealer = result.players.firstWhere((p) => p.id == 'dealer');
@@ -69,8 +65,10 @@ void main() {
 
       expect(dealer.role.id, RoleIds.partyAnimal);
       expect(buddy.role.id, RoleIds.dealer);
-      expect(result.lines,
-          contains('Drama Queen chaos: Dealer and Buddy swapped roles.'));
+      expect(
+        result.lines,
+        contains('Drama Queen chaos: Dealer and Buddy swapped roles.'),
+      );
       expect(
         result.lines,
         contains(
@@ -95,18 +93,20 @@ void main() {
       final buddyRole = _role(RoleIds.partyAnimal);
 
       final players = [
-        _player('drama', 'Drama', dramaRole,
-            isAlive: false, deathReason: 'exile'),
+        _player(
+          'drama',
+          'Drama',
+          dramaRole,
+          isAlive: false,
+          deathReason: 'exile',
+        ),
         _player('dealer', 'Dealer', dealerRole),
         _player('buddy', 'Buddy', buddyRole),
       ];
 
       final result = resolveDramaQueenSwaps(
         players: players,
-        votesByVoter: {
-          'dealer': 'drama',
-          'buddy': 'drama',
-        },
+        votesByVoter: {'dealer': 'drama', 'buddy': 'drama'},
       );
 
       final dealer = result.players.firstWhere((p) => p.id == 'dealer');
@@ -126,8 +126,13 @@ void main() {
       final soberRole = _role(RoleIds.sober);
 
       final players = [
-        _player('drama', 'Drama', dramaRole,
-            isAlive: false, deathReason: 'exile'),
+        _player(
+          'drama',
+          'Drama',
+          dramaRole,
+          isAlive: false,
+          deathReason: 'exile',
+        ),
         _player('dealer', 'Dealer', dealerRole),
         _player('buddy', 'Buddy', buddyRole),
         _player('sober', 'Sober', soberRole),
@@ -135,10 +140,7 @@ void main() {
 
       final result = resolveDramaQueenSwaps(
         players: players,
-        votesByVoter: {
-          'dealer': 'drama',
-          'buddy': 'drama',
-        },
+        votesByVoter: {'dealer': 'drama', 'buddy': 'drama'},
         dramaQueenSwapChoices: const {'drama': 'dealer,sober'},
       );
 
@@ -149,8 +151,10 @@ void main() {
       expect(dealer.role.id, RoleIds.sober);
       expect(sober.role.id, RoleIds.dealer);
       expect(buddy.role.id, RoleIds.partyAnimal);
-      expect(result.lines,
-          contains('Drama Queen chaos: Dealer and Sober swapped roles.'));
+      expect(
+        result.lines,
+        contains('Drama Queen chaos: Dealer and Sober swapped roles.'),
+      );
       expect(result.privateMessages['dealer'], isNotNull);
       expect(result.privateMessages['sober'], isNotNull);
     });
@@ -162,11 +166,15 @@ void main() {
       final soberRole = _role(RoleIds.sober);
 
       final players = [
-        _player('drama', 'Drama', dramaRole,
-            isAlive: false,
-            deathReason: 'exile',
-            targetA: 'dealer',
-            targetB: 'buddy'),
+        _player(
+          'drama',
+          'Drama',
+          dramaRole,
+          isAlive: false,
+          deathReason: 'exile',
+          targetA: 'dealer',
+          targetB: 'buddy',
+        ),
         _player('dealer', 'Dealer', dealerRole),
         _player('buddy', 'Buddy', buddyRole),
         _player('sober', 'Sober', soberRole),
@@ -174,10 +182,7 @@ void main() {
 
       final result = resolveDramaQueenSwaps(
         players: players,
-        votesByVoter: {
-          'dealer': 'drama',
-          'buddy': 'drama',
-        },
+        votesByVoter: {'dealer': 'drama', 'buddy': 'drama'},
         dramaQueenSwapChoices: const {'drama': 'dealer,dealer'},
       );
 
@@ -189,8 +194,10 @@ void main() {
       expect(dealer.role.id, RoleIds.partyAnimal);
       expect(buddy.role.id, RoleIds.dealer);
       expect(sober.role.id, RoleIds.sober);
-      expect(result.lines,
-          contains('Drama Queen chaos: Dealer and Buddy swapped roles.'));
+      expect(
+        result.lines,
+        contains('Drama Queen chaos: Dealer and Buddy swapped roles.'),
+      );
     });
 
     test('ignores invalid explicit swap choice containing dead target', () {
@@ -200,23 +207,29 @@ void main() {
       final soberRole = _role(RoleIds.sober);
 
       final players = [
-        _player('drama', 'Drama', dramaRole,
-            isAlive: false,
-            deathReason: 'exile',
-            targetA: 'dealer',
-            targetB: 'buddy'),
+        _player(
+          'drama',
+          'Drama',
+          dramaRole,
+          isAlive: false,
+          deathReason: 'exile',
+          targetA: 'dealer',
+          targetB: 'buddy',
+        ),
         _player('dealer', 'Dealer', dealerRole),
         _player('buddy', 'Buddy', buddyRole),
-        _player('sober', 'Sober', soberRole,
-            isAlive: false, deathReason: 'exile'),
+        _player(
+          'sober',
+          'Sober',
+          soberRole,
+          isAlive: false,
+          deathReason: 'exile',
+        ),
       ];
 
       final result = resolveDramaQueenSwaps(
         players: players,
-        votesByVoter: {
-          'dealer': 'drama',
-          'buddy': 'drama',
-        },
+        votesByVoter: {'dealer': 'drama', 'buddy': 'drama'},
         dramaQueenSwapChoices: const {'drama': 'dealer,sober'},
       );
 
@@ -226,8 +239,10 @@ void main() {
       // Dead target makes explicit choice invalid; fallback still resolves deterministically.
       expect(dealer.role.id, RoleIds.partyAnimal);
       expect(buddy.role.id, RoleIds.dealer);
-      expect(result.lines,
-          contains('Drama Queen chaos: Dealer and Buddy swapped roles.'));
+      expect(
+        result.lines,
+        contains('Drama Queen chaos: Dealer and Buddy swapped roles.'),
+      );
     });
   });
 }

@@ -95,8 +95,8 @@ class AuthNotifier extends Notifier<AuthState> {
 
       _googleSignIn ??= GoogleSignIn.instance;
       await _googleSignIn!.initialize();
-      final GoogleSignInAccount googleUser =
-          await _googleSignIn!.authenticate();
+      final GoogleSignInAccount googleUser = await _googleSignIn!
+          .authenticate();
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
@@ -105,8 +105,10 @@ class AuthNotifier extends Notifier<AuthState> {
 
       await _auth!.signInWithCredential(credential);
     } catch (e) {
-      state = AuthState(AuthStatus.error,
-          error: 'Terminal link failed. Biometric interference detected.');
+      state = AuthState(
+        AuthStatus.error,
+        error: 'Terminal link failed. Biometric interference detected.',
+      );
     }
   }
 
@@ -129,8 +131,9 @@ class AuthNotifier extends Notifier<AuthState> {
     if (user == null) return;
     if (username.length < 3) {
       state = state.copyWith(
-          status: AuthStatus.needsProfile,
-          error: 'Username must be at least 3 characters.');
+        status: AuthStatus.needsProfile,
+        error: 'Username must be at least 3 characters.',
+      );
       return;
     }
 
@@ -151,11 +154,11 @@ class AuthNotifier extends Notifier<AuthState> {
       }
 
       if (trimmedPublicPlayerId != null && trimmedPublicPlayerId.isNotEmpty) {
-        final publicPlayerIdAvailable =
-            await repository.isPublicPlayerIdAvailable(
-          trimmedPublicPlayerId,
-          excludingUid: user.uid,
-        );
+        final publicPlayerIdAvailable = await repository
+            .isPublicPlayerIdAvailable(
+              trimmedPublicPlayerId,
+              excludingUid: user.uid,
+            );
         if (!publicPlayerIdAvailable) {
           state = const AuthState(
             AuthStatus.needsProfile,
@@ -172,16 +175,19 @@ class AuthNotifier extends Notifier<AuthState> {
         isHost: false,
         publicPlayerId:
             (trimmedPublicPlayerId == null || trimmedPublicPlayerId.isEmpty)
-                ? null
-                : trimmedPublicPlayerId,
+            ? null
+            : trimmedPublicPlayerId,
         avatarEmoji: (trimmedAvatarEmoji == null || trimmedAvatarEmoji.isEmpty)
             ? null
             : trimmedAvatarEmoji,
       );
       state = AuthState(AuthStatus.authenticated, user: user);
     } catch (e) {
-      state = AuthState(AuthStatus.needsProfile,
-          user: user, error: 'Failed to establish identity. System breach.');
+      state = AuthState(
+        AuthStatus.needsProfile,
+        user: user,
+        error: 'Failed to establish identity. System breach.',
+      );
     }
   }
 
@@ -221,5 +227,6 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 }
 
-final authProvider =
-    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);

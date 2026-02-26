@@ -13,11 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 class _NoopFirestore extends Fake implements FirebaseFirestore {}
 
 class _FakeUser extends Fake implements User {
-  _FakeUser({
-    required this.id,
-    required this.mail,
-    required this.name,
-  });
+  _FakeUser({required this.id, required this.mail, required this.name});
 
   final String id;
   final String? mail;
@@ -39,10 +35,8 @@ class _FakeUser extends Fake implements User {
 }
 
 class _TestProfileRepository extends ProfileRepository {
-  _TestProfileRepository({
-    required this.watch,
-    this.initial,
-  }) : super(firestore: _NoopFirestore());
+  _TestProfileRepository({required this.watch, this.initial})
+    : super(firestore: _NoopFirestore());
 
   final Stream<Map<String, dynamic>?> watch;
   final Map<String, dynamic>? initial;
@@ -54,14 +48,18 @@ class _TestProfileRepository extends ProfileRepository {
   Stream<Map<String, dynamic>?> watchProfile(String uid) => watch;
 
   @override
-  Future<bool> isUsernameAvailable(String username,
-      {String? excludingUid}) async {
+  Future<bool> isUsernameAvailable(
+    String username, {
+    String? excludingUid,
+  }) async {
     return true;
   }
 
   @override
-  Future<bool> isPublicPlayerIdAvailable(String publicPlayerId,
-      {String? excludingUid}) async {
+  Future<bool> isPublicPlayerIdAvailable(
+    String publicPlayerId, {
+    String? excludingUid,
+  }) async {
     return true;
   }
 
@@ -79,149 +77,159 @@ class _TestProfileRepository extends ProfileRepository {
 
 void main() {
   testWidgets(
-      'queues remote profile updates while dirty then applies on discard',
-      (tester) async {
-    final controller = StreamController<Map<String, dynamic>?>.broadcast();
-    addTearDown(controller.close);
+    'queues remote profile updates while dirty then applies on discard',
+    (tester) async {
+      final controller = StreamController<Map<String, dynamic>?>.broadcast();
+      addTearDown(controller.close);
 
-    final user = _FakeUser(id: 'u1', mail: 'u1@example.com', name: 'Starter');
-    final repository = _TestProfileRepository(
-      watch: controller.stream,
-      initial: <String, dynamic>{
-        'username': 'Starter',
-        'publicPlayerId': 'starter',
-        'avatarEmoji': clubAvatarEmojis.first,
-      },
-    );
+      final user = _FakeUser(id: 'u1', mail: 'u1@example.com', name: 'Starter');
+      final repository = _TestProfileRepository(
+        watch: controller.stream,
+        initial: <String, dynamic>{
+          'username': 'Starter',
+          'publicPlayerId': 'starter',
+          'avatarEmoji': clubAvatarEmojis.first,
+        },
+      );
 
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          home: Scaffold(
-            body: ProfileScreen(
-              repository: repository,
-              currentUserResolver: () => user,
-              startInEditMode: true,
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: ProfileScreen(
+                repository: repository,
+                currentUserResolver: () => user,
+                startInEditMode: true,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    final usernameEditable = find.descendant(
-      of: find.byType(CBTextField).first,
-      matching: find.byType(EditableText),
-    );
-    expect(
-      tester.widget<EditableText>(usernameEditable).controller.text,
-      'Starter',
-    );
+      final usernameEditable = find.descendant(
+        of: find.byType(CBTextField).first,
+        matching: find.byType(EditableText),
+      );
+      expect(
+        tester.widget<EditableText>(usernameEditable).controller.text,
+        'Starter',
+      );
 
-    final dirtyController =
-        tester.widget<EditableText>(usernameEditable).controller;
-    dirtyController.value = const TextEditingValue(
-      text: 'Dirty Local',
-      selection: TextSelection.collapsed(offset: 11),
-    );
-    await tester.pump();
+      final dirtyController = tester
+          .widget<EditableText>(usernameEditable)
+          .controller;
+      dirtyController.value = const TextEditingValue(
+        text: 'Dirty Local',
+        selection: TextSelection.collapsed(offset: 11),
+      );
+      await tester.pump();
 
-    controller.add(<String, dynamic>{
-      'username': 'Remote Applied',
-      'publicPlayerId': 'remote_applied',
-      'avatarEmoji': clubAvatarEmojis.first,
-    });
-    await tester.pump();
+      controller.add(<String, dynamic>{
+        'username': 'Remote Applied',
+        'publicPlayerId': 'remote_applied',
+        'avatarEmoji': clubAvatarEmojis.first,
+      });
+      await tester.pump();
 
-    expect(
-      find.text(
-          'Cloud profile update detected. Save/discard to sync latest values.'),
-      findsOneWidget,
-    );
-    expect(
-      tester.widget<EditableText>(usernameEditable).controller.text,
-      'Dirty Local',
-    );
+      expect(
+        find.text(
+          'Cloud profile update detected. Save/discard to sync latest values.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<EditableText>(usernameEditable).controller.text,
+        'Dirty Local',
+      );
 
-    final discardActions =
-        tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
-    discardActions.onDiscard();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+      final discardActions = tester.widget<ProfileActionButtons>(
+        find.byType(ProfileActionButtons),
+      );
+      discardActions.onDiscard();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('REMOTE APPLIED'), findsOneWidget);
-  });
+      expect(find.text('REMOTE APPLIED'), findsOneWidget);
+    },
+  );
 
   testWidgets(
-      'queues remote profile updates while dirty then applies after save',
-      (tester) async {
-    final controller = StreamController<Map<String, dynamic>?>.broadcast();
-    addTearDown(controller.close);
+    'queues remote profile updates while dirty then applies after save',
+    (tester) async {
+      final controller = StreamController<Map<String, dynamic>?>.broadcast();
+      addTearDown(controller.close);
 
-    final user = _FakeUser(id: 'u2', mail: 'u2@example.com', name: 'Starter');
-    final repository = _TestProfileRepository(
-      watch: controller.stream,
-      initial: <String, dynamic>{
-        'username': 'Starter',
-        'publicPlayerId': 'starter',
-        'avatarEmoji': clubAvatarEmojis.first,
-      },
-    );
+      final user = _FakeUser(id: 'u2', mail: 'u2@example.com', name: 'Starter');
+      final repository = _TestProfileRepository(
+        watch: controller.stream,
+        initial: <String, dynamic>{
+          'username': 'Starter',
+          'publicPlayerId': 'starter',
+          'avatarEmoji': clubAvatarEmojis.first,
+        },
+      );
 
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          home: Scaffold(
-            body: ProfileScreen(
-              repository: repository,
-              currentUserResolver: () => user,
-              startInEditMode: true,
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: ProfileScreen(
+                repository: repository,
+                currentUserResolver: () => user,
+                startInEditMode: true,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-    final usernameEditable = find.descendant(
-      of: find.byType(CBTextField).first,
-      matching: find.byType(EditableText),
-    );
-    final saveController =
-        tester.widget<EditableText>(usernameEditable).controller;
-    saveController.value = const TextEditingValue(
-      text: 'Local Save',
-      selection: TextSelection.collapsed(offset: 10),
-    );
-    await tester.pump();
+      final usernameEditable = find.descendant(
+        of: find.byType(CBTextField).first,
+        matching: find.byType(EditableText),
+      );
+      final saveController = tester
+          .widget<EditableText>(usernameEditable)
+          .controller;
+      saveController.value = const TextEditingValue(
+        text: 'Local Save',
+        selection: TextSelection.collapsed(offset: 10),
+      );
+      await tester.pump();
 
-    controller.add(<String, dynamic>{
-      'username': 'Remote After Save',
-      'publicPlayerId': 'remote_after_save',
-      'avatarEmoji': clubAvatarEmojis.first,
-    });
-    await tester.pump();
+      controller.add(<String, dynamic>{
+        'username': 'Remote After Save',
+        'publicPlayerId': 'remote_after_save',
+        'avatarEmoji': clubAvatarEmojis.first,
+      });
+      await tester.pump();
 
-    expect(
-      find.text(
-          'Cloud profile update detected. Save/discard to sync latest values.'),
-      findsOneWidget,
-    );
-
-    final saveActions =
-        tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
-    saveActions.onSave();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-
-    expect(find.text('REMOTE AFTER SAVE'), findsOneWidget);
-    expect(
+      expect(
         find.text(
-            'Cloud profile update detected. Save/discard to sync latest values.'),
-        findsNothing);
-  });
+          'Cloud profile update detected. Save/discard to sync latest values.',
+        ),
+        findsOneWidget,
+      );
+
+      final saveActions = tester.widget<ProfileActionButtons>(
+        find.byType(ProfileActionButtons),
+      );
+      saveActions.onSave();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('REMOTE AFTER SAVE'), findsOneWidget);
+      expect(
+        find.text(
+          'Cloud profile update detected. Save/discard to sync latest values.',
+        ),
+        findsNothing,
+      );
+    },
+  );
 }

@@ -9,8 +9,9 @@ class BartenderAction implements NightActionStrategy {
 
   @override
   void execute(NightResolutionContext context) {
-    final bartenders =
-        context.players.where((p) => p.isAlive && p.role.id == roleId);
+    final bartenders = context.players.where(
+      (p) => p.isAlive && p.role.id == roleId,
+    );
 
     for (final bartender in bartenders) {
       if (context.redirectedActions.containsKey(bartender.id) ||

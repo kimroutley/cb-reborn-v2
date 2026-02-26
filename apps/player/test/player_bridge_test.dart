@@ -38,11 +38,9 @@ class MockPlayerClient extends PlayerClient {
   // Override these to ensure they use our `send` method even if base implementation changes
   @override
   void joinWithCode(String code, {String? playerName, String? uid}) {
-    send(GameMessage.playerJoin(
-      joinCode: code,
-      playerName: playerName,
-      uid: uid,
-    ));
+    send(
+      GameMessage.playerJoin(joinCode: code, playerName: playerName, uid: uid),
+    );
   }
 
   @override
@@ -232,7 +230,10 @@ void main() {
     await notifier.connect('ws://test');
 
     await notifier.sendAction(
-        stepId: 'step1', targetId: 'target1', voterId: 'voter1');
+      stepId: 'step1',
+      targetId: 'target1',
+      voterId: 'voter1',
+    );
 
     expect(mockClient.sentMessages, isNotEmpty);
     final msg = mockClient.sentMessages.last;
@@ -250,7 +251,7 @@ void main() {
       phase: 'night',
       dayCount: 1,
       players: [
-        {'id': 'p1', 'name': 'Alice', 'roleId': 'villager'}
+        {'id': 'p1', 'name': 'Alice', 'roleId': 'villager'},
       ],
       currentStep: {'id': 'step1', 'title': 'Night'},
       eyesOpen: false,
@@ -279,33 +280,35 @@ void main() {
   });
 
   test(
-      'state_sync lobby empty players does not reset joinAccepted after accepted join_response',
-      () async {
-    final notifier = container.read(playerBridgeProvider.notifier);
-    await notifier.connect('ws://test');
+    'state_sync lobby empty players does not reset joinAccepted after accepted join_response',
+    () async {
+      final notifier = container.read(playerBridgeProvider.notifier);
+      await notifier.connect('ws://test');
 
-    mockClient.simulateMessage(GameMessage.joinCodeResponse(accepted: true));
-    expect(container.read(playerBridgeProvider).joinAccepted, isTrue);
+      mockClient.simulateMessage(GameMessage.joinCodeResponse(accepted: true));
+      expect(container.read(playerBridgeProvider).joinAccepted, isTrue);
 
-    mockClient.simulateMessage(
-      GameMessage.stateSync(
-        phase: 'lobby',
-        dayCount: 0,
-        players: const [],
-        claimedPlayerIds: const [],
-        roleConfirmedPlayerIds: const [],
-      ),
-    );
+      mockClient.simulateMessage(
+        GameMessage.stateSync(
+          phase: 'lobby',
+          dayCount: 0,
+          players: const [],
+          claimedPlayerIds: const [],
+          roleConfirmedPlayerIds: const [],
+        ),
+      );
 
-    expect(container.read(playerBridgeProvider).joinAccepted, isTrue);
-  });
+      expect(container.read(playerBridgeProvider).joinAccepted, isTrue);
+    },
+  );
 
   test('Handles join_response rejected', () async {
     final notifier = container.read(playerBridgeProvider.notifier);
     await notifier.connect('ws://test');
 
     mockClient.simulateMessage(
-        GameMessage.joinCodeResponse(accepted: false, error: 'Invalid Code'));
+      GameMessage.joinCodeResponse(accepted: false, error: 'Invalid Code'),
+    );
 
     final state = container.read(playerBridgeProvider);
     expect(state.joinAccepted, isFalse);
@@ -317,16 +320,19 @@ void main() {
     await notifier.connect('ws://test');
 
     // First populate players so we can claim one
-    mockClient.simulateMessage(GameMessage.stateSync(
-      phase: 'lobby',
-      dayCount: 0,
-      players: [
-        {'id': 'p1', 'name': 'Alice', 'roleId': 'villager'}
-      ],
-    ));
+    mockClient.simulateMessage(
+      GameMessage.stateSync(
+        phase: 'lobby',
+        dayCount: 0,
+        players: [
+          {'id': 'p1', 'name': 'Alice', 'roleId': 'villager'},
+        ],
+      ),
+    );
 
     mockClient.simulateMessage(
-        GameMessage.claimResponse(success: true, playerId: 'p1'));
+      GameMessage.claimResponse(success: true, playerId: 'p1'),
+    );
 
     final state = container.read(playerBridgeProvider);
     expect(state.claimedPlayerIds, contains('p1'));
@@ -350,15 +356,18 @@ void main() {
     await notifier.connect('ws://test');
 
     // Setup: claim a player
-    mockClient.simulateMessage(GameMessage.stateSync(
-      phase: 'lobby',
-      dayCount: 0,
-      players: [
-        {'id': 'p1', 'name': 'Alice', 'roleId': 'villager'}
-      ],
-    ));
     mockClient.simulateMessage(
-        GameMessage.claimResponse(success: true, playerId: 'p1'));
+      GameMessage.stateSync(
+        phase: 'lobby',
+        dayCount: 0,
+        players: [
+          {'id': 'p1', 'name': 'Alice', 'roleId': 'villager'},
+        ],
+      ),
+    );
+    mockClient.simulateMessage(
+      GameMessage.claimResponse(success: true, playerId: 'p1'),
+    );
 
     expect(container.read(playerBridgeProvider).myPlayerId, 'p1');
 
@@ -376,15 +385,18 @@ void main() {
     await notifier.connect('ws://test');
 
     // Claim a player
-    mockClient.simulateMessage(GameMessage.stateSync(
-      phase: 'lobby',
-      dayCount: 0,
-      players: [
-        {'id': 'p1', 'name': 'Alice', 'roleId': 'villager'}
-      ],
-    ));
     mockClient.simulateMessage(
-        GameMessage.claimResponse(success: true, playerId: 'p1'));
+      GameMessage.stateSync(
+        phase: 'lobby',
+        dayCount: 0,
+        players: [
+          {'id': 'p1', 'name': 'Alice', 'roleId': 'villager'},
+        ],
+      ),
+    );
+    mockClient.simulateMessage(
+      GameMessage.claimResponse(success: true, playerId: 'p1'),
+    );
 
     // Simulate disconnection
     // Since we can't easily trigger the client's internal reconnect logic from outside
@@ -405,8 +417,9 @@ void main() {
     mockClient.onConnectionChanged?.call(PlayerConnectionState.connected);
 
     // Check if reconnect message was sent
-    final reconnectMsgs =
-        mockClient.sentMessages.where((m) => m.type == 'player_reconnect');
+    final reconnectMsgs = mockClient.sentMessages.where(
+      (m) => m.type == 'player_reconnect',
+    );
     expect(reconnectMsgs, isNotEmpty);
     expect(reconnectMsgs.last.payload['claimedPlayerIds'], contains('p1'));
   });

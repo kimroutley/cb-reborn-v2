@@ -48,16 +48,16 @@ class HostSaveLoadScreen extends ConsumerWidget {
                 Text(
                   hasActiveGame ? 'SNAPSHOT AVAILABLE' : 'NO ACTIVE SNAPSHOT',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: hasActiveGame ? scheme.tertiary : scheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    color: hasActiveGame ? scheme.tertiary : scheme.onSurface,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: CBSpace.x2),
                 Text(
                   'LAST SAVED: $savedAtLabel',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.75),
-                      ),
+                    color: scheme.onSurface.withValues(alpha: 0.75),
+                  ),
                 ),
               ],
             ),

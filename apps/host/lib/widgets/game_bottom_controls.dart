@@ -31,7 +31,8 @@ class GameBottomControls extends StatelessWidget {
     final scheme = theme.colorScheme;
 
     // Determine interactivity
-    final isSelection = step!.actionType == ScriptActionType.selectPlayer ||
+    final isSelection =
+        step!.actionType == ScriptActionType.selectPlayer ||
         step!.actionType == ScriptActionType.selectTwoPlayers ||
         step!.actionType == ScriptActionType.multiSelect;
     final isBinary = step!.actionType == ScriptActionType.binaryChoice;
@@ -40,14 +41,15 @@ class GameBottomControls extends StatelessWidget {
     final currentSelection = gameState.actionLog[step!.id];
     final isMultiSelect =
         step!.actionType == ScriptActionType.selectTwoPlayers ||
-            step!.actionType == ScriptActionType.multiSelect;
+        step!.actionType == ScriptActionType.multiSelect;
 
     final canConfirm = isMultiSelect
         ? (currentSelection != null && currentSelection.split(',').length >= 2)
         : currentSelection != null;
 
     // Simulation availability
-    final canSimulate = step!.id == 'day_vote' ||
+    final canSimulate =
+        step!.id == 'day_vote' ||
         isSelection ||
         isBinary ||
         step!.actionType == ScriptActionType.optional;
@@ -60,8 +62,7 @@ class GameBottomControls extends StatelessWidget {
           // ── INPUT AREA ──
           if (isSelection)
             _buildPlayerSelectionGrid(context, step!, gameState, controller),
-          if (isBinary)
-            _buildBinaryChoice(context, step!, controller),
+          if (isBinary) _buildBinaryChoice(context, step!, controller),
 
           if (isSelection || isBinary) const SizedBox(height: 12),
 
@@ -117,12 +118,18 @@ class GameBottomControls extends StatelessWidget {
   }
 
   Widget _buildPlayerSelectionGrid(
-      BuildContext context, ScriptStep step, GameState gameState, Game controller) {
+    BuildContext context,
+    ScriptStep step,
+    GameState gameState,
+    Game controller,
+  ) {
     final eligiblePlayers = gameState.players.where((p) => p.isAlive).toList();
-    final isMulti = step.actionType == ScriptActionType.selectTwoPlayers ||
-                    step.actionType == ScriptActionType.multiSelect;
+    final isMulti =
+        step.actionType == ScriptActionType.selectTwoPlayers ||
+        step.actionType == ScriptActionType.multiSelect;
 
-    final currentPicks = gameState.actionLog[step.id]
+    final currentPicks =
+        gameState.actionLog[step.id]
             ?.split(',')
             .where((s) => s.isNotEmpty)
             .toList() ??
@@ -167,7 +174,8 @@ class GameBottomControls extends StatelessWidget {
                   if (isSelected) {
                     newPicks.remove(p.id);
                   } else {
-                    if (newPicks.length < 2) { // Cap at 2 for now, or use step config
+                    if (newPicks.length < 2) {
+                      // Cap at 2 for now, or use step config
                       newPicks.add(p.id);
                     }
                   }
@@ -184,7 +192,11 @@ class GameBottomControls extends StatelessWidget {
     );
   }
 
-  Widget _buildBinaryChoice(BuildContext context, ScriptStep step, Game controller) {
+  Widget _buildBinaryChoice(
+    BuildContext context,
+    ScriptStep step,
+    Game controller,
+  ) {
     final options = step.instructionText.split('|');
     final left = options.isNotEmpty ? options[0].trim() : 'YES';
     final right = options.length > 1 ? options[1].trim() : 'NO';
@@ -197,7 +209,7 @@ class GameBottomControls extends StatelessWidget {
             label: left,
             selected: currentVal == left,
             onSelected: () {
-               controller.handleInteraction(stepId: step.id, targetId: left);
+              controller.handleInteraction(stepId: step.id, targetId: left);
             },
             color: Theme.of(context).colorScheme.primary,
             dense: false,
@@ -209,7 +221,7 @@ class GameBottomControls extends StatelessWidget {
             label: right,
             selected: currentVal == right,
             onSelected: () {
-               controller.handleInteraction(stepId: step.id, targetId: right);
+              controller.handleInteraction(stepId: step.id, targetId: right);
             },
             color: Theme.of(context).colorScheme.error,
             dense: false,

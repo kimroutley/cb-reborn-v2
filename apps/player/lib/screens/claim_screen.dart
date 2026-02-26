@@ -84,8 +84,9 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                         selectedPlayer == null
                             ? 'AVAILABLE IDENTITIES: ${availablePlayers.length}'
                             : 'SELECTED: ${selectedPlayer.name.toUpperCase()}',
-                        key:
-                            ValueKey('${availablePlayers.length}|$_selectedId'),
+                        key: ValueKey(
+                          '${availablePlayers.length}|$_selectedId',
+                        ),
                         style: textTheme.labelMedium?.copyWith(
                           color: scheme.onSurface,
                           fontWeight: FontWeight.w700,
@@ -127,8 +128,9 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                                 'Please wait for the Host to add you.',
                                 textAlign: TextAlign.center,
                                 style: textTheme.bodyMedium!.copyWith(
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.5),
+                                  color: scheme.onSurface.withValues(
+                                    alpha: 0.5,
+                                  ),
                                 ),
                               ),
                             ),

@@ -6,11 +6,7 @@ class LogsView extends StatelessWidget {
   final GameState gameState;
   final VoidCallback? onOpenCommand;
 
-  const LogsView({
-    super.key,
-    required this.gameState,
-    this.onOpenCommand,
-  });
+  const LogsView({super.key, required this.gameState, this.onOpenCommand});
 
   @override
   Widget build(BuildContext context) {
@@ -63,8 +59,12 @@ class LogsView extends StatelessWidget {
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: scheme.surface.withValues(alpha: 0.2), // Darker translucent background
-                borderRadius: BorderRadius.circular(16), // Match panel rounded corners
+                color: scheme.surface.withValues(
+                  alpha: 0.2,
+                ), // Darker translucent background
+                borderRadius: BorderRadius.circular(
+                  16,
+                ), // Match panel rounded corners
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),

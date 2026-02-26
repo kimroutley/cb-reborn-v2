@@ -28,7 +28,9 @@ void showPlayerHistory(BuildContext context, PlayerGameState gs) {
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(
-                    horizontal: CBSpace.x4, vertical: CBSpace.x2),
+                  horizontal: CBSpace.x4,
+                  vertical: CBSpace.x2,
+                ),
                 child: CBSectionHeader(title: 'Game History'),
               ),
               if (history.isEmpty)
@@ -56,11 +58,13 @@ void showPlayerHistory(BuildContext context, PlayerGameState gs) {
                         child: Text(
                           line,
                           style: isHeader
-                              ? CBTypography.micro
-                                  .copyWith(color: scheme.primary)
+                              ? CBTypography.micro.copyWith(
+                                  color: scheme.primary,
+                                )
                               : CBTypography.monoSmall.copyWith(
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.7),
+                                  color: scheme.onSurface.withValues(
+                                    alpha: 0.7,
+                                  ),
                                 ),
                         ),
                       );

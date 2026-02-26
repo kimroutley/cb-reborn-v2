@@ -60,15 +60,17 @@ Future<void> _pumpBootstrapProgress(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('bootstrap loader shows bounded progress label while restoring',
-      (tester) async {
+  testWidgets('bootstrap loader shows bounded progress label while restoring', (
+    tester,
+  ) async {
     final localBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
     final completer = Completer<PlayerSessionCacheEntry?>();
     final container = ProviderContainer(
       overrides: [
-        playerSessionCacheRepositoryProvider
-            .overrideWithValue(_DelayedCacheRepository(completer)),
+        playerSessionCacheRepositoryProvider.overrideWithValue(
+          _DelayedCacheRepository(completer),
+        ),
         playerBridgeProvider.overrideWith(() => localBridge),
         cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
       ],
@@ -100,14 +102,16 @@ void main() {
     expect(find.text('READY'), findsOneWidget);
   });
 
-  testWidgets('bootstrap with no cache does not seed pending join URL',
-      (tester) async {
+  testWidgets('bootstrap with no cache does not seed pending join URL', (
+    tester,
+  ) async {
     final localBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
     final container = ProviderContainer(
       overrides: [
-        playerSessionCacheRepositoryProvider
-            .overrideWithValue(const _FakeCacheRepository(null)),
+        playerSessionCacheRepositoryProvider.overrideWithValue(
+          const _FakeCacheRepository(null),
+        ),
         playerBridgeProvider.overrideWith(() => localBridge),
         cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
       ],
@@ -135,8 +139,9 @@ void main() {
     expect(container.read(pendingJoinUrlProvider), isNull);
   });
 
-  testWidgets('bootstrap ignores local cache entries for cloud-only mode',
-      (tester) async {
+  testWidgets('bootstrap ignores local cache entries for cloud-only mode', (
+    tester,
+  ) async {
     final localBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
     final cacheEntry = PlayerSessionCacheEntry(
@@ -145,15 +150,13 @@ void main() {
       savedAt: DateTime.now().toUtc(),
       hostAddress: 'ws://192.168.1.50',
       playerName: 'Ava',
-      state: const <String, dynamic>{
-        'phase': 'lobby',
-        'joinAccepted': true,
-      },
+      state: const <String, dynamic>{'phase': 'lobby', 'joinAccepted': true},
     );
     final container = ProviderContainer(
       overrides: [
-        playerSessionCacheRepositoryProvider
-            .overrideWithValue(_FakeCacheRepository(cacheEntry)),
+        playerSessionCacheRepositoryProvider.overrideWithValue(
+          _FakeCacheRepository(cacheEntry),
+        ),
         playerBridgeProvider.overrideWith(() => localBridge),
         cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
       ],
@@ -181,55 +184,55 @@ void main() {
     expect(container.read(pendingJoinUrlProvider), isNull);
   });
 
-  testWidgets('bootstrap restores cloud cache and seeds cloud autoconnect URL',
-      (tester) async {
-    final localBridge = _TrackingPlayerBridge();
-    final cloudBridge = _TrackingCloudBridge();
-    final cacheEntry = PlayerSessionCacheEntry(
-      joinCode: 'NEON-UVWXYZ',
-      mode: CachedSyncMode.cloud,
-      savedAt: DateTime.now().toUtc(),
-      playerName: 'Nova',
-      state: const <String, dynamic>{
-        'phase': 'night',
-        'joinAccepted': true,
-      },
-    );
-    final container = ProviderContainer(
-      overrides: [
-        playerSessionCacheRepositoryProvider
-            .overrideWithValue(_FakeCacheRepository(cacheEntry)),
-        playerBridgeProvider.overrideWith(() => localBridge),
-        cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
-      ],
-    );
-    addTearDown(container.dispose);
+  testWidgets(
+    'bootstrap restores cloud cache and seeds cloud autoconnect URL',
+    (tester) async {
+      final localBridge = _TrackingPlayerBridge();
+      final cloudBridge = _TrackingCloudBridge();
+      final cacheEntry = PlayerSessionCacheEntry(
+        joinCode: 'NEON-UVWXYZ',
+        mode: CachedSyncMode.cloud,
+        savedAt: DateTime.now().toUtc(),
+        playerName: 'Nova',
+        state: const <String, dynamic>{'phase': 'night', 'joinAccepted': true},
+      );
+      final container = ProviderContainer(
+        overrides: [
+          playerSessionCacheRepositoryProvider.overrideWithValue(
+            _FakeCacheRepository(cacheEntry),
+          ),
+          playerBridgeProvider.overrideWith(() => localBridge),
+          cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const MaterialApp(
-          home: PlayerBootstrapGate(
-            skipPersistenceInit: true,
-            skipFirestoreCacheConfig: true,
-            skipAssetWarmup: true,
-            child: Text('READY'),
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: PlayerBootstrapGate(
+              skipPersistenceInit: true,
+              skipFirestoreCacheConfig: true,
+              skipAssetWarmup: true,
+              child: Text('READY'),
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    await _pumpBootstrapProgress(tester);
+      await _pumpBootstrapProgress(tester);
 
-    expect(cloudBridge.restoredEntry, isNotNull);
-    expect(localBridge.restoredEntry, isNull);
+      expect(cloudBridge.restoredEntry, isNotNull);
+      expect(localBridge.restoredEntry, isNull);
 
-    final pendingJoin = container.read(pendingJoinUrlProvider);
-    expect(pendingJoin, isNotNull);
-    final uri = Uri.parse(pendingJoin!);
-    expect(uri.queryParameters['mode'], 'cloud');
-    expect(uri.queryParameters['code'], 'NEON-UVWXYZ');
-    expect(uri.queryParameters['host'], isNull);
-    expect(uri.queryParameters['autoconnect'], '1');
-  });
+      final pendingJoin = container.read(pendingJoinUrlProvider);
+      expect(pendingJoin, isNotNull);
+      final uri = Uri.parse(pendingJoin!);
+      expect(uri.queryParameters['mode'], 'cloud');
+      expect(uri.queryParameters['code'], 'NEON-UVWXYZ');
+      expect(uri.queryParameters['host'], isNull);
+      expect(uri.queryParameters['autoconnect'], '1');
+    },
+  );
 }

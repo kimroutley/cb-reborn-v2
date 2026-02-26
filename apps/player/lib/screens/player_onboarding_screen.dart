@@ -33,12 +33,14 @@ class _PlayerOnboardingScreenState
         physics: const NeverScrollableScrollPhysics(),
         children: [
           _buildIntroPage(context),
-          PlayerAuthScreen(onSignedIn: () {
-            _pageController.nextPage(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }),
+          PlayerAuthScreen(
+            onSignedIn: () {
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            },
+          ),
           _buildConnectPage(context),
         ],
       ),

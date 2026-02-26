@@ -15,7 +15,9 @@ class HostHallOfFameScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return CBPrismScaffold(
       title: 'HALL OF FAME',
-      drawer: const CustomDrawer(currentDestination: HostDestination.hallOfFame),
+      drawer: const CustomDrawer(
+        currentDestination: HostDestination.hallOfFame,
+      ),
       actions: const [SimulationModeBadgeAction()],
       body: StatsView(gameState: ref.watch(gameProvider)),
     );

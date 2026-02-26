@@ -47,9 +47,7 @@ class GamesNight extends _$GamesNight {
 
     // Reload to get updated state
     final sessions = await service.loadAllSessions();
-    final updatedSession = sessions.firstWhere(
-      (s) => s.id == state!.id,
-    );
+    final updatedSession = sessions.firstWhere((s) => s.id == state!.id);
 
     state = updatedSession;
   }

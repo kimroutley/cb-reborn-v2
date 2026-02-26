@@ -20,9 +20,7 @@ Future<void> main() async {
   await _initializePersistenceOfflineFirst();
   await _initializeFirebaseServices();
 
-  runApp(const ProviderScope(
-    child: HostApp(),
-  ));
+  runApp(const ProviderScope(child: HostApp()));
 }
 
 Future<void> _initializePersistenceOfflineFirst() async {
@@ -41,7 +39,8 @@ Future<void> _initializePersistenceOfflineFirst() async {
     final sessionsBox = await Hive.openBox<String>('games_night_fallback');
     PersistenceService.initWithBoxes(activeBox, recordsBox, sessionsBox);
     debugPrint(
-        '[HostApp] Using fallback persistence boxes for offline startup');
+      '[HostApp] Using fallback persistence boxes for offline startup',
+    );
   } catch (e) {
     debugPrint('[HostApp] Fallback persistence init failed: $e');
   }
@@ -78,7 +77,8 @@ class HostApp extends ConsumerWidget {
       future: _seedFuture,
       builder: (context, snapshot) => DynamicColorBuilder(
         builder: (lightDynamic, darkDynamic) {
-          final seed = snapshot.data ??
+          final seed =
+              snapshot.data ??
               darkDynamic?.primary ??
               lightDynamic?.primary ??
               CBTheme.defaultSeedColor;
@@ -97,9 +97,7 @@ class HostApp extends ConsumerWidget {
           return MaterialApp(
             title: 'Club Blackout Host',
             theme: CBTheme.buildTheme(scheme),
-            home: const EffectsOverlay(
-              child: HostIntroScreen(),
-            ),
+            home: const EffectsOverlay(child: HostIntroScreen()),
             debugShowCheckedModeBanner: false,
           );
         },

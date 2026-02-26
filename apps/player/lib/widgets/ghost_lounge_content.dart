@@ -20,14 +20,10 @@ class GhostLoungeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final playersById = {
-      for (final p in gameState.players) p.id: p,
-    };
+    final playersById = {for (final p in gameState.players) p.id: p};
     final aliveTargets = gameState.players
         .where((p) => p.isAlive)
-        .map(
-          (p) => GhostLoungeTarget(id: p.id, name: p.name),
-        )
+        .map((p) => GhostLoungeTarget(id: p.id, name: p.name))
         .toList();
 
     final betCounts = <String, int>{};
@@ -56,10 +52,7 @@ class GhostLoungeContent extends StatelessWidget {
       activeBets: activeBets,
       currentBetTargetName: myBetTargetName,
       onPlaceBet: (targetId) {
-        bridge.placeDeadPoolBet(
-          playerId: playerId,
-          targetPlayerId: targetId,
-        );
+        bridge.placeDeadPoolBet(playerId: playerId, targetPlayerId: targetId);
         HapticFeedback.selectionClick();
       },
     );

@@ -18,18 +18,19 @@ class DeathResolutionStrategy implements NightActionStrategy {
   String get roleId => '__death_resolution__';
 
   DeathResolutionStrategy([List<DeathHandler>? handlers])
-      : _handlers = handlers ??
-            [
-              MedicReviveHandler(),
-              SecondWindHandler(),
-              SeasonedDrinkerHandler(),
-              AllyCatHandler(),
-              MinorProtectionHandler(),
-              ClingerBondHandler(),
-              CreepInheritanceHandler(),
-              DramaQueenDeathHandler(),
-              DefaultDeathHandler(),
-            ];
+    : _handlers =
+          handlers ??
+          [
+            MedicReviveHandler(),
+            SecondWindHandler(),
+            SeasonedDrinkerHandler(),
+            AllyCatHandler(),
+            MinorProtectionHandler(),
+            ClingerBondHandler(),
+            CreepInheritanceHandler(),
+            DramaQueenDeathHandler(),
+            DefaultDeathHandler(),
+          ];
 
   @override
   void execute(NightResolutionContext context) {
@@ -37,15 +38,17 @@ class DeathResolutionStrategy implements NightActionStrategy {
 
     // Continue as long as there are pending deaths not yet resolved
     while (context.killedPlayerIds.length > resolvedIds.length) {
-      final targetId =
-          context.killedPlayerIds.firstWhere((id) => !resolvedIds.contains(id));
+      final targetId = context.killedPlayerIds.firstWhere(
+        (id) => !resolvedIds.contains(id),
+      );
       resolvedIds.add(targetId);
 
       if (context.protectedPlayerIds.contains(targetId)) {
         final victim = context.getPlayer(targetId);
         context.addReport('A murder attempt on ${victim.name} was thwarted.');
         context.addTeaser(
-            'A patron barely escaped a close encounter with "the staff".');
+          'A patron barely escaped a close encounter with "the staff".',
+        );
         continue;
       }
 
