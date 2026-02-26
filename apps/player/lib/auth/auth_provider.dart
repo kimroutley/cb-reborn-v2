@@ -106,7 +106,14 @@ class AuthNotifier extends Notifier<AuthState> {
 
       await _auth!.signInWithCredential(credential);
     } catch (e, stack) {
-      AnalyticsService.logError(e.toString(), stackTrace: stack.toString());
+      final String stackString = stack.toString();
+      final String truncatedStack = stackString.length > 100
+          ? stackString.substring(0, 100)
+          : stackString;
+      AnalyticsService.logError(
+        e.toString(),
+        stackTrace: truncatedStack,
+      );
       state = AuthState(AuthStatus.error,
           error: 'Terminal link failed. Biometric interference detected.');
     }
