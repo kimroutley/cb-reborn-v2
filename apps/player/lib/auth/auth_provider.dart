@@ -182,7 +182,11 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       state = AuthState(AuthStatus.authenticated, user: user);
     } catch (e, stack) {
-      AnalyticsService.logError(e.toString(), stackTrace: stack.toString());
+      final stackString = stack.toString();
+      final truncatedStack = stackString.length <= 100
+          ? stackString
+          : stackString.substring(0, 100);
+      AnalyticsService.logError(e.toString(), stackTrace: truncatedStack);
       state = AuthState(AuthStatus.needsProfile,
           user: user, error: 'Failed to establish identity. System breach.');
     }
