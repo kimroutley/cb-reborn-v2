@@ -429,13 +429,16 @@ class _NetworkBar extends StatelessWidget {
                 ),
               ),
             if (isConnecting) const SizedBox(width: 8),
-            Text(
-              label,
-              style: textTheme.labelSmall?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-                fontFamily: 'RobotoMono',
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.labelSmall?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                  fontFamily: 'RobotoMono',
+                ),
               ),
             ),
             const Spacer(),
@@ -619,34 +622,38 @@ class _LaunchBar extends StatelessWidget {
           top: false,
           child: Row(
             children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: badgeColor.withValues(alpha: 0.4),
+              Flexible(
+                flex: 0,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: badgeColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: badgeColor.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(badgeIcon, size: 16, color: badgeColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        badgeText,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: badgeColor,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                          fontFamily: 'RobotoMono',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(badgeIcon, size: 16, color: badgeColor),
-                    const SizedBox(width: 6),
-                    Text(
-                      badgeText,
-                      style: textTheme.labelSmall?.copyWith(
-                        color: badgeColor,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0,
-                        fontFamily: 'RobotoMono',
-                      ),
-                    ),
-                  ],
-                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: CBPrimaryButton(
                   label: 'CONTINUE TO SETUP',
@@ -819,7 +826,7 @@ class _GlassIconButton extends StatelessWidget {
           child: Container(
             padding: expanded
                 ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
-                : const EdgeInsets.all(10),
+                : const EdgeInsets.all(13),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
@@ -843,7 +850,7 @@ class _GlassIconButton extends StatelessWidget {
                             color: color,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.0,
-                            fontSize: 9,
+                            fontSize: 11,
                           ),
                         ),
                       ),

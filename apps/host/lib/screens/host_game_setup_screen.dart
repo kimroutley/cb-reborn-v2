@@ -139,7 +139,7 @@ class _HostGameSetupScreenState extends ConsumerState<HostGameSetupScreen> {
                                 scheme.onSurface.withValues(alpha: 0.5),
                             fontWeight: FontWeight.w900,
                             letterSpacing: 2.0,
-                            fontSize: 9,
+                            fontSize: 11,
                           ),
                         ),
                         const Spacer(),
@@ -386,17 +386,20 @@ class _RoleActionsBar extends StatelessWidget {
                       size: 16,
                       color: scheme.onSurfaceVariant),
                   const SizedBox(width: 8),
-                  Text(
-                    'TAP PLAYERS BELOW TO ASSIGN ROLES',
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelSmall
-                        ?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          fontSize: 9,
-                        ),
+                  Flexible(
+                    child: Text(
+                      'TAP PLAYERS BELOW TO ASSIGN ROLES',
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelSmall
+                          ?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                            fontSize: 11,
+                          ),
+                    ),
                   ),
                 ],
               ),
@@ -562,34 +565,38 @@ class _SetupLaunchBar extends StatelessWidget {
           top: false,
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: badgeColor.withValues(alpha: 0.4),
+              Flexible(
+                flex: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: badgeColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: badgeColor.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(badgeIcon, size: 16, color: badgeColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        badgeText,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: badgeColor,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                          fontFamily: 'RobotoMono',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(badgeIcon, size: 16, color: badgeColor),
-                    const SizedBox(width: 6),
-                    Text(
-                      badgeText,
-                      style: textTheme.labelSmall?.copyWith(
-                        color: badgeColor,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0,
-                        fontFamily: 'RobotoMono',
-                      ),
-                    ),
-                  ],
-                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: CBPrimaryButton(
                   label: 'START GAME',

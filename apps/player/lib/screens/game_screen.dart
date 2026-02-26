@@ -94,44 +94,43 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _showRoofiedDialog(BuildContext context) {
-    showDialog(
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    showThemedDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.black,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: CBColors.error, width: 2)),
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: CBColors.error, size: 28),
-            const SizedBox(width: 12),
-            Text('YOU\'VE BEEN ROOFIED',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: CBColors.error,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2)),
-          ],
-        ),
-        content: Text(
-          'Your drink was spiked. You are paralysed — your night action has been cancelled.\n\nKeep your eyes closed and say nothing.',
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              'ACKNOWLEDGED',
-              style: TextStyle(
-                color: CBColors.error,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
+      accentColor: scheme.error,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.warning_amber_rounded,
+                  color: scheme.error, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text('YOU\'VE BEEN ROOFIED',
+                    style: textTheme.titleMedium?.copyWith(
+                        color: scheme.error,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2)),
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Your drink was spiked. You are paralysed — your night action has been cancelled.\n\nKeep your eyes closed and say nothing.',
+            style: textTheme.bodyMedium
+                ?.copyWith(color: scheme.onSurface.withValues(alpha: 0.7)),
+          ),
+          const SizedBox(height: 24),
+          Align(
+            alignment: Alignment.centerRight,
+            child: CBGhostButton(
+              label: 'ACKNOWLEDGED',
+              color: scheme.error,
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ),
         ],

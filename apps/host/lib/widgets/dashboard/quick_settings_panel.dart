@@ -32,7 +32,7 @@ class QuickSettingsPanel extends ConsumerWidget {
             '// GAME CONFIGURATION, TIMER & TOOLS.',
             style: textTheme.labelSmall!.copyWith(
               color: scheme.primary.withValues(alpha: 0.6),
-              fontSize: 8,
+              fontSize: 10,
               letterSpacing: 1.2,
               fontWeight: FontWeight.w800,
             ),
@@ -62,7 +62,7 @@ class QuickSettingsPanel extends ConsumerWidget {
           // Tie Break
           _SettingRow(
             label: 'TIE BREAK',
-            value: gameState.tieBreakStrategy.label,
+            value: TieBreakStrategyExtension(gameState.tieBreakStrategy).label,
             icon: Icons.balance_rounded,
             color: scheme.primary,
             onTap: () => _showTieBreakPicker(context, ref),
@@ -97,7 +97,7 @@ class QuickSettingsPanel extends ConsumerWidget {
                 color: scheme.error.withValues(alpha: 0.5),
                 letterSpacing: 1.5,
                 fontWeight: FontWeight.w800,
-                fontSize: 9,
+                fontSize: 11,
               ),
             ),
             const SizedBox(height: 8),
@@ -272,7 +272,7 @@ class QuickSettingsPanel extends ConsumerWidget {
                 style.description,
                 style: textTheme.labelSmall!.copyWith(
                   color: scheme.onSurface.withValues(alpha: 0.6),
-                  fontSize: 9,
+                  fontSize: 11,
                 ),
               ),
               onTap: () {
@@ -323,17 +323,17 @@ class QuickSettingsPanel extends ConsumerWidget {
                 size: 18,
               ),
               title: Text(
-                strategy.label,
+                TieBreakStrategyExtension(strategy).label,
                 style: textTheme.labelMedium!.copyWith(
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.0,
                 ),
               ),
               subtitle: Text(
-                strategy.description,
+                TieBreakStrategyExtension(strategy).description,
                 style: textTheme.labelSmall!.copyWith(
                   color: scheme.onSurface.withValues(alpha: 0.6),
-                  fontSize: 9,
+                  fontSize: 11,
                 ),
               ),
               onTap: () {
@@ -401,7 +401,7 @@ class _SettingRow extends StatelessWidget {
                 style: textTheme.labelSmall!.copyWith(
                   color: color,
                   fontWeight: FontWeight.w900,
-                  fontSize: 9,
+                  fontSize: 11,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -455,7 +455,7 @@ class _ToolChip extends StatelessWidget {
               label,
               style: textTheme.labelSmall!.copyWith(
                 color: color,
-                fontSize: 8,
+                fontSize: 10,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0.5,
               ),

@@ -4,19 +4,19 @@ overview: Audit identified a handful of high-impact screens with Material 3 cons
 todos:
   - id: migrate-legacy-scaffolds
     content: Migrate legacy screens to CBPrismScaffold for consistent M3/themed shell.
-    status: in_progress
+    status: completed
   - id: adaptive-bars
     content: Refactor host setup/lobby row bars to adaptive layouts without overflow.
-    status: pending
+    status: completed
   - id: dialog-sheet-unification
     content: Convert ad-hoc dialogs/sheets to themed helpers and consistent panel styles.
-    status: pending
+    status: completed
   - id: type-touch-polish
     content: Increase tiny label readability and enforce tap target minimums.
-    status: pending
+    status: completed
   - id: pixel-qa-pass
     content: Run targeted Pixel 10 Pro viewport QA across host/player critical screens.
-    status: pending
+    status: completed
 isProject: false
 ---
 

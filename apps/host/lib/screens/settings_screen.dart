@@ -428,7 +428,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             color: hasKey
                 ? scheme.tertiary.withValues(alpha: 0.7)
                 : scheme.error.withValues(alpha: 0.7),
-            fontSize: 8,
+            fontSize: 10,
             letterSpacing: 0.5,
           ),
         ),
@@ -527,10 +527,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     HostSettings settings,
     HostSettingsNotifier notifier,
   ) {
-    showModalBottomSheet(
+    showThemedBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => PersonalityPickerModal(
+      child: PersonalityPickerModal(
         selectedPersonalityId: settings.hostPersonalityId,
         onPersonalitySelected: (id) {
           notifier.setHostPersonalityId(id);
@@ -567,7 +566,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text(
                     'INCREASED VISIBILITY',
                     style: CBTypography.labelSmall.copyWith(
-                      fontSize: 8,
+                      fontSize: 10,
                       color: scheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
