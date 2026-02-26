@@ -353,8 +353,7 @@ class MessyBitchKillStrategy extends RoleStrategy {
       title: 'THE MESSY BITCH - KILL',
       readAloudText:
           'Messy Bitch, do you wish to use your one-time kill tonight?',
-      instructionText:
-          'OPTIONAL: SELECT A PLAYER TO KILL, OR SKIP.',
+      instructionText: 'OPTIONAL: SELECT A PLAYER TO KILL, OR SKIP.',
       actionType: ScriptActionType.selectPlayer,
       roleId: RoleIds.messyBitch,
       isOptional: true,

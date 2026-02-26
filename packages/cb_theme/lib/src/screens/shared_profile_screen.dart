@@ -471,8 +471,8 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
 
     try {
       final service = PersistenceService.instance;
-      await service.rebuildRoleAwardProgresses();
-      final allProgress = service.loadRoleAwardProgresses();
+      await service.roleAwards.rebuildRoleAwardProgresses();
+      final allProgress = service.roleAwards.loadRoleAwardProgresses();
       final playerKeys = _resolvePlayerKeys(
         user: user,
         username: _usernameController.text,
