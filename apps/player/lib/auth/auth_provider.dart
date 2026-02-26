@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_comms/cb_comms_player.dart';
+import 'package:cb_logic/cb_logic.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -104,7 +105,8 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       await _auth!.signInWithCredential(credential);
-    } catch (e) {
+    } catch (e, stack) {
+      AnalyticsService.logError(e.toString(), stackTrace: stack.toString());
       state = AuthState(AuthStatus.error,
           error: 'Terminal link failed. Biometric interference detected.');
     }
@@ -179,7 +181,8 @@ class AuthNotifier extends Notifier<AuthState> {
             : trimmedAvatarEmoji,
       );
       state = AuthState(AuthStatus.authenticated, user: user);
-    } catch (e) {
+    } catch (e, stack) {
+      AnalyticsService.logError(e.toString(), stackTrace: stack.toString());
       state = AuthState(AuthStatus.needsProfile,
           user: user, error: 'Failed to establish identity. System breach.');
     }
