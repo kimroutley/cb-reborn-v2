@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "cb-reborn"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }

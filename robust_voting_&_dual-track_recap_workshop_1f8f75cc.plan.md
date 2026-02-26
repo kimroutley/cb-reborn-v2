@@ -4,19 +4,19 @@ overview: Implement a robust voting algorithm that records individual votes for 
 todos:
   - id: robust-voting-logs
     content: Modify resolveDayVote to accept and log individual votes via GameEvent.vote and gameHistory.
-    status: pending
+    status: done
   - id: gemini-dual-prompts
     content: Add Clean (Player) and Spicy (Host) prompt variations to GeminiNarrationService with antagonizing terminology.
-    status: pending
+    status: done
   - id: narration-controller-dual-track
     content: Update NarrationController to generate both recap versions.
-    status: pending
+    status: done
   - id: host-screen-dispatch-dual
     content: Update HostGameScreen to dispatch clean recap to shared and spicy recap to host-only.
-    status: pending
+    status: done
   - id: host-feed-spicy-tag
     content: Polish HostMainFeed to add a 'SPICY' tag for host-only recap entries.
-    status: pending
+    status: done
 isProject: false
 ---
 
