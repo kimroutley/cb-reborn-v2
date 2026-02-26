@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:isolate';
-import 'role_award_calculator.dart';
 
 import 'package:cb_models/cb_models.dart';
 import 'role_award_persistence.dart';
@@ -606,4 +605,3 @@ class PersistenceService {
     _instance = null;
   }
 }
-

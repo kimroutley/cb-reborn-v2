@@ -82,7 +82,8 @@ class GameNarrationController {
     return buffer.toString();
   }
 
-  Future<String?> generateDynamicNightNarration(GameState state, {
+  Future<String?> generateDynamicNightNarration(
+    GameState state, {
     String? personalityId,
     String? voice,
     String? variationPrompt,
@@ -115,7 +116,8 @@ class GameNarrationController {
     );
   }
 
-  Future<String?> generateCurrentStepNarrationVariation(GameState state, {
+  Future<String?> generateCurrentStepNarrationVariation(
+    GameState state, {
     String? personalityId,
   }) async {
     final step = state.currentStep;

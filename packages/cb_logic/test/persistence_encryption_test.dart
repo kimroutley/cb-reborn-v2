@@ -111,6 +111,9 @@ void main() {
     // Write should NOT be called (except maybe by other logic, but definitely not for the key)
     // Actually, migration check writes key only if migration happens.
     // If key exists, no write happens.
-    expect(mockStorage.writeCalls.where((c) => c.startsWith('hive_encryption_key=')), isEmpty);
+    expect(
+        mockStorage.writeCalls
+            .where((c) => c.startsWith('hive_encryption_key=')),
+        isEmpty);
   });
 }

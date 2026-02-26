@@ -54,9 +54,8 @@ class ScriptBuilder {
       steps.add(ScriptStep(
         id: 'medic_choice_${medic.id}_$dayCount',
         title: isContinuation ? 'MEDIC - CHOICE (CONT.)' : 'MEDIC - CHOICE',
-        readAloudText: isContinuation
-            ? ''
-            : 'Medic, choose your strategy for the game.',
+        readAloudText:
+            isContinuation ? '' : 'Medic, choose your strategy for the game.',
         instructionText: 'CHOOSE: PROTECT DAILY OR ONE-TIME REVIVE',
         actionType: ScriptActionType.binaryChoice,
         roleId: RoleIds.medic,
@@ -224,8 +223,7 @@ class ScriptBuilder {
             id: 'wallflower_observe_${wallflower.id}_$dayCount',
             title: 'HOST OBSERVATION',
             readAloudText: '',
-            instructionText:
-                'Did ${wallflower.name} peek? (HOST INPUT ONLY)',
+            instructionText: 'Did ${wallflower.name} peek? (HOST INPUT ONLY)',
             actionType: ScriptActionType.binaryChoice,
             roleId: null, // Host only
             options: const ['PEEKED', 'GAWKED'],
