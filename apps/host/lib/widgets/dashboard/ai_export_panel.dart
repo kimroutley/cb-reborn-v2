@@ -30,20 +30,14 @@ class AIExportPanel extends ConsumerWidget {
           const SizedBox(height: 16),
 
           // Export button (opens style menu)
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.auto_awesome),
-              label: const Text('GENERATE AI RECAP'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: scheme.secondary,
-                foregroundColor: scheme.onSecondary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed: () => showAIRecapExportMenu(
-                context: context,
-                controller: ref.read(gameProvider.notifier),
-              ),
+          CBPrimaryButton(
+            label: 'GENERATE AI RECAP',
+            icon: Icons.auto_awesome,
+            backgroundColor: scheme.secondary,
+            foregroundColor: scheme.onSecondary,
+            onPressed: () => showAIRecapExportMenu(
+              context: context,
+              controller: ref.read(gameProvider.notifier),
             ),
           ),
         ],

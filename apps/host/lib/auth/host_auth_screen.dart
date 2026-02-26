@@ -14,15 +14,15 @@ class HostAuthScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final scheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      body: CBNeonBackground(
-        showRadiance: true,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 600),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          child: _buildUIForState(context, ref, authState, scheme),
-        ),
+    return CBPrismScaffold(
+      title: 'LOGIN',
+      showAppBar: false,
+      showBackgroundRadiance: true,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 600),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        child: _buildUIForState(context, ref, authState, scheme),
       ),
     );
   }

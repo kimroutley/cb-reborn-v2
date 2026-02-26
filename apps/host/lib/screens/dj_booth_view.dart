@@ -20,16 +20,11 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
+    return CBPrismScaffold(
+      title: 'DJ Booth',
       drawer: const CustomDrawer(),
-      appBar: AppBar(
-        title: const Text('DJ Booth'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [SimulationModeBadgeAction()],
-      ),
-      body: CBNeonBackground(
-        child: Stack(
+      actions: const [SimulationModeBadgeAction()],
+      body: Stack(
           children: [
             Positioned.fill(
               child: Opacity(
@@ -80,23 +75,17 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                         onPressed: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => Scaffold(
+                              builder: (context) => CBPrismScaffold(
+                                title: 'Old Dashboard',
                                 drawer: const CustomDrawer(),
-                                appBar: AppBar(
-                                  title: const Text('Old Dashboard'),
-                                  backgroundColor: Colors.transparent,
-                                  elevation: 0,
-                                  actions: const [SimulationModeBadgeAction()],
-                                ),
-                                body: CBNeonBackground(
-                                  child: DashboardView(
-                                    gameState: widget.gameState,
-                                    onAction: () {},
-                                    onAddMock: () {},
-                                    eyesOpen: false,
-                                    onToggleEyes: (_) {},
-                                    onBack: () => Navigator.of(context).maybePop(),
-                                  ),
+                                actions: const [SimulationModeBadgeAction()],
+                                body: DashboardView(
+                                  gameState: widget.gameState,
+                                  onAction: () {},
+                                  onAddMock: () {},
+                                  eyesOpen: false,
+                                  onToggleEyes: (_) {},
+                                  onBack: () => Navigator.of(context).maybePop(),
                                 ),
                               ),
                             ),
@@ -110,7 +99,6 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
             ),
           ],
         ),
-      ),
     );
   }
 }
