@@ -106,7 +106,14 @@ class AuthNotifier extends Notifier<AuthState> {
 
       await _auth!.signInWithCredential(credential);
     } catch (e, stackTrace) {
-      AnalyticsService.logError('Sign in failed: $e', stackTrace: stackTrace.toString());
+      try {
+        await AnalyticsService.logError(
+          'Sign in failed: $e',
+          stackTrace: stackTrace.toString(),
+        );
+      } catch (_) {
+        // Ignore logging failures to avoid masking the original auth error.
+      }
       state = AuthState(AuthStatus.error,
           error: 'Terminal link failed. Biometric interference detected.');
     }
@@ -182,7 +189,12 @@ class AuthNotifier extends Notifier<AuthState> {
       );
       state = AuthState(AuthStatus.authenticated, user: user);
     } catch (e, stackTrace) {
-      AnalyticsService.logError('Save username failed: $e', stackTrace: stackTrace.toString());
+      AnalyticsService.logError(
+        'Save username failed: $e',
+        stackTrace: stackTrace.toString(),
+      ).catchError((logError, logStackTrace) {
+        debugPrint('Failed to log error to analytics: $logError');
+      });
       state = AuthState(AuthStatus.needsProfile,
           user: user, error: 'Failed to establish identity. System breach.');
     }

@@ -59,7 +59,15 @@ class Game extends _$Game {
       final (gameState, _) = saved;
       state = gameState;
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name); // approximate
+      unawaited(
+        AnalyticsService.logGameStarted(
+          playerCount: state.players.length,
+          gameStyle: state.gameStyle.name,
+          syncMode: state.syncMode.name,
+        ).catchError((_) {
+          // Analytics is best-effort; ignore failures
+        }),
+      );
       return true;
     } catch (_) {
       return false;
@@ -1403,7 +1411,15 @@ class Game extends _$Game {
     sessionController.clearRoleConfirmations();
     sessionController.setForceStartOverride(false);
     _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+    unawaited(
+      AnalyticsService.logGameStarted(
+        playerCount: state.players.length,
+        gameStyle: state.gameStyle.name,
+        syncMode: state.syncMode.name,
+      ).catchError((_) {
+        // Analytics is best-effort; ignore failures
+      }),
+    );
     _persist();
     return true;
   }
@@ -1652,7 +1668,15 @@ class Game extends _$Game {
   void _checkAndResolveWinCondition(List<Player> players) {
     final win = GameResolutionLogic.checkWinCondition(players);
     if (win != null) {
-      AnalyticsService.logGameCompleted(winner: win.winner.name, dayCount: state.dayCount, duration: DateTime.now().difference(_gameStartedAt ?? DateTime.now()));
+      unawaited(
+        AnalyticsService.logGameCompleted(
+          winner: win.winner.name,
+          dayCount: state.dayCount,
+          duration: DateTime.now().difference(_gameStartedAt ?? DateTime.now()),
+        ).catchError((error, stackTrace) {
+          // Analytics is best-effort; ignore failures
+        }),
+      );
       state = GameResolutionLogic.applyWinResult(state, win);
       archiveGame();
     }

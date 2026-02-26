@@ -2,10 +2,11 @@
 
 ## 1. Security Breaches
 
-### 1.1 Insecure Data Transmission & Improper Access Controls (Firestore Rules)
-- **Vulnerability:** The current Firestore rules (`firestore.rules`) for `/user_profiles/{uid}` are overly restrictive (`request.auth.uid == uid`), preventing any user from reading another user's profile.
-- **Impact:** While seemingly secure, this breaks the `isUsernameAvailable` and `isPublicPlayerIdAvailable` checks in `ProfileRepository`. These methods attempt to query the `user_profiles` collection to ensure uniqueness but always fail with `permission-denied`.
-- **Exploit:** A malicious actor can register a username or public player ID that is already in use by another player, leading to impersonation attacks. The application silently allows this because the permission error is swallowed.
+### 1.1 Broken Username Uniqueness Check (Firestore Rules vs. Client Logic Mismatch)
+- **Issue:** The Firestore rules for `/user_profiles/{uid}` correctly restrict reads to the owning user (`request.auth.uid == uid`). However, `ProfileRepository.isUsernameAvailable` and `isPublicPlayerIdAvailable` attempt to query the entire `user_profiles` collection to check for uniqueness — a query that always fails with `permission-denied` under these rules.
+- **Impact:** The uniqueness validation is effectively bypassed at the client layer. The client proceeds as though a username is available because the `permission-denied` error is silently swallowed and treated as `true`.
+- **Exploit:** A malicious actor can register a username or public player ID already in use by another player, leading to impersonation attacks. The restrictive rule is correct design; the flaw is the incompatible client-side uniqueness check.
+- **Recommendation:** Replace the collection-wide query with a dedicated `usernames` collection (document ID = username, readable by any authenticated user) to enforce uniqueness without exposing full user profiles.
 
 ### 1.2 Public Game State Exposure
 - **Vulnerability:** The rule for `/games/{joinCode}` allows any authenticated user to read any game document (`allow read: if isAuthenticated();`).
