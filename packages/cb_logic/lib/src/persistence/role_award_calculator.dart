@@ -55,10 +55,9 @@ Map<String, Map<String, _RoleUsageStats>> _buildRoleStatsByPlayer(
       final current = perRole[player.roleId] ?? const _RoleUsageStats();
       perRole[player.roleId] = current.copyWith(
         gamesPlayed: current.gamesPlayed + 1,
-        gamesWon:
-            record.winner == player.alliance
-                ? current.gamesWon + 1
-                : current.gamesWon,
+        gamesWon: record.winner == player.alliance
+            ? current.gamesWon + 1
+            : current.gamesWon,
         survivals: player.alive ? current.survivals + 1 : current.survivals,
         latestEndedAt: record.endedAt,
         latestGameId: record.id,

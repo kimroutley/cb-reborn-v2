@@ -31,7 +31,8 @@ class Game extends _$Game {
     ref.onDispose(() {
       _persistDebounceTimer?.cancel();
     });
-    _narrationController = GameNarrationController(ref.read(geminiNarrationServiceProvider));
+    _narrationController =
+        GameNarrationController(ref.read(geminiNarrationServiceProvider));
     return const GameState();
   }
 
@@ -625,7 +626,8 @@ class Game extends _$Game {
   String exportGameLog() => _narrationController.exportGameLog(state);
 
   /// Generate an AI-ready recap prompt for Gemini
-  String generateAIRecapPrompt(String style) => _narrationController.generateAIRecapPrompt(state, style);
+  String generateAIRecapPrompt(String style) =>
+      _narrationController.generateAIRecapPrompt(state, style);
 
   /// Generate dynamic read-aloud narration from the last resolved night report
   /// using Gemini.
@@ -633,7 +635,8 @@ class Game extends _$Game {
     String? personalityId,
     String? voice,
     String? variationPrompt,
-  }) => _narrationController.generateDynamicNightNarration(
+  }) =>
+      _narrationController.generateDynamicNightNarration(
         state,
         personalityId: personalityId,
         voice: voice,
@@ -643,7 +646,8 @@ class Game extends _$Game {
   Future<String?> _generateCurrentStepNarrationVariation({
     String? personalityId,
   }) async {
-    return _narrationController.generateCurrentStepNarrationVariation(state, personalityId: personalityId);
+    return _narrationController.generateCurrentStepNarrationVariation(state,
+        personalityId: personalityId);
   }
 
   /// Prepare a one-time narration override for the current step.
@@ -1303,7 +1307,8 @@ class Game extends _$Game {
   }
 
   void mergePlayers({required String sourceId, required String targetId}) {
-    state = GamePlayerController.mergePlayers(state, sourceId: sourceId, targetId: targetId);
+    state = GamePlayerController.mergePlayers(state,
+        sourceId: sourceId, targetId: targetId);
   }
 
   void assignRole(String playerId, String roleId) {
