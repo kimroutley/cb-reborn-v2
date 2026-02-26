@@ -458,8 +458,8 @@ void main() {
           service.roleAwards.loadRoleAwardProgressesByRole(RoleIds.dealer);
       expect(dealerProgress, isNotEmpty);
 
-      final rookieProgress =
-          service.roleAwards.loadRoleAwardProgressesByTier(RoleAwardTier.rookie);
+      final rookieProgress = service.roleAwards
+          .loadRoleAwardProgressesByTier(RoleAwardTier.rookie);
       expect(rookieProgress, isNotEmpty);
 
       final recent = service.roleAwards.loadRecentRoleAwardUnlocks(limit: 5);
@@ -474,7 +474,8 @@ void main() {
 
       await service.roleAwards.rebuildRoleAwardProgresses();
 
-      final aliceRows = service.roleAwards.loadRoleAwardProgressesByPlayer('p1');
+      final aliceRows =
+          service.roleAwards.loadRoleAwardProgressesByPlayer('p1');
       final survivalBonus = aliceRows.firstWhere(
         (row) {
           final definition = roleAwardDefinitionById(row.awardId);

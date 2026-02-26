@@ -269,13 +269,12 @@ class RecapGenerator {
           int deathDay = 1;
           if (game.eventLog.isNotEmpty) {
             // Use structured events
-            final deathEvent = game.eventLog
-                .whereType<GameEventDeath>()
-                .firstWhere(
-                  (e) => e.playerId == player.id,
-                  orElse: () => const GameEventDeath(
-                      playerId: '', reason: '', day: 1), // fallback
-                );
+            final deathEvent =
+                game.eventLog.whereType<GameEventDeath>().firstWhere(
+                      (e) => e.playerId == player.id,
+                      orElse: () => const GameEventDeath(
+                          playerId: '', reason: '', day: 1), // fallback
+                    );
             if (deathEvent.playerId.isNotEmpty) {
               deathDay = deathEvent.day;
             }

@@ -606,4 +606,3 @@ class PersistenceService {
     _instance = null;
   }
 }
-
