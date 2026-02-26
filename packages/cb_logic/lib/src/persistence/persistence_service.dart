@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:isolate';
 
-
 import 'package:cb_models/cb_models.dart';
 import 'role_award_persistence.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
