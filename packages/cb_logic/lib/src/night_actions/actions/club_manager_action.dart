@@ -30,8 +30,8 @@ class ClubManagerAction implements NightActionStrategy {
 
       final target = context.getPlayer(targetId);
       context.addPrivateMessage(
-          manager.id, '${target.name} is ${target.role.name}.');
-      context.addReport('Manager file-checked ${target.name}.');
+          manager.id, 'Inspection complete: ${target.name} is the ${target.role.name}.');
+      context.addReport('Club Manager chose to inspect ${target.name}.');
       context.updatePlayer(target.copyWith(sightedByClubManager: true));
     }
   }

@@ -1,14 +1,12 @@
-import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../player_destinations.dart';
 import '../player_navigation.dart';
 import '../active_bridge.dart';
 import '../player_onboarding_provider.dart';
-import 'home_screen.dart';
+import 'connect_screen.dart';
 import 'lobby_screen.dart';
 import 'profile_screen.dart';
-import 'claim_screen.dart';
 import 'game_screen.dart';
 import 'start_transition_screen.dart';
 import 'guides_screen.dart';
@@ -17,6 +15,16 @@ import 'hall_of_fame_screen.dart';
 import 'stats_screen.dart';
 import 'about_screen.dart';
 import 'settings_screen.dart';
+
+// Trigger provider for confirming game start
+final confirmGameStartProvider = NotifierProvider<ConfirmGameStartNotifier, int>(ConfirmGameStartNotifier.new);
+
+class ConfirmGameStartNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void trigger() => state++;
+}
 
 class PlayerHomeShell extends ConsumerStatefulWidget {
   const PlayerHomeShell({
@@ -46,6 +54,22 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
   void initState() {
     super.initState();
     ref.listenManual(activeBridgeProvider, _onBridgeChanged);
+    ref.listenManual(confirmGameStartProvider, (_, count) {
+      if (count > 0) {
+        _handleManualStartConfirmation();
+      }
+    });
+  }
+
+  void _handleManualStartConfirmation() {
+    final onboarding = ref.read(playerOnboardingProvider);
+
+    // Only allow if we are actually waiting for confirmation
+    if (onboarding.awaitingStartConfirmation) {
+      ref.read(playerOnboardingProvider.notifier)
+         .setAwaitingStartConfirmation(false);
+      _beginTransitionToGame();
+    }
   }
 
   void _onBridgeChanged(ActiveBridge? previous, ActiveBridge next) {
@@ -69,7 +93,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
 
       final currentDestination = ref.read(playerNavigationProvider);
       if (_sessionBoundDestinations.contains(currentDestination)) {
-        nav.setDestination(PlayerDestination.home);
+        nav.setDestination(PlayerDestination.connect);
       }
       return;
     }
@@ -79,7 +103,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
     final destination = ref.read(playerNavigationProvider);
     if ((connectedNow || acceptedNow) &&
         nextPhase == 'lobby' &&
-        destination == PlayerDestination.home) {
+        destination == PlayerDestination.connect) {
       nav.setDestination(PlayerDestination.lobby);
     }
 
@@ -100,7 +124,6 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         _handlingSetupTransition = true;
         onboarding.setAwaitingStartConfirmation(true);
         nav.setDestination(PlayerDestination.lobby);
-        _showStartConfirmationDialog();
         break;
       case 'night':
       case 'day':
@@ -115,109 +138,9 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
     }
   }
 
-  void _showStartConfirmationDialog() {
-    if (widget.startConfirmTimeout <= Duration.zero) {
-      ref
-          .read(playerOnboardingProvider.notifier)
-          .setAwaitingStartConfirmation(false);
-      _beginTransitionToGame();
-      return;
-    }
+  // _showStartConfirmationDialog removed
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) {
-        return;
-      }
-
-      var dialogCompleted = false;
-      final timeoutSeconds = widget.startConfirmTimeout.inSeconds;
-
-      final dialogFuture = showThemedDialog<bool>(
-        context: context,
-        accentColor: Theme.of(context).colorScheme.secondary,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'SESSION STARTING',
-              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                    color: Theme.of(context).colorScheme.secondary,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
-                    shadows: CBColors.textGlow(
-                        Theme.of(context).colorScheme.secondary),
-                  ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'THE HOST HAS INITIATED THE SEQUENCE. CONNECT TO THE TERMINAL NOW.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.8),
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'AUTO-UPLINK IN ${timeoutSeconds}S',
-              style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .secondary
-                        .withValues(alpha: 0.6),
-                    letterSpacing: 1.2,
-                  ),
-            ),
-            const SizedBox(height: 32),
-            CBPrimaryButton(
-              label: 'INITIATE JOIN',
-              backgroundColor: Theme.of(context)
-                  .colorScheme
-                  .secondary
-                  .withValues(alpha: 0.2),
-              foregroundColor: Theme.of(context).colorScheme.secondary,
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-          ],
-        ),
-      ).then((value) {
-        dialogCompleted = true;
-        return value ?? false;
-      });
-
-      final autoJoinFuture = Future<bool>.delayed(
-        widget.startConfirmTimeout,
-        () => true,
-      );
-
-      final shouldJoin = await Future.any<bool>([
-        dialogFuture,
-        autoJoinFuture,
-      ]);
-
-      if (!mounted) {
-        return;
-      }
-
-      if (!dialogCompleted) {
-        Navigator.of(context, rootNavigator: true).pop(true);
-      }
-
-      ref
-          .read(playerOnboardingProvider.notifier)
-          .setAwaitingStartConfirmation(false);
-      if (shouldJoin) {
-        _beginTransitionToGame();
-      } else {
-        _handlingSetupTransition = false;
-      }
-    });
-  }
-
-  void _beginTransitionToGame() {
+    void _beginTransitionToGame() {
     if (!mounted) {
       return;
     }
@@ -240,14 +163,15 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
 
     Widget activeWidget;
     switch (destination) {
-      case PlayerDestination.home:
-        activeWidget = const HomeScreen();
+      case PlayerDestination.connect:
+        activeWidget = const ConnectScreen();
         break;
       case PlayerDestination.lobby:
         activeWidget = const LobbyScreen();
         break;
       case PlayerDestination.claim:
-        activeWidget = const ClaimScreen();
+        // Identity is now auto-claimed by authUid/name; skip straight to game.
+        activeWidget = const GameScreen();
         break;
       case PlayerDestination.transition:
         activeWidget = const StartTransitionScreen();

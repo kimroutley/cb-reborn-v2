@@ -2,7 +2,52 @@
 
 ## Last updated
 
-2026-02-21
+2026-02-24
+
+## Delta (2026-02-25)
+
+- **Gemini AI Integration:**
+  - Configured API key injection via `.env.json` and `launch.json` for secure local development.
+  - Updated `ScriptStep` logic to support AI variations (ready for runtime implementation).
+- **Mobile Experience Overhaul (Host & Player):**
+  - **Host Lobby:** Refactored to tabbed interface (Roster/Connect) for better phone usability.
+  - **Host Game Control:** Implemented persistent phase bar, collapsible dashboard panels, and responsive action buttons for mobile "Command Center" feel.
+  - **Player Night Phase:** Added immersive haptic feedback (wake-up vibration, sleep confirmation, Roofi paralysis alert + dialog).
+  - **Guide Screen (Blackbook):** Refactored for responsive design with mobile-first navigation (bottom nav, modal sheets).
+- **Core Messaging Audit:**
+  - Audited and updated all 13 Role Action prompts and Host feedback logs for thematic consistency and clarity.
+- **Player App Feature Polish:**
+  - **Tactical Brief:** Added "Dos and Don'ts" and situation tips to the "I'm playing as..." widget (`BiometricIdentityHeader`), revealing a summarized strategy guide on long-press.
+  - **Alliance Graph:** Added a visual network graph (`AllianceGraphView`) to the `RoleStrategySheet` (Blackbook), replacing the text list of allies/threats.
+- **UI Polish (Host & Player):**
+  - **Side Drawer:** Upgraded to Material 3 pill-shaped tiles with refined glass gradients.
+  - **Guide Screen:** Grouped operative stats in `CBGuideScreen` for better layout and alignment.
+- **Backend / AI:**
+  - **Gemini Runtime:** Refactored `GeminiNarrationService` to use the official Google Generative AI SDK, implemented robust error handling, safety settings, and prompt logic.
+- **Documentation:**
+  - Created comprehensive `docs/INDEX.md` mapping the entire repository.
+  - Created `packages/cb_comms/README.md`.
+
+## Delta (2026-02-24)
+
+- **Hall of Fame feature polish completed:**
+  - Rebuilt `HostHallOfFameScreen` from simple StatsView wrapper to full-featured Role Awards screen with overview stats, role/tier filters, and expandable award ladders with unlock status + tier-colored `CBMiniTag` indicators.
+  - Upgraded Player `HallOfFameScreen` role award cards with tap-to-expand award ladder UI (lock/unlock icons, tier colors, award descriptions).
+  - Fixed `DropdownButtonFormField` parameter bug (changed `initialValue` to `value`) in Player HoF filters.
+  - Added Role Awards count to Host `StatsView` overview header.
+- **Ghost Lounge + Dead Pool integration completed:**
+  - Added Ghost Chat UI panel to `GhostLoungeView` (text input + message list for dead-player-to-dead-player chat).
+  - Wired `sendGhostChat` bridge action through `GhostLoungeContent` in the Player app.
+  - Created `DeadPoolIntelPanel` for Host Nerve Center dashboard showing active bets grouped by target, bettor names, and ghost comms intercept preview.
+  - Upgraded `HostChatView` to tabbed interface: LIVE FEED + GHOST COMMS with badge count, ghost message parsing, and `CBMiniTag(GHOST)` indicators.
+  - Wired `DeadPoolIntelPanel` into `DashboardView` (auto-hides when no dead players).
+- **Host UI Polish pass completed:**
+  - Implemented Tactical Information Density in Host Feed via `isCompact: true`.
+  - Added Live Metadata Layering using `CBMiniTag` in Host Feed (GHOSTED, DEAD, SIN BIN, MUTED).
+  - Enforced Prismatic Authority for system messages using `isPrismatic`.
+  - Enabled Direct Action Integration with `showMessageContextActions` inside the Feed.
+  - Added Narrator-Specific Accents (color shifting based on active `hostPersonalityId`).
+  - Enhanced Phase Dividers using `CBFeedSeparator(isCinematic: true)`.
 
 ## Delta (2026-02-21)
 

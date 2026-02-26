@@ -4,20 +4,21 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('ProfileFormValidation.validateUsername', () {
     test('accepts valid username', () {
-      expect(ProfileFormValidation.validateUsername('Neon Host'), isNull);
+      expect(ProfileFormValidation.validateUsername('Neon Host'),
+          UsernameValidationState.valid);
     });
 
     test('rejects short username', () {
       expect(
         ProfileFormValidation.validateUsername('ab'),
-        isNotNull,
+        UsernameValidationState.tooShort,
       );
     });
 
     test('rejects invalid characters', () {
       expect(
         ProfileFormValidation.validateUsername('bad@name'),
-        isNotNull,
+        UsernameValidationState.invalidCharacters,
       );
     });
   });
@@ -31,13 +32,14 @@ void main() {
     });
 
     test('allows empty public id', () {
-      expect(ProfileFormValidation.validatePublicPlayerId(''), isNull);
+      expect(ProfileFormValidation.validatePublicPlayerId(''),
+          PublicIdValidationState.valid);
     });
 
     test('rejects too-short public id', () {
       expect(
         ProfileFormValidation.validatePublicPlayerId('ab'),
-        isNotNull,
+        PublicIdValidationState.tooShort,
       );
     });
   });

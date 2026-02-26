@@ -1,6 +1,5 @@
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:cb_theme/src/widgets/cb_role_avatar.dart';
 
 enum CBMessageStyle {
   standard,
@@ -25,6 +24,11 @@ class CBMessageBubble extends StatelessWidget {
   final String? avatarAsset;
   final bool isSender;
   final CBMessageGroupPosition groupPosition;
+  final bool isCompact;
+  final List<Widget>? tags;
+  final bool isPrismatic;
+  final VoidCallback? onTap;
+  final VoidCallback? onAvatarTap;
 
   /// Deprecated: Use style instead.
   final bool? isSystemMessage;
@@ -39,6 +43,11 @@ class CBMessageBubble extends StatelessWidget {
     this.avatarAsset,
     this.isSender = false,
     this.groupPosition = CBMessageGroupPosition.single,
+    this.isCompact = false,
+    this.tags,
+    this.isPrismatic = false,
+    this.onTap,
+    this.onAvatarTap,
     @Deprecated('Use style: CBMessageStyle.system instead')
     this.isSystemMessage,
   });
@@ -66,29 +75,42 @@ class CBMessageBubble extends StatelessWidget {
     final accentColor =
         color ?? (isNarrative ? Theme.of(context).colorScheme.secondary : Theme.of(context).colorScheme.outline);
 
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: accentColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(100),
-          border: isNarrative
-              ? Border.all(color: accentColor.withValues(alpha: 0.3))
-              : null,
+    Widget content = Container(
+      margin: EdgeInsets.symmetric(vertical: isCompact ? 4 : 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: isCompact ? 3 : 6),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(100),
+        border: isNarrative
+            ? Border.all(color: accentColor.withValues(alpha: 0.3))
+            : null,
+      ),
+      child: Text(
+        message.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: accentColor,
+          letterSpacing: 1.0,
+          fontSize: isCompact ? 9 : 10,
+          fontWeight: isNarrative ? FontWeight.w700 : FontWeight.w500,
+          shadows: isNarrative ? CBColors.textGlow(accentColor, intensity: 0.4) : null,
         ),
-        child: Text(
-          message.toUpperCase(),
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: accentColor,
-            letterSpacing: 1.0,
-            fontSize: 10,
-            fontWeight: isNarrative ? FontWeight.w700 : FontWeight.w500,
-          ),
-          textAlign: TextAlign.center,
-        ),
+        textAlign: TextAlign.center,
       ),
     );
+
+    if (isPrismatic) {
+      return Center(
+        child: CBGlassTile(
+          isPrismatic: true,
+          padding: EdgeInsets.zero,
+          margin: EdgeInsets.symmetric(vertical: isCompact ? 4 : 8, horizontal: 24),
+          borderRadius: BorderRadius.circular(100),
+          child: content,
+        ),
+      );
+    }
+
+    return Center(child: content);
   }
 
   Widget _buildBubbleMessage(BuildContext context) {
@@ -169,14 +191,14 @@ class CBMessageBubble extends StatelessWidget {
       padding: EdgeInsets.only(
           top: (groupPosition == CBMessageGroupPosition.top ||
                   groupPosition == CBMessageGroupPosition.single)
-              ? 4
+              ? (isCompact ? 2 : 4)
               : 1,
           bottom: (groupPosition == CBMessageGroupPosition.bottom ||
                   groupPosition == CBMessageGroupPosition.single)
-              ? 4
+              ? (isCompact ? 2 : 4)
               : 1,
-          left: 8,
-          right: 8),
+          left: isCompact ? 4 : 8,
+          right: isCompact ? 4 : 8),
       child: Row(
         mainAxisAlignment:
             isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -186,8 +208,8 @@ class CBMessageBubble extends StatelessWidget {
             if (showAvatar)
               _buildAvatar(accentColor)
             else
-              const SizedBox(width: 32), // Preserve space for alignment
-            const SizedBox(width: 8),
+              SizedBox(width: isCompact ? 24 : 32), // Preserve space for alignment
+            SizedBox(width: isCompact ? 4 : 8),
           ],
           Flexible(
             child: Column(
@@ -196,34 +218,55 @@ class CBMessageBubble extends StatelessWidget {
               children: [
                 if (showSenderName)
                   Padding(
-                    padding: const EdgeInsets.only(left: 12, bottom: 4),
+                    padding: EdgeInsets.only(left: isCompact ? 8 : 12, bottom: isCompact ? 2 : 4),
                     child: Text(
                       sender.toUpperCase(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: accentColor,
-                        fontSize: 10,
+                        fontSize: isCompact ? 8 : 10,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isSender
-                        ? accentColor.withValues(alpha: 0.2)
-                        : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
-                    borderRadius: borderRadius,
-                    border: isSender
-                        ? Border.all(color: accentColor.withValues(alpha: 0.5))
-                        : null,
-                  ),
-                  child: Text(
-                    message,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      height: 1.4,
-                    ),
+                GestureDetector(
+                  onTap: onTap,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isCompact ? 12 : 16,
+                          vertical: isCompact ? 6 : 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSender
+                              ? accentColor.withValues(alpha: 0.2)
+                              : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                          borderRadius: borderRadius,
+                          border: isSender
+                              ? Border.all(color: accentColor.withValues(alpha: 0.5))
+                              : null,
+                        ),
+                        child: Text(
+                          message,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            height: 1.4,
+                            fontSize: isCompact ? 13 : null,
+                          ),
+                        ),
+                      ),
+                      if (tags != null && tags!.isNotEmpty)
+                        Positioned(
+                          top: -6,
+                          right: isSender ? null : -4,
+                          left: isSender ? -4 : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: tags!,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 if (groupPosition == CBMessageGroupPosition.bottom ||
@@ -235,22 +278,16 @@ class CBMessageBubble extends StatelessWidget {
                         _formatTime(timestamp!),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                          fontSize: 9,
+                          fontSize: isCompact ? 8 : 9,
                         ),
                       ),
                     ),
-                  ),
               ],
             ),
           ),
           if (isSender) ...[
-            const SizedBox(width: 8),
-            // Host usually doesn't need avatar on right for every message,
-            // but if we want it, we can apply similar logic.
-            // For now, let's keep it simple and just show it if single/bottom or always?
-            // "Advanced messaging" often skips own avatar.
-            // The previous implementation showed it. I'll hide it for cleaner look unless single.
-            const SizedBox(width: 32),
+            SizedBox(width: isCompact ? 4 : 8),
+            SizedBox(width: isCompact ? 24 : 32),
           ],
         ],
       ),
@@ -258,21 +295,30 @@ class CBMessageBubble extends StatelessWidget {
   }
 
   Widget _buildAvatar(Color color) {
-    if (avatarAsset == null) {
-      return CircleAvatar(
-        radius: 16,
-        backgroundColor: color.withValues(alpha: 0.2),
-        child: Icon(Icons.person, size: 16, color: color),
-      );
-    }
-    return CBRoleAvatar(
-      assetPath: avatarAsset,
-      color: color,
-      size: 32,
+    final size = isCompact ? 24.0 : 32.0;
+    final avatar = avatarAsset == null
+        ? CircleAvatar(
+            radius: size / 2,
+            backgroundColor: color.withValues(alpha: 0.2),
+            child: Icon(
+              Icons.person_outline_rounded,
+              size: size * 0.6,
+              color: color,
+            ),
+          )
+        : CBRoleAvatar(
+            assetPath: avatarAsset!,
+            color: color,
+            size: size,
+          );
+
+    return GestureDetector(
+      onTap: onAvatarTap,
+      child: avatar,
     );
   }
 
-  String _formatTime(DateTime dt) {
-    return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+  String _formatTime(DateTime time) {
+    return "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
   }
 }

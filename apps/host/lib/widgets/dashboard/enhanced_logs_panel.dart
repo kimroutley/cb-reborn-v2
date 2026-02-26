@@ -41,7 +41,7 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
 
           // Filter chips
           Wrap(
@@ -90,7 +90,7 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
             padding: EdgeInsets.zero,
             borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
             child: Container(
-              height: 250,
+              height: 180,
               decoration: BoxDecoration(
                 color: scheme.surface.withValues(alpha: 0.2),
               ),
@@ -107,40 +107,19 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
                         log.contains('NIGHT') ||
                         log.contains('DAY');
 
-                    final logColor = isHost
-                        ? scheme.error
-                        : isSystem
-                            ? scheme.secondary
-                            : scheme.onSurface.withValues(alpha: 0.8);
+                    if (isSystem) {
+                      return CBFeedSeparator(
+                        label: log.replaceAll('──', '').trim(),
+                        color: scheme.secondary,
+                      );
+                    }
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '# ',
-                            style: textTheme.labelSmall!.copyWith(
-                              color: logColor.withValues(alpha: 0.5),
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              log.toUpperCase(),
-                              style: textTheme.labelSmall!.copyWith(
-                                color: logColor,
-                                fontSize: 9,
-                                letterSpacing: 0.5,
-                                fontFamily: 'RobotoMono',
-                                fontWeight: (isHost || isSystem)
-                                    ? FontWeight.w800
-                                    : FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    return CBMessageBubble(
+                      sender: isHost ? 'HOST' : 'SYSTEM',
+                      message: log.replaceFirst('[HOST] ', '').toUpperCase(),
+                      style: isHost ? CBMessageStyle.narrative : CBMessageStyle.system,
+                      color: isHost ? scheme.error : scheme.primary,
+                      isCompact: true,
                     );
                   },
                 ),

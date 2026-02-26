@@ -37,6 +37,10 @@ class RoleStrategy {
   final String lateGame;
   final List<String> counters;
   final List<String> synergies;
+  final List<String> dos;
+  final List<String> donts;
+  final List<String> deceptionTactics;
+  final List<String> betrayalAdvice;
 
   const RoleStrategy({
     required this.roleId,
@@ -45,6 +49,10 @@ class RoleStrategy {
     required this.lateGame,
     required this.counters,
     required this.synergies,
+    this.dos = const [],
+    this.donts = const [],
+    this.deceptionTactics = const [],
+    this.betrayalAdvice = const [],
   });
 
   factory RoleStrategy.fromJson(Map<String, dynamic> json) {
@@ -55,6 +63,14 @@ class RoleStrategy {
       lateGame: json['lateGame'] as String,
       counters: (json['counters'] as List<dynamic>).cast<String>(),
       synergies: (json['synergies'] as List<dynamic>).cast<String>(),
+      dos: (json['dos'] as List<dynamic>?)?.cast<String>() ?? const [],
+      donts: (json['donts'] as List<dynamic>?)?.cast<String>() ?? const [],
+      deceptionTactics:
+          (json['deceptionTactics'] as List<dynamic>?)?.cast<String>() ??
+              const [],
+      betrayalAdvice:
+          (json['betrayalAdvice'] as List<dynamic>?)?.cast<String>() ??
+              const [],
     );
   }
 }

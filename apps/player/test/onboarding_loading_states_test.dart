@@ -173,7 +173,7 @@ void main() {
         find.byType(CBTextField).first,
         'NEON-ABCDEF',
       );
-      await tester.tap(find.text('INITIATE UPLINK'));
+      await tester.tap(find.text('ENTER THE CLUB'));
       await tester.pump();
 
       expect(find.text('CONNECTING TO HOST...'), findsOneWidget);

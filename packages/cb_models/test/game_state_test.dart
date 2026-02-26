@@ -43,7 +43,7 @@ void main() {
       expect(gameState.bulletinBoard, isEmpty);
       expect(gameState.syncMode, SyncMode.local);
       expect(gameState.gameStyle, GameStyle.chaos);
-      expect(gameState.tieBreaksRandomly, isFalse);
+      expect(gameState.tieBreakStrategy, TieBreakStrategy.peaceful);
       expect(gameState.eyesOpen, isTrue);
     });
 
@@ -58,10 +58,12 @@ void main() {
         lastNightReport: ['Player 2 was saved'],
         dayVoteTally: {'p1': 3},
         winner: Team.partyAnimals,
-        privateMessages: {'p1': ['You saved p2']},
+        privateMessages: {
+          'p1': ['You saved p2'],
+        },
         gameHistory: ['Game started'],
         bulletinBoard: [
-           BulletinEntry(
+          BulletinEntry(
             id: 'b1',
             title: 'News',
             content: 'Nothing happened',
@@ -94,10 +96,7 @@ void main() {
     });
 
     test('currentStep getter returns correct step', () {
-      final gameState = GameState(
-        scriptQueue: [testStep],
-        scriptIndex: 0,
-      );
+      final gameState = GameState(scriptQueue: [testStep], scriptIndex: 0);
 
       expect(gameState.currentStep, isNotNull);
       expect(gameState.currentStep!.id, testStep.id);
@@ -113,10 +112,7 @@ void main() {
     });
 
     test('currentStep getter returns null when queue is empty', () {
-      const gameState = GameState(
-        scriptQueue: [],
-        scriptIndex: 0,
-      );
+      const gameState = GameState(scriptQueue: [], scriptIndex: 0);
 
       expect(gameState.currentStep, isNull);
     });

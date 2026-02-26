@@ -133,6 +133,7 @@ class _StatsViewState extends State<StatsView> {
   }
 
   Widget _buildHeader(ColorScheme scheme) {
+    final totalAwards = allRoleAwardDefinitions().length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -157,11 +158,23 @@ class _StatsViewState extends State<StatsView> {
                 scheme.secondary,
               ),
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildQuickStatTile(
+                context,
+                'ROLE AWARDS',
+                '$totalAwards',
+                Icons.emoji_events_rounded,
+                scheme.tertiary,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 24),
         if (widget.gameState.phase != GamePhase.lobby) ...[
           _buildLiveIntel(scheme),
+          const SizedBox(height: 24),
+          _buildVotingArchive(scheme),
           const SizedBox(height: 24),
         ],
         _buildStatsCard(scheme),
@@ -284,6 +297,79 @@ class _StatsViewState extends State<StatsView> {
               letterSpacing: 1.5,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVotingArchive(ColorScheme scheme) {
+    final textTheme = Theme.of(context).textTheme;
+    final eventLog = widget.gameState.eventLog;
+    final voteEvents = eventLog
+        .whereType<GameEventVote>()
+        .toList()
+      ..sort((a, b) => a.day.compareTo(b.day));
+
+    if (voteEvents.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Group by day
+    final byDay = <int, List<GameEventVote>>{};
+    for (final v in voteEvents) {
+      byDay.putIfAbsent(v.day, () => []).add(v);
+    }
+
+    return CBPanel(
+      padding: const EdgeInsets.all(20),
+      borderColor: scheme.tertiary.withValues(alpha: 0.4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CBBadge(text: 'VOTING ARCHIVE', color: scheme.tertiary),
+          const SizedBox(height: 16),
+          for (final day in byDay.keys.toList()..sort()) ...[
+            Text(
+              'DAY $day',
+              style: textTheme.labelSmall?.copyWith(
+                color: scheme.tertiary,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+                fontSize: 9,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...byDay[day]!.map((v) {
+              final voter = widget.gameState.players
+                  .cast<Player?>()
+                  .firstWhere((p) => p?.id == v.voterId, orElse: () => null);
+              final target = widget.gameState.players
+                  .cast<Player?>()
+                  .firstWhere((p) => p?.id == v.targetId, orElse: () => null);
+              final voterLabel = voter?.name ?? v.voterId;
+              final targetLabel = v.targetId == 'abstain'
+                  ? 'ABSTAIN'
+                  : (target?.name ?? v.targetId);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Icon(Icons.how_to_vote_rounded,
+                        size: 12, color: scheme.onSurface.withValues(alpha: 0.4)),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$voterLabel → $targetLabel',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.7),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: 12),
+          ],
         ],
       ),
     );

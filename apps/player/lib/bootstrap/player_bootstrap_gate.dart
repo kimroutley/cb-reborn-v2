@@ -46,6 +46,21 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
   Future<void> _runBootstrap() async {
     _initializeProgress();
 
+    try {
+      await _runBootstrapSteps()
+          .timeout(const Duration(seconds: 30));
+    } catch (e) {
+      debugPrint('[Bootstrap] Bootstrap timed out or failed: $e');
+    }
+
+    if (!mounted) {
+      return;
+    }
+    await _setStatus('BOOTSTRAP COMPLETE');
+    setState(() => _ready = true);
+  }
+
+  Future<void> _runBootstrapSteps() async {
     await _setStatus('PREPARING OFFLINE VAULT...');
     if (!widget.skipPersistenceInit) {
       await _initPersistence();
@@ -60,27 +75,24 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
 
     await _setStatus('RESTORING LAST SESSION...');
     await _restoreCachedSession();
-    _advanceProgress();
 
     if (!widget.skipAssetWarmup) {
       await _warmCriticalAssets();
     }
-
-    if (!mounted) {
-      return;
-    }
-    await _setStatus('BOOTSTRAP COMPLETE');
-    setState(() => _ready = true);
   }
 
   void _initializeProgress() {
-    var total = 1; // session restore always runs
+    var total = 0; // cumulative progress
     if (!widget.skipPersistenceInit) {
       total += 1;
     }
     if (!widget.skipFirestoreCacheConfig) {
       total += 1;
     }
+
+    // Always runs
+    total += 1; // session restore
+
     if (!widget.skipAssetWarmup) {
       total += _criticalAssetCount;
     }
@@ -130,37 +142,49 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
     }
 
     try {
-      FirebaseFirestore.instance.settings = const Settings(
-        persistenceEnabled: true,
-        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-      );
+      await Future.microtask(() {
+        FirebaseFirestore.instance.settings = const Settings(
+          persistenceEnabled: true,
+          cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+        );
+      }).timeout(const Duration(seconds: 5));
     } catch (_) {
       // Best effort only.
     }
   }
 
   Future<void> _restoreCachedSession() async {
-    final cache = ref.read(playerSessionCacheRepositoryProvider);
-    final entry = await cache.loadSession();
-    if (entry == null) {
-      return;
+    try {
+      final cache = ref.read(playerSessionCacheRepositoryProvider);
+      final entry = await cache.loadSession().timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => null,
+          );
+      if (entry == null) {
+        _advanceProgress();
+        return;
+      }
+
+      if (entry.mode != CachedSyncMode.cloud) {
+        await cache.clear().timeout(const Duration(seconds: 3));
+        _advanceProgress();
+        return;
+      }
+
+      ref.read(cloudPlayerBridgeProvider.notifier).restoreFromCache(entry);
+
+      final qp = <String, String>{
+        'code': entry.joinCode,
+        'mode': 'cloud',
+        'autoconnect': '1',
+      };
+      ref.read(pendingJoinUrlProvider.notifier).setValue(
+            Uri(path: '/join', queryParameters: qp).toString(),
+          );
+    } catch (e) {
+      debugPrint('[Bootstrap] Session restore failed: $e');
     }
-
-    if (entry.mode != CachedSyncMode.cloud) {
-      await cache.clear();
-      return;
-    }
-
-    ref.read(cloudPlayerBridgeProvider.notifier).restoreFromCache(entry);
-
-    final qp = <String, String>{
-      'code': entry.joinCode,
-      'mode': 'cloud',
-      'autoconnect': '1',
-    };
-    ref.read(pendingJoinUrlProvider.notifier).setValue(
-          Uri(path: '/join', queryParameters: qp).toString(),
-        );
+    _advanceProgress();
   }
 
   Future<void> _warmCriticalAssets() async {
@@ -182,15 +206,21 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
         return;
       }
       try {
-        await precacheImage(provider, context);
+        await precacheImage(provider, context)
+            .timeout(const Duration(seconds: 3));
       } catch (_) {
-        // Continue warming remaining assets.
+        // Asset missing or timed out -- continue warming remaining assets.
       }
       _advanceProgress();
     }
 
     await _setStatus('WARMING AUDIO CUES...');
-    await SoundService.warmupCoreAudioAssets();
+    try {
+      await SoundService.warmupCoreAudioAssets()
+          .timeout(const Duration(seconds: 5));
+    } catch (_) {
+      // Audio warmup failed or timed out -- non-critical.
+    }
     _advanceProgress(SoundService.coreAudioWarmupUnitCount);
   }
 

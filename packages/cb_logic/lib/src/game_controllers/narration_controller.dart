@@ -25,6 +25,15 @@ class GameNarrationController {
     for (final event in state.gameHistory) {
       buffer.writeln(event);
     }
+    final chatEntries =
+        state.bulletinBoard.where((e) => e.type == 'chat').toList();
+    if (chatEntries.isNotEmpty) {
+      buffer.writeln('');
+      buffer.writeln('=== PLAYER CHAT ===');
+      for (final entry in chatEntries) {
+        buffer.writeln('[${entry.title}]: ${entry.content}');
+      }
+    }
     if (state.winner != null) {
       buffer.writeln('');
       buffer.writeln('=== WINNER ===');
@@ -74,26 +83,38 @@ class GameNarrationController {
       buffer.writeln(event);
     }
 
+    final chatEntries =
+        state.bulletinBoard.where((e) => e.type == 'chat').toList();
+    if (chatEntries.isNotEmpty) {
+      buffer.writeln('\n=== PLAYER CHAT (use these quotes to enrich the recap) ===');
+      for (final entry in chatEntries) {
+        buffer.writeln('[${entry.title}]: ${entry.content}');
+      }
+    }
+
     buffer.writeln('\n=== TASK ===');
     buffer.writeln(
-      'Create a 200-300 word dramatic recap of this game. Make it memorable!',
+      'Create a 200-300 word dramatic recap of this game. '
+      'Where possible, quote actual player chat messages to bring the story to life. '
+      'Make it memorable!',
     );
 
     return buffer.toString();
   }
 
-  Future<String?> generateDynamicNightNarration(GameState state, {
+  Future<Map<String, String>> generateDualTrackNightNarration(GameState state, {
     String? personalityId,
     String? voice,
     String? variationPrompt,
   }) async {
     if (state.lastNightReport.isEmpty) {
-      return null;
+      return {'player': '', 'host': ''};
     }
 
     var effectiveVoice = voice ?? 'nightclub_noir';
     var effectivePrompt = variationPrompt;
 
+    bool isMature = false;
     if (personalityId != null) {
       final p = hostPersonalities.firstWhere(
         (element) => element.id == personalityId,
@@ -104,15 +125,33 @@ class GameNarrationController {
         effectivePrompt,
         p.variationPrompt,
       ].whereType<String>().join(' ');
+
+      if (p.id == 'the_roaster' || p.name.contains('R-Rated')) {
+        isMature = true;
+      }
     }
 
-    return _geminiService.generateNightNarration(
+    final playerNarration = await _geminiService.generateNightNarration(
       lastNightReport: state.lastNightReport,
       dayCount: state.dayCount,
       aliveCount: state.players.where((p) => p.isAlive).length,
       voice: effectiveVoice,
       variationPrompt: effectivePrompt,
+      isMature: isMature,
+      forHostOnly: false,
     );
+
+    final hostNarration = await _geminiService.generateNightNarration(
+      lastNightReport: state.lastNightReport,
+      dayCount: state.dayCount,
+      aliveCount: state.players.where((p) => p.isAlive).length,
+      voice: effectiveVoice,
+      variationPrompt: effectivePrompt,
+      isMature: true, // Host is always mature
+      forHostOnly: true,
+    );
+
+    return {'player': playerNarration, 'host': hostNarration};
   }
 
   Future<String?> generateCurrentStepNarrationVariation(GameState state, {
@@ -126,6 +165,7 @@ class GameNarrationController {
     var effectiveVoice = step.aiVariationVoice ?? 'nightclub_noir';
     var effectivePrompt = step.aiVariationPrompt;
 
+    bool isMature = false;
     if (personalityId != null) {
       final p = hostPersonalities.firstWhere(
         (element) => element.id == personalityId,
@@ -136,6 +176,10 @@ class GameNarrationController {
         effectivePrompt,
         p.variationPrompt,
       ].whereType<String>().join(' ');
+
+      if (p.id == 'the_roaster' || p.name.contains('R-Rated')) {
+        isMature = true;
+      }
     }
 
     final variation = await _geminiService.generateStepNarrationVariation(
@@ -143,6 +187,7 @@ class GameNarrationController {
       stepTitle: step.title,
       voice: effectiveVoice,
       variationPrompt: effectivePrompt,
+      isMature: isMature,
     );
 
     if (variation.trim().isEmpty) {

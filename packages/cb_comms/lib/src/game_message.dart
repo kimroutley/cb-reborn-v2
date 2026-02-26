@@ -74,6 +74,18 @@ class GameMessage {
     });
   }
 
+  factory GameMessage.bulletin({
+    required String title,
+    required String content,
+    String? roleId,
+  }) {
+    return GameMessage(type: 'bulletin', payload: {
+      'title': title,
+      'content': content,
+      if (roleId != null) 'roleId': roleId,
+    });
+  }
+
   factory GameMessage.playerKicked({required String playerId}) {
     return GameMessage(type: 'player_kicked', payload: {
       'playerId': playerId,

@@ -93,6 +93,26 @@ class ProfileRepository {
     return excludingUid != null && existing.docs.first.id == excludingUid;
   }
 
+  Future<bool> isPublicIdTaken(String publicId) async {
+    final available = await isPublicPlayerIdAvailable(publicId);
+    return !available;
+  }
+
+  Future<void> updateProfile(String uid, Map<String, dynamic> data) async {
+    final payload = Map<String, dynamic>.from(data);
+    if (payload.containsKey('username')) {
+      payload['usernameLower'] =
+          (payload['username'] as String).trim().toLowerCase();
+    }
+    if (payload.containsKey('publicPlayerId')) {
+      final pid = payload['publicPlayerId'] as String;
+      if (pid.isNotEmpty) {
+        payload['publicPlayerIdLower'] = normalizePublicPlayerId(pid);
+      }
+    }
+    await _profiles.doc(uid).set(payload, SetOptions(merge: true));
+  }
+
   Future<void> upsertBasicProfile({
     required String uid,
     required String username,
@@ -140,6 +160,9 @@ class ProfileRepository {
       } else {
         payload['avatarEmoji'] = FieldValue.delete();
       }
+
+      // photoUrl is preserved on upsert -- it is managed separately by the
+      // photo upload service and should not be cleared on basic profile save.
 
       if (trimmedPreferredStyle != null && trimmedPreferredStyle.isNotEmpty) {
         payload['preferredStyle'] = trimmedPreferredStyle;

@@ -33,8 +33,9 @@ class MedicAction implements NightActionStrategy {
       if (targetId != null) {
         final target = context.getPlayer(targetId);
         context.protectedPlayerIds.add(targetId);
-        context.addPrivateMessage(medic.id, 'You healed ${target.name}.');
-        context.addReport('Medic protected ${target.name}.');
+        context.addPrivateMessage(
+            medic.id, 'You chose to protect ${target.name}. If targeted tonight, they survive.');
+        context.addReport('Medic chose to protect ${target.name}.');
       }
     }
   }

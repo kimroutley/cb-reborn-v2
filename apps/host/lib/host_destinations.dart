@@ -4,6 +4,7 @@ import 'package:cb_models/cb_models.dart';
 enum HostDestination {
   home,
   lobby,
+  gameSetup,
   game,
   guides,
   gamesNight,

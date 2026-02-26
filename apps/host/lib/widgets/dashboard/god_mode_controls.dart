@@ -15,6 +15,7 @@ class GodModeControls extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
     final alivePlayers = gameState.players.where((p) => p.isAlive).toList();
+    final deadPlayers = gameState.players.where((p) => !p.isAlive).toList();
     final alivePlayerIds =
         gameState.players.where((p) => p.isAlive).map((p) => p.id).toSet();
     final pendingDramaSwapTargetIds = <String>{};
@@ -55,8 +56,8 @@ class GodModeControls extends ConsumerWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 20),
-          if (alivePlayers.isEmpty)
+          const SizedBox(height: 12),
+          if (alivePlayers.isEmpty && deadPlayers.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -69,7 +70,7 @@ class GodModeControls extends ConsumerWidget {
                 ),
               ),
             )
-          else
+          else ...[
             ...alivePlayers.map((player) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _buildPlayerControlTile(
@@ -80,6 +81,24 @@ class GodModeControls extends ConsumerWidget {
                         pendingDramaSwapTargetIds.contains(player.id),
                   ),
                 )),
+            if (deadPlayers.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                '// DECEASED ROSTER — REVIVE CANDIDATES',
+                style: textTheme.labelSmall!.copyWith(
+                  color: scheme.error.withValues(alpha: 0.6),
+                  fontSize: 8,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...deadPlayers.map((player) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _buildDeadPlayerTile(context, ref, player),
+                  )),
+            ],
+          ],
         ],
       ),
     );
@@ -175,7 +194,7 @@ class GodModeControls extends ConsumerWidget {
                       ),
                       _ActionChip(
                         label:
-                            player.hasHostShield ? 'DISPELS SHIELD' : 'SHIELD',
+                            player.hasHostShield ? 'DISPEL SHIELD' : 'SHIELD',
                         icon: Icons.shield_rounded,
                         color: scheme.primary,
                         onTap: () => _grantShield(context, ref, player),
@@ -191,6 +210,18 @@ class GodModeControls extends ConsumerWidget {
                         icon: Icons.visibility_off_rounded,
                         color: scheme.secondary,
                         onTap: () => _toggleShadowBan(context, ref, player),
+                      ),
+                      _ActionChip(
+                        label: 'SWAP ROLE',
+                        icon: Icons.swap_horizontal_circle_rounded,
+                        color: CBColors.alertOrange,
+                        onTap: () => _swapRole(context, ref, player),
+                      ),
+                      _ActionChip(
+                        label: 'REVEAL ROLE',
+                        icon: Icons.badge_rounded,
+                        color: scheme.tertiary,
+                        onTap: () => _revealRole(context, ref, player),
                       ),
                       _ActionChip(
                         label: 'EJECT',
@@ -406,6 +437,353 @@ class GodModeControls extends ConsumerWidget {
     );
   }
 
+  Widget _buildDeadPlayerTile(
+      BuildContext context, WidgetRef ref, Player player) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final roleColor = CBColors.fromHex(player.role.colorHex);
+
+    return CBGlassTile(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      borderColor: scheme.error.withValues(alpha: 0.25),
+      child: Row(
+        children: [
+          CBRoleAvatar(
+            assetPath: player.role.assetPath,
+            color: roleColor.withValues(alpha: 0.4),
+            size: 30,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  player.name.toUpperCase(),
+                  style: textTheme.labelMedium!.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: scheme.onSurface.withValues(alpha: 0.5),
+                    decoration: TextDecoration.lineThrough,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                Text(
+                  '${player.role.name.toUpperCase()} · ${player.deathReason?.toUpperCase() ?? "UNKNOWN"} · DAY ${player.deathDay ?? "?"}',
+                  style: textTheme.labelSmall!.copyWith(
+                    color: scheme.error.withValues(alpha: 0.5),
+                    fontSize: 8,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _ActionChip(
+            label: 'REVIVE',
+            icon: Icons.favorite_rounded,
+            color: scheme.tertiary,
+            onTap: () {
+              ref.read(gameProvider.notifier).revivePlayer(player.id);
+              showThemedSnackBar(
+                context,
+                '${player.name.toUpperCase()} RESURRECTED',
+                accentColor: scheme.tertiary,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _swapRole(BuildContext context, WidgetRef ref, Player player) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final allRoles = roleCatalog.where((r) => r.id != 'unassigned').toList();
+    String? selectedRoleId;
+
+    showThemedDialog(
+      context: context,
+      accentColor: CBColors.alertOrange,
+      child: StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'PROTOCOL: ROLE OVERRIDE',
+                style: textTheme.labelLarge!.copyWith(
+                  color: CBColors.alertOrange,
+                  letterSpacing: 1.6,
+                  fontWeight: FontWeight.w900,
+                  shadows:
+                      CBColors.textGlow(CBColors.alertOrange, intensity: 0.5),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Reassign ${player.name.toUpperCase()} to a different role mid-game.',
+                style: textTheme.bodyMedium!.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                height: 250,
+                child: ListView.builder(
+                  itemCount: allRoles.length,
+                  itemBuilder: (context, index) {
+                    final role = allRoles[index];
+                    final roleColor = CBColors.fromHex(role.colorHex);
+                    final isSelected = selectedRoleId == role.id;
+                    final isCurrent = player.role.id == role.id;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: InkWell(
+                        onTap: isCurrent
+                            ? null
+                            : () => setDialogState(
+                                () => selectedRoleId = role.id),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? roleColor.withValues(alpha: 0.15)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSelected
+                                  ? roleColor
+                                  : Colors.transparent,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              CBRoleAvatar(
+                                assetPath: role.assetPath,
+                                color: roleColor,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  role.name.toUpperCase(),
+                                  style: textTheme.labelSmall!.copyWith(
+                                    color: isCurrent
+                                        ? scheme.onSurface
+                                            .withValues(alpha: 0.3)
+                                        : roleColor,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              if (isCurrent)
+                                CBBadge(
+                                    text: 'CURRENT',
+                                    color: scheme.onSurface
+                                        .withValues(alpha: 0.3)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  CBGhostButton(
+                    label: 'ABORT',
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 12),
+                  CBPrimaryButton(
+                    fullWidth: false,
+                    label: 'OVERRIDE',
+                    backgroundColor: CBColors.alertOrange,
+                    onPressed: selectedRoleId == null
+                        ? null
+                        : () {
+                            ref
+                                .read(gameProvider.notifier)
+                                .assignRole(player.id, selectedRoleId!);
+                            Navigator.pop(context);
+                            final newRoleName =
+                                roleCatalogMap[selectedRoleId]?.name ??
+                                    selectedRoleId!;
+                            showThemedSnackBar(
+                              context,
+                              '${player.name.toUpperCase()} → ${newRoleName.toUpperCase()}',
+                              accentColor: CBColors.alertOrange,
+                            );
+                          },
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _revealRole(BuildContext context, WidgetRef ref, Player player) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final roleColor = CBColors.fromHex(player.role.colorHex);
+    final allianceLabel = switch (player.alliance) {
+      Team.clubStaff => 'CLUB STAFF',
+      Team.partyAnimals => 'PARTY ANIMALS',
+      Team.neutral => 'NEUTRAL',
+      Team.unknown => 'UNKNOWN',
+    };
+
+    showThemedDialog(
+      context: context,
+      accentColor: scheme.tertiary,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PROTOCOL: ROLE REVEAL',
+            style: textTheme.labelLarge!.copyWith(
+              color: scheme.tertiary,
+              letterSpacing: 1.6,
+              fontWeight: FontWeight.w900,
+              shadows: CBColors.textGlow(scheme.tertiary, intensity: 0.5),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              CBRoleAvatar(
+                assetPath: player.role.assetPath,
+                color: roleColor,
+                size: 48,
+                pulsing: true,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      player.name.toUpperCase(),
+                      style: textTheme.headlineSmall!.copyWith(
+                        color: roleColor,
+                        fontWeight: FontWeight.w900,
+                        shadows: CBColors.textGlow(roleColor, intensity: 0.4),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      player.role.name.toUpperCase(),
+                      style: textTheme.labelMedium!.copyWith(
+                        color: roleColor.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CBGlassTile(
+            padding: const EdgeInsets.all(12),
+            borderColor: roleColor.withValues(alpha: 0.3),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _infoRow('ALLIANCE', allianceLabel, scheme),
+                _infoRow('STATUS', player.isAlive ? 'ALIVE' : 'DEAD', scheme),
+                _infoRow('LIVES', '${player.lives}', scheme),
+                if (player.hasHostShield) _infoRow('SHIELD', 'ACTIVE', scheme),
+                if (player.isSinBinned) _infoRow('SIN BIN', 'YES', scheme),
+                if (player.isShadowBanned)
+                  _infoRow('SHADOW BAN', 'ACTIVE', scheme),
+                if (player.drinksOwed > 0)
+                  _infoRow('DRINKS OWED', '${player.drinksOwed}', scheme),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            player.role.description,
+            style: textTheme.bodySmall!.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.7),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CBGhostButton(
+                label: 'BROADCAST TO ALL',
+                icon: Icons.campaign_rounded,
+                onPressed: () {
+                  ref.read(gameProvider.notifier).dispatchBulletin(
+                        title: 'ROLE EXPOSED',
+                        content:
+                            '${player.name.toUpperCase()} has been revealed as ${player.role.name.toUpperCase()} ($allianceLabel)!',
+                        type: 'urgent',
+                      );
+                  Navigator.pop(context);
+                  showThemedSnackBar(
+                    context,
+                    'ROLE REVEAL BROADCAST',
+                    accentColor: scheme.tertiary,
+                  );
+                },
+              ),
+              CBGhostButton(
+                label: 'DISMISS',
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value, ColorScheme scheme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: scheme.onSurface.withValues(alpha: 0.5),
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.0,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: scheme.onSurface.withValues(alpha: 0.9),
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _kickPlayer(BuildContext context, WidgetRef ref, Player player) {
     String reason = '';
     final scheme = Theme.of(context).colorScheme;
@@ -494,24 +872,24 @@ class _ActionChip extends StatelessWidget {
         },
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: color),
-              const SizedBox(width: 8),
+              Icon(icon, size: 13, color: color),
+              const SizedBox(width: 6),
               Text(
                 label.toUpperCase(),
                 style: textTheme.labelSmall!.copyWith(
                   color: color,
                   fontSize: 8,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
+                  letterSpacing: 0.8,
                 ),
               ),
             ],

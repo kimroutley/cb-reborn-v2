@@ -1,4 +1,4 @@
-﻿import 'dart:math';
+import 'dart:math';
 import 'package:cb_models/cb_models.dart';
 import 'night_actions/night_actions.dart';
 
@@ -96,7 +96,7 @@ class GameResolutionLogic {
       if (!role.canRepeat) remainingRoles.remove(role);
     }
 
-    // 4. Special Initialization for multi-life roles
+    // 4. Special Initialisation for multi-life roles
     final actualStaffCount =
         assigned.where((p) => p.alliance == Team.clubStaff).length;
     assigned = assigned.map((p) {
@@ -148,13 +148,18 @@ class GameResolutionLogic {
       for (var i = 0; i < actionStrategies.length; i++)
         actionStrategies[i].roleId: i,
     };
+
     final sortedStrategies = [...actionStrategies]..sort((a, b) {
-        if (a.roleId == RoleIds.dealer && b.roleId == RoleIds.roofi) return -1;
-        if (a.roleId == RoleIds.roofi && b.roleId == RoleIds.dealer) return 1;
-        final roleA = roleCatalogMap[a.roleId];
-        final roleB = roleCatalogMap[b.roleId];
-        final priorityA = roleA?.nightPriority ?? 999;
-        final priorityB = roleB?.nightPriority ?? 999;
+        int getPriority(NightActionStrategy s) {
+          if (s is AttackDogAction) return 9;
+          if (s is MessyBitchKillAction) return 10;
+
+          return roleCatalogMap[s.roleId]?.nightPriority ?? 999;
+        }
+
+        final priorityA = getPriority(a);
+        final priorityB = getPriority(b);
+
         final byPriority = priorityA.compareTo(priorityB);
         if (byPriority != 0) return byPriority;
         return (strategyOrder[a.roleId] ?? 0)
@@ -189,6 +194,8 @@ class GameResolutionLogic {
   static DayResolution resolveDayVote(
     List<Player> players,
     Map<String, int> tally,
+    Map<String, String> votesByVoter,
+    TieBreakStrategy tieBreakStrategy,
     int dayCount,
   ) {
     if (tally.isEmpty) {
@@ -197,6 +204,28 @@ class GameResolutionLogic {
 
     final events = <GameEvent>[];
     final report = <String>[];
+
+    // Log individual votes
+    for (final entry in votesByVoter.entries) {
+      final voterId = entry.key;
+      final targetId = entry.value;
+      final voter = players.firstWhere((p) => p.id == voterId);
+      final target = players.firstWhere(
+        (p) => p.id == targetId,
+        orElse: () => Player(
+          id: '',
+          name: 'Abstain',
+          role: roleCatalog.first,
+          alliance: Team.unknown,
+        ),
+      );
+      report.add('${voter.name} cast a vote against ${target.name}.');
+      events.add(GameEvent.vote(
+        voterId: voterId,
+        targetId: targetId,
+        day: dayCount,
+      ));
+    }
 
     // 1. Identify valid targets (Filter out Alibis)
     final filteredTally = Map<String, int>.from(tally);
@@ -226,15 +255,193 @@ class GameResolutionLogic {
       );
     }
 
-    // Check for ties
-    if (sorted.length > 1 && sorted[1].value == top.value) {
-      return DayResolution(
-        players: players,
-        report: [...report, 'The vote ended in a tie. No one was exiled.'],
-      );
+    // Tie handling strategy
+    final isTie = sorted.length > 1 && sorted[1].value == top.value;
+    var selectedTargetId = top.key;
+    if (isTie) {
+      final tiedTargetIds = sorted
+          .where((e) => e.value == top.value && e.key != 'abstain')
+          .map((e) => e.key)
+          .toList();
+
+      if (tiedTargetIds.isEmpty) {
+        return DayResolution(
+          players: players,
+          report: [
+            ...report,
+            'The club tied itself in knots and abstained from exile.',
+          ],
+          events: events,
+        );
+      }
+
+      switch (tieBreakStrategy) {
+        case TieBreakStrategy.peaceful:
+          events.add(GameEvent.tieBreak(
+            day: dayCount,
+            strategy: TieBreakStrategy.peaceful.name,
+            tiedPlayerIds: tiedTargetIds,
+            resultantExileIds: const [],
+          ));
+          return DayResolution(
+            players: players,
+            report: [
+              ...report,
+              'Tie break: NO EXILE. The club chose diplomacy over another poor life choice.',
+            ],
+            events: events,
+          );
+        case TieBreakStrategy.random:
+          final rng = Random(dayCount + players.length + votesByVoter.length);
+          selectedTargetId = tiedTargetIds[rng.nextInt(tiedTargetIds.length)];
+          events.add(GameEvent.tieBreak(
+            day: dayCount,
+            strategy: TieBreakStrategy.random.name,
+            tiedPlayerIds: tiedTargetIds,
+            resultantExileIds: [selectedTargetId],
+          ));
+          report.add(
+            'Tie break: RANDOM. The DJ hit shuffle and fate picked the exile.',
+          );
+          break;
+        case TieBreakStrategy.bloodbath:
+          final doomedIds = tiedTargetIds
+              .where((id) => players.any((p) => p.id == id && p.isAlive))
+              .toSet()
+              .toList();
+          events.add(GameEvent.tieBreak(
+            day: dayCount,
+            strategy: TieBreakStrategy.bloodbath.name,
+            tiedPlayerIds: tiedTargetIds,
+            resultantExileIds: doomedIds,
+          ));
+          final updatedPlayers = players.map((p) {
+            if (doomedIds.contains(p.id)) {
+              return p.copyWith(
+                isAlive: false,
+                deathDay: dayCount,
+                deathReason: 'exile',
+              );
+            }
+            return p;
+          }).toList();
+
+          for (final playerId in doomedIds) {
+            events.add(GameEvent.death(
+              playerId: playerId,
+              reason: 'exile',
+              day: dayCount,
+            ));
+          }
+
+          final names = doomedIds
+              .map((id) => players
+                  .firstWhere(
+                    (p) => p.id == id,
+                    orElse: () => Player(
+                      id: '',
+                      name: '',
+                      role: roleCatalog.first,
+                      alliance: Team.unknown,
+                    ),
+                  )
+                  .name)
+              .where((name) => name.isNotEmpty)
+              .join(', ');
+
+          return DayResolution(
+            players: updatedPlayers,
+            report: [
+              ...report,
+              'Tie break: BLOODBATH. The club made spectacularly poor life choices and exiled everyone tied.',
+              if (names.isNotEmpty) 'Exiled in the chaos: $names.',
+            ],
+            events: events,
+          );
+        case TieBreakStrategy.dealerMercy:
+          final dealerVotes = <String, int>{};
+          for (final vote in votesByVoter.entries) {
+            final voter = players.firstWhere(
+              (p) => p.id == vote.key,
+              orElse: () => Player(
+                id: '',
+                name: '',
+                role: roleCatalog.first,
+                alliance: Team.unknown,
+              ),
+            );
+            if (voter.alliance != Team.clubStaff) continue;
+            if (!tiedTargetIds.contains(vote.value)) continue;
+            dealerVotes[vote.value] = (dealerVotes[vote.value] ?? 0) + 1;
+          }
+
+          if (dealerVotes.isEmpty) {
+            events.add(GameEvent.tieBreak(
+              day: dayCount,
+              strategy: '${TieBreakStrategy.dealerMercy.name}_fallback',
+              tiedPlayerIds: tiedTargetIds,
+              resultantExileIds: const [],
+            ));
+            return DayResolution(
+              players: players,
+              report: [
+                ...report,
+                'Tie break: DEALER MERCY found no deciding Dealer vote. No exile tonight.',
+              ],
+              events: events,
+            );
+          }
+
+          final dealerSorted = dealerVotes.entries.toList()
+            ..sort((a, b) => b.value.compareTo(a.value));
+          final dealerTop = dealerSorted.first.value;
+          final dealerLeaders = dealerSorted
+              .where((e) => e.value == dealerTop)
+              .map((e) => e.key)
+              .toList();
+
+          if (dealerLeaders.length == 1) {
+            selectedTargetId = dealerLeaders.first;
+          } else {
+            final rng = Random(dayCount + dealerLeaders.length + 17);
+            selectedTargetId = dealerLeaders[rng.nextInt(dealerLeaders.length)];
+          }
+          events.add(GameEvent.tieBreak(
+            day: dayCount,
+            strategy: TieBreakStrategy.dealerMercy.name,
+            tiedPlayerIds: tiedTargetIds,
+            resultantExileIds: [selectedTargetId],
+          ));
+          report.add(
+            'Tie break: DEALER MERCY. House privilege activated; the Dealers nudged the final call.',
+          );
+          break;
+        case TieBreakStrategy.silentTreatment:
+          final silencedIds = tiedTargetIds.toSet();
+          events.add(GameEvent.tieBreak(
+            day: dayCount,
+            strategy: TieBreakStrategy.silentTreatment.name,
+            tiedPlayerIds: tiedTargetIds,
+            resultantExileIds: const [],
+          ));
+          final updatedPlayers = players.map((p) {
+            if (silencedIds.contains(p.id) && p.isAlive) {
+              return p.copyWith(silencedDay: dayCount + 1);
+            }
+            return p;
+          }).toList();
+          return DayResolution(
+            players: updatedPlayers,
+            report: [
+              ...report,
+              'Tie break: SILENT TREATMENT. Nobody was exiled, but tied players lose their voice tomorrow.',
+            ],
+            events: events,
+          );
+      }
     }
 
-    var victimId = top.key;
+    var victimId = selectedTargetId;
     var victim = players.firstWhere((p) => p.id == victimId);
     var reportMsg = '${victim.name} was exiled from the club by popular vote.';
     String? whoreWhoUsedDeflectionId;
@@ -312,7 +519,7 @@ class GameResolutionLogic {
       return WinResult(
         winner: Team.neutral,
         report: [
-          'Messy Bitch has spread rumors to everyone still alive. Messy Bitch wins solo!',
+          'Messy Bitch has spread rumours to everyone still alive. Messy Bitch wins solo!',
         ],
       );
     }
@@ -349,18 +556,22 @@ class GameResolutionLogic {
     Player target,
     GameState state,
   ) {
+    // Night actions should be secretive until resolution
+    if (state.phase == GamePhase.night) {
+      return 'Action confirmed.';
+    }
+
     switch (actor.role.id) {
       case RoleIds.bouncer:
-        return 'You check ${target.name}\'s ID. They are a ${target.alliance.name}.';
+        return 'You check ${target.name}\'s ID. Results will be revealed in the morning.';
       case RoleIds.bartender:
-        return 'You serve ${target.name} a drink and listen for gossip. You learn they visited ${state.actionLog[target.id] ?? 'nobody'}.';
+        return 'You mix a drink for ${target.name}. Intel will be revealed in the morning.';
       case RoleIds.clubManager:
-        return 'You check the books on ${target.name}. Their role is ${target.role.name}.';
+        return 'You check the books on ${target.name}. File contents will be revealed in the morning.';
       default:
         return '${actor.name} targeted ${target.name}.';
     }
   }
-
 
   static GameState handleDeathTriggers(GameState state, String deadPlayerId) {
     final deadPlayer = state.players.firstWhere((p) => p.id == deadPlayerId);

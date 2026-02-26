@@ -67,6 +67,31 @@ class _CBBulletinBoardState extends State<CBBulletinBoard> {
       itemCount: widget.entries.length,
       itemBuilder: (context, index) {
         final entry = widget.entries[index];
+
+        // Day Recap card (player-safe)
+        if (entry.type == 'dayRecap') {
+          final payload = DayRecapCardPayload.tryParse(entry.content);
+          if (payload != null) {
+            return CBDayRecapCard(
+              title: payload.title.isNotEmpty
+                  ? payload.title
+                  : 'DAY ${payload.day} RECAP',
+              bullets: payload.bullets,
+            );
+          }
+          // Fallback on parse failure
+          return CBGlassTile(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Text(
+              'RECAP UNAVAILABLE',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.5),
+                  ),
+            ),
+          );
+        }
+
         final role = entry.roleId != null
             ? roleCatalog.firstWhere((r) => r.id == entry.roleId,
                 orElse: () => roleCatalog.first)

@@ -4,6 +4,7 @@ import 'enums.dart';
 class PlayerSnapshot {
   final String id;
   final String name;
+  final String? authUid;
   final String roleId;
   final String roleName;
   final String roleDescription;
@@ -24,10 +25,12 @@ class PlayerSnapshot {
   final String? creepTargetId;
   final bool whoreDeflectionUsed;
   final List<String> tabooNames;
+  final List<String> blockedVoteTargets;
 
   const PlayerSnapshot({
     required this.id,
     required this.name,
+    this.authUid,
     required this.roleId,
     required this.roleName,
     this.roleDescription = '',
@@ -48,12 +51,14 @@ class PlayerSnapshot {
     this.creepTargetId,
     this.whoreDeflectionUsed = false,
     this.tabooNames = const [],
+    this.blockedVoteTargets = const [],
   });
 
   factory PlayerSnapshot.fromMap(Map<String, dynamic> map) {
     return PlayerSnapshot(
       id: map['id'] as String? ?? '',
       name: map['name'] as String? ?? '',
+      authUid: map['authUid'] as String?,
       roleId: map['roleId'] as String? ?? '',
       roleName: map['roleName'] as String? ?? '',
       roleDescription: map['roleDescription'] as String? ?? '',
@@ -80,6 +85,11 @@ class PlayerSnapshot {
       whoreDeflectionUsed: map['whoreDeflectionUsed'] as bool? ?? false,
       tabooNames:
           (map['tabooNames'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const <String>[],
+      blockedVoteTargets:
+          (map['blockedVoteTargets'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const <String>[],

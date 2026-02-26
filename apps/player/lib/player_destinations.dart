@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cb_models/cb_models.dart';
 
 enum PlayerDestination {
-  home,
   lobby,
   game,
   profile,
@@ -14,6 +13,7 @@ enum PlayerDestination {
   gamesNight,
   claim,
   transition,
+  connect,
 }
 
 class PlayerDestinationConfig
@@ -27,14 +27,14 @@ class PlayerDestinationConfig
 
 const playerDestinations = <PlayerDestinationConfig>[
   PlayerDestinationConfig(
-    destination: PlayerDestination.home,
-    label: 'Home',
-    icon: Icons.home_rounded,
+    destination: PlayerDestination.connect,
+    label: 'Connect',
+    icon: Icons.hub_rounded,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.lobby,
     label: 'Lobby',
-    icon: Icons.hub_rounded,
+    icon: Icons.group_rounded,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.game,

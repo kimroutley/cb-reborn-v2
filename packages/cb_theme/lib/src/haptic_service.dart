@@ -92,4 +92,14 @@ class HapticService {
     await Future.delayed(const Duration(milliseconds: 150));
     await HapticFeedback.lightImpact();
   }
+
+  /// Roofied Alert (Aggressive triple pulse)
+  static Future<void> roofied() async {
+    if (!_enabled) return;
+    await HapticFeedback.heavyImpact();
+    await Future.delayed(const Duration(milliseconds: 80));
+    await HapticFeedback.heavyImpact();
+    await Future.delayed(const Duration(milliseconds: 80));
+    await HapticFeedback.heavyImpact();
+  }
 }

@@ -61,12 +61,18 @@ abstract class GameState with _$GameState {
     @Default(300) int discussionTimerSeconds,
     @Default(SyncMode.local) SyncMode syncMode,
     @Default(GameStyle.chaos) GameStyle gameStyle,
-    @Default(false) bool tieBreaksRandomly,
+    @Default(TieBreakStrategy.peaceful) TieBreakStrategy tieBreakStrategy,
     @Default(true) bool eyesOpen,
+
+    // Personality
+    @Default('noir_narrator') String hostPersonalityId,
 
     // ── GHOST LOUNGE & DEAD POOL ──
     @Default({}) Map<String, String> deadPoolBets, // playerId -> targetPlayerId
     @Default(0) int globalDrinkDebt,
+
+    // ── REMATCH ──
+    @Default(false) bool rematchOffered,
   }) = _GameState;
 
   const GameState._();

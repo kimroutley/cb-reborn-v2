@@ -12,7 +12,7 @@ This document outlines stylistic recommendations to further elevate the "God Mod
 While the player app prioritizes large, immersive chat bubbles, the host needs a "Command Center" view that favors information density.
 
 *   **Recommendation**: Implement a **"Tactical Feed"** mode for the host dashboard. This would use a version of `CBMessageBubble` with reduced vertical padding and a slightly smaller font size for body text.
-*   **Impact**: Allows the host to see 20–30% more history on a tablet or desktop screen without losing the high-tech terminal feel.
+*   **Impact**: Allows the host to see 20–30% more history on a phone screen without losing the high-tech terminal feel.
 
 ## 2. Live Metadata Layering
 The host should be able to see the status of a player directly on their chat messages.
@@ -55,4 +55,4 @@ Phase changes are the most important narrative shifts in the game.
 | **System Alerts** | Use `isPrismatic: true` for "God Mode" messages. | `CBGlassTile` |
 | **Player Context** | Attach status indicators to chat bubbles. | `MiniTag` |
 | **Narrative** | Color-code based on the selected AI Personality. | `CBMessageBubble` |
-| **History** | Increase density for tablet/desktop views. | `CBMessageBubble` |
+| **History** | Increase density for phone-sized views. | `CBMessageBubble` |

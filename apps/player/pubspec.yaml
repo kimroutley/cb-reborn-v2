@@ -26,7 +26,10 @@ dependencies:
   package_info_plus: ^9.0.0
   shared_preferences: ^2.2.3
   hive_ce_flutter: ^2.3.4
+  firebase_storage: ^13.0.6
+  image_picker: ^1.1.2
   intl: ^0.20.2
+  mobile_scanner: ^7.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

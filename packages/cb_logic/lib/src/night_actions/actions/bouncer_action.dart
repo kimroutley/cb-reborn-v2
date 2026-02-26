@@ -35,8 +35,9 @@ class BouncerAction implements NightActionStrategy {
         context.updatePlayer(target.copyWith(minorHasBeenIDd: true));
       }
 
-      final msg = '${target.name} is ${isStaff ? "STAFF" : "PARTY ANIMAL"}.';
-      context.addPrivateMessage(bouncer.id, msg);
+      final allegiance = isStaff ? 'STAFF' : 'PARTY ANIMAL';
+      context.addPrivateMessage(
+          bouncer.id, 'Intel report: ${target.name} is $allegiance.');
 
       final allyCats = context.players.where(
         (p) => p.isAlive && p.role.id == RoleIds.allyCat,
@@ -44,11 +45,11 @@ class BouncerAction implements NightActionStrategy {
       for (final allyCat in allyCats) {
         context.addPrivateMessage(
           allyCat.id,
-          'You witnessed Bouncer check ${target.name}: ${isStaff ? "STAFF" : "PARTY ANIMAL"}.',
+          'Bouncer intel intercepted: ${target.name} is $allegiance.',
         );
       }
 
-      context.addReport('Bouncer checked ${target.name}.');
+      context.addReport('Bouncer chose to check ${target.name}.');
     }
   }
 }

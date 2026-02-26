@@ -15,16 +15,16 @@ class GuidesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If we have no context, we show the full scaffold with drawer
+    // CBGuideScreen now manages its own Scaffold, but we want to pass the Player Drawer
     if (gameState == null) {
-      return CBPrismScaffold(
-        title: 'THE BLACKBOOK',
+      return CBGuideScreen(
+        gameState: gameState,
+        localPlayer: localPlayer,
         drawer: const CustomDrawer(),
-        body: CBGuideScreen(gameState: gameState, localPlayer: localPlayer),
       );
     }
 
-    // Otherwise rely on CBGuideScreen's internal layout (usually for modal/game usage)
+    // For game context, just return the screen (it handles back button vs drawer internally)
     return CBGuideScreen(gameState: gameState, localPlayer: localPlayer);
   }
 }

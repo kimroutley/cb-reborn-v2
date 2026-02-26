@@ -16,6 +16,9 @@ class SessionRecap {
   final PlayerAward? ghost;
   final PlayerAward? dealerOfDeath;
 
+  // Special "roast" awards
+  final List<SpecialAward> specialAwards;
+
   // Highlights
   final String? spiciestMoment;
   final List<GameSummary> gameSummaries;
@@ -35,6 +38,7 @@ class SessionRecap {
     this.mainCharacter,
     this.ghost,
     this.dealerOfDeath,
+    this.specialAwards = const [],
     this.spiciestMoment,
     required this.gameSummaries,
     required this.clubStaffWins,
@@ -46,11 +50,30 @@ class SessionRecap {
 class PlayerAward {
   final String playerName;
   final String description;
-  final int value; // numeric stat associated with award
+  final int value;
 
   const PlayerAward({
     required this.playerName,
     required this.description,
+    required this.value,
+  });
+}
+
+/// Ironic / sarcastic end-of-session award with a roast line.
+class SpecialAward {
+  final String id;
+  final String title;
+  final String playerName;
+  final String roastLine;
+  final String stat;
+  final int value;
+
+  const SpecialAward({
+    required this.id,
+    required this.title,
+    required this.playerName,
+    required this.roastLine,
+    required this.stat,
     required this.value,
   });
 }
@@ -100,6 +123,9 @@ class RecapGenerator {
     final ghostAward = _calculateGhost(session, games);
     final dealerAward = _calculateDealerOfDeath(session, games);
 
+    // Generate special roast awards
+    final specials = _calculateSpecialAwards(session, games);
+
     // Find spiciest moment
     final spiciestMoment = _findSpiciestMoment(games);
 
@@ -127,6 +153,7 @@ class RecapGenerator {
       mainCharacter: mainCharAward,
       ghost: ghostAward,
       dealerOfDeath: dealerAward,
+      specialAwards: specials,
       spiciestMoment: spiciestMoment,
       gameSummaries: summaries,
       clubStaffWins: staffWins,
@@ -367,6 +394,398 @@ class RecapGenerator {
       playerName: top.key,
       description: '${top.value} successful kills',
       value: top.value,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Special Awards
+  // ---------------------------------------------------------------------------
+
+  static List<SpecialAward> _calculateSpecialAwards(
+    GamesNightRecord session,
+    List<GameRecord> games,
+  ) {
+    if (games.isEmpty) return const [];
+
+    final awards = <SpecialAward>[];
+
+    final a1 = _cannonFodder(games);
+    if (a1 != null) awards.add(a1);
+
+    final a2 = _theNPC(games);
+    if (a2 != null) awards.add(a2);
+
+    final a3 = _friendlyFireChampion(games);
+    if (a3 != null) awards.add(a3);
+
+    final a4 = _professionalVictim(games);
+    if (a4 != null) awards.add(a4);
+
+    final a5 = _theCockroach(games);
+    if (a5 != null) awards.add(a5);
+
+    final a6 = _absolutelyClueless(session, games);
+    if (a6 != null) awards.add(a6);
+
+    final a7 = _theTourist(session);
+    if (a7 != null) awards.add(a7);
+
+    final a8 = _designatedScapegoat(games);
+    if (a8 != null) awards.add(a8);
+
+    final a9 = _theJudas(games);
+    if (a9 != null) awards.add(a9);
+
+    final a10 = _participationTrophy(session, games);
+    if (a10 != null) awards.add(a10);
+
+    return awards;
+  }
+
+  /// Died on Day/Night 1 the most times.
+  static SpecialAward? _cannonFodder(List<GameRecord> games) {
+    final earlyDeaths = <String, int>{};
+
+    for (final game in games) {
+      for (final event in game.eventLog.whereType<GameEventDeath>()) {
+        if (event.day <= 1) {
+          final name = _nameFromId(game, event.playerId);
+          if (name != null) {
+            earlyDeaths[name] = (earlyDeaths[name] ?? 0) + 1;
+          }
+        }
+      }
+    }
+
+    if (earlyDeaths.isEmpty) return null;
+
+    final sorted = earlyDeaths.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final top = sorted.first;
+    if (top.value < 1) return null;
+
+    return SpecialAward(
+      id: 'cannon_fodder',
+      title: 'Cannon Fodder',
+      playerName: top.key,
+      roastLine: "The club's unofficial welcome mat.",
+      stat: 'Died on Day 1 ${top.value}x',
+      value: top.value,
+    );
+  }
+
+  /// Received the fewest votes across all games (least relevant player).
+  static SpecialAward? _theNPC(List<GameRecord> games) {
+    final allPlayers = <String>{};
+    final votesReceived = <String, int>{};
+
+    for (final game in games) {
+      for (final p in game.roster) {
+        allPlayers.add(p.name);
+      }
+      for (final event in game.eventLog.whereType<GameEventVote>()) {
+        final name = _nameFromId(game, event.targetId);
+        if (name != null) {
+          votesReceived[name] = (votesReceived[name] ?? 0) + 1;
+        }
+      }
+    }
+
+    if (allPlayers.length < 3) return null;
+
+    // Players with zero votes are the ultimate NPCs
+    String? npcName;
+    int lowestVotes = 999999;
+    for (final name in allPlayers) {
+      final v = votesReceived[name] ?? 0;
+      if (v < lowestVotes) {
+        lowestVotes = v;
+        npcName = name;
+      }
+    }
+
+    if (npcName == null) return null;
+
+    return SpecialAward(
+      id: 'the_npc',
+      title: 'The NPC',
+      playerName: npcName,
+      roastLine: 'Background character energy. Were you even playing?',
+      stat: lowestVotes == 0
+          ? 'Received zero votes all session'
+          : 'Received only $lowestVotes vote${lowestVotes == 1 ? '' : 's'}',
+      value: lowestVotes,
+    );
+  }
+
+  /// Most votes cast against own teammates.
+  static SpecialAward? _friendlyFireChampion(List<GameRecord> games) {
+    final betrayals = <String, int>{};
+
+    for (final game in games) {
+      final playerAlliance = <String, Team>{};
+      for (final p in game.roster) {
+        playerAlliance[p.id] = p.alliance;
+      }
+
+      for (final event in game.eventLog.whereType<GameEventVote>()) {
+        final voterTeam = playerAlliance[event.voterId];
+        final targetTeam = playerAlliance[event.targetId];
+        if (voterTeam != null &&
+            targetTeam != null &&
+            voterTeam == targetTeam) {
+          final voterName = _nameFromId(game, event.voterId);
+          if (voterName != null) {
+            betrayals[voterName] = (betrayals[voterName] ?? 0) + 1;
+          }
+        }
+      }
+    }
+
+    if (betrayals.isEmpty) return null;
+
+    final sorted = betrayals.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final top = sorted.first;
+
+    return SpecialAward(
+      id: 'friendly_fire_champion',
+      title: 'Friendly Fire Champion',
+      playerName: top.key,
+      roastLine: 'With allies like you, who needs the Dealer?',
+      stat: '${top.value} vote${top.value == 1 ? '' : 's'} against own team',
+      value: top.value,
+    );
+  }
+
+  /// Died the most times across all games in the session.
+  static SpecialAward? _professionalVictim(List<GameRecord> games) {
+    final deathCount = <String, int>{};
+
+    for (final game in games) {
+      for (final p in game.roster) {
+        if (!p.alive) {
+          deathCount[p.name] = (deathCount[p.name] ?? 0) + 1;
+        }
+      }
+    }
+
+    if (deathCount.isEmpty) return null;
+
+    final sorted = deathCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final top = sorted.first;
+    if (top.value < 2) return null;
+
+    return SpecialAward(
+      id: 'professional_victim',
+      title: 'Professional Victim',
+      playerName: top.key,
+      roastLine: 'You die more often than a video game tutorial character.',
+      stat: 'Died ${top.value} times',
+      value: top.value,
+    );
+  }
+
+  /// Survived to end-game the most but team still lost.
+  static SpecialAward? _theCockroach(List<GameRecord> games) {
+    final uselessSurvivals = <String, int>{};
+
+    for (final game in games) {
+      for (final p in game.roster) {
+        if (p.alive && p.alliance != game.winner) {
+          uselessSurvivals[p.name] = (uselessSurvivals[p.name] ?? 0) + 1;
+        }
+      }
+    }
+
+    if (uselessSurvivals.isEmpty) return null;
+
+    final sorted = uselessSurvivals.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final top = sorted.first;
+
+    return SpecialAward(
+      id: 'the_cockroach',
+      title: 'The Cockroach',
+      playerName: top.key,
+      roastLine: 'Unkillable. Unstoppable. Utterly useless.',
+      stat: 'Survived ${top.value} game${top.value == 1 ? '' : 's'} but still lost',
+      value: top.value,
+    );
+  }
+
+  /// Worst win rate (minimum 2 games played).
+  static SpecialAward? _absolutelyClueless(
+    GamesNightRecord session,
+    List<GameRecord> games,
+  ) {
+    final playerWins = <String, int>{};
+    final playerGames = <String, int>{};
+
+    for (final game in games) {
+      for (final p in game.roster) {
+        playerGames[p.name] = (playerGames[p.name] ?? 0) + 1;
+        if (p.alliance == game.winner) {
+          playerWins[p.name] = (playerWins[p.name] ?? 0) + 1;
+        }
+      }
+    }
+
+    String? worstName;
+    double worstRate = 2.0;
+
+    for (final entry in playerGames.entries) {
+      if (entry.value < 2) continue;
+      final rate = (playerWins[entry.key] ?? 0) / entry.value;
+      if (rate < worstRate) {
+        worstRate = rate;
+        worstName = entry.key;
+      }
+    }
+
+    if (worstName == null) return null;
+
+    final wins = playerWins[worstName] ?? 0;
+    final played = playerGames[worstName] ?? 1;
+    final pct = ((wins / played) * 100).round();
+
+    return SpecialAward(
+      id: 'absolutely_clueless',
+      title: 'Absolutely Clueless',
+      playerName: worstName,
+      roastLine: 'A Magic 8-Ball would have played better.',
+      stat: '$pct% win rate ($wins/$played)',
+      value: pct,
+    );
+  }
+
+  /// Played the fewest games in the session.
+  static SpecialAward? _theTourist(GamesNightRecord session) {
+    final counts = session.playerGamesCount;
+    if (counts.length < 3) return null;
+
+    final sorted = counts.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+    final bottom = sorted.first;
+    final top = sorted.last;
+
+    // Only award if there's a meaningful gap
+    if (bottom.value >= top.value) return null;
+
+    return SpecialAward(
+      id: 'the_tourist',
+      title: 'The Tourist',
+      playerName: bottom.key,
+      roastLine: "Thanks for stopping by. Don't let the door hit you.",
+      stat: 'Played ${bottom.value} of ${top.value} games',
+      value: bottom.value,
+    );
+  }
+
+  /// Received the most exile votes total (everyone's favourite target).
+  static SpecialAward? _designatedScapegoat(List<GameRecord> games) {
+    final votesReceived = <String, int>{};
+
+    for (final game in games) {
+      for (final event in game.eventLog.whereType<GameEventVote>()) {
+        final name = _nameFromId(game, event.targetId);
+        if (name != null) {
+          votesReceived[name] = (votesReceived[name] ?? 0) + 1;
+        }
+      }
+    }
+
+    if (votesReceived.isEmpty) return null;
+
+    final sorted = votesReceived.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final top = sorted.first;
+
+    return SpecialAward(
+      id: 'designated_scapegoat',
+      title: 'Designated Scapegoat',
+      playerName: top.key,
+      roastLine: "If there's a bus, you're under it.",
+      stat: '${top.value} exile vote${top.value == 1 ? '' : 's'} received',
+      value: top.value,
+    );
+  }
+
+  /// Won the most games as a Party Animal (evil team).
+  static SpecialAward? _theJudas(List<GameRecord> games) {
+    final evilWins = <String, int>{};
+
+    for (final game in games) {
+      for (final p in game.roster) {
+        if (p.alliance == Team.partyAnimals && game.winner == Team.partyAnimals) {
+          evilWins[p.name] = (evilWins[p.name] ?? 0) + 1;
+        }
+      }
+    }
+
+    if (evilWins.isEmpty) return null;
+
+    final sorted = evilWins.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final top = sorted.first;
+    if (top.value < 1) return null;
+
+    return SpecialAward(
+      id: 'the_judas',
+      title: 'The Judas',
+      playerName: top.key,
+      roastLine: 'Sleep with one eye open around this one.',
+      stat: '${top.value} evil win${top.value == 1 ? '' : 's'}',
+      value: top.value,
+    );
+  }
+
+  /// Played every game (or near-every) and won the fewest.
+  static SpecialAward? _participationTrophy(
+    GamesNightRecord session,
+    List<GameRecord> games,
+  ) {
+    if (games.length < 2) return null;
+
+    final counts = session.playerGamesCount;
+    final maxPlayed = counts.values.fold<int>(0, max);
+
+    // Only consider players who played at least 80% of games
+    final threshold = (maxPlayed * 0.8).ceil();
+
+    final playerWins = <String, int>{};
+    for (final game in games) {
+      for (final p in game.roster) {
+        if (p.alliance == game.winner) {
+          playerWins[p.name] = (playerWins[p.name] ?? 0) + 1;
+        }
+      }
+    }
+
+    String? loserName;
+    int fewestWins = 999999;
+
+    for (final entry in counts.entries) {
+      if (entry.value < threshold) continue;
+      final wins = playerWins[entry.key] ?? 0;
+      if (wins < fewestWins) {
+        fewestWins = wins;
+        loserName = entry.key;
+      }
+    }
+
+    if (loserName == null) return null;
+
+    final played = counts[loserName] ?? 0;
+
+    return SpecialAward(
+      id: 'participation_trophy',
+      title: 'Participation Trophy',
+      playerName: loserName,
+      roastLine: "You were there. That's... that's it. That's the award.",
+      stat: '$fewestWins win${fewestWins == 1 ? '' : 's'} in $played games',
+      value: fewestWins,
     );
   }
 

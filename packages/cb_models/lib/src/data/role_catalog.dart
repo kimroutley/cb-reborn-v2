@@ -23,7 +23,7 @@ const List<Role> roleCatalog = [
     tacticalTip:
         'Coordinate your targets. Don\'t always eliminate the loudest players; sometimes the quiet ones are easier to frame during the day.',
     description: 'Choose a victim to murder each night with the other Dealers.',
-    nightPriority: 10,
+    nightPriority: 8,
     ability: 'Night Kill',
     assetPath: 'assets/roles/dealer.png',
     colorHex: '#FF00FF', // Fuschia - from CB Visuals
@@ -40,7 +40,7 @@ const List<Role> roleCatalog = [
         'Your scapegoat is your shield. Keep them alive but ensure they are the primary suspect if you start feeling the heat.',
     description:
         'Choose a scapegoat. The next time a Dealer would be voted out, the elimination is deflected to your scapegoat instead. One use.',
-    nightPriority: 55,
+    nightPriority: 13,
     ability: 'Vote Deflection',
     assetPath: 'assets/roles/whore.png',
     colorHex: '#008080', // Teal - from CB Visuals
@@ -56,7 +56,7 @@ const List<Role> roleCatalog = [
         'Use your alibi to build trust. Saving a "confirmed" Party Animal can make you look like a hero and blend you in with the crowd.',
     description:
         'Each night, choose one player. During the following day, they cannot be voted out.',
-    nightPriority: 50,
+    nightPriority: 12,
     ability: 'Nightly Alibi',
     assetPath: 'assets/roles/silver_fox.png',
     colorHex: '#808000', // Olive - from CB Visuals
@@ -92,7 +92,7 @@ const List<Role> roleCatalog = [
         'Self-protect on Night 1 if the game feels aggressive. Saving a powerful role like the Bouncer or Wallflower can completely flip the game.',
     description:
         'Choose to protect a player each night, or sacrifice that power for a one-time revive.',
-    nightPriority: 30,
+    nightPriority: 11,
     hasBinaryChoiceAtStart: true,
     choices: ['PROTECT_DAILY', 'REVIVE'],
     ability: 'Protect or Revive',
@@ -107,10 +107,10 @@ const List<Role> roleCatalog = [
     type: 'Investigative',
     complexity: 3,
     tacticalTip:
-        'Target the most influential talkers. Finding a Dealer early is great, but confirming a powerful ally is just as important for the town.',
+        'Target the most influential talkers. Finding a Dealer early is great, but confirming a powerful ally is just as important for the Club.',
     description:
-        'Each night, check a player\'s ID. The Host reveals if they are Dealer-side or not.',
-    nightPriority: 20,
+        'Each night, check a player\'s ID. The Host reveals if they are Club Staff aligned or not.',
+    nightPriority: 3,
     ability: 'Check ID',
     assetPath: 'assets/roles/bouncer.png',
     colorHex: '#0000FF', // Blue - from CB Visuals
@@ -125,9 +125,9 @@ const List<Role> roleCatalog = [
     tacticalTip:
         'Silence Dealers to block their kills, or silence loud "suspects" to prevent them from leading the vote against you the next day.',
     description:
-        'Paralyze a player each night. They are silenced the next day. Roofing the only Dealer blocks their kill.',
-    nightPriority: 8, // Changed from 15 to 8 to ensure it blocks Dealers (Priority 10)
-    ability: 'Paralyze',
+        'Paralyse a player each night. They are silenced the next day. Paralysing the only Dealer blocks their kill.',
+    nightPriority: 2,
+    ability: 'Paralyse',
     assetPath: 'assets/roles/roofi.png',
     colorHex: '#008000', // Green - from CB Visuals
   ),
@@ -142,7 +142,7 @@ const List<Role> roleCatalog = [
         'Send suspected power roles home to keep them safe from murder, or target suspicious players to block their potential night action.',
     description:
         'Send a player home at the start of night. They are safe from murder and cannot act tonight.',
-    nightPriority: 5,
+    nightPriority: 1,
     ability: 'Send Home',
     assetPath: 'assets/roles/sober.png',
     colorHex: '#39FF14', // Fluro Green - from CB Visuals
@@ -155,9 +155,9 @@ const List<Role> roleCatalog = [
     type: 'Investigative',
     complexity: 4,
     tacticalTip:
-        'Observe without acting. Only reveal your identity when you have definitive proof of a Dealer\'s action to ensure the town follows your lead.',
+        'Observe without acting. Only reveal your identity when you have definitive proof of a Dealer\'s action to ensure the Club follows your lead.',
     description:
-        'Can discreetly open eyes during the murder phase to witness the kill.',
+        'Can discreetly open eyes during the Night phase to witness the kill.',
     nightPriority: 0,
     ability: 'Witness Murder',
     assetPath: 'assets/roles/wallflower.png',
@@ -217,14 +217,14 @@ const List<Role> roleCatalog = [
     id: RoleIds.lightweight,
     name: 'The Lightweight',
     alliance: Team.partyAnimals,
-    type: 'Passive',
-    complexity: 5,
+    type: 'Strategic',
+    complexity: 4,
     tacticalTip:
-        'The Taboo name is a powerful social weapon. Use the pressure of the Bar Tab to flush out players who aren\'t paying close attention.',
+        'Each night you choose a player who becomes permanently unvotable for you. Use this strategically — target players you\'re confident are innocent so you can narrow your vote to likely Dealers.',
     description:
-        'After every night, a name becomes taboo. If you speak that name, you die immediately.',
-    nightPriority: 45,
-    ability: 'Memory Loss (Taboo)',
+        'Each night, choose a player. You can never vote for that player again. Your voting options shrink each round.',
+    nightPriority: 7,
+    ability: 'Voting Restriction',
     assetPath: 'assets/roles/lightweight.png',
     colorHex: '#FFA500', // Orange - from CB Visuals
   ),
@@ -287,7 +287,7 @@ const List<Role> roleCatalog = [
         'Comparing alignment is powerful but subtle. Look for players who claim to be on the same side and verify if they are truly aligned.',
     description:
         'Each night, choose two players. Learn if they are ALIGNED (same side) or NOT ALIGNED.',
-    nightPriority: 35,
+    nightPriority: 4,
     ability: 'Mixology',
     assetPath: 'assets/roles/bartender.png',
     colorHex: '#4B0082', // Indigo - from CB Visuals
@@ -303,10 +303,10 @@ const List<Role> roleCatalog = [
     type: 'Chaos',
     complexity: 5,
     tacticalTip:
-        'Chaos is your win condition. Spread enough rumours to keep the town distracted while you work towards your solo victory.',
+        'Chaos is your win condition. Spread enough rumours to keep the Club distracted while you work towards your solo victory.',
     description:
         'Each night, start a rumour about a player. Win immediately if every living player has heard a rumour.',
-    nightPriority: 40,
+    nightPriority: 6,
     ability: 'The Rumour Mill',
     assetPath: 'assets/roles/messy_bitch.png',
     colorHex: '#E6E6FA', // Lavender - from CB Visuals
@@ -322,7 +322,7 @@ const List<Role> roleCatalog = [
         'Survival is your only goal. Gather intel to stay ahead of the curve, but don\'t become such a threat that the Dealers target you.',
     description:
         'Every night, secretly look at a fellow player\'s role card. Objective is pure self-survival.',
-    nightPriority: 25,
+    nightPriority: 5,
     ability: 'Sight Card',
     assetPath: 'assets/roles/club_manager.png',
     colorHex: '#D2B48C', // Taupe - from CB Visuals
@@ -338,7 +338,7 @@ const List<Role> roleCatalog = [
         'Your partner is your life. Protect them at all costs, but be ready to snap and take your revenge if they are eliminated.',
     description:
         'Obsessed with a partner. Must support their vote. If they die, you die. Can be freed as an Attack Dog.',
-    nightPriority: 10, // Changed from 0 to 10 to act as Attack Dog
+    nightPriority: 9,
     ability: 'Obsession + Attack Dog',
     assetPath: 'assets/roles/clinger.png',
     colorHex: '#FFFF00', // Yellow - from CB Visuals

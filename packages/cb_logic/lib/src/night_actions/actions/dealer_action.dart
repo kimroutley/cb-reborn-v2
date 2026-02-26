@@ -30,9 +30,10 @@ class DealerAction implements NightActionStrategy {
         context.killedPlayerIds.add(targetId);
         context.killSources[targetId] = 'murder';
         context.dealerAttacks[dealer.id] = targetId;
-        context.addPrivateMessage(dealer.id, 'Target acquired.');
+        context.addPrivateMessage(
+            dealer.id, '${target.name} has been marked for elimination.');
 
-        context.addReport('Dealer target: ${target.name}.');
+        context.addReport('Dealer chose to eliminate ${target.name}.');
       }
     }
   }

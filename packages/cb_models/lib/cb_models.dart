@@ -13,6 +13,8 @@ export 'src/player_snapshot.dart';
 export 'src/script/script_action_type.dart';
 export 'src/script/script_step.dart';
 export 'src/bulletin_entry.dart';
+export 'src/day_recap_card_payload.dart';
+export 'src/day_recap_host_payload.dart';
 export 'src/feed_event.dart';
 export 'src/chat/chat_message.dart';
 export 'src/game_state.dart';

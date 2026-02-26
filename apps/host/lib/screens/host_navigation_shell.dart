@@ -6,6 +6,7 @@ import '../host_navigation.dart';
 import 'games_night_screen.dart';
 import 'guides_screen.dart';
 import 'host_game_screen.dart';
+import 'host_game_setup_screen.dart';
 import 'host_hall_of_fame_screen.dart';
 import 'host_lobby_screen.dart';
 import 'home_screen.dart';
@@ -50,6 +51,8 @@ class HostNavigationShell extends ConsumerWidget {
         return const PrivacyPolicyScreen();
       case HostDestination.lobby:
         return const HostLobbyScreen();
+      case HostDestination.gameSetup:
+        return const HostGameSetupScreen();
       case HostDestination.game:
         return const HostGameScreen();
       case HostDestination.hallOfFame:

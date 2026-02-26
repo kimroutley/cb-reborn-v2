@@ -24,12 +24,13 @@ class FirebaseBridge {
 
     try {
       if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(options: options);
+        await Firebase.initializeApp(options: options)
+            .timeout(const Duration(seconds: 8));
       }
 
       final auth = FirebaseAuth.instance;
       if (auth.currentUser == null) {
-        await auth.signInAnonymously();
+        await auth.signInAnonymously().timeout(const Duration(seconds: 8));
       }
 
       _isInitialized = true;
@@ -196,6 +197,30 @@ class FirebaseBridge {
       );
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to send role confirm: $e');
+      rethrow;
+    }
+  }
+
+  /// Player: Send a public chat message.
+  Future<void> sendChat({
+    required String title,
+    required String message,
+    String? roleId,
+  }) async {
+    try {
+      await gameDoc.collection('actions').add({
+        'type': 'chat',
+        'stepId': 'chat', 
+        'playerId': roleId ?? 'unknown', // using roleId or placeholder
+        'payload': {
+           'title': title,
+           'content': message,
+           'roleId': roleId,
+        },
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('[FirebaseBridge] Failed to send chat: $e');
       rethrow;
     }
   }

@@ -47,54 +47,36 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
+    return CBPrismScaffold(
+      title: 'BAR TAB',
       drawer: const CustomDrawer(),
-      appBar: AppBar(
-        title: Text(
-          'BAR TAB',
-          style: Theme.of(context).textTheme.titleLarge!,
-        ),
-        centerTitle: true,
-      ),
-      body: CBNeonBackground(
-        child: SafeArea(
-          child: _isLoading
-              ? const Center(child: CBBreathingSpinner())
-              : RefreshIndicator(
-                  onRefresh: _loadData,
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 24, horizontal: 20),
-                    children: [
-                      CBSectionHeader(
-                          title: 'YOUR SESSION HISTORY',
-                          color: scheme.tertiary),
-                      const SizedBox(height: 16),
-                      if (_sessions.isEmpty)
-                        CBPanel(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            'No game sessions found. Play a game to see your history here.',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                    color: scheme.onSurface
-                                        .withValues(alpha: 0.75)),
-                          ),
-                        )
-                      else
-                        ..._sessions
-                            .map((s) => _buildSessionEntry(context, s, scheme)),
-                      const SizedBox(
-                          height: 120), // Provide some bottom padding
-                    ],
-                  ),
-                ),
-        ),
-      ),
+      body: _isLoading
+          ? const Center(child: CBBreathingSpinner())
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                children: [
+                  CBSectionHeader(
+                      title: 'YOUR SESSION HISTORY', color: scheme.tertiary),
+                  const SizedBox(height: 16),
+                  if (_sessions.isEmpty)
+                    CBPanel(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'No game sessions found. Play a game to see your history here.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.75)),
+                      ),
+                    )
+                  else
+                    ..._sessions.map((s) => _buildSessionEntry(context, s, scheme)),
+                  const SizedBox(height: 120), // Provide some bottom padding
+                ],
+              ),
+            ),
     );
   }
 

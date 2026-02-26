@@ -199,7 +199,7 @@ class BottomControls extends StatelessWidget {
     if (isLobby) {
       return playerCount < requiredPlayers
           ? 'Need ${requiredPlayers - playerCount} More'
-          : 'Start Game';
+          : 'Open The Club';
     }
     return 'Advance Phase';
   }

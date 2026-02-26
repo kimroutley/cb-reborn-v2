@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   testWidgets('drawer asks to discard unsaved profile changes', (tester) async {
     final homeLabel = playerDestinations
-        .firstWhere((d) => d.destination == PlayerDestination.home)
+        .firstWhere((d) => d.destination == PlayerDestination.connect)
         .label;
 
     final originalOnError = FlutterError.onError;
@@ -79,7 +79,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(container.read(playerNavigationProvider), PlayerDestination.home);
+    expect(container.read(playerNavigationProvider), PlayerDestination.connect);
     expect(container.read(playerProfileDirtyProvider), isFalse);
   });
 }

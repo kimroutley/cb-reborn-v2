@@ -7,12 +7,14 @@ class PlayerSelectionScreen extends StatefulWidget {
   final List<PlayerSnapshot> players;
   final StepSnapshot step;
   final Function(String) onPlayerSelected;
+  final List<String> disabledPlayerIds;
 
   const PlayerSelectionScreen({
     super.key,
     required this.players,
     required this.step,
     required this.onPlayerSelected,
+    this.disabledPlayerIds = const [],
   });
 
   @override
@@ -26,6 +28,8 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
       widget.step.actionType == ScriptActionType.selectTwoPlayers.name;
 
   void _onTap(String id) {
+    if (widget.disabledPlayerIds.contains(id)) return;
+
     if (!_isMultiSelect) {
       widget.onPlayerSelected(id);
       return;
@@ -75,61 +79,91 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
               itemBuilder: (context, index) {
                 final player = widget.players[index];
                 final isSelected = _selectedIds.contains(player.id);
+                final isDisabled =
+                    widget.disabledPlayerIds.contains(player.id);
                 final roleColor = CBColors.fromHex(player.roleColorHex);
 
                 return CBFadeSlide(
                   delay: Duration(milliseconds: 30 * index),
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: CBGlassTile(
-                      isPrismatic: isSelected,
-                      isSelected: isSelected,
-                      borderColor: isSelected
-                          ? scheme.primary
-                          : roleColor.withValues(alpha: 0.3),
-                      onTap: () => _onTap(player.id),
-                      child: Row(
-                        children: [
-                          CBRoleAvatar(
-                            assetPath: 'assets/roles/${player.roleId}.png',
-                            size: 40,
-                            color: roleColor,
-                            pulsing: isSelected,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  player.name.toUpperCase(),
-                                  style: textTheme.labelLarge!.copyWith(
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.0,
-                                    color: isSelected
-                                        ? scheme.primary
-                                        : scheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  player.roleName.toUpperCase(),
-                                  style: textTheme.labelSmall!.copyWith(
-                                    color: roleColor.withValues(alpha: 0.7),
-                                    fontSize: 9,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
+                  child: Opacity(
+                    opacity: isDisabled ? 0.4 : 1.0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: CBGlassTile(
+                        isPrismatic: isSelected && !isDisabled,
+                        isSelected: isSelected && !isDisabled,
+                        borderColor: isDisabled
+                            ? scheme.onSurface.withValues(alpha: 0.15)
+                            : isSelected
+                                ? scheme.primary
+                                : roleColor.withValues(alpha: 0.3),
+                        onTap: isDisabled ? null : () => _onTap(player.id),
+                        child: Row(
+                          children: [
+                            CBRoleAvatar(
+                              assetPath: 'assets/roles/${player.roleId}.png',
+                              size: 40,
+                              color: isDisabled
+                                  ? scheme.onSurface.withValues(alpha: 0.3)
+                                  : roleColor,
+                              pulsing: isSelected && !isDisabled,
                             ),
-                          ),
-                          if (isSelected)
-                            Icon(
-                              Icons.check_circle_rounded,
-                              color: scheme.primary,
-                              shadows: CBColors.iconGlow(scheme.primary),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    (widget.step.isVote ? player.name : player.roleName).toUpperCase(),
+                                    style: textTheme.labelLarge!.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.0,
+                                      color: isDisabled
+                                          ? scheme.onSurface.withValues(alpha: 0.4)
+                                          : isSelected
+                                              ? scheme.primary
+                                              : scheme.onSurface,
+                                    ),
+                                  ),
+                                  if (isDisabled) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'VOTING BLOCKED',
+                                      style: textTheme.labelSmall!.copyWith(
+                                        color: scheme.error.withValues(alpha: 0.7),
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ] else if (!widget.step.isVote) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'TARGET PROFILE',
+                                      style: textTheme.labelSmall!.copyWith(
+                                        color: roleColor.withValues(alpha: 0.7),
+                                        fontSize: 9,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ]
+                                ],
+                              ),
                             ),
-                        ],
+                            if (isDisabled)
+                              Icon(
+                                Icons.lock_rounded,
+                                color: scheme.onSurface.withValues(alpha: 0.3),
+                                size: 20,
+                              )
+                            else if (isSelected)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color: scheme.primary,
+                                shadows: CBColors.iconGlow(scheme.primary),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

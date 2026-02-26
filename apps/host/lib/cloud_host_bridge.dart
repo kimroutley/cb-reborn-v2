@@ -300,6 +300,24 @@ class CloudHostBridge {
             continue;
           }
 
+          if (type == 'chat') {
+            final payload = data['payload'] as Map<String, dynamic>? ?? {};
+            final title = payload['title'] as String? ?? 'Unknown';
+            final content = payload['content'] as String? ?? '';
+            final roleId = payload['roleId'] as String?;
+
+            if (content.isNotEmpty) {
+              _ref.read(gameProvider.notifier).postBulletin(
+                    title: title,
+                    content: content,
+                    roleId: roleId,
+                    type: 'chat',
+                  );
+              debugPrint('[CloudHostBridge] Chat from $roleId: $content');
+            }
+            continue;
+          }
+
           if (type == 'role_confirm') {
             final playerId = data['playerId'] as String? ?? '';
             if (playerId.isNotEmpty) {
@@ -457,6 +475,7 @@ class CloudHostBridge {
         .map((p) => {
               'id': p.id,
               'name': p.name,
+              'authUid': p.authUid,
               'isAlive': p.isAlive,
               'deathDay': p.deathDay,
               'hasRumour': p.hasRumour,
@@ -503,6 +522,13 @@ class CloudHostBridge {
       'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
       'gameHistory': game.gameHistory.isNotEmpty ? game.gameHistory : null,
       'deadPoolBets': game.deadPoolBets.isNotEmpty ? game.deadPoolBets : null,
+      'bulletinBoard': game.bulletinBoard.isNotEmpty
+          ? game.bulletinBoard
+              .where((e) => !e.isHostOnly)
+              .map((e) => e.toJson())
+              .toList()
+          : null,
+      'rematchOffered': game.rematchOffered ? true : null,
       'updatedAt': DateTime.now().millisecondsSinceEpoch,
     };
 
@@ -574,6 +600,7 @@ class CloudHostBridge {
       game.winner,
       game.players,
       game.currentStep,
+      game.scriptIndex,
       game.dayVoteTally,
       game.dayVotesByVoter,
       game.lastNightReport,
@@ -582,6 +609,7 @@ class CloudHostBridge {
       game.gameHistory,
       game.deadPoolBets,
       game.privateMessages,
+      game.bulletinBoard,
       session.claimedPlayerIds,
     );
   }

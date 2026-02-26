@@ -31,7 +31,8 @@ class Game extends _$Game {
     ref.onDispose(() {
       _persistDebounceTimer?.cancel();
     });
-    _narrationController = GameNarrationController(ref.read(geminiNarrationServiceProvider));
+    _narrationController =
+        GameNarrationController(ref.read(geminiNarrationServiceProvider));
     return const GameState();
   }
 
@@ -143,7 +144,7 @@ class Game extends _$Game {
       final syncMode = state.syncMode;
       final gameStyle = state.gameStyle;
       final timerSeconds = state.discussionTimerSeconds;
-      final tieBreaksRandomly = state.tieBreaksRandomly;
+      final tieBreakStrategy = state.tieBreakStrategy;
       final eyesOpen = state.eyesOpen;
 
       const roster = <(String, String)>[
@@ -189,7 +190,7 @@ class Game extends _$Game {
         syncMode: syncMode,
         gameStyle: gameStyle,
         discussionTimerSeconds: timerSeconds,
-        tieBreaksRandomly: tieBreaksRandomly,
+        tieBreakStrategy: tieBreakStrategy,
         eyesOpen: eyesOpen,
       );
 
@@ -625,34 +626,63 @@ class Game extends _$Game {
   String exportGameLog() => _narrationController.exportGameLog(state);
 
   /// Generate an AI-ready recap prompt for Gemini
-  String generateAIRecapPrompt(String style) => _narrationController.generateAIRecapPrompt(state, style);
+  String generateAIRecapPrompt(String style) =>
+      _narrationController.generateAIRecapPrompt(state, style);
 
-  /// Generate dynamic read-aloud narration from the last resolved night report
-  /// using Gemini.
-  Future<String?> generateDynamicNightNarration({
+  /// Generate both clean (player) and spicy (host) night recaps.
+  Future<Map<String, String>> generateDualTrackNightNarration({
     String? personalityId,
     String? voice,
     String? variationPrompt,
-  }) => _narrationController.generateDynamicNightNarration(
+  }) =>
+      _narrationController.generateDualTrackNightNarration(
         state,
         personalityId: personalityId,
         voice: voice,
         variationPrompt: variationPrompt,
       );
 
+  /// Deprecated: Use [generateDualTrackNightNarration] for dual tracks.
+  /// This now returns the host version if [forHostOnly] is true, else player version.
+  Future<String?> generateDynamicNightNarration({
+    String? personalityId,
+    String? voice,
+    String? variationPrompt,
+    bool forHostOnly = false,
+  }) async {
+    final narrations = await generateDualTrackNightNarration(
+      personalityId: personalityId,
+      voice: voice,
+      variationPrompt: variationPrompt,
+    );
+    return forHostOnly ? narrations['host'] : narrations['player'];
+  }
+
   Future<String?> _generateCurrentStepNarrationVariation({
     String? personalityId,
   }) async {
-    return _narrationController.generateCurrentStepNarrationVariation(state, personalityId: personalityId);
+    return _narrationController.generateCurrentStepNarrationVariation(state,
+        personalityId: personalityId);
   }
 
+  /// Generate and return the AI narration text for the current step.
+  Future<String?> generateCurrentStepNarrationText({
+    String? personalityId,
+  }) =>
+      _generateCurrentStepNarrationVariation(personalityId: personalityId);
+
+  /// Get the stored narration override for a step, if any.
+  String? getStepNarrationOverride(String stepId) =>
+      _stepNarrationOverrides[stepId];
+
   /// Prepare a one-time narration override for the current step.
-  Future<bool> prepareCurrentStepNarrationOverrideWithAi({
+  /// Returns the generated variation text on success, null on failure.
+  Future<String?> prepareCurrentStepNarrationOverrideWithAi({
     String? personalityId,
   }) async {
     final step = state.currentStep;
     if (step == null || step.readAloudText.trim().isEmpty) {
-      return false;
+      return null;
     }
 
     try {
@@ -660,12 +690,12 @@ class Game extends _$Game {
         personalityId: personalityId,
       );
       if (variation == null) {
-        return false;
+        return null;
       }
       _stepNarrationOverrides[step.id] = variation;
-      return true;
+      return variation;
     } catch (_) {
-      return false;
+      return null;
     }
   }
 
@@ -798,6 +828,53 @@ class Game extends _$Game {
     state = GameAdminController.sendDirectorCommand(state, command);
   }
 
+  /// Add a message to the public feed (bulletin board).
+  void postBulletin({
+    required String title,
+    required String content,
+    String? roleId,
+    String type = 'info',
+  }) {
+    final entry = BulletinEntry(
+      id: '${DateTime.now().millisecondsSinceEpoch}_msg',
+      title: title,
+      content: content,
+      type: type,
+      timestamp: DateTime.now(),
+      roleId: roleId,
+    );
+
+    // Chat messages are captured in gameHistory so the AI recap has full
+    // player dialogue context.
+    final updatedHistory = type == 'chat'
+        ? [...state.gameHistory, '[CHAT] $title: $content']
+        : state.gameHistory;
+
+    state = state.copyWith(
+      bulletinBoard: [...state.bulletinBoard, entry],
+      gameHistory: updatedHistory,
+    );
+    _persist();
+  }
+
+  /// Post a host-only bulletin visible only on the Host device.
+  void _postHostIntel({
+    required String title,
+    required String content,
+    String? roleId,
+  }) {
+    final entry = BulletinEntry(
+      id: '${DateTime.now().millisecondsSinceEpoch}_intel',
+      title: title,
+      content: content,
+      type: 'hostIntel',
+      timestamp: DateTime.now(),
+      roleId: roleId,
+      isHostOnly: true,
+    );
+    state = state.copyWith(bulletinBoard: [...state.bulletinBoard, entry]);
+  }
+
   void _resolveLastAction(String resolution) {
     final events = List<FeedEvent>.from(state.feedEvents);
     for (int i = events.length - 1; i >= 0; i--) {
@@ -865,6 +942,13 @@ class Game extends _$Game {
           return;
         }
 
+        // Lightweight cannot vote for players in their blockedVoteTargets.
+        if (voter.role.id == RoleIds.lightweight &&
+            targetId != 'abstain' &&
+            voter.blockedVoteTargets.contains(targetId)) {
+          return;
+        }
+
         // Clinger must support their partner's current vote while partner is alive.
         if (voter.role.id == RoleIds.clinger &&
             voter.clingerPartnerId != null &&
@@ -898,14 +982,6 @@ class Game extends _$Game {
       state = state.copyWith(
         dayVoteTally: updatedTally,
         dayVotesByVoter: updatedVotes,
-        eventLog: [
-          ...state.eventLog,
-          GameEvent.vote(
-            voterId: voterId,
-            targetId: targetId,
-            day: state.dayCount,
-          ),
-        ],
       );
       return;
     }
@@ -1112,6 +1188,41 @@ class Game extends _$Game {
         targetId: targetId,
       );
     }
+
+    // Record to host-only feed
+    if (!_isDayVoteStep(stepId)) {
+      final actorPlayer = resolvedActorId != null
+          ? state.players.cast<Player?>().firstWhere(
+                (p) => p?.id == resolvedActorId,
+                orElse: () => null,
+              )
+          : null;
+      final targetPlayer = state.players.cast<Player?>().firstWhere(
+            (p) => p?.id == targetId,
+            orElse: () => null,
+          );
+      final actorLabel = actorPlayer != null
+          ? '${actorPlayer.name} (${actorPlayer.role.name})'
+          : stepId;
+      final targetLabel = targetPlayer?.name ?? targetId;
+      _postHostIntel(
+        title: 'ACTION RECORDED',
+        content: '$actorLabel chose $targetLabel',
+        roleId: actorPlayer?.role.id,
+      );
+    }
+
+    // Auto-advance script index after receiving a player action for the
+    // current interactive step. This publishes the next step so the next
+    // player's device receives their prompt.
+    if (!_isDayVoteStep(stepId)) {
+      final currentStep = state.currentStep;
+      if (currentStep != null && _isCompatibleStepId(currentStep.id, stepId)) {
+        if (_isInteractiveAction(currentStep.actionType)) {
+          advanceStep();
+        }
+      }
+    }
   }
 
   void _resolveAndReportAction({
@@ -1244,6 +1355,7 @@ class Game extends _$Game {
     required String content,
     String type = 'info',
     String? roleId,
+    bool isHostOnly = false,
   }) {
     final entry = BulletinEntry(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -1252,11 +1364,15 @@ class Game extends _$Game {
       type: type,
       timestamp: DateTime.now(),
       roleId: roleId,
+      isHostOnly: isHostOnly,
     );
     state = state.copyWith(
       bulletinBoard: [...state.bulletinBoard, entry],
-      gameHistory: [...state.gameHistory, 'BULLETIN: $title - $content'],
+      gameHistory: isHostOnly
+          ? state.gameHistory
+          : [...state.gameHistory, 'BULLETIN: $title - $content'],
     );
+    _persist();
   }
 
   // --- SETTINGS ---
@@ -1271,12 +1387,75 @@ class Game extends _$Game {
     _persist();
   }
 
+  void updateHostPersonality(String id) {
+    state = state.copyWith(hostPersonalityId: id);
+    _persist();
+  }
+
+  void setTieBreakStrategy(TieBreakStrategy strategy) {
+    state = state.copyWith(tieBreakStrategy: strategy);
+    _persist();
+  }
+
+  // Backward-compatible bridge for older callers.
+  void setTieBreak(bool random) {
+    setTieBreakStrategy(
+      random ? TieBreakStrategy.random : TieBreakStrategy.peaceful,
+    );
+  }
+
+  void setDiscussionTimer(int seconds) {
+    state = state.copyWith(discussionTimerSeconds: seconds);
+    _persist();
+  }
+
   /// Reset the game back to lobby state while preserving settings.
   void returnToLobby() {
     state = GameState(
       syncMode: state.syncMode,
       gameStyle: state.gameStyle,
       discussionTimerSeconds: state.discussionTimerSeconds,
+      tieBreakStrategy: state.tieBreakStrategy,
+    );
+    _gameStartedAt = null;
+    _persist();
+  }
+
+  /// Reset for a rematch: back to lobby keeping player names/IDs but
+  /// wiping roles, votes, and all game-specific state.
+  void returnToLobbyWithPlayers() {
+    const unassigned = Role(
+      id: 'unassigned',
+      name: 'Unassigned',
+      alliance: Team.unknown,
+      type: '',
+      complexity: 0,
+      tacticalTip: '',
+      description: '',
+      nightPriority: 0,
+      ability: '',
+      assetPath: '',
+      colorHex: '#888888',
+    );
+
+    final resetPlayers = state.players
+        .map((p) => Player(
+              id: p.id,
+              name: p.name,
+              authUid: p.authUid,
+              isBot: p.isBot,
+              role: unassigned,
+              alliance: Team.unknown,
+            ))
+        .toList();
+
+    state = GameState(
+      syncMode: state.syncMode,
+      gameStyle: state.gameStyle,
+      discussionTimerSeconds: state.discussionTimerSeconds,
+      tieBreakStrategy: state.tieBreakStrategy,
+      players: resetPlayers,
+      rematchOffered: true,
     );
     _gameStartedAt = null;
     _persist();
@@ -1303,11 +1482,74 @@ class Game extends _$Game {
   }
 
   void mergePlayers({required String sourceId, required String targetId}) {
-    state = GamePlayerController.mergePlayers(state, sourceId: sourceId, targetId: targetId);
+    state = GamePlayerController.mergePlayers(state,
+        sourceId: sourceId, targetId: targetId);
   }
 
   void assignRole(String playerId, String roleId) {
     state = GamePlayerController.assignRole(state, playerId, roleId);
+  }
+
+  /// Auto-assign roles based on the current game style without starting the game.
+  /// Returns true if assignment succeeded, false if not enough players.
+  bool autoAssignRoles() {
+    if (state.players.length < minPlayers) return false;
+    if (state.gameStyle == GameStyle.manual) return false;
+
+    final assignedPlayers = GameResolutionLogic.assignRoles(
+      state.players,
+      gameStyle: state.gameStyle,
+    );
+    state = state.copyWith(players: assignedPlayers);
+    _persist();
+    return true;
+  }
+
+  /// Clear all role assignments, resetting every player to unassigned.
+  void clearRoleAssignments() {
+    const unassigned = Role(
+      id: 'unassigned',
+      name: 'Unassigned',
+      alliance: Team.unknown,
+      type: '',
+      complexity: 0,
+      tacticalTip: '',
+      description: '',
+      nightPriority: 0,
+      ability: '',
+      assetPath: '',
+      colorHex: '#888888',
+    );
+    final clearedPlayers = state.players
+        .map((p) => p.copyWith(role: unassigned, alliance: Team.unknown))
+        .toList();
+    state = state.copyWith(players: clearedPlayers);
+  }
+
+  /// Override a night action entry in the current action log.
+  /// [stepId] is the script step key, [newTargetId] is the replacement target.
+  void overrideNightAction(String stepId, String newTargetId) {
+    if (!state.actionLog.containsKey(stepId)) return;
+
+    final oldTargetId = state.actionLog[stepId]!;
+    final updatedLog = Map<String, String>.from(state.actionLog)
+      ..[stepId] = newTargetId;
+    state = state.copyWith(actionLog: updatedLog);
+
+    final oldTarget = state.players.cast<Player?>().firstWhere(
+          (p) => p?.id == oldTargetId,
+          orElse: () => null,
+        );
+    final newTarget = state.players.cast<Player?>().firstWhere(
+          (p) => p?.id == newTargetId,
+          orElse: () => null,
+        );
+    _postHostIntel(
+      title: 'GOD MODE OVERRIDE',
+      content:
+          'Step $stepId: ${oldTarget?.name ?? oldTargetId} → ${newTarget?.name ?? newTargetId}',
+    );
+    _persist();
   }
 
   // --- GOD MODE ACTIONS ---
@@ -1359,37 +1601,14 @@ class Game extends _$Game {
     if (state.players.length < minPlayers) return false;
     if (state.phase != GamePhase.lobby) return false;
 
-    if (state.gameStyle == GameStyle.manual) {
-      final allAssigned = state.players.every(
-          (p) => p.role.id != 'unassigned' && p.alliance != Team.unknown);
-      if (!allAssigned) {
-        return false;
-      }
+    final allAssigned = state.players
+        .every((p) => p.role.id != 'unassigned' && p.alliance != Team.unknown);
+    if (!allAssigned) return false;
 
-      state = state.copyWith(
-        phase: GamePhase.setup,
-        scriptQueue: ScriptBuilder.buildSetupScript(state.players,
-            dayCount: state.dayCount),
-        scriptIndex: 0,
-        actionLog: const {},
-        dayCount: 1,
-      );
-      final sessionController = ref.read(sessionProvider.notifier);
-      sessionController.clearRoleConfirmations();
-      sessionController.setForceStartOverride(false);
-      _gameStartedAt = DateTime.now();
-      _persist();
-      return true;
-    }
-
-    final assignedPlayers = GameResolutionLogic.assignRoles(
-      state.players,
-      gameStyle: state.gameStyle,
-    );
     state = state.copyWith(
-      players: assignedPlayers,
       phase: GamePhase.setup,
-      scriptQueue: ScriptBuilder.buildSetupScript(assignedPlayers, dayCount: 0),
+      scriptQueue: ScriptBuilder.buildSetupScript(state.players,
+          dayCount: state.dayCount),
       scriptIndex: 0,
       actionLog: const {},
       dayCount: 1,
@@ -1405,51 +1624,38 @@ class Game extends _$Game {
   void resetDayVotes() =>
       state = state.copyWith(dayVoteTally: const {}, dayVotesByVoter: const {});
 
-  bool handleTimerExpiry() {
-    final tally = state.dayVoteTally;
-    final hasEnoughVotes = tally.entries.any(
-      (e) => e.key != 'abstain' && e.value >= 2,
+  void pushHistory(String line) {
+    state = state.copyWith(
+      gameHistory: [...state.gameHistory, line],
     );
-    if (!hasEnoughVotes) {
-      state = state.copyWith(
-        gameHistory: [
-          ...state.gameHistory,
-          '── VOTE SKIPPED: no votes resolved ──',
-        ],
-        scriptQueue: [],
-      );
-      advancePhase();
-      return true;
+  }
+
+  /// Advance the script index to the next step within the current phase.
+  /// If there are no more steps, returns false (caller should advancePhase).
+  bool advanceStep() {
+    if (state.scriptQueue.isEmpty) return false;
+    final nextIndex = state.scriptIndex + 1;
+    if (nextIndex >= state.scriptQueue.length) {
+      return false;
     }
-    return false;
+    state = state.copyWith(scriptIndex: nextIndex);
+    emitStepToFeed();
+    _persist();
+    return true;
+  }
+
+  /// Skip non-interactive (info/readAloud) steps automatically until
+  /// reaching an interactive step or the end of the queue.
+  void advanceToNextInteractiveStep() {
+    while (advanceStep()) {
+      final step = state.currentStep;
+      if (step == null) break;
+      if (_isInteractiveAction(step.actionType)) break;
+      if (step.actionType == ScriptActionType.showTimer) break;
+    }
   }
 
   void advancePhase() {
-    if (state.phase == GamePhase.setup) {
-      final session = ref.read(sessionProvider);
-      final requiredIds = state.players
-          .where((player) => !player.isBot)
-          .map((player) => player.id)
-          .toSet();
-      final confirmedIds = session.roleConfirmedPlayerIds.toSet();
-      final allConfirmed = requiredIds.every(confirmedIds.contains);
-      final usesRoleConfirmationFlow = session.claimedPlayerIds.isNotEmpty ||
-          session.roleConfirmedPlayerIds.isNotEmpty;
-      if (usesRoleConfirmationFlow &&
-          !allConfirmed &&
-          !session.forceStartOverride) {
-        return;
-      }
-    }
-
-    emitStepToFeed();
-    if (state.scriptQueue.isNotEmpty &&
-        state.scriptIndex < state.scriptQueue.length - 1) {
-      state = state.copyWith(scriptIndex: state.scriptIndex + 1);
-      return;
-    }
-
-    // Phase transitions
     switch (state.phase) {
       case GamePhase.lobby:
       case GamePhase.setup:
@@ -1461,6 +1667,11 @@ class Game extends _$Game {
           ),
           scriptIndex: 0,
           actionLog: const {},
+        );
+        emitStepToFeed();
+        _postHostIntel(
+          title: 'PHASE CHANGE',
+          content: 'Night ${state.dayCount} has begun. Awaiting actions.',
         );
         break;
       case GamePhase.night:
@@ -1493,6 +1704,20 @@ class Game extends _$Game {
             type: 'result',
           );
         }
+        // Dispatch host-only mechanical recap with full truth (names/roles)
+        if (res.report.isNotEmpty) {
+          dispatchBulletin(
+            title: 'NIGHT RECAP (HOST)',
+            content: res.report.join('\n'),
+            type: 'result',
+            isHostOnly: true,
+          );
+        }
+        emitStepToFeed();
+        _postHostIntel(
+          title: 'PHASE CHANGE',
+          content: 'Day ${state.dayCount} — discussion and voting phase.',
+        );
 
         _checkAndResolveWinCondition(state.players);
         break;
@@ -1520,6 +1745,8 @@ class Game extends _$Game {
         final res = GameResolutionLogic.resolveDayVote(
           state.players,
           state.dayVoteTally,
+          dayVotesSnapshot,
+          state.tieBreakStrategy,
           state.dayCount,
         );
 
@@ -1599,6 +1826,10 @@ class Game extends _$Game {
         );
         state = state.copyWith(players: dayResolution.players);
 
+        // Capture day number before increment for recap
+        final resolvedDay = state.dayCount;
+        final dayReportLines = [...res.report, ...dayResolution.lines];
+
         state = state.copyWith(
           players:
               state.players, // Current state includes resolution + deadpool
@@ -1631,6 +1862,13 @@ class Game extends _$Game {
               dayResolution.clearDeadPoolBets ? const {} : state.deadPoolBets,
         );
 
+        // ── Dispatch Day Recap cards ──
+        _dispatchDayRecapCards(
+          resolvedDay: resolvedDay,
+          dayReportLines: dayReportLines,
+          dayVotesSnapshot: dayVotesSnapshot,
+        );
+
         for (final victimId in dayResolution.deathTriggerVictimIds) {
           _handleDeathTriggers(victimId);
         }
@@ -1641,6 +1879,124 @@ class Game extends _$Game {
         break;
     }
     _persist();
+  }
+
+  // ── Day Recap Card Dispatch ──
+
+  void _dispatchDayRecapCards({
+    required int resolvedDay,
+    required List<String> dayReportLines,
+    required Map<String, String> dayVotesSnapshot,
+  }) {
+    final recapId = 'day-$resolvedDay-recap-v1';
+    final hostRecapId = 'day-$resolvedDay-recap-host-v1';
+
+    // Dedupe: skip if already dispatched for this day
+    final existing = state.bulletinBoard.any(
+      (e) => e.type == 'dayRecap' && e.id == recapId,
+    );
+    if (existing) return;
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    // ── Public (player-safe) recap ──
+    final playerBullets = _buildSanitizedBullets(dayReportLines);
+    final playerPayload = DayRecapCardPayload(
+      v: 1,
+      recapId: recapId,
+      day: resolvedDay,
+      title: 'DAY $resolvedDay RECAP',
+      bullets: playerBullets,
+      generatedAtMs: now,
+    );
+    dispatchBulletin(
+      title: 'DAY $resolvedDay RECAP',
+      content: playerPayload.toJsonString(),
+      type: 'dayRecap',
+    );
+
+    // ── Host-only (spicy) recap ──
+    final hostBullets = _buildHostBullets(
+      dayReportLines: dayReportLines,
+      dayVotesSnapshot: dayVotesSnapshot,
+    );
+    final hostPayload = DayRecapHostPayload(
+      v: 1,
+      recapId: hostRecapId,
+      day: resolvedDay,
+      title: 'DAY $resolvedDay RECAP (HOST)',
+      bullets: hostBullets,
+      generatedAtMs: now,
+    );
+    dispatchBulletin(
+      title: 'DAY $resolvedDay RECAP (HOST)',
+      content: hostPayload.toJsonString(),
+      type: 'dayRecapHost',
+      isHostOnly: true,
+    );
+  }
+
+  /// Deterministic sanitizer: strips player names and role names from lines.
+  List<String> _buildSanitizedBullets(List<String> lines) {
+    if (lines.isEmpty) return const ['The day ended without incident.'];
+
+    // Collect all known player names and role display names for stripping
+    final playerNames =
+        state.players.map((p) => p.name).where((n) => n.isNotEmpty).toSet();
+    final roleNames = state.players
+        .map((p) => p.role.name)
+        .where((n) => n.isNotEmpty)
+        .toSet();
+
+    return lines.map((line) {
+      var sanitized = line;
+      // Replace player names with "a patron"
+      for (final name in playerNames) {
+        sanitized = sanitized.replaceAll(
+          RegExp(RegExp.escape(name), caseSensitive: false),
+          'a patron',
+        );
+      }
+      // Replace role names with "someone"
+      for (final role in roleNames) {
+        sanitized = sanitized.replaceAll(
+          RegExp(RegExp.escape(role), caseSensitive: false),
+          'someone',
+        );
+      }
+      return sanitized;
+    }).toList();
+  }
+
+  /// Host bullets include raw report lines + a vote breakdown.
+  List<String> _buildHostBullets({
+    required List<String> dayReportLines,
+    required Map<String, String> dayVotesSnapshot,
+  }) {
+    final bullets = List<String>.from(dayReportLines);
+
+    // Append a vote summary if votes were cast
+    if (dayVotesSnapshot.isNotEmpty) {
+      // Build tally: targetId → count
+      final tally = <String, int>{};
+      for (final targetId in dayVotesSnapshot.values) {
+        tally[targetId] = (tally[targetId] ?? 0) + 1;
+      }
+      final sorted = tally.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+
+      final voteLines = sorted.map((e) {
+        final target = state.players
+            .where((p) => p.id == e.key)
+            .map((p) => '${p.name} (${p.role.name})')
+            .firstOrNull;
+        return '${target ?? e.key}: ${e.value} vote${e.value == 1 ? '' : 's'}';
+      }).join(', ');
+
+      bullets.add('Votes: $voteLines');
+    }
+
+    return bullets;
   }
 
   void _checkAndResolveWinCondition(List<Player> players) {

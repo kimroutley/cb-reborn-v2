@@ -7,12 +7,14 @@ class EndGameView extends StatelessWidget {
   final GameState gameState;
   final Game controller;
   final VoidCallback onReturnToLobby;
+  final VoidCallback onRematchWithPlayers;
 
   const EndGameView({
     super.key,
     required this.gameState,
     required this.controller,
     required this.onReturnToLobby,
+    required this.onRematchWithPlayers,
   });
 
   @override
@@ -156,6 +158,12 @@ class EndGameView extends StatelessWidget {
           const SizedBox(height: 24),
 
           CBPrimaryButton(
+            label: 'PLAY AGAIN (SAME PLAYERS)',
+            icon: Icons.replay_rounded,
+            onPressed: onRematchWithPlayers,
+          ),
+          const SizedBox(height: 10),
+          CBGhostButton(
             label: 'NEW GAME',
             icon: Icons.refresh_rounded,
             onPressed: onReturnToLobby,

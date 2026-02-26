@@ -22,13 +22,21 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   PackageInfo? _packageInfo;
-  bool _isPreviewLoading = false;
-  String? _previewText;
+  late final TextEditingController _apiKeyController;
 
   @override
   void initState() {
     super.initState();
+    _apiKeyController = TextEditingController(
+      text: ref.read(hostSettingsProvider).geminiApiKey,
+    );
     _loadPackageInfo();
+  }
+
+  @override
+  void dispose() {
+    _apiKeyController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadPackageInfo() async {
@@ -37,34 +45,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       setState(() {
         _packageInfo = info;
       });
-    }
-  }
-
-  Future<void> _generatePreview(HostPersonality personality) async {
-    setState(() {
-      _isPreviewLoading = true;
-      _previewText = null;
-    });
-
-    try {
-      final gemini = ref.read(geminiNarrationServiceProvider);
-      final text = await gemini.generatePersonalityPreview(
-        voice: personality.voice,
-        variationPrompt: personality.variationPrompt,
-      );
-      if (mounted) {
-        setState(() {
-          _previewText = text;
-          _isPreviewLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _previewText = 'Failed to connect to the club...';
-          _isPreviewLoading = false;
-        });
-      }
     }
   }
 
@@ -345,6 +325,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     HostSettingsNotifier notifier,
     ColorScheme scheme,
   ) {
+    final gemini = ref.read(geminiNarrationServiceProvider);
+    final hasKey = gemini.hasApiKey;
+
     return CBPanel(
       borderColor: scheme.tertiary.withValues(alpha: 0.35),
       child: Column(
@@ -368,11 +351,88 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
           if (settings.geminiNarrationEnabled) ...[
+            const SizedBox(height: 20),
+            _buildApiKeyField(context, settings, notifier, scheme, hasKey),
             const SizedBox(height: 24),
             _buildPersonalitySelector(context, settings, notifier, scheme),
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildApiKeyField(
+    BuildContext context,
+    HostSettings settings,
+    HostSettingsNotifier notifier,
+    ColorScheme scheme,
+    bool hasKey,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'GEMINI API KEY',
+          style: CBTypography.labelSmall.copyWith(
+            color: scheme.tertiary.withValues(alpha: 0.8),
+            fontSize: 9,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        CBGlassTile(
+          borderColor: hasKey
+              ? scheme.tertiary.withValues(alpha: 0.4)
+              : scheme.error.withValues(alpha: 0.4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Row(
+            children: [
+              Icon(
+                hasKey ? Icons.vpn_key_rounded : Icons.key_off_rounded,
+                size: 16,
+                color: hasKey ? scheme.tertiary : scheme.error,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: _apiKeyController,
+                  obscureText: true,
+                  style: CBTypography.bodySmall.copyWith(
+                    color: scheme.onSurface,
+                    fontFamily: 'RobotoMono',
+                    fontSize: 11,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Paste your Gemini API key...',
+                    hintStyle: CBTypography.bodySmall.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.3),
+                      fontSize: 11,
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  onChanged: (value) => notifier.setGeminiApiKey(value),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          hasKey
+              ? 'KEY ACTIVE — AI narration will be used during gameplay.'
+              : 'NO KEY — Narration will use local fallback text.',
+          style: CBTypography.labelSmall.copyWith(
+            color: hasKey
+                ? scheme.tertiary.withValues(alpha: 0.7)
+                : scheme.error.withValues(alpha: 0.7),
+            fontSize: 8,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
     );
   }
 
@@ -450,58 +510,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showPreviewDialog(BuildContext context, HostPersonality personality) {
     final scheme = Theme.of(context).colorScheme;
-    _generatePreview(personality);
 
     showThemedDialog(
       context: context,
       accentColor: scheme.tertiary,
-      child: StatefulBuilder(
-        builder: (context, setState) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'VOICE CHECK: ${personality.name.toUpperCase()}',
-                style: CBTypography.labelLarge.copyWith(
-                  color: scheme.tertiary,
-                  letterSpacing: 2,
-                  fontWeight: FontWeight.w900,
-                  shadows: CBColors.textGlow(scheme.tertiary, intensity: 0.5),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerHighest.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                  border:
-                      Border.all(color: scheme.tertiary.withValues(alpha: 0.3)),
-                ),
-                child: _isPreviewLoading
-                    ? const Center(
-                        child: CBBreathingLoader(size: 32),
-                      )
-                    : Text(
-                        _previewText ?? 'AWAITING INPUT...',
-                        style: CBTypography.bodyMedium.copyWith(
-                          fontStyle: FontStyle.italic,
-                          color: scheme.onSurface.withValues(alpha: 0.9),
-                          height: 1.4,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-              ),
-              const SizedBox(height: 32),
-              CBPrimaryButton(
-                label: 'DISMISS',
-                backgroundColor: scheme.tertiary,
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          );
-        },
+      child: _VoicePreviewContent(
+        personality: personality,
+        geminiService: ref.read(geminiNarrationServiceProvider),
+        scheme: scheme,
       ),
     );
   }
@@ -833,6 +849,92 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _VoicePreviewContent extends StatefulWidget {
+  final HostPersonality personality;
+  final GeminiNarrationService geminiService;
+  final ColorScheme scheme;
+
+  const _VoicePreviewContent({
+    required this.personality,
+    required this.geminiService,
+    required this.scheme,
+  });
+
+  @override
+  State<_VoicePreviewContent> createState() => _VoicePreviewContentState();
+}
+
+class _VoicePreviewContentState extends State<_VoicePreviewContent> {
+  bool _loading = true;
+  String? _text;
+
+  @override
+  void initState() {
+    super.initState();
+    _generate();
+  }
+
+  Future<void> _generate() async {
+    try {
+      final result = await widget.geminiService.generatePersonalityPreview(
+        voice: widget.personality.voice,
+        variationPrompt: widget.personality.variationPrompt,
+      );
+      if (mounted) setState(() { _text = result; _loading = false; });
+    } catch (_) {
+      if (mounted) {
+        setState(() { _text = 'Failed to connect to the club...'; _loading = false; });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = widget.scheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'VOICE CHECK: ${widget.personality.name.toUpperCase()}',
+          style: CBTypography.labelLarge.copyWith(
+            color: scheme.tertiary,
+            letterSpacing: 2,
+            fontWeight: FontWeight.w900,
+            shadows: CBColors.textGlow(scheme.tertiary, intensity: 0.5),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: scheme.tertiary.withValues(alpha: 0.3)),
+          ),
+          child: _loading
+              ? const Center(child: CBBreathingLoader(size: 32))
+              : Text(
+                  _text ?? 'AWAITING INPUT...',
+                  style: CBTypography.bodyMedium.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: scheme.onSurface.withValues(alpha: 0.9),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+        ),
+        const SizedBox(height: 32),
+        CBPrimaryButton(
+          label: 'DISMISS',
+          backgroundColor: scheme.tertiary,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
     );
   }
 }

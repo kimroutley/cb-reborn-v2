@@ -20,23 +20,14 @@ class GamesNightRecapScreen extends StatelessWidget {
     final sortedGames = List<GameRecord>.from(games)
       ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
+    return CBPrismScaffold(
+      title: 'SESSION RECAP',
       drawer: const CustomDrawer(),
-      appBar: AppBar(
-        title: Text(
-          'SESSION RECAP',
-          style: Theme.of(context).textTheme.titleLarge!,
-        ),
-        centerTitle: true,
-      ),
-      body: CBNeonBackground(
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
                 // Session Header
                 CBGlassTile(
                   borderColor: scheme.primary,
@@ -101,10 +92,8 @@ class GamesNightRecapScreen extends StatelessWidget {
                     return _buildGameTile(context, gameNumber, game, scheme);
                   }),
 
-                const SizedBox(height: 48),
-              ],
-            ),
-          ),
+            const SizedBox(height: 48),
+          ],
         ),
       ),
     );

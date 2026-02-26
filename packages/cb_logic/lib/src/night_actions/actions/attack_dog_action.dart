@@ -32,9 +32,10 @@ class AttackDogAction implements NightActionStrategy {
         final target = context.getPlayer(targetId);
         context.killedPlayerIds.add(targetId);
         context.killSources[targetId] = 'attack_dog';
-        context.addPrivateMessage(dog.id, 'Dog released on ${target.name}.');
+        context.addPrivateMessage(
+            dog.id, 'You attacked ${target.name}. Your one-time strike is spent.');
         context.addTeaser('Dog found prey.');
-        context.addReport('Dog attacked ${target.name}.');
+        context.addReport('Attack Dog chose to attack ${target.name}.');
         context.updatePlayer(dog.copyWith(clingerAttackDogUsed: true));
       }
     }

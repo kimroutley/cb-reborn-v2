@@ -68,8 +68,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     CBPrimaryButton(
-                      label: 'START NEW GAME',
-                      icon: Icons.add_circle_outline,
+                      label: 'OPEN THE CLUB',
+                      icon: Icons.nightlife_rounded,
                       onPressed: () {
                         HapticService.heavy();
                         ref

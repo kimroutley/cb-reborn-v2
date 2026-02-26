@@ -117,33 +117,24 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
 
   int get _totalSlides {
     int count = 3; // Intro, Roster, Summary
-    if (_recap.mvp != null) {
-      count++;
-    }
-    if (_recap.mainCharacter != null) {
-      count++;
-    }
-    if (_recap.ghost != null) {
-      count++;
-    }
-    if (_recap.dealerOfDeath != null) {
-      count++;
-    }
-    if (_recap.spiciestMoment != null) {
-      count++;
-    }
+    if (_recap.mvp != null) count++;
+    if (_recap.mainCharacter != null) count++;
+    if (_recap.ghost != null) count++;
+    if (_recap.dealerOfDeath != null) count++;
+    count += _recap.specialAwards.length;
+    if (_recap.spiciestMoment != null) count++;
     return count;
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
+    return CBPrismScaffold(
+      title: 'SESSION RECAP',
+      showAppBar: false,
       drawer: const CustomDrawer(),
-      body: CBNeonBackground(
-        showOverlay: false,
-        child: Stack(
-          children: [
+      body: Stack(
+        children: [
             // ── ANIMATED BACKGROUND ──
             _buildDynamicBackground(scheme),
 
@@ -205,8 +196,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -321,12 +311,106 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
         ),
       );
     }
+    for (final special in _recap.specialAwards) {
+      slides.add(_buildSpecialAwardSlide(special, scheme));
+    }
+
     if (_recap.spiciestMoment != null) {
       slides.add(_buildSpicySlide(scheme));
     }
 
     slides.add(_buildSummarySlide(scheme));
     return slides;
+  }
+
+  static IconData _specialAwardIcon(String id) => switch (id) {
+        'cannon_fodder' => Icons.crisis_alert,
+        'the_npc' => Icons.person_off,
+        'friendly_fire_champion' => Icons.group_remove,
+        'professional_victim' => Icons.healing,
+        'the_cockroach' => Icons.pest_control,
+        'absolutely_clueless' => Icons.psychology_alt,
+        'the_tourist' => Icons.luggage,
+        'designated_scapegoat' => Icons.front_hand,
+        'the_judas' => Icons.masks,
+        'participation_trophy' => Icons.workspace_premium,
+        _ => Icons.emoji_events,
+      };
+
+  static Color _specialAwardColor(String id, ColorScheme scheme) => switch (id) {
+        'cannon_fodder' => scheme.error,
+        'the_npc' => scheme.onSurface.withValues(alpha: 0.4),
+        'friendly_fire_champion' => scheme.error,
+        'professional_victim' => scheme.secondary,
+        'the_cockroach' => scheme.tertiary,
+        'absolutely_clueless' => scheme.secondary,
+        'the_tourist' => scheme.primary,
+        'designated_scapegoat' => scheme.error,
+        'the_judas' => scheme.secondary,
+        'participation_trophy' => scheme.tertiary,
+        _ => scheme.primary,
+      };
+
+  Widget _buildSpecialAwardSlide(SpecialAward award, ColorScheme scheme) {
+    final textTheme = Theme.of(context).textTheme;
+    final icon = _specialAwardIcon(award.id);
+    final color = _specialAwardColor(award.id, scheme);
+
+    return Padding(
+      padding: const EdgeInsets.all(40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            award.title.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: textTheme.displayLarge!
+                .copyWith(color: scheme.onSurface, fontSize: 32)
+                .copyWith(shadows: CBColors.textGlow(color)),
+          ),
+          const SizedBox(height: 40),
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: color, width: 2.5),
+              boxShadow: CBColors.circleGlow(color, intensity: 0.8),
+            ),
+            child: Icon(icon, size: 64, color: color),
+          ),
+          const SizedBox(height: 40),
+          Text(
+            award.playerName.toUpperCase(),
+            style: textTheme.displayMedium!
+                .copyWith(color: scheme.onSurface, fontSize: 34),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            award.stat.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: textTheme.labelSmall!.copyWith(
+              color: color.withValues(alpha: 0.8),
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 28),
+          CBGlassTile(
+            borderColor: color.withValues(alpha: 0.3),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Text(
+              '"${award.roastLine}"',
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium!.copyWith(
+                fontStyle: FontStyle.italic,
+                color: scheme.onSurface.withValues(alpha: 0.7),
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildIntroSlide(ColorScheme scheme) {

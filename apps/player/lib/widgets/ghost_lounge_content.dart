@@ -50,15 +50,26 @@ class GhostLoungeContent extends StatelessWidget {
         ? null
         : (playersById[myBetTargetId]?.name ?? myBetTargetId);
 
+    final myName = playersById[playerId]?.name;
+
     return GhostLoungeView(
       drawer: const CustomDrawer(),
       aliveTargets: aliveTargets,
       activeBets: activeBets,
       currentBetTargetName: myBetTargetName,
+      ghostChatMessages: gameState.ghostChatMessages,
       onPlaceBet: (targetId) {
         bridge.placeDeadPoolBet(
           playerId: playerId,
           targetPlayerId: targetId,
+        );
+        HapticFeedback.selectionClick();
+      },
+      onSendGhostChat: (message) {
+        bridge.sendGhostChat(
+          playerId: playerId,
+          message: message,
+          playerName: myName,
         );
         HapticFeedback.selectionClick();
       },

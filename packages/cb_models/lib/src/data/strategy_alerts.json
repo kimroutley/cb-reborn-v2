@@ -4,7 +4,7 @@
     "condition": "myRole:dealer;role:bouncer;status:alive",
     "priority": 1,
     "type": "warning",
-    "text": "⚠️ The Bouncer is alive and hunting. Avoid suspicious behavior and blend in."
+    "text": "⚠️ The Bouncer is alive and hunting. Avoid suspicious behaviour and blend in."
   },
   {
     "id": "bouncer_dead_dealer",
@@ -32,7 +32,7 @@
     "condition": "myRole:dealer;role:roofi;status:alive",
     "priority": 2,
     "type": "warning",
-    "text": "⚠️ Roofi is active. They can block one of your kills and silence teammates."
+    "text": "⚠️ Roofi is active. They can block one of your kills and silence teammates. If they target the ONLY living Dealer, the kill is blocked."
   },
   {
     "id": "last_dealer",
@@ -172,14 +172,14 @@
     "condition": "myRole:creep;creepTargetStatus:alive",
     "priority": 3,
     "type": "tip",
-    "text": "👀 Your target is alive. Continue playing as their alliance and study their behavior."
+    "text": "👀 Your target is alive. Continue playing as their alliance and study their behaviour."
   },
   {
     "id": "creep_inherited",
     "condition": "myRole:creep;hasInherited:true",
     "priority": 1,
     "type": "critical",
-    "text": "🎭 You've inherited your target's role! Adopt their behavior seamlessly."
+    "text": "🎭 You've inherited your target's role! Adopt their behaviour seamlessly."
   },
   {
     "id": "second_wind_pending",

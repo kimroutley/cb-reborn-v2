@@ -23,6 +23,7 @@ class _PlayerIntroScreenState extends ConsumerState<PlayerIntroScreen> {
       return const PlayerOnboardingScreen();
     }
 
+    // Default to ConnectScreen if not joined or connected
     return PlayerBootstrapGate(
       child: const EffectsOverlay(child: PlayerHomeShell()),
     );

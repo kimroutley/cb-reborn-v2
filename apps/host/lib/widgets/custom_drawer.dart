@@ -6,7 +6,6 @@ import '../host_destinations.dart';
 import '../host_navigation.dart';
 import '../profile_edit_guard.dart';
 
-
 class CustomDrawer extends ConsumerWidget {
   final HostDestination? currentDestination;
   final ValueChanged<HostDestination>? onDrawerItemTap;
@@ -42,23 +41,22 @@ class CustomDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
     final HostDestination activeDestination =
         currentDestination ?? ref.watch(hostNavigationProvider);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     const gameplayGroup = <HostDestination>{
       HostDestination.lobby,
       HostDestination.game,
       HostDestination.guides,
     };
-    const statsAndAwardsGroup = <HostDestination>{
+    const statsGroup = <HostDestination>{
       HostDestination.hallOfFame,
     };
-    const gamesNightGroup = <HostDestination>{
+    const socialGroup = <HostDestination>{
       HostDestination.gamesNight,
     };
-    const walletGroup = <HostDestination>{
+    const accountGroup = <HostDestination>{
       HostDestination.profile,
     };
     const otherGroup = <HostDestination>{
@@ -70,34 +68,47 @@ class CustomDrawer extends ConsumerWidget {
 
     List<HostDestinationConfig> configsFor(Set<HostDestination> group) {
       return hostDestinations
-          .where((config) => group.contains(config.destination))
+          .where((c) => group.contains(c.destination))
           .toList(growable: false);
     }
 
-    final gameplayDestinations = configsFor(gameplayGroup);
-    final statsAndAwardsDestinations = configsFor(statsAndAwardsGroup);
-    final gamesNightDestinations = configsFor(gamesNightGroup);
-    final walletDestinations = configsFor(walletGroup);
-    final otherDestinations = configsFor(otherGroup);
-    final drawerDestinations = <HostDestinationConfig>[
-      ...gameplayDestinations,
-      ...statsAndAwardsDestinations,
-      ...gamesNightDestinations,
-      ...walletDestinations,
-      ...otherDestinations,
-    ];
+    final gameplay = configsFor(gameplayGroup);
+    final stats = configsFor(statsGroup);
+    final social = configsFor(socialGroup);
+    final account = configsFor(accountGroup);
+    final other = configsFor(otherGroup);
 
-    final selectedIndex = drawerDestinations
-        .indexWhere((d) => d.destination == activeDestination);
+    final allDests = [
+      ...gameplay,
+      ...stats,
+      ...social,
+      ...account,
+      ...other,
+    ];
+    final selectedIndex =
+        allDests.indexWhere((d) => d.destination == activeDestination);
+
+    final entries = <CBDrawerEntry>[
+      const CBDrawerSection(title: 'Gameplay', icon: Icons.gamepad_outlined),
+      ...gameplay.map(_dest),
+      const CBDrawerSection(
+          title: 'Stats & Awards', icon: Icons.emoji_events_outlined),
+      ...stats.map(_dest),
+      const CBDrawerSection(title: 'Social', icon: Icons.group_outlined),
+      ...social.map(_dest),
+      const CBDrawerSection(
+          title: 'Account', icon: Icons.account_circle_outlined),
+      ...account.map(_dest),
+      const CBDrawerSection(title: 'Other', icon: Icons.more_horiz_outlined),
+      ...other.map(_dest),
+    ];
 
     return CBSideDrawer(
       selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
       onDestinationSelected: (index) async {
         HapticService.selection();
-        final destination = drawerDestinations[index].destination;
-        if (destination == activeDestination) {
-          return;
-        }
+        final destination = allDests[index].destination;
+        if (destination == activeDestination) return;
 
         final canLeave = await _confirmDiscardProfileChanges(
           context,
@@ -105,126 +116,90 @@ class CustomDrawer extends ConsumerWidget {
           activeDestination,
           destination,
         );
-        if (!context.mounted) {
-          return;
-        }
-        if (!canLeave) {
-          return;
-        }
+        if (!context.mounted || !canLeave) return;
 
         if (onDrawerItemTap != null) {
           onDrawerItemTap!(destination);
         } else {
-          ref.read(hostNavigationProvider.notifier).setDestination(destination);
+          ref
+              .read(hostNavigationProvider.notifier)
+              .setDestination(destination);
         }
 
-        // Close the drawer if it's likely we're in a mobile-style overlay
-        // (Scaffold.of(context).isDrawerOpen is a better check if needed)
         try {
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          }
+          if (Navigator.of(context).canPop()) Navigator.of(context).pop();
         } catch (_) {}
       },
-      drawerHeader: _buildDrawerHeader(context, theme, colorScheme), // Pass the header
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Gameplay',
-            icon: Icons.gamepad_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-
-        ...gameplayDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
-
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Stats and Awards',
-            icon: Icons.emoji_events_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-        ...statsAndAwardsDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
-
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Games Night',
-            icon: Icons.group_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-
-        ...gamesNightDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
-
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Wallet',
-            icon: Icons.account_balance_wallet_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-        ...walletDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
-
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Other',
-            icon: Icons.more_horiz_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-        ...otherDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
-
-        const SizedBox(height: 24),
-      ],
+      drawerHeader: _DrawerHeader(scheme: scheme),
+      entries: entries,
     );
   }
 
-  Widget _buildDrawerHeader(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
+  static CBDrawerDestination _dest(HostDestinationConfig c) {
+    return CBDrawerDestination(icon: c.icon, label: c.label);
+  }
+}
+
+// ── Header ──────────────────────────────────────────────────────────────────
+
+class _DrawerHeader extends StatelessWidget {
+  final ColorScheme scheme;
+  const _DrawerHeader({required this.scheme});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        CBSpace.x6,
-        CBSpace.x6,
-        CBSpace.x4,
-        CBSpace.x4,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.fromLTRB(24, 28, 20, 16),
+      child: Row(
         children: [
-          Text(
-            'CLUB BLACKOUT',
-            style: theme.textTheme.headlineSmall?.copyWith(
-              color: colorScheme.secondary,
-              fontWeight: FontWeight.bold,
-              shadows: CBColors.textGlow(colorScheme.secondary),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: scheme.secondary.withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: scheme.secondary.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.shield_rounded,
+              size: 18,
+              color: scheme.secondary,
+              shadows: CBColors.iconGlow(scheme.secondary, intensity: 0.5),
             ),
           ),
-          const SizedBox(height: CBSpace.x1),
-          Text(
-            'HOST CONSOLE',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant.withAlpha(178),
-              letterSpacing: 1.2,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CLUB BLACKOUT',
+                  style: text.titleSmall?.copyWith(
+                    color: scheme.secondary,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.4,
+                    shadows: CBColors.textGlow(scheme.secondary, intensity: 0.4),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'HOST CONSOLE',
+                  style: text.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    letterSpacing: 1.6,
+                    fontSize: 9,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

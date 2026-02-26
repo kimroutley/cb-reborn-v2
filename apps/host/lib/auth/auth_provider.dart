@@ -171,9 +171,9 @@ class AuthNotifier extends Notifier<AuthState> {
         error: e.message ?? 'Google sign-in failed. Please try again.',
       );
     } catch (e) {
-      state = const AuthState(
+      state = AuthState(
         AuthStatus.error,
-        error: 'Google sign-in failed. Please retry.',
+        error: 'Google sign-in failed: ${e.toString()}',
       );
     }
   }
@@ -338,6 +338,48 @@ class AuthNotifier extends Notifier<AuthState> {
         user: user,
         error: 'Failed to save profile. Check Firestore permissions.',
       );
+    }
+  }
+
+  Future<void> signInWithEmailPassword(String email, String password) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    try {
+      await _authService.signInWithEmailPassword(
+          email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      state = AuthState(AuthStatus.error,
+          error: e.message ?? 'Sign-in failed. Check your credentials.');
+    } catch (_) {
+      state = const AuthState(AuthStatus.error,
+          error: 'Sign-in failed. Please try again.');
+    }
+  }
+
+  Future<void> createAccountWithEmailPassword(
+      String email, String password) async {
+    state = state.copyWith(status: AuthStatus.loading);
+    try {
+      await _authService.createAccountWithEmailPassword(
+          email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      state = AuthState(AuthStatus.error,
+          error: e.message ?? 'Account creation failed.');
+    } catch (_) {
+      state = const AuthState(AuthStatus.error,
+          error: 'Account creation failed. Please try again.');
+    }
+  }
+
+  Future<bool> sendPasswordReset(String email) async {
+    try {
+      await _authService.sendPasswordReset(email: email);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      state = AuthState(AuthStatus.error,
+          error: e.message ?? 'Password reset failed.');
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 

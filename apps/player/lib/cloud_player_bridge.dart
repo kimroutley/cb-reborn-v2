@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cb_comms/cb_comms_player.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,7 @@ import 'firebase_options.dart';
 import 'player_bridge.dart'; // re-use PlayerGameState, PlayerSnapshot, StepSnapshot, kDayVoteStepId
 import 'player_bridge_actions.dart';
 import 'player_session_cache.dart';
+import 'package:cb_models/cb_models.dart';
 
 /// Cloud-mode player bridge using Firebase Firestore.
 ///
@@ -15,16 +17,13 @@ import 'player_session_cache.dart';
 /// Subscribes to Firestore docs for game state instead of WebSocket.
 class CloudPlayerBridge extends Notifier<PlayerGameState>
     implements PlayerBridgeActions {
-  static const Duration _initialSnapshotTimeout = Duration(seconds: 12);
+  static const Duration _initialSnapshotTimeout = Duration(seconds: 20);
 
   FirebaseBridge? _firebase;
   StreamSubscription? _gameSub;
   StreamSubscription? _privateSub;
-  String? _pendingClaimName;
   String? _cachedJoinCode;
   String? _cachedPlayerName;
-  bool _isClaimingInProgress = false;
-  // Removed String? _claimedPlayerId; as it's now in PlayerGameState.myPlayerId
 
   @override
   PlayerGameState build() {
@@ -86,17 +85,22 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       // Wait for the first public game snapshot before declaring the join
       // successful. This prevents false-positive "connected" UI states when
       // cloud data is unavailable or delayed.
-      await firstSnapshotReady.future.timeout(_initialSnapshotTimeout);
+      await firstSnapshotReady.future.timeout(
+        _initialSnapshotTimeout,
+        onTimeout: () => throw TimeoutException(
+          'Cloud join timed out. Confirm the host lobby is live, your code is correct, and try again.',
+        ),
+      );
 
       state = state.copyWith(isConnected: true, joinAccepted: true);
       _persistSessionCache();
 
       debugPrint('[CloudPlayerBridge] Subscribed to game $code');
-    } on TimeoutException {
+    } on TimeoutException catch (e) {
       await disconnect();
+      final message = e.message ?? 'Cloud join timed out. Confirm host lobby is live and retry.';
       state = state.copyWith(
-        joinError:
-            'Cloud join timed out. Confirm host lobby is live and retry.',
+        joinError: message,
         isConnected: false,
         joinAccepted: false,
       );
@@ -111,7 +115,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         joinAccepted: false,
       );
       _persistSessionCache();
-      rethrow;
+      throw Exception(state.joinError);
     }
   }
 
@@ -119,7 +123,6 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   Future<void> joinGame(String joinCode, String playerName) async {
     final resolvedName =
         playerName.trim().isEmpty ? 'Player' : playerName.trim();
-    _pendingClaimName = resolvedName;
     _cachedPlayerName = resolvedName;
     await joinWithCode(joinCode);
     await sendJoinRequest(resolvedName);
@@ -221,6 +224,30 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     );
   }
 
+  @override
+  Future<void> sendBulletin({
+    required String title,
+    required String floatContent,
+    String? roleId,
+  }) async {
+    // Write directly to actions collection or dedicated chats?
+    // Using a generic action type 'chat' via firebase bridge helper
+    if (_firebase == null) return;
+
+    // We assume the host listens for actions with type='chat'
+    // or we add a specific method to firebase bridge.
+    // For now, let's assume we can use sendAction-like mechanism but labeled as chat.
+    // Or we extend FirebaseBridge.
+
+    // Actually, let's rely on FirebaseBridge having a generic 'sendBulletin' or 'sendChat'
+    // I will add 'sendChat' to FirebaseBridge in subsequent step.
+    await _firebase!.sendChat(
+      title: title,
+      message: floatContent,
+      roleId: roleId,
+    );
+  }
+
   /// Leave: just disconnect.
   @override
   Future<void> leave() async {
@@ -237,10 +264,6 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     _gameSub = null;
     _privateSub = null;
     _firebase = null;
-    _pendingClaimName = null;
-    _isClaimingInProgress = false;
-    state = const PlayerGameState(); // Reset to initial state
-    debugPrint('[CloudPlayerBridge] Disconnected');
   }
 
   // ─── INBOUND ──────────────────────────────────
@@ -276,6 +299,12 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         ) ??
         {};
 
+    final bulletinRaw = data['bulletinBoard'] as List<dynamic>?;
+    final bulletinBoard = bulletinRaw
+            ?.map((e) => BulletinEntry.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
     final phase = data['phase'] as String? ?? 'lobby';
 
     // Determine myPlayerId and myPlayerSnapshot after receiving new players list
@@ -303,17 +332,53 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       roleConfirmedPlayerIds: _toStringList(data['roleConfirmedPlayerIds']),
       gameHistory: _toStringList(data['gameHistory']),
       deadPoolBets: deadPoolBets,
+      bulletinBoard: bulletinBoard,
       ghostChatMessages: state.ghostChatMessages,
       isConnected: true,
       joinAccepted: true,
       joinError: state.joinError,
       claimError: state.claimError,
-      myPlayerId: updatedMyPlayerId, // Set updated ID
-      myPlayerSnapshot: updatedMyPlayerSnapshot, // Set updated snapshot
+      myPlayerId: updatedMyPlayerId,
+      myPlayerSnapshot: updatedMyPlayerSnapshot,
+      rematchOffered: data['rematchOffered'] as bool? ?? false,
     );
 
     _attemptAutoClaim(state);
     _persistSessionCache();
+  }
+
+  void _attemptAutoClaim(PlayerGameState gameState) {
+    if (gameState.myPlayerId != null) return;
+
+    // Try authUid matching first (strongest signal).
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final uidMatch = gameState.players.cast<PlayerSnapshot?>().firstWhere(
+        (p) => p?.authUid == uid,
+        orElse: () => null,
+      );
+      if (uidMatch != null) {
+        claimPlayer(uidMatch.id);
+        return;
+      }
+    }
+
+    // Fallback: match by the player name sent during joinGame.
+    final pendingName = _cachedPlayerName?.trim();
+    if (pendingName == null || pendingName.isEmpty) return;
+
+    final claimed = gameState.claimedPlayerIds.toSet();
+    final nameMatch = gameState.players.cast<PlayerSnapshot?>().firstWhere(
+      (p) =>
+          p != null &&
+          !claimed.contains(p.id) &&
+          p.name.trim().toLowerCase() == pendingName.toLowerCase(),
+      orElse: () => null,
+    );
+
+    if (nameMatch != null) {
+      claimPlayer(nameMatch.id);
+    }
   }
 
   /// Merge private state (role, alliance, etc.) into the existing
@@ -348,6 +413,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         whoreDeflectionUsed:
             data['whoreDeflectionUsed'] as bool? ?? p.whoreDeflectionUsed,
         tabooNames: _toStringList(data['tabooNames']),
+        blockedVoteTargets: _toStringList(data['blockedVoteTargets']),
       );
     }).toList();
 
@@ -406,37 +472,6 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     unawaited(
       ref.read(playerSessionCacheRepositoryProvider).saveSession(entry),
     );
-  }
-
-  void _attemptAutoClaim(PlayerGameState nextState) {
-    if (_isClaimingInProgress) return;
-    if (!nextState.joinAccepted || nextState.myPlayerId != null) {
-      return;
-    }
-
-    final pendingName = _pendingClaimName?.trim();
-    if (pendingName == null || pendingName.isEmpty) {
-      return;
-    }
-
-    PlayerSnapshot? candidate;
-    for (final player in nextState.players) {
-      final alreadyClaimed = nextState.claimedPlayerIds.contains(player.id);
-      final sameName =
-          player.name.trim().toLowerCase() == pendingName.toLowerCase();
-      if (!alreadyClaimed && sameName) {
-        candidate = player;
-        break;
-      }
-    }
-
-    if (candidate != null) {
-      _pendingClaimName = null;
-      _isClaimingInProgress = true;
-      claimPlayer(candidate.id).whenComplete(() {
-        _isClaimingInProgress = false;
-      });
-    }
   }
 }
 

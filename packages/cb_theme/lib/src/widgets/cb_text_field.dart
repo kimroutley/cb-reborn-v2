@@ -5,8 +5,11 @@ import 'package:flutter/services.dart';
 /// Dark input field with glassmorphism styling.
 class CBTextField extends StatelessWidget {
   final TextEditingController? controller;
+  final String? label;
   final String? hintText;
   final String? errorText;
+  final String? helperText;
+  final IconData? prefixIcon;
   final InputDecoration? decoration;
   final bool autofocus;
   final int? maxLines;
@@ -19,6 +22,7 @@ class CBTextField extends StatelessWidget {
   final bool readOnly;
   final TextCapitalization textCapitalization;
   final bool monospace;
+  final bool obscureText;
   final bool hapticOnChange;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -29,8 +33,11 @@ class CBTextField extends StatelessWidget {
   const CBTextField({
     super.key,
     this.controller,
+    this.label,
     this.hintText,
     this.errorText,
+    this.helperText,
+    this.prefixIcon,
     this.decoration,
     this.autofocus = false,
     this.maxLines = 1,
@@ -43,6 +50,7 @@ class CBTextField extends StatelessWidget {
     this.readOnly = false,
     this.textCapitalization = TextCapitalization.none,
     this.monospace = false,
+    this.obscureText = false,
     this.hapticOnChange = false,
     this.onChanged,
     this.onSubmitted,
@@ -66,8 +74,11 @@ class CBTextField extends StatelessWidget {
 
     // Merge provided decoration with our glass style
     final effectiveDecoration = baseDecoration.copyWith(
+      labelText: label ?? baseDecoration.labelText,
       hintText: hintText ?? baseDecoration.hintText,
       errorText: errorText ?? baseDecoration.errorText,
+      helperText: helperText ?? baseDecoration.helperText,
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : baseDecoration.prefixIcon,
       filled: true,
       fillColor: fillColor,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -108,7 +119,8 @@ class CBTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       autofocus: autofocus,
-      maxLines: maxLines,
+      obscureText: obscureText,
+      maxLines: obscureText ? 1 : maxLines,
       minLines: minLines,
       maxLength: maxLength,
       keyboardType: keyboardType,

@@ -34,23 +34,22 @@ class CustomDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
     final currentDestination = ref.watch(playerNavigationProvider);
+
     const gameplayGroup = <PlayerDestination>{
-      PlayerDestination.home,
+      PlayerDestination.connect,
       PlayerDestination.game,
       PlayerDestination.guides,
     };
-    const statsAndAwardsGroup = <PlayerDestination>{
+    const statsGroup = <PlayerDestination>{
       PlayerDestination.stats,
       PlayerDestination.hallOfFame,
     };
-    const gamesNightGroup = <PlayerDestination>{
+    const socialGroup = <PlayerDestination>{
       PlayerDestination.gamesNight,
     };
     const walletGroup = <PlayerDestination>{
       PlayerDestination.profile,
-      PlayerDestination.claim,
     };
     const otherGroup = <PlayerDestination>{
       PlayerDestination.about,
@@ -59,156 +58,132 @@ class CustomDrawer extends ConsumerWidget {
 
     List<PlayerDestinationConfig> configsFor(Set<PlayerDestination> group) {
       return playerDestinations
-          .where((config) => group.contains(config.destination))
+          .where((c) => group.contains(c.destination))
           .toList(growable: false);
     }
 
-    final gameplayDestinations = configsFor(gameplayGroup);
-    final statsAndAwardsDestinations = configsFor(statsAndAwardsGroup);
-    final gamesNightDestinations = configsFor(gamesNightGroup);
-    final walletDestinations = configsFor(walletGroup);
-    final otherDestinations = configsFor(otherGroup);
-    final drawerDestinations = <PlayerDestinationConfig>[
-      ...gameplayDestinations,
-      ...statsAndAwardsDestinations,
-      ...gamesNightDestinations,
-      ...walletDestinations,
-      ...otherDestinations,
-    ];
+    final gameplay = configsFor(gameplayGroup);
+    final stats = configsFor(statsGroup);
+    final social = configsFor(socialGroup);
+    final wallet = configsFor(walletGroup);
+    final other = configsFor(otherGroup);
 
-    final selectedIndex = drawerDestinations
-        .indexWhere((config) => config.destination == currentDestination);
+    final allDests = [
+      ...gameplay,
+      ...stats,
+      ...social,
+      ...wallet,
+      ...other,
+    ];
+    final selectedIndex =
+        allDests.indexWhere((c) => c.destination == currentDestination);
+
+    final entries = <CBDrawerEntry>[
+      const CBDrawerSection(title: 'Gameplay', icon: Icons.gamepad_outlined),
+      ...gameplay.map(_dest),
+      const CBDrawerSection(
+          title: 'Stats & Awards', icon: Icons.emoji_events_outlined),
+      ...stats.map(_dest),
+      const CBDrawerSection(title: 'Social', icon: Icons.group_outlined),
+      ...social.map(_dest),
+      const CBDrawerSection(
+          title: 'Wallet', icon: Icons.account_balance_wallet_outlined),
+      ...wallet.map(_dest),
+      const CBDrawerSection(title: 'Other', icon: Icons.more_horiz_outlined),
+      ...other.map(_dest),
+    ];
 
     return CBSideDrawer(
       selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
       onDestinationSelected: (index) async {
         HapticService.selection();
-        final destination = drawerDestinations[index].destination;
-        if (destination == currentDestination) {
-          return;
-        }
+        final destination = allDests[index].destination;
+        if (destination == currentDestination) return;
 
         final canLeave = await _confirmDiscardProfileChanges(
           context,
           ref,
           destination,
         );
-        if (!context.mounted || !canLeave) {
-          return;
-        }
+        if (!context.mounted || !canLeave) return;
 
-        ref.read(playerNavigationProvider.notifier).setDestination(destination);
+        ref
+            .read(playerNavigationProvider.notifier)
+            .setDestination(destination);
         try {
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          }
+          if (Navigator.of(context).canPop()) Navigator.of(context).pop();
         } catch (_) {}
       },
-      drawerHeader:
-          _buildDrawerHeader(context, theme, scheme), // Pass the header
-      children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Gameplay',
-            icon: Icons.gamepad_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-        ...gameplayDestinations.map(
-          (dest) => NavigationDrawerDestination(
-            icon: Icon(dest.icon),
-            label: Text(dest.label),
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Stats and Awards',
-            icon: Icons.emoji_events_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-        ...statsAndAwardsDestinations.map(
-          (dest) => NavigationDrawerDestination(
-            icon: Icon(dest.icon),
-            label: Text(dest.label),
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Games Night',
-            icon: Icons.group_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-        ...gamesNightDestinations.map(
-          (dest) => NavigationDrawerDestination(
-            icon: Icon(dest.icon),
-            label: Text(dest.label),
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Wallet',
-            icon: Icons.account_balance_wallet_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-        ...walletDestinations.map(
-          (dest) => NavigationDrawerDestination(
-            icon: Icon(dest.icon),
-            label: Text(dest.label),
-          ),
-        ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
-          child: CBSectionHeader(
-            title: 'Other',
-            icon: Icons.more_horiz_outlined,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x2),
-        ...otherDestinations.map(
-          (dest) => NavigationDrawerDestination(
-            icon: Icon(dest.icon),
-            label: Text(dest.label),
-          ),
-        ),
-        const SizedBox(height: 12),
-      ],
+      drawerHeader: _DrawerHeader(scheme: scheme),
+      entries: entries,
     );
   }
 
-  Widget _buildDrawerHeader(
-      BuildContext context, ThemeData theme, ColorScheme scheme) {
-    final textTheme = Theme.of(context).textTheme;
+  static CBDrawerDestination _dest(PlayerDestinationConfig c) {
+    return CBDrawerDestination(icon: c.icon, label: c.label);
+  }
+}
+
+// ── Header ──────────────────────────────────────────────────────────────────
+
+class _DrawerHeader extends StatelessWidget {
+  final ColorScheme scheme;
+  const _DrawerHeader({required this.scheme});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        CBSpace.x6,
-        CBSpace.x6,
-        CBSpace.x4,
-        CBSpace.x4,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.fromLTRB(24, 28, 20, 16),
+      child: Row(
         children: [
-          Text(
-            'CLUB BLACKOUT',
-            style: textTheme.headlineSmall?.copyWith(
-              color: scheme.secondary,
-              fontWeight: FontWeight.bold,
-              shadows: CBColors.textGlow(scheme.secondary),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: scheme.primary.withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: scheme.primary.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.nightlife_rounded,
+              size: 18,
+              color: scheme.primary,
+              shadows: CBColors.iconGlow(scheme.primary, intensity: 0.5),
             ),
           ),
-          const SizedBox(height: CBSpace.x1),
-          Text(
-            'PLAYER TERMINAL',
-            style: textTheme.labelMedium?.copyWith(
-              color: scheme.onSurfaceVariant.withAlpha(178),
-              letterSpacing: 1.2,
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'CLUB BLACKOUT',
+                  style: text.titleSmall?.copyWith(
+                    color: scheme.secondary,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.4,
+                    shadows: CBColors.textGlow(scheme.secondary, intensity: 0.4),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'PLAYER TERMINAL',
+                  style: text.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    letterSpacing: 1.6,
+                    fontSize: 9,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -6,9 +6,10 @@ import 'package:cb_theme/cb_theme.dart';
 import 'auth_provider.dart';
 
 class PlayerAuthScreen extends ConsumerWidget {
-  const PlayerAuthScreen({super.key, this.onSignedIn});
+  const PlayerAuthScreen({super.key, this.onSignedIn, this.isEmbedded = false});
 
   final VoidCallback? onSignedIn;
+  final bool isEmbedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,24 +30,27 @@ class PlayerAuthScreen extends ConsumerWidget {
         ? 'Please wait while we validate your invite.'
         : 'Preparing your identity and restoring session state.';
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          CBNeonBackground(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              child: _buildUIForState(context, ref, authState, scheme),
-            ),
+    final content = Stack(
+      children: [
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 600),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          child: _buildUIForState(context, ref, authState, scheme),
+        ),
+        if (isLoading)
+          _AuthLoadingDialog(
+            title: loadingTitle,
+            subtitle: loadingSubtitle,
           ),
-          if (isLoading)
-            _AuthLoadingDialog(
-              title: loadingTitle,
-              subtitle: loadingSubtitle,
-            ),
-        ],
-      ),
+      ],
+    );
+
+    if (isEmbedded) return content;
+
+    return CBPrismScaffold(
+      title: 'ACCESS CONTROL',
+      body: content,
     );
   }
 
@@ -159,13 +163,65 @@ class _AuthLoadingDialog extends StatelessWidget {
   }
 }
 
-class _AuthSplash extends ConsumerWidget {
+class _AuthSplash extends ConsumerStatefulWidget {
   final String? errorMessage;
 
   const _AuthSplash({super.key, this.errorMessage});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AuthSplash> createState() => _AuthSplashState();
+}
+
+class _AuthSplashState extends ConsumerState<_AuthSplash> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _isCreatingAccount = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleEmailSignIn(AuthNotifier notifier) async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) return;
+    if (_isCreatingAccount) {
+      if (password != _confirmPasswordController.text) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Passwords do not match.')));
+        return;
+      }
+      await notifier.createAccountWithEmailPassword(email, password);
+    } else {
+      await notifier.signInWithEmailPassword(email, password);
+    }
+  }
+
+  Future<void> _handleForgotPassword(AuthNotifier notifier) async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Enter your email first.')));
+      return;
+    }
+    final sent = await notifier.sendPasswordReset(email);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(sent
+              ? 'Password reset email sent.'
+              : 'Could not send reset email.')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final notifier = ref.read(authProvider.notifier);
@@ -190,15 +246,8 @@ class _AuthSplash extends ConsumerWidget {
                       scheme.primary.withAlpha(0),
                     ],
                   ),
-                  border: Border.all(
-                      color: scheme.primary.withAlpha(128), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: scheme.primary.withAlpha(51),
-                      blurRadius: 40,
-                      spreadRadius: 10,
-                    ),
-                  ],
+                  border:
+                      Border.all(color: scheme.primary.withAlpha(77), width: 1),
                 ),
                 child: Hero(
                   tag: 'auth_icon',
@@ -206,6 +255,7 @@ class _AuthSplash extends ConsumerWidget {
                     color: scheme.primary,
                     size: 80,
                     pulsing: true,
+                    icon: Icons.vpn_key_rounded,
                   ),
                 ),
               ),
@@ -218,41 +268,24 @@ class _AuthSplash extends ConsumerWidget {
               delay: const Duration(milliseconds: 200),
               child: Column(
                 children: [
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [scheme.primary, scheme.secondary],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ).createShader(bounds),
-                    child: Text(
-                      'CLUB BLACKOUT',
-                      textAlign: TextAlign.center,
-                      style: textTheme.displayMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 6,
-                        height: 0.9,
-                        color: Colors.white, // Masked
-                      ),
+                  Text(
+                    'CLUB BLACKOUT',
+                    textAlign: TextAlign.center,
+                    style: textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 6,
+                      height: 0.9,
+                      color: scheme.primary,
+                      shadows: [
+                        BoxShadow(
+                          color: scheme.primary.withAlpha(128),
+                          blurRadius: 12,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    decoration: BoxDecoration(
-                        color: scheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(99),
-                        border: Border.all(
-                            color: scheme.primary.withValues(alpha: 0.3))),
-                    child: Text(
-                      'MEMBERS ONLY',
-                      style: textTheme.labelSmall?.copyWith(
-                        color: scheme.primary,
-                        letterSpacing: 3,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
+                  const CBBadge(text: 'MEMBERS ONLY'),
                   const SizedBox(height: 32),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -270,62 +303,204 @@ class _AuthSplash extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 64),
+            const SizedBox(height: 48),
 
             // ── LOGIN SECTION ──
             CBFadeSlide(
               delay: const Duration(milliseconds: 400),
-              child: CBPanel(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'GUEST LIST CHECK',
-                      style: textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Show your invite to the Bouncer.',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface.withAlpha(153),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Enhanced Google Button
-                    _buildGoogleButton(context, notifier, scheme),
-
-                    if (errorMessage != null) ...[
-                      const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                            color: scheme.error.withAlpha(25),
-                            borderRadius: BorderRadius.circular(12),
-                            border:
-                                Border.all(color: scheme.error.withAlpha(102))),
-                        child: Row(
-                          children: [
-                            Icon(Icons.gpp_bad_rounded,
-                                color: scheme.error, size: 24),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Text(
-                                'ACCESS DENIED: ${errorMessage!.toUpperCase()}',
-                                style: textTheme.labelSmall?.copyWith(
-                                  color: scheme.error,
-                                  fontWeight: FontWeight.bold,
-                                  height: 1.4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Google Sign-In
+                  CBGlassTile(
+                    onTap: () {
+                      HapticFeedback.heavyImpact();
+                      notifier.signInWithGoogle();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.login, color: scheme.primary, size: 24),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'GUEST LIST CHECK',
+                                  style: textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold),
                                 ),
-                              ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'SHOW YOUR INVITE TO THE BOUNCER',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: scheme.onSurface.withAlpha(178),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Divider(
+                              color: scheme.onSurface.withAlpha(26))),
+                      Padding(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'OR EMAIL',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurface.withAlpha(102),
+                            fontSize: 9,
+                            letterSpacing: 2,
+                          ),
                         ),
                       ),
+                      Expanded(
+                          child: Divider(
+                              color: scheme.onSurface.withAlpha(26))),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Email + Password fields
+                  CBTextField(
+                    controller: _emailController,
+                    hintText: 'EMAIL',
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.alternate_email_rounded,
+                          color: scheme.primary.withAlpha(128), size: 20),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  CBTextField(
+                    controller: _passwordController,
+                    hintText: 'PASSWORD',
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.lock_rounded,
+                          color: scheme.primary.withAlpha(128), size: 20),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off_rounded
+                              : Icons.visibility_rounded,
+                          color: scheme.onSurface.withAlpha(102),
+                          size: 18,
+                        ),
+                        onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword),
+                      ),
+                    ),
+                  ),
+                  if (_isCreatingAccount) ...[
+                    const SizedBox(height: 10),
+                    CBTextField(
+                      controller: _confirmPasswordController,
+                      hintText: 'CONFIRM PASSWORD',
+                      obscureText: _obscureConfirm,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.lock_outline_rounded,
+                            color: scheme.primary.withAlpha(128), size: 20),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirm
+                                ? Icons.visibility_off_rounded
+                                : Icons.visibility_rounded,
+                            color: scheme.onSurface.withAlpha(102),
+                            size: 18,
+                          ),
+                          onPressed: () => setState(
+                              () => _obscureConfirm = !_obscureConfirm),
+                        ),
+                      ),
+                    ),
                   ],
-                ),
+                  const SizedBox(height: 16),
+
+                  CBPrimaryButton(
+                    label: _isCreatingAccount ? 'CREATE ACCOUNT' : 'ENTER THE CLUB',
+                    icon: _isCreatingAccount
+                        ? Icons.how_to_reg_rounded
+                        : Icons.login_rounded,
+                    onPressed: () => _handleEmailSignIn(notifier),
+                  ),
+                  const SizedBox(height: 8),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => setState(
+                            () => _isCreatingAccount = !_isCreatingAccount),
+                        child: Text(
+                          _isCreatingAccount
+                              ? 'ALREADY A MEMBER?'
+                              : 'NEW HERE?',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: scheme.primary.withAlpha(178),
+                            fontSize: 9,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                      if (!_isCreatingAccount)
+                        TextButton(
+                          onPressed: () =>
+                              _handleForgotPassword(notifier),
+                          child: Text(
+                            'FORGOT PASSWORD?',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: scheme.onSurface.withAlpha(128),
+                              fontSize: 9,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  if (widget.errorMessage != null) ...[
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: scheme.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: scheme.error.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.gpp_bad_rounded,
+                              color: scheme.error, size: 24),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              'ACCESS DENIED: ${widget.errorMessage!.toUpperCase()}',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: scheme.error,
+                                fontWeight: FontWeight.bold,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
 
@@ -337,53 +512,6 @@ class _AuthSplash extends ConsumerWidget {
                 fontSize: 10,
                 letterSpacing: 2,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGoogleButton(
-      BuildContext context, AuthNotifier notifier, ColorScheme scheme) {
-    return InkWell(
-      onTap: () {
-        HapticFeedback.heavyImpact();
-        notifier.signInWithGoogle();
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        decoration: BoxDecoration(
-          color: scheme.surface.withAlpha(204),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: scheme.primary.withAlpha(153)),
-          boxShadow: [
-            BoxShadow(
-              color: scheme.primary.withAlpha(38),
-              blurRadius: 12,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.network(
-              'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
-              height: 24,
-              errorBuilder: (context, error, stackTrace) =>
-                  Icon(Icons.login, color: scheme.primary, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Text(
-              'SHOW VIP PASS (GOOGLE)',
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    letterSpacing: 1.5,
-                    fontSize: 14,
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
             ),
           ],
         ),
@@ -432,8 +560,12 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
           children: [
             Hero(
               tag: 'auth_icon',
-              child:
-                  Icon(Icons.badge_rounded, color: scheme.secondary, size: 80),
+              child: CBRoleAvatar(
+                color: scheme.secondary,
+                size: 80,
+                pulsing: true,
+                icon: Icons.badge_rounded,
+              ),
             ),
             const SizedBox(height: 32),
             Text(
@@ -447,7 +579,6 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                   BoxShadow(
                     color: scheme.secondary.withAlpha(128),
                     blurRadius: 24,
-                    spreadRadius: 12,
                   ),
                 ],
               ),
@@ -460,16 +591,16 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                 color: scheme.onSurface.withAlpha(179),
               ),
             ),
-            const SizedBox(height: 64),
+            const SizedBox(height: 48),
             CBPanel(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'NEW PATRON REGISTRATION',
-                    style: textTheme.headlineSmall,
+                  CBBadge(
+                    text: 'NEW PATRON REGISTRATION',
+                    color: scheme.secondary,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   CBTextField(
                     controller: notifier.usernameController,
                     hintText: 'YOUR MONIKER',
@@ -490,16 +621,23 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                           color: scheme.secondary),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'CHOOSE AVATAR',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.secondary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                    ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Icon(Icons.face_retouching_natural,
+                          color: scheme.secondary, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'CHOOSE AVATAR',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: scheme.secondary,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -535,10 +673,18 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                   ),
                   if (authState.error != null) ...[
                     const SizedBox(height: 20),
-                    Text(
-                      authState.error!,
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodySmall?.copyWith(color: scheme.error),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: scheme.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        authState.error!,
+                        textAlign: TextAlign.center,
+                        style:
+                            textTheme.bodySmall?.copyWith(color: scheme.error),
+                      ),
                     ),
                   ],
                 ],

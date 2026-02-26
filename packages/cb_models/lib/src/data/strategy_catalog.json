@@ -5,15 +5,67 @@
     "earlyGame": "Stay quiet and blend in. Vote with the majority to avoid suspicion. Coordinate with fellow Dealers during night kills - choose targets who might investigate you (Bouncer, Bartender) or protect others (Medic, Sober). Don't be afraid to bus a fellow Dealer if it builds your credibility.",
     "lateGame": "As numbers dwindle, you can be more aggressive. If you've built trust, use it to misdirect votes. Watch out for the Minor - they're immune to your kills until the Bouncer IDs them. Protect your Silver Fox and Whore if alive - they're your best defensive tools.",
     "counters": ["bouncer", "medic", "roofi", "bartender"],
-    "synergies": ["whore", "silver_fox", "club_manager"]
+    "synergies": ["whore", "silver_fox", "club_manager"],
+    "dos": [
+      "Vote with the majority early to build innocent credibility",
+      "Target investigators (Bouncer, Bartender) on early nights",
+      "Bus a teammate if the heat gets too close — sacrifice one to save many",
+      "Keep mental notes on who claims what role and when",
+      "Coordinate kill targets with fellow Dealers during night phase"
+    ],
+    "donts": [
+      "Never be the first to accuse someone without evidence — it draws suspicion",
+      "Don't kill the loudest player — they're often vanilla and their death reveals nothing",
+      "Avoid voting as a bloc with other Dealers — stagger your votes",
+      "Don't panic-claim a power role when pressured — it's verifiable",
+      "Never ignore the Medic — an alive Medic undoes your kills",
+      "Don't target the same player as the Roofi - if Roofi targets you, your kill is blocked"
+    ],
+    "deceptionTactics": [
+      "Fake-claim Bartender and report fabricated alignment checks to frame innocents",
+      "Echo town suspicions slightly louder to seem analytical without leading",
+      "When a teammate is caught, be the first to vote them — it cements your cover",
+      "Create pocket allies by defending one confirmed innocent aggressively",
+      "Seed doubt with 'just asking questions' — never accuse directly"
+    ],
+    "betrayalAdvice": [
+      "Bus your weakest Dealer link when they're already suspect — you gain massive credibility",
+      "If a Dealer teammate claims a role, subtly cast doubt to get them exiled — fewer Dealers means less suspicion on you",
+      "Use the night kill to eliminate players who trust you most — it deflects suspicion elsewhere",
+      "Coordinate a 'fake split' with another Dealer where you publicly disagree to seem independent"
+    ]
   },
   "bouncer": {
     "roleId": "bouncer",
-    "overview": "You are the Party Animals' primary investigator. Each night you can ID one player to learn if they're Club Staff or clean. Use this information wisely - revealing too early can make you a target.",
+    "overview": "You are the Party Animals' primary investigator. Each night you can ID one player to learn if they're Club Staff or clean. Results are revealed privately to you in the morning.",
     "earlyGame": "Start by checking players who are unusually quiet or deflecting suspicion. Build a list of cleared players in your mind. Don't claim Bouncer immediately - wait until you have actionable information (found a Dealer) or need to save a cleared player from being voted out.",
     "lateGame": "Once you've claimed, coordinate with the Medic for protection. Be aware that Roofi can revoke your ability permanently, and Ally Cat witnesses your checks (though they can only communicate in 'Meow'). If you ID the Minor, they become vulnerable to Dealer kills - use this strategically.",
     "counters": ["roofi", "silver_fox", "whore"],
-    "synergies": ["medic", "ally_cat", "wallflower"]
+    "synergies": ["medic", "ally_cat", "wallflower"],
+    "dos": [
+      "Check the most active deflectors first — Dealers manipulate conversations",
+      "Breadcrumb your results to trusted allies before claiming publicly",
+      "Coordinate with Medic once you claim — you are target #1",
+      "Use your cleared list to build a voting coalition",
+      "Check players who seem 'too helpful' — Dealers overcompensate"
+    ],
+    "donts": [
+      "Don't claim Bouncer on Day 1 with no results — you become an instant kill target",
+      "Never reveal all your checked players at once — it gives Dealers a hit list",
+      "Don't ignore the Silver Fox — their alibis can make your checks look wrong",
+      "Avoid checking confirmed vanilla players — it wastes precious nights",
+      "Don't ID the Minor unless strategically necessary — it removes their immunity"
+    ],
+    "deceptionTactics": [
+      "Withhold one clear result and reveal it later to test if someone contradicts your info",
+      "Announce you're checking someone specific tonight to bait the Dealers into avoiding that kill",
+      "Feed slightly delayed info to see who reacts suspiciously to 'leaked' results"
+    ],
+    "betrayalAdvice": [
+      "If you find a Dealer, sit on the info for one round to observe who they coordinate with",
+      "Publicly clear a player you suspect is the Whore's scapegoat — when they're exiled, the Whore loses their shield",
+      "Use your credibility to push an exile on a quiet player who's actually a Dealer's silent partner"
+    ]
   },
   "medic": {
     "roleId": "medic",
@@ -21,31 +73,127 @@
     "earlyGame": "PROTECTION MODE: Each night, choose someone to save from Dealer kills (you cannot protect yourself). Prioritize confirmed investigators or the Bouncer once claimed. REVIVE MODE: Wait for a high-value player to die (confirmed Bouncer, multiple-life roles, or a Dealer kill that confirms alliance). Don't waste your token on a voted-out player who might have been guilty.",
     "lateGame": "Protection mode becomes predictable - Dealers may avoid your target and kill elsewhere. Consider protecting less obvious players to maximize coverage. Revive mode timing is everything - a late-game resurrection can swing the win, but waiting too long means you might die with the token unused.",
     "counters": ["roofi", "predator"],
-    "synergies": ["bouncer", "wallflower", "bartender"]
+    "synergies": ["bouncer", "wallflower", "bartender"],
+    "dos": [
+      "Protect the claimed Bouncer every night once they reveal",
+      "Switch protection targets unpredictably if no one has claimed",
+      "Self-protect on Night 1 if the game feels aggressive",
+      "Save your revive for a confirmed power role death",
+      "Coordinate secretly with your protection target"
+    ],
+    "donts": [
+      "Don't waste your revive on a player exiled by vote — they might be guilty",
+      "Never protect the same player every single night — Dealers will figure it out",
+      "Don't claim Medic early unless absolutely necessary — it paints a target",
+      "Avoid using revive on Night 1 deaths — you don't have enough info yet",
+      "Don't protect someone who's already been ID'd as a Dealer"
+    ],
+    "deceptionTactics": [
+      "Publicly hint you're protecting someone you're NOT to bait Dealers into attacking that player",
+      "If in Revive mode, act like you chose Protection to keep Dealers guessing",
+      "Claim to have protected a dead player to gauge reactions — if someone seems relieved, they might be a Dealer"
+    ],
+    "betrayalAdvice": [
+      "If you suspect the claimed Bouncer is fake, stop protecting them and see what happens overnight",
+      "Use protection as leverage — offer to protect someone in exchange for voting intel",
+      "Let a suspected Dealer ally die to confirm they were innocent, then use the data"
+    ]
   },
   "creep": {
     "roleId": "creep",
     "overview": "You are a neutral role with a unique mechanic: on Night 0, select a target. You immediately adopt their alliance and win with their team. When your target dies, you inherit their exact role.",
     "earlyGame": "Target selection is CRITICAL. Choose someone likely to survive (avoid Dealers, high-profile investigators). Consider roles with powerful abilities (Bouncer, Predator, Drama Queen) or multiple lives (Seasoned Drinker, Ally Cat). Once selected, you must play as if you ARE that alliance - your win condition is now tied to them.",
-    "lateGame": "If your target is still alive, continue supporting their team quietly. If they die and you inherit their role, you must instantly adopt their behavior patterns. Study your target throughout the game - know how they vote, who they trust, what claims they've made. The inheritance should feel seamless to other players.",
+    "lateGame": "If your target is still alive, continue supporting their team quietly. If they die and you inherit their role, you must instantly adopt their behaviour patterns. Study your target throughout the game - know how they vote, who they trust, what claims they've made. The inheritance should feel seamless to other players.",
     "counters": ["dealer", "predator"],
-    "synergies": []
+    "synergies": [],
+    "dos": [
+      "Pick a target likely to survive past Night 2 — low-profile players are safest",
+      "Study your target's voting patterns and social connections",
+      "Play as your adopted alliance from the very first discussion phase",
+      "If you inherit a role, use the ability immediately — delays look suspicious",
+      "Consider targeting multi-life roles for maximum value"
+    ],
+    "donts": [
+      "Don't pick a Dealer — you'll be outnumbered and hunted",
+      "Never reveal you're the Creep — no one trusts a chameleon",
+      "Don't copy your target's behaviour too closely — be natural, not a mirror",
+      "Avoid targeting the Bouncer — they're the most likely to be killed early",
+      "Don't wait too long to use inherited abilities — the game won't wait for you"
+    ],
+    "deceptionTactics": [
+      "Claim vanilla Party Animal and fly under the radar until inheritance triggers",
+      "When you inherit, pretend you've had the role all along — fabricate past results if needed",
+      "Use your knowledge of your target's behaviour to seamlessly replace them in alliances"
+    ],
+    "betrayalAdvice": [
+      "If your target turns out to be a Dealer, lean into it — you now win with Club Staff",
+      "Use your unique position of knowing exactly who your target was to manipulate both sides",
+      "If your target is exiled, inherit their role and claim they told you their info before dying"
+    ]
   },
   "minor": {
     "roleId": "minor",
-    "overview": "You are a Party Animal with a unique defense: completely immune to Dealer kills UNTIL the Bouncer IDs you. Once ID'd, you become vulnerable. You can still be voted out.",
+    "overview": "You are a Party Animal with a unique defence: completely immune to Dealer kills UNTIL the Bouncer IDs you. Once ID'd, you become vulnerable. You can still be voted out.",
     "earlyGame": "Your immunity makes you bold, but don't reveal your role or the Bouncer may feel pressured to check you 'just to enable kills' if the town becomes desperate. Blend in as a regular Party Animal. Push suspicion onto others - you can't be night-killed, so Dealers may avoid you naturally.",
-    "lateGame": "If the Bouncer has claimed, ask privately or publicly if they've checked you - if not, you have guaranteed survival from night kills. This makes you an excellent vote leader. However, once ID'd, protect yourself through social capital and vote manipulation. Note: Only Dealer kills are blocked - Predator revenge, Lightweight taboo violations, and votes still work.",
+    "lateGame": "If the Bouncer has claimed, ask privately or publicly if they've checked you - if not, you have guaranteed survival from night kills. This makes you an excellent vote leader. However, once ID'd, protect yourself through social capital and vote manipulation. Note: Only Dealer kills are blocked - Predator revenge and votes still work.",
     "counters": ["bouncer"],
-    "synergies": ["medic", "sober"]
+    "synergies": ["medic", "sober"],
+    "dos": [
+      "Be vocal and aggressive in debates — you can afford the attention",
+      "Lead vote pushes against suspected Dealers — they literally can't kill you at night",
+      "Use your immunity to draw Dealer kill attempts that waste their night action",
+      "Build alliances with confirmed investigators to amplify their findings",
+      "Push for information shares during the day — you're the safest messenger"
+    ],
+    "donts": [
+      "Never reveal you're the Minor — it changes Bouncer priorities and Dealer strategy",
+      "Don't assume you're fully immune — votes and Predator revenge still kill you",
+      "Avoid pressuring the Bouncer to check you — it removes your best defence",
+      "Don't get complacent — social reads matter more than night immunity",
+      "Never forget that once ID'd, you become a regular target overnight"
+    ],
+    "deceptionTactics": [
+      "Act nervous about being night-killed to maintain the illusion you're vulnerable",
+      "Claim a different role if pressured — Sober or Bartender are safe bluffs",
+      "Use your safety to take risks others can't — push aggressive reads and see who flinches"
+    ],
+    "betrayalAdvice": [
+      "If the town is losing, reveal your immunity to rally the remaining Party Animals",
+      "Use your unkillable status to bait Dealers into wasting kills — then publicly note 'I survived the night'",
+      "Frame a Dealer by claiming they 'targeted you last night' knowing you survived"
+    ]
   },
   "party_animal": {
     "roleId": "party_animal",
     "overview": "You are a vanilla Party Animal with no special ability. Your strength is in social deduction, voting, and blending in.",
-    "earlyGame": "Watch voting patterns and player behavior. Ask questions and pressure suspicious players. You have nothing to hide, so you can be aggressive without fear of investigation.",
+    "earlyGame": "Watch voting patterns and player behaviour. Ask questions and pressure suspicious players. You have nothing to hide, so you can be aggressive without fear of investigation.",
     "lateGame": "Use your confirmed vanilla status (if claimed) to build trust. Lead voting coalitions and protect power roles.",
     "counters": [],
-    "synergies": ["bouncer", "medic"]
+    "synergies": ["bouncer", "medic"],
+    "dos": [
+      "Ask pointed questions during every discussion phase — information is your weapon",
+      "Track who votes with whom across multiple rounds",
+      "Claim vanilla early if it helps power roles stay hidden",
+      "Build voting coalitions with 2-3 trusted players",
+      "Be the loudest voice against suspected Dealers — you have nothing to lose"
+    ],
+    "donts": [
+      "Don't stay silent — quiet vanilla players get mislynched or killed for being unhelpful",
+      "Never fake-claim a power role — it wastes the town's time and trust",
+      "Don't blindly follow vote trains — analyse before committing",
+      "Avoid tunnel-visioning on one suspect — Dealers work in teams",
+      "Don't ignore voting patterns — they're your best deduction tool"
+    ],
+    "deceptionTactics": [
+      "Pretend to have secret information to bait Dealer reactions during discussion",
+      "Act like you know more than you do — Dealers will try to silence confident players",
+      "Use reverse psychology: defend someone to see if Dealers pile on or back off"
+    ],
+    "betrayalAdvice": [
+      "If a 'confirmed' player starts acting suspicious, don't be afraid to turn on them publicly",
+      "Use your lack of ability as freedom — you can accuse anyone without revealing mechanics",
+      "Rally votes against the player who seems most 'safe' — Dealers love hiding behind trust"
+    ]
   },
   "whore": {
     "roleId": "whore",
@@ -53,7 +201,32 @@
     "earlyGame": "Save your deflection for when you're genuinely under pressure. Don't waste it on a single vote - wait until you're clearly about to be exiled.",
     "lateGame": "Your deflection can swing the game if timed perfectly. Coordinate with other Dealers to ensure your deflection target is beneficial.",
     "counters": ["bouncer", "bartender"],
-    "synergies": ["dealer", "silver_fox"]
+    "synergies": ["dealer", "silver_fox"],
+    "dos": [
+      "Save your deflection for when exile is guaranteed — timing is everything",
+      "Choose a deflection target who is genuinely suspicious to sell the redirect",
+      "Build trust as a Party Animal early so your survival seems natural",
+      "Coordinate with Dealers to set up your deflection target in advance",
+      "After deflecting, immediately shift the narrative — 'See? I told you it was them!'"
+    ],
+    "donts": [
+      "Don't deflect too early — you only get one shot",
+      "Never deflect onto a confirmed innocent — it looks obvious and desperate",
+      "Don't reveal your role to other Dealers unless absolutely necessary",
+      "Avoid drawing attention before you've used your ability",
+      "Don't waste your deflection on a vote you might survive naturally"
+    ],
+    "deceptionTactics": [
+      "Build a long-term case against your intended deflection target days before you need to use it",
+      "Fake-claim Sober or Bartender to explain away any suspicious connections",
+      "When deflecting, act shocked — 'Wait, the votes shifted? What's happening?'",
+      "Pre-seed distrust against your scapegoat by asking 'innocent questions' about them"
+    ],
+    "betrayalAdvice": [
+      "Deflect onto the Dealer who's most likely to be caught anyway — you gain credibility AND remove a weak link",
+      "If another Dealer is under pressure, let them take the fall — save your deflection for yourself",
+      "Use the chaos of your deflection to push a second vote against a power role"
+    ]
   },
   "silver_fox": {
     "roleId": "silver_fox",
@@ -61,23 +234,97 @@
     "earlyGame": "Use your ability to shield fellow Dealers or create false investigation results.",
     "lateGame": "Your alibi grants become more valuable as investigators narrow down suspects.",
     "counters": ["bouncer", "bartender"],
-    "synergies": ["dealer", "whore"]
+    "synergies": ["dealer", "whore"],
+    "dos": [
+      "Alibi your fellow Dealers to corrupt Bouncer ID checks",
+      "Occasionally alibi an innocent to make your pattern unpredictable",
+      "Keep track of who the Bouncer has checked so you know where to alibi",
+      "Alibi yourself if you suspect the Bouncer is checking you tonight",
+      "Use alibis to create trust — alibi'd players look innocent"
+    ],
+    "donts": [
+      "Don't only alibi Dealers — the pattern becomes obvious",
+      "Never admit you're the Silver Fox — your power relies on secrecy",
+      "Don't alibi dead players — it wastes your action and looks suspicious in retrospect",
+      "Avoid alibiing the same player multiple nights — it's traceable",
+      "Don't ignore the Bartender — their alignment checks bypass your alibis differently"
+    ],
+    "deceptionTactics": [
+      "Alibi a vocal innocent to make the Bouncer's check read them as 'clean' — then claim THEY are the suspicious one",
+      "Create a narrative where your alibi'd Dealer seems confirmed-innocent through 'independent' checks",
+      "If caught, claim you're the Sober who 'sent someone home' — the mechanics overlap in reports"
+    ],
+    "betrayalAdvice": [
+      "Stop alibiing a Dealer teammate if they're about to be caught — let them fall cleanly",
+      "Alibi a Party Animal power role to make them trust you, then use that trust to misdirect votes",
+      "Use your alibis to protect yourself over teammates when the endgame approaches"
+    ]
   },
   "roofi": {
     "roleId": "roofi",
-    "overview": "You silence a player (preventing their night action) and block one Dealer kill attempt. You can also permanently revoke the Bouncer's ability.",
+    "overview": "You silence a player (preventing their night action) and block one Dealer kill attempt. If you target the ONLY living Dealer, their kill is completely blocked.",
     "earlyGame": "Silence suspicious players to block their night actions. Use your kill-block strategically to save confirmed town.",
-    "lateGame": "Revoking Bouncer's ability is a huge decision - only do it if absolutely necessary (if Bouncer is compromised or about to die).",
+    "lateGame": "Revoking Bouncer's ability is a huge decision. If only one Dealer remains, targeting them stops all kills for the night.",
     "counters": ["dealer"],
-    "synergies": ["medic", "bouncer"]
+    "synergies": ["medic", "bouncer"],
+    "dos": [
+      "Silence the most suspicious player each night to test your reads",
+      "Save your kill-block for when you're confident a Dealer is about to strike",
+      "Coordinate with the Bouncer — silence players they haven't checked yet",
+      "Use silence to protect power roles indirectly by blocking attackers",
+      "Track which players had no night report after you silenced them — they had an action to block",
+      "Target the suspected final Dealer to block their kill"
+    ],
+    "donts": [
+      "Don't revoke the Bouncer unless you're absolutely certain they're compromised",
+      "Never waste your silence on confirmed innocent vanilla players",
+      "Don't silence the same player two nights in a row without strong evidence",
+      "Avoid claiming Roofi too early — Dealers will kill you immediately",
+      "Don't forget that silenced players can't use ANY ability — including protective ones"
+    ],
+    "deceptionTactics": [
+      "Announce you silenced someone and watch for the player who seems relieved vs frustrated",
+      "Claim to have blocked a kill when you actually silenced someone — gauge reactions",
+      "Use your silence results to build a case: 'I blocked them and no one died — coincidence?'"
+    ],
+    "betrayalAdvice": [
+      "If you silence someone and a kill still happens, you've confirmed they're NOT the Dealer — share this intel",
+      "Silence the Medic if you need an important kill to go through for the greater good of deduction",
+      "Use your information advantage — you know exactly who couldn't act last night"
+    ]
   },
   "sober": {
     "roleId": "sober",
-    "overview": "You can send one player home each night, making them immune to night actions (both harmful and helpful).",
+    "overview": "You can send one player home each night, making them immune to night actions (both harmful and helpful) AND blocking their own action.",
     "earlyGame": "Protect vulnerable players or block suspicious actions. Your targets are safe from kills but also can't be investigated or protected.",
     "lateGame": "Coordinate with Medic to avoid overlapping protection. Use strategically to block suspected Dealer kills.",
     "counters": [],
-    "synergies": ["medic", "bouncer"]
+    "synergies": ["medic", "bouncer"],
+    "dos": [
+      "Send home suspected Dealer kill targets to waste the Dealers' night",
+      "Protect power roles who haven't claimed yet by sending them home",
+      "Coordinate with the Medic so you don't overlap protection on the same player",
+      "Send home the Bouncer on nights they're not checking — it's free protection",
+      "Use your power to test reads — send someone home and see if a kill still happens",
+      "Send home a suspected killer to block their attack"
+    ],
+    "donts": [
+      "Don't send home the Bouncer when they need to investigate — it blocks their check",
+      "Never send home the same player every night — Dealers will redirect",
+      "Don't forget that your target also can't be HELPED — no Medic save, no alibi",
+      "Avoid sending home confirmed Dealers — they can't be killed at night anyway",
+      "Don't send yourself home — you can't self-target"
+    ],
+    "deceptionTactics": [
+      "Publicly say you're sending someone home to bait Dealers into targeting a different player",
+      "Claim to have sent home someone who died — 'I didn't send them home, so I was testing elsewhere'",
+      "Use your power as a bargaining chip in daytime discussions"
+    ],
+    "betrayalAdvice": [
+      "If you suspect the Bouncer is fake-claiming, send them home to waste their 'investigation' and test the theory",
+      "Send home a player who's about to be checked by Bouncer if you suspect the Bouncer is a Dealer",
+      "Use your data to call out inconsistencies — 'I sent X home and a kill still happened in their direction? Someone's lying.'"
+    ]
   },
   "wallflower": {
     "roleId": "wallflower",
@@ -85,7 +332,31 @@
     "earlyGame": "You learn who was killed by Dealers (not vote exiles or other deaths). Use this to track Dealer activity patterns.",
     "lateGame": "Your information confirms kills happened, helping distinguish between Dealer kills, Predator revenge, and vote exiles.",
     "counters": [],
-    "synergies": ["bouncer", "medic"]
+    "synergies": ["bouncer", "medic"],
+    "dos": [
+      "Memorize every face you see during the murder phase",
+      "Wait for the right moment to reveal your witness testimony — timing is everything",
+      "Cross-reference your sightings with who claims what during the day",
+      "Use your information to validate or discredit Bouncer claims",
+      "Stay alive as long as possible — you're the only eyewitness"
+    ],
+    "donts": [
+      "Don't reveal immediately what you saw — Dealers will kill you next night",
+      "Never claim Wallflower without actionable evidence — it makes you a target for nothing",
+      "Don't confuse vote-exiled players with Dealer kills — you only witness murders",
+      "Avoid being too vocal about night events — Dealers will figure out you're watching",
+      "Don't panic-reveal after Night 1 — build your case over multiple nights"
+    ],
+    "deceptionTactics": [
+      "Drop subtle hints about what you saw without revealing your role",
+      "Claim to have 'heard something' or 'noticed a pattern' to introduce your evidence indirectly",
+      "Wait until two sightings confirm a pattern before making your move"
+    ],
+    "betrayalAdvice": [
+      "If you witness a kill and recognize the victim, use it to rally votes without revealing how you know",
+      "Reveal your Wallflower status only when your testimony can seal an exile — one shot, one kill",
+      "If the Bouncer's claims conflict with your sightings, call it out publicly"
+    ]
   },
   "ally_cat": {
     "roleId": "ally_cat",
@@ -93,7 +364,31 @@
     "earlyGame": "Watch Bouncer checks carefully. Your meow-only communication makes sharing information nearly impossible, so focus on voting patterns.",
     "lateGame": "Your 9 lives make you nearly unkillable by Dealers. Use this to be aggressive in voting. Creative meowing ('Meow meow MEOW') can sometimes convey urgency.",
     "counters": ["predator"],
-    "synergies": ["bouncer"]
+    "synergies": ["bouncer"],
+    "dos": [
+      "Use your votes as your primary communication — vote aggressively on suspected Dealers",
+      "Stay alive and draw Dealer kills — your 9 lives are a shield for the entire town",
+      "Watch the Bouncer's checks and use urgent meowing to signal when they find something",
+      "Use vote timing to communicate — early confident votes signal certainty",
+      "Protect the Bouncer by being their bodyguard — sit near them in discussions"
+    ],
+    "donts": [
+      "Don't try to spell words with meows — it wastes time and confuses everyone",
+      "Never forget you can still be vote-exiled — meow-only makes defence nearly impossible",
+      "Don't waste lives being reckless — 9 lives is a lot, but not infinite",
+      "Avoid drawing Predator attention — their revenge kill bypasses your lives differently",
+      "Don't ignore your Bouncer surveillance duty — it's your most valuable asset"
+    ],
+    "deceptionTactics": [
+      "Use different meow intensities to signal danger levels — train your allies to read you",
+      "Meow at specific players to draw attention to them — your accusation is your vote",
+      "Intentionally vote first to lead the discussion without words"
+    ],
+    "betrayalAdvice": [
+      "If the Bouncer finds a Dealer, immediately switch your vote — others will follow your lead",
+      "Tank Dealer kills on purpose by being vocal (meowing loudly) — each wasted kill is a win",
+      "Use your near-invincibility to force votes — pile on and dare others to follow"
+    ]
   },
   "seasoned_drinker": {
     "roleId": "seasoned_drinker",
@@ -101,15 +396,63 @@
     "earlyGame": "Be bold! You can survive multiple Dealer attacks. Use your tankiness to draw kills away from power roles.",
     "lateGame": "As Dealers die, your effective HP goes down (if you lose lives). Other players can see your life count, so they know when you're vulnerable.",
     "counters": [],
-    "synergies": ["medic"]
+    "synergies": ["medic"],
+    "dos": [
+      "Be loud and confrontational — draw Dealer kills to yourself",
+      "Use your visible life count as proof you've been targeted — 'They tried to kill me last night'",
+      "Shield power roles by making yourself a more tempting target",
+      "Track your life loss to count how many Dealer kills have happened",
+      "Pair with the Medic for maximum survivability"
+    ],
+    "donts": [
+      "Don't forget your lives only block DEALER kills — votes and Predator bypass them",
+      "Never assume you're safe — your life count is public and Dealers can strategize around it",
+      "Don't waste your tankiness by being quiet — if they don't attack you, your lives are wasted",
+      "Avoid being so aggressive that you get vote-exiled instead of night-killed",
+      "Don't ignore that your life count reveals information about Dealer activity"
+    ],
+    "deceptionTactics": [
+      "Claim a power role to force Dealers to spend kills on you instead of actual power roles",
+      "Announce 'I lost a life last night' to confirm Dealer activity without revealing your exact status",
+      "Use your tanky reputation to negotiate — 'Protect someone else, Medic, I can handle myself'"
+    ],
+    "betrayalAdvice": [
+      "If you're losing lives fast, publicly count them to put pressure on Dealer hunters",
+      "Use your survival as evidence — 'I've survived three nights, clearly the Dealers are targeting me for a reason'",
+      "Tank kills to buy time for investigators, then use your survival data to push final exiles"
+    ]
   },
   "lightweight": {
     "roleId": "lightweight",
-    "overview": "You generate taboo names each day. If you say ANY of those names, you die instantly. The taboo list is visible to all players.",
-    "earlyGame": "Carefully avoid your taboo names in discussion. This role is extremely challenging and requires constant vigilance.",
-    "lateGame": "As more players die, your taboo list may become easier to avoid. Stay focused and read carefully before speaking.",
-    "counters": [],
-    "synergies": []
+    "overview": "Each night you choose a player who becomes permanently unvotable for you. Your voting pool shrinks each round, forcing you to think strategically about who you eliminate from your options.",
+    "earlyGame": "Target players you're fairly confident are innocent early on. Removing confirmed Party Animals from your vote pool means your remaining votes are more likely to land on Dealers. Pay attention to Bouncer claims and early reads.",
+    "lateGame": "With fewer voting options remaining, every vote counts. If you've been strategic, your remaining targets should include the most suspicious players. Use your restricted pool as implicit information — you know who you can't vote for, so focus your arguments on those you still can.",
+    "counters": ["silver_fox"],
+    "synergies": ["bouncer", "bartender"],
+    "dos": [
+      "Block players you're confident are innocent — this narrows your votes toward Dealers",
+      "Coordinate with investigators to confirm who is safe before locking them out",
+      "Use your shrinking pool as a strategic advantage — fewer options means more focused pressure",
+      "Pay close attention to role claims and voting patterns before choosing your nightly target",
+      "Keep a mental map of who you can and can't vote for as the game progresses"
+    ],
+    "donts": [
+      "Don't block suspicious players — you want to keep them votable",
+      "Never block a player too early without good reason — you can't undo it",
+      "Don't reveal which players you've blocked unless it helps your argument",
+      "Avoid blocking all players on one side — you need flexibility",
+      "Don't forget to check your blocked list before voting — wasted votes help Dealers"
+    ],
+    "deceptionTactics": [
+      "Claim you blocked a Dealer suspect to seem proactive — even if you actually blocked an innocent",
+      "Use your restriction as cover for not voting against certain players — 'I literally can't vote for them'",
+      "Publicly announce strategic blocks to build trust with the Party Animals"
+    ],
+    "betrayalAdvice": [
+      "If investigators confirm a player as Staff, make sure you haven't blocked them — adjust your nightly picks accordingly",
+      "Use your blocked list as evidence of good reads — 'I blocked all the confirmed innocents, my remaining options are the killers'",
+      "In endgame, your restricted pool can be powerful proof of alignment — share it to rally final votes"
+    ]
   },
   "tea_spiller": {
     "roleId": "tea_spiller",
@@ -117,7 +460,31 @@
     "earlyGame": "This is a passive ability. You might want to claim it to discourage votes, or hide it to catch Dealers who vote you.",
     "lateGame": "Your death can provide crucial information. Sometimes sacrificing yourself to reveal a voter is worth it.",
     "counters": [],
-    "synergies": []
+    "synergies": [],
+    "dos": [
+      "Consider claiming Tea Spiller to discourage Dealer votes against you",
+      "Track who votes for you in every round — one of them will be exposed",
+      "Use your death as a weapon — if you're going down, make sure Dealers voted for you",
+      "Build trust by offering to be voted out if the town is desperate for information",
+      "Make sure multiple people vote for you to maximize the chance of exposing a Dealer"
+    ],
+    "donts": [
+      "Don't claim too early — it might make Dealers avoid voting you entirely",
+      "Never forget your ability is RANDOM — you can't choose who gets revealed",
+      "Don't sacrifice yourself unless multiple Dealers voted for you",
+      "Avoid getting killed at night — you need to be VOTED out for your ability to trigger",
+      "Don't let fear of dying prevent you from being useful during discussions"
+    ],
+    "deceptionTactics": [
+      "Threaten to reveal your role to force Dealers to abstain from voting you",
+      "Act expendable to bait more votes — the more people vote, the better your odds",
+      "Claim you have 'a secret that activates on death' without specifying Tea Spiller"
+    ],
+    "betrayalAdvice": [
+      "If the town needs data, volunteer as tribute — your death reveals truth",
+      "Force a split vote where you're one of the targets to guarantee information flow",
+      "Use the threat of your ability to control voting patterns and flush out Dealer coordination"
+    ]
   },
   "predator": {
     "roleId": "predator",
@@ -125,7 +492,31 @@
     "earlyGame": "Don't claim this role - it makes you a prime target for votes instead of night kills (to control who you revenge-kill).",
     "lateGame": "Once revealed or about to die, choose your revenge target wisely. Kill a confirmed Dealer if possible.",
     "counters": [],
-    "synergies": []
+    "synergies": [],
+    "dos": [
+      "Keep your role secret as long as possible — it's your trump card",
+      "Build a mental kill list — know exactly who you'd revenge-kill at any moment",
+      "Pay attention to who's confirmed as a Dealer so your revenge is guaranteed value",
+      "Consider revealing when you're about to be night-killed to deter Dealers",
+      "Use your impending death to negotiate — 'Kill me and I take your partner'"
+    ],
+    "donts": [
+      "Don't reveal Predator early — Dealers will vote-exile you to control your revenge target timing",
+      "Never waste your revenge on a vanilla player — always target suspected or confirmed Dealers",
+      "Don't forget you can be blocked by Roofi — if silenced, your revenge might not trigger",
+      "Avoid being too quiet — you need information to choose the best revenge target",
+      "Don't panic-reveal when pressured — sometimes dying quietly with a pre-planned target is better"
+    ],
+    "deceptionTactics": [
+      "Claim a different role entirely to avoid vote manipulation around your death",
+      "When you suspect you'll die tonight, announce 'I know who the Dealer is' — they might change targets",
+      "Use the threat of your revenge kill to extract confessions during heated discussions"
+    ],
+    "betrayalAdvice": [
+      "If you're certain about a Dealer, tell the town 'Even if I die, I'll take them with me' to confirm your read",
+      "Negotiate with Dealers — 'Kill me and I'll revenge-kill a Party Animal' (then don't)",
+      "Use your death sentence as ultimate leverage — no one wants to trigger your revenge"
+    ]
   },
   "drama_queen": {
     "roleId": "drama_queen",
@@ -133,23 +524,96 @@
     "earlyGame": "This is a passive death trigger. Consider claiming to make Dealers afraid to kill you at night.",
     "lateGame": "Your death can completely change the game state. A well-timed swap can turn a Dealer into the Bouncer or vice versa.",
     "counters": [],
-    "synergies": []
+    "synergies": [],
+    "dos": [
+      "Claim Drama Queen to discourage Dealer kills — they don't want random chaos",
+      "Stay alive as long as possible to maximize the disruption potential",
+      "Study who holds which role so you can predict what swaps would be devastating",
+      "Use the threat of your swap to control the game's pace",
+      "If you're going to die, try to time it when a swap would benefit Party Animals"
+    ],
+    "donts": [
+      "Don't forget the swap is RANDOM — you can't choose who gets swapped",
+      "Never sacrifice yourself hoping for a good swap — the odds are unpredictable",
+      "Don't claim Drama Queen if Dealers would benefit from a random swap",
+      "Avoid dying when few players remain — the swap affects a larger percentage of roles",
+      "Don't let the chaos potential make you reckless with your own survival"
+    ],
+    "deceptionTactics": [
+      "Claim Drama Queen even if you're not to deter night kills (risky if actual Drama Queen exists)",
+      "Announce 'Kill me and watch the chaos' to force Dealers to target someone else",
+      "Use fear of the swap to delay exiles and buy time for investigators"
+    ],
+    "betrayalAdvice": [
+      "If the game is going badly for Party Animals, volunteer for exile — the chaos might reset the balance",
+      "Use your death as a wild card — even Dealers don't want unpredictable role swaps",
+      "Threaten to reveal all your information before dying, then let the swap handle the rest"
+    ]
   },
   "bartender": {
     "roleId": "bartender",
-    "overview": "Each night, select two players. You learn if they are on the same team (aligned) or different teams. Powerful investigative role.",
+    "overview": "Each night, select two players. You learn if they are on the same team (aligned) or different teams. Results are revealed privately to you in the morning.",
     "earlyGame": "Check pairs of suspicious players. If they're aligned and one flips Dealer, you've found two. Check suspected Dealers against confirmed town.",
     "lateGame": "Your alignment checks become more valuable as you narrow down suspects. Coordinate with Bouncer to cross-reference findings.",
     "counters": ["silver_fox"],
-    "synergies": ["bouncer", "medic"]
+    "synergies": ["bouncer", "medic"],
+    "dos": [
+      "Check one suspected Dealer against one confirmed innocent — if they're misaligned, you have a lead",
+      "Cross-reference your alignment data with Bouncer results for double confirmation",
+      "Check players who vote together often — Dealers coordinate subtly",
+      "Build a web of connections: if A aligns with B and B aligns with C, A aligns with C",
+      "Share results carefully — too much info makes you a priority kill target"
+    ],
+    "donts": [
+      "Don't check two confirmed innocents — it wastes your night action",
+      "Never reveal all your results at once — Dealers will kill you and discredit your findings",
+      "Don't forget Silver Fox alibis can corrupt your results",
+      "Avoid checking dead players — they can't be checked",
+      "Don't ignore vote patterns — use alignment checks to confirm behavioural suspicions"
+    ],
+    "deceptionTactics": [
+      "Withhold one key alignment result to use as a bombshell during a critical vote",
+      "Announce you're checking two specific players to bait Silver Fox into alibiing one of them",
+      "Use partial results to create a narrative — 'These two are aligned, and one of them is definitely lying'"
+    ],
+    "betrayalAdvice": [
+      "If your results conflict with the Bouncer's, someone is being manipulated by Silver Fox — figure out who",
+      "Use your alignment web to identify the Silver Fox specifically — they'll always alibi Dealers",
+      "Save your most damning result for the final vote — drop it when it can't be disputed"
+    ]
   },
   "messy_bitch": {
     "roleId": "messy_bitch",
-    "overview": "You are a neutral role that wins SOLO if all living players have a rumour. Each night you spread one rumour from a catalog of 100 club-themed gossip.",
+    "overview": "You are a neutral role that wins SOLO if all living players have a rumour. Each night you spread one rumour which appears as a public teaser in the morning feed.",
     "earlyGame": "Spread rumours strategically. Prioritize players likely to survive. You win alone, so both teams are your enemy once they realize your goal.",
     "lateGame": "As players die, your win condition gets easier (fewer targets to rumour). Balance spreading chaos without painting a target on yourself.",
     "counters": ["dealer"],
-    "synergies": []
+    "synergies": [],
+    "dos": [
+      "Rumour the players most likely to survive — Medic-protected, multi-life, or town leaders",
+      "Spread chaos during discussions to distract from your true win condition",
+      "Keep your solo win condition secret as long as possible",
+      "Prioritize rumoring players on the WINNING side — they'll survive longest",
+      "Use the rumour mechanic to your advantage: players with rumours become discussion topics"
+    ],
+    "donts": [
+      "Don't reveal you're the Messy Bitch — both teams will exile you immediately",
+      "Never rumour someone who's about to be exiled — it wastes your action",
+      "Don't let either team get too close to winning before you've rumoured enough players",
+      "Avoid rumoring Dealers early — if they die, you need to recount your targets",
+      "Don't be the most vocal player — Messy Bitch needs to survive, not lead"
+    ],
+    "deceptionTactics": [
+      "Blame rumours on other players — 'Someone's spreading gossip, and it's suspicious'",
+      "Fake-claim a regular Party Animal to avoid scrutiny",
+      "Use rumours to frame specific players as targets for both teams",
+      "Stir paranoia about the rumour mechanic to create maximum confusion"
+    ],
+    "betrayalAdvice": [
+      "Play both sides — feed intel to Dealers AND Party Animals to keep the game going longer",
+      "Extend the game as long as possible by keeping vote counts close",
+      "If one team is about to win, subtly help the other team to buy yourself more nights"
+    ]
   },
   "club_manager": {
     "roleId": "club_manager",
@@ -157,7 +621,32 @@
     "earlyGame": "Gather information by viewing role cards. Use this to align with the winning team without revealing your neutrality.",
     "lateGame": "Blend in with the majority team. Your survival is the only goal - you don't care who wins, as long as you're alive.",
     "counters": ["dealer"],
-    "synergies": []
+    "synergies": [],
+    "dos": [
+      "Check the most influential players first — knowing their role lets you play both sides",
+      "Align yourself visibly with whichever team is winning",
+      "Use your perfect role knowledge to offer valuable intel to the winning side",
+      "Stay under the radar — your survival is your ONLY win condition",
+      "Build trust with both sides simultaneously so you can pivot freely"
+    ],
+    "donts": [
+      "Don't reveal you're the Club Manager — both teams will consider you unreliable",
+      "Never pick a side too early — the game can flip at any moment",
+      "Don't waste checks on vanilla players — prioritize power roles and suspects",
+      "Avoid being too helpful to either side — it draws attention",
+      "Don't forget you need to be ALIVE at the end — don't take unnecessary risks"
+    ],
+    "deceptionTactics": [
+      "Feed true role information to the winning team to earn their protection",
+      "Fake-claim Bartender and use your role knowledge as 'alignment check results'",
+      "Play dumb about mechanics while secretly having the best information in the game",
+      "Reveal someone's role publicly to seem like a power role contributing to town"
+    ],
+    "betrayalAdvice": [
+      "If the Dealers are winning, feed them Party Animal role identities for protection",
+      "If Party Animals are winning, out a Dealer to earn town trust and guaranteed survival",
+      "Pivot your allegiance at the critical moment — the team that wins needs to see you as an ally"
+    ]
   },
   "clinger": {
     "roleId": "clinger",
@@ -165,7 +654,31 @@
     "earlyGame": "Choose your partner wisely - pick someone likely to survive and whose judgment you trust. Your votes are locked to theirs.",
     "lateGame": "If freed as Attack Dog, use your kill strategically. If still clingy, protect your partner at all costs.",
     "counters": ["dealer"],
-    "synergies": []
+    "synergies": [],
+    "dos": [
+      "Choose a partner who's likely to survive — Medic, Seasoned Drinker, or Minor are ideal",
+      "Follow your partner's lead in discussions and votes — you literally have no choice",
+      "Protect your partner with information and social capital",
+      "If freed as Attack Dog, use your kill on a confirmed Dealer",
+      "Communicate with your partner about strategy — you're in this together"
+    ],
+    "donts": [
+      "Don't pick a Dealer as your partner — if they're exiled, you die too",
+      "Never contradict your partner's votes — it's mechanically impossible and will out you",
+      "Don't let your partner take risky stands without backup",
+      "Avoid revealing your Clinger status — it makes your partner a double-kill target",
+      "Don't waste your Attack Dog kill if freed — it's a one-shot ability"
+    ],
+    "deceptionTactics": [
+      "Pretend your voting alignment with your partner is coincidental, not mechanical",
+      "If freed as Attack Dog, claim to have been a regular Party Animal all along",
+      "Use your forced vote alignment as cover — 'I just agree with their reads'"
+    ],
+    "betrayalAdvice": [
+      "If your partner is about to be exiled and you think they're innocent, reveal your Clinger status to save them both",
+      "Use the Attack Dog kill to eliminate whoever threatens your survival most",
+      "If your partner is revealed as a Dealer, accept your fate and use the chaos to extract maximum information"
+    ]
   },
   "second_wind": {
     "roleId": "second_wind",
@@ -173,6 +686,30 @@
     "earlyGame": "Play as a normal Party Animal. If you survive a Dealer kill, the game changes - you might become a Dealer or be executed.",
     "lateGame": "If converted to Club Staff, your win condition flips instantly. You now want Dealers to win. This is incredibly powerful and chaotic.",
     "counters": [],
-    "synergies": []
+    "synergies": [],
+    "dos": [
+      "Play as a genuine Party Animal until triggered — your conversion isn't guaranteed",
+      "If triggered, negotiate with Dealers for conversion rather than execution",
+      "Use your unique position to gather info from both sides during the conversion window",
+      "If converted, leverage your established Party Animal trust to be the ultimate mole",
+      "Track who the Dealers are before conversion — you'll need allies after flipping"
+    ],
+    "donts": [
+      "Don't reveal you're Second Wind — it changes how Dealers approach killing you",
+      "Never assume conversion is automatic — Dealers might execute you instead",
+      "Don't sabotage Party Animals before conversion — play genuinely until you flip",
+      "Avoid being too valuable to either team before knowing your final alliance",
+      "Don't forget that conversion is PUBLIC — everyone knows when you flip"
+    ],
+    "deceptionTactics": [
+      "After conversion, maintain your Party Animal relationships while secretly feeding Dealer intel",
+      "Use your 'survivor' story to build sympathy and trust, then exploit it",
+      "If not yet triggered, act scared of being killed to bait Dealers into targeting you"
+    ],
+    "betrayalAdvice": [
+      "If converted, immediately betray your former allies by pushing their exiles with your established trust",
+      "Use the conversion window to extract maximum intel from Dealer negotiations",
+      "If you choose to resist conversion, use the intel you gathered to expose the Dealers"
+    ]
   }
 }

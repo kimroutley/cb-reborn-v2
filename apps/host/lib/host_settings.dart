@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,7 @@ class HostSettings {
   final bool highContrast;
   final bool geminiNarrationEnabled;
   final String hostPersonalityId;
+  final String geminiApiKey;
 
   const HostSettings({
     required this.sfxVolume,
@@ -19,6 +21,7 @@ class HostSettings {
     required this.highContrast,
     required this.geminiNarrationEnabled,
     required this.hostPersonalityId,
+    this.geminiApiKey = '',
   });
 
   HostSettings copyWith({
@@ -27,6 +30,7 @@ class HostSettings {
     bool? highContrast,
     bool? geminiNarrationEnabled,
     String? hostPersonalityId,
+    String? geminiApiKey,
   }) {
     return HostSettings(
       sfxVolume: sfxVolume ?? this.sfxVolume,
@@ -35,6 +39,7 @@ class HostSettings {
       geminiNarrationEnabled:
           geminiNarrationEnabled ?? this.geminiNarrationEnabled,
       hostPersonalityId: hostPersonalityId ?? this.hostPersonalityId,
+      geminiApiKey: geminiApiKey ?? this.geminiApiKey,
     );
   }
 
@@ -53,6 +58,7 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
   static const _keyHighContrast = 'highContrast';
   static const _keyGeminiNarrationEnabled = 'geminiNarrationEnabled';
   static const _keyHostPersonalityId = 'hostPersonalityId';
+  static const _keyGeminiApiKey = 'geminiApiKey';
 
   @override
   HostSettings build() {
@@ -69,6 +75,7 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
       final highContrast = prefs.getBool(_keyHighContrast);
       final geminiNarrationEnabled = prefs.getBool(_keyGeminiNarrationEnabled);
       final hostPersonalityId = prefs.getString(_keyHostPersonalityId);
+      final geminiApiKey = prefs.getString(_keyGeminiApiKey);
 
       state = state.copyWith(
         sfxVolume: (sfxVolume ?? state.sfxVolume).clamp(0.0, 1.0),
@@ -77,8 +84,19 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
         geminiNarrationEnabled:
             geminiNarrationEnabled ?? state.geminiNarrationEnabled,
         hostPersonalityId: hostPersonalityId ?? state.hostPersonalityId,
+        geminiApiKey: geminiApiKey ?? state.geminiApiKey,
       );
 
+      // Auto-seed from compile-time env if no persisted key exists
+      if (state.geminiApiKey.isEmpty) {
+        const envKey = String.fromEnvironment('GEMINI_API_KEY');
+        if (envKey.isNotEmpty) {
+          state = state.copyWith(geminiApiKey: envKey);
+          unawaited(_persist(state));
+        }
+      }
+
+      _syncApiKey(state.geminiApiKey);
       _applySideEffects(state);
     } catch (e) {
       // Best-effort
@@ -94,9 +112,16 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
       await prefs.setBool(
           _keyGeminiNarrationEnabled, next.geminiNarrationEnabled);
       await prefs.setString(_keyHostPersonalityId, next.hostPersonalityId);
+      await prefs.setString(_keyGeminiApiKey, next.geminiApiKey);
     } catch (e) {
       // Best-effort
     }
+  }
+
+  void _syncApiKey(String key) {
+    ref.read(geminiNarrationServiceProvider).setApiKey(
+          key.trim().isNotEmpty ? key.trim() : null,
+        );
   }
 
   void toggleGeminiNarration() {
@@ -133,6 +158,16 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
     final next = state.copyWith(hostPersonalityId: id);
     state = next;
     _applySideEffects(next);
+    unawaited(_persist(next));
+
+    // Sync to GameState so players see the personality color/mood
+    ref.read(gameProvider.notifier).updateHostPersonality(id);
+  }
+
+  void setGeminiApiKey(String key) {
+    final next = state.copyWith(geminiApiKey: key);
+    state = next;
+    _syncApiKey(key);
     unawaited(_persist(next));
   }
 

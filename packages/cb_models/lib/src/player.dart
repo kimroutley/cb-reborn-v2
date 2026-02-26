@@ -66,6 +66,9 @@ abstract class Player with _$Player {
     @Default([]) List<String> tabooNames,
     @Default(false) bool minorHasBeenIDd,
 
+    // Role Specific - Lightweight
+    @Default([]) List<String> blockedVoteTargets,
+
     // Role Specific - Wallflower
     @Default(false) bool isExposed,
 

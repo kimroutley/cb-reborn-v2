@@ -40,9 +40,11 @@ class BartenderAction implements NightActionStrategy {
       final first = context.getPlayer(ids[0]);
       final second = context.getPlayer(ids[1]);
       final isAligned = first.alliance == second.alliance;
-      final msg = isAligned ? 'They are SAME.' : 'They are DIFF.';
+      final msg = isAligned
+          ? '${first.name} and ${second.name} are on the SAME side.'
+          : '${first.name} and ${second.name} are on DIFFERENT sides.';
       context.addPrivateMessage(bartender.id, msg);
-      context.addReport('Bartender mixed ${first.name} & ${second.name}.');
+      context.addReport('Bartender chose to compare ${first.name} & ${second.name}.');
     }
   }
 }

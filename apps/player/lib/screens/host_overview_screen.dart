@@ -24,20 +24,11 @@ class HostOverviewScreen extends ConsumerWidget {
 
     final phaseLabel = gameState.phase.toUpperCase();
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text(
-          'HOST OVERVIEW',
-          style: Theme.of(context).textTheme.titleLarge!,
-        ),
-        centerTitle: true,
-      ),
-      body: CBNeonBackground(
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
+    return CBPrismScaffold(
+      title: 'HOST OVERVIEW',
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
               CBSectionHeader(
                   title: 'CONNECTION STATUS', color: connectionColor),
               const SizedBox(height: 16),
@@ -134,10 +125,8 @@ class HostOverviewScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 120), // Provide some bottom padding
-            ],
-          ),
-        ),
+          const SizedBox(height: 120), // Provide some bottom padding
+        ],
       ),
     );
   }

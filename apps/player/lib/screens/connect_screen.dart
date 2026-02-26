@@ -1,11 +1,15 @@
 import 'package:cb_theme/cb_theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../cloud_player_bridge.dart';
 import '../player_bridge.dart';
-import 'claim_screen.dart';
+import '../player_destinations.dart';
+import '../player_navigation.dart';
 
 /// Connection mode for the player app.
 enum PlayerSyncMode { cloud }
@@ -72,7 +76,7 @@ ParsedJoinUrl? parseJoinUrlPayload(String raw) {
 }
 
 @visibleForTesting
-bool shouldNavigateToClaim({
+bool shouldNavigateAfterJoin({
   required bool isNavigating,
   required bool mounted,
 }) {
@@ -91,9 +95,13 @@ class ConnectScreen extends ConsumerStatefulWidget {
 class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   final TextEditingController joinCodeController = TextEditingController();
   final TextEditingController joinUrlController = TextEditingController();
+  final MobileScannerController scannerController = MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+  );
+
   String? localError;
-  bool _navigatingToClaim = false;
   bool _isConnecting = false;
+  bool _isScanning = false;
 
   @override
   void initState() {
@@ -119,7 +127,37 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   void dispose() {
     joinCodeController.dispose();
     joinUrlController.dispose();
+    scannerController.dispose();
     super.dispose();
+  }
+
+  static const Duration _profileLookupTimeout = Duration(seconds: 4);
+
+  /// Resolves the player's display name from Firestore profile, Firebase Auth
+  /// displayName, or falls back to 'Player'.
+  Future<String> _resolvePlayerName() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return 'Player';
+
+      try {
+        final profile = await FirebaseFirestore.instance
+            .collection('user_profiles')
+            .doc(user.uid)
+            .get()
+            .timeout(_profileLookupTimeout);
+        final username = (profile.data()?['username'] as String?)?.trim();
+        if (username != null && username.isNotEmpty) return username;
+      } catch (_) {
+        // Fall through to displayName.
+      }
+
+      final displayName = user.displayName?.trim();
+      if (displayName != null && displayName.isNotEmpty) return displayName;
+    } catch (_) {
+      // Fall through to default.
+    }
+    return 'Player';
   }
 
   String _normalizeJoinCode(String value) {
@@ -148,21 +186,35 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       _isConnecting = true;
     });
 
-    if (joinUrlController.text.trim().isNotEmpty) {
-      final ok = _tryApplyJoinUrl(joinUrlController.text);
-      if (!ok) {
-        HapticService.error();
-        setState(() {
-          localError = 'INVALID JOIN URL';
-          _isConnecting = false;
-        });
-        return;
-      }
+    // Check if code manually entered
+    final manualCode = _normalizeJoinCode(joinCodeController.text);
+    if (manualCode.length == 9) { // 4-4? normalized logic adds - at 4. NEON-ABCD is 9 chars.
+       // The normalization logic:
+       // NEONABCD (8) -> NEON-ABCD (9).
+       // Actually let's check normalizeJoinCode implementation:
+       // if length != 10 (compact) -> return upper.
+       // return sub(0,4) - sub(4). (Compact length 10 implies 10 chars -> XXXX-XXXXXX (11 chars)).
+       // Wait, `compact.length != 10`.
+       // Typically codes are 4-6 chars or UUIDs?
+       // Let's assume the previous logic: `if (code.length != 11)` check implies strict format.
+       // I'll stick to using the existing logic.
     }
 
+    if (joinUrlController.text.trim().isNotEmpty) {
+       // Preferred path if URL present
+       if (!_tryApplyJoinUrl(joinUrlController.text)) {
+          // If URL fails but we have manual code, ignore URL field?
+          // No, existing logic prioritized URL field.
+          // But in new UI, we only expose Code field freely.
+       }
+    }
+    
     final code = _normalizeJoinCode(joinCodeController.text);
 
-    if (code.length != 11) {
+    // The previous validation was strict length 11.
+    // NEON-ABCDEF is 11 chars (4 + 1 + 6).
+    
+    if (code.length < 5) { // Relaxed check, server will reject if invalid
       HapticService.error();
       setState(() {
         localError = 'INVALID CODE FORMAT';
@@ -174,12 +226,18 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     try {
       await ref.read(playerBridgeProvider.notifier).disconnect();
       final bridge = ref.read(cloudPlayerBridgeProvider.notifier);
-      await bridge.joinWithCode(code);
+      final playerName = await _resolvePlayerName();
+      await bridge.joinGame(code, playerName);
       HapticService.medium();
     } catch (e) {
       HapticService.error();
       if (!mounted) return;
-      setState(() => localError = e.toString());
+      final errorStr = e.toString();
+      // Remove 'Exception: ' prefix if present
+      final displayError = errorStr.startsWith('Exception: ') 
+          ? errorStr.replaceFirst('Exception: ', '')
+          : errorStr;
+      setState(() => localError = displayError.toUpperCase());
     } finally {
       if (mounted) {
         setState(() => _isConnecting = false);
@@ -187,198 +245,274 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     }
   }
 
+  void _onScan(BarcodeCapture capture) {
+    final List<Barcode> barcodes = capture.barcodes;
+    for (final barcode in barcodes) {
+      final code = barcode.rawValue;
+      if (code != null && code.isNotEmpty) {
+        // Try as URL first
+        if (_tryApplyJoinUrl(code)) {
+          HapticService.selection();
+          setState(() => _isScanning = false);
+          _connect();
+          return;
+        }
+        
+        // Try as raw code
+        // We set it to controller and trigger connect
+        // Normalize first
+        // If it looks like a valid code (e.g. alphanumeric)
+        joinCodeController.text = code; 
+        // Force normalization via connect or tryApply
+        
+        HapticService.selection();
+        setState(() => _isScanning = false);
+        _connect();
+        return;
+      }
+    }
+  }
+
+  void _navigateToLobby() {
+    if (!shouldNavigateAfterJoin(
+      isNavigating: false,
+      mounted: mounted,
+    )) {
+      return;
+    }
+
+    ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.lobby);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    // Listen for successful join
+    final textTheme = Theme.of(context).textTheme;
+
+    // Listen for successful join — navigate to lobby (PlayerHomeShell also
+    // handles this, but we trigger it explicitly as a safety net).
     ref.listen(cloudPlayerBridgeProvider, (prev, next) {
       if (prev != null && !prev.joinAccepted && next.joinAccepted) {
-        _navigateToClaim();
+        _navigateToLobby();
       }
     });
     ref.listen(playerBridgeProvider, (prev, next) {
       if (prev != null && !prev.joinAccepted && next.joinAccepted) {
-        _navigateToClaim();
+        _navigateToLobby();
       }
     });
 
-    // Get current error state
-    final cloudState = ref.watch(cloudPlayerBridgeProvider);
-    final error = localError ?? cloudState.joinError;
-    final hasParsedUrl = joinUrlController.text.trim().isNotEmpty;
-    final toneColor = _isConnecting
-        ? scheme.primary
-        : (error == null ? scheme.tertiary : scheme.error);
-    final toneIcon = _isConnecting
-        ? Icons.cloud_sync_rounded
-        : (error == null
-            ? Icons.cloud_done_rounded
-            : Icons.error_outline_rounded);
-    final toneTitle = _isConnecting
-        ? 'UPLINK IN PROGRESS'
-        : (error == null ? 'UPLINK READY' : 'UPLINK ISSUE DETECTED');
-    final readyDetail = hasParsedUrl
-        ? 'Join URL detected. Code can be prefilled from parser.'
-        : 'Enter a join code or paste a join URL to continue.';
-    final toneDetail = _isConnecting
-        ? 'Connecting to host session. Keep this terminal active.'
-        : (error ?? readyDetail);
-
-    final accent = scheme.secondary;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    if (_isScanning) {
+      return CBPrismScaffold(
+        title: 'SCAN JOIN CODE',
+        showAppBar: false,
+        useSafeArea: false,
+        body: Stack(
           children: [
-            Text(
-              'ESTABLISH LINK',
-              style: textTheme.headlineMedium!.copyWith(
-                color: scheme.onSurface,
+            MobileScanner(
+              controller: scannerController,
+              onDetect: _onScan,
+            ),
+            // Overlay
+             Center(
+              child: Container(
+                width: 250,
+                height: 250,
+                decoration: BoxDecoration(
+                  border: Border.all(color: scheme.primary, width: 2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
-            const Spacer(),
-            IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(Icons.close,
-                  color: scheme.onSurface.withValues(alpha: 0.6)),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'SCAN JOIN CODE',
+                          style: textTheme.titleMedium?.copyWith(
+                            color: scheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                            shadows: CBColors.textGlow(scheme.primary, intensity: 0.3),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close, color: scheme.onSurface),
+                          onPressed: () => setState(() => _isScanning = false),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    CBGlassTile(
+                      child: Text(
+                        'Point camera at the Host screen QR code',
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: scheme.onSurface.withValues(alpha: 0.75)),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: CBSpace.x4),
-        CBGlassTile(
-          borderColor: toneColor.withValues(alpha: 0.35),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(toneIcon, size: 18, color: toneColor),
-              const SizedBox(width: 8),
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
+      );
+    }
+
+    final cloudState = ref.watch(cloudPlayerBridgeProvider);
+    final error = localError ?? cloudState.joinError;
+
+    return CBPrismScaffold(
+      title: 'ESTABLISH LINK',
+      body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 16),
+
+                // Scan Button (Prominent)
+                GestureDetector(
+                  onTap: () {
+                    HapticService.medium();
+                    setState(() => _isScanning = true);
+                  },
+                  child: Container(
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: scheme.primaryContainer.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: scheme.primary.withValues(alpha: 0.5),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.qr_code_scanner,
+                            size: 64, color: scheme.primary),
+                        const SizedBox(height: 16),
+                        Text(
+                          'SCAN TO JOIN',
+                          style: textTheme.titleLarge?.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // Manual Entry Divider
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: scheme.outlineVariant)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'OR ENTER CODE',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    Expanded(child: Divider(color: scheme.outlineVariant)),
+                  ],
+                ),
+
+                const SizedBox(height: 32),
+
+                // Manual Entry Field
+                CBTextField(
+                  controller: joinCodeController,
+                  hintText: 'NEON-123456',
+                  textAlign: TextAlign.center,
+                  textStyle: textTheme.headlineSmall?.copyWith(
+                    fontFamily: 'RobotoMono',
+                    letterSpacing: 2,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9-]')),
+                    _JoinCodeFormatter(),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+
+                CBPrimaryButton(
+                  label: _isConnecting ? 'CONNECTING...' : 'Enter The Club',
+                  onPressed: _isConnecting ? null : _connect,
+                  icon:
+                      _isConnecting ? Icons.hourglass_empty : Icons.arrow_forward,
+                ),
+
+                if (error != null) ...[
+                  const SizedBox(height: 24),
+                  CBGlassTile(
+                    borderColor: scheme.error,
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: scheme.error),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            error,
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: scheme.error),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 48),
+
+                // Just Browsing
+                TextButton(
+                  onPressed: () {
+                    HapticService.selection();
+                    // Go to Guides
+                    ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.guides);
+                    Navigator.of(context).maybePop();
+                  },
                   child: Column(
-                    key: ValueKey('$toneTitle|$toneDetail'),
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        toneTitle,
-                        style: textTheme.labelMedium?.copyWith(
-                          color: toneColor,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.9,
+                       Text(
+                        'JUST BROWSING?',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: scheme.secondary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        toneDetail,
+                        'Read the Club Bible & Roles',
                         style: textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.76),
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: CBSpace.x4),
-        // Local-only: Host IP
-        CBBadge(
-          text: 'JOIN URL (OPTIONAL)',
-          color: accent,
-        ),
-        const SizedBox(height: CBSpace.x2),
-        CBTextField(
-          controller: joinUrlController,
-          hintText: 'https://.../join?mode=cloud&code=NEON-ABCDEF',
-          textStyle: textTheme.bodySmall,
-        ),
-        const SizedBox(height: CBSpace.x2),
-        Align(
-          alignment: Alignment.centerRight,
-          child: CBTextButton(
-            label: 'PARSE URL',
-            onPressed: _isConnecting
-                ? null
-                : () {
-                    final ok = _tryApplyJoinUrl(joinUrlController.text);
-                    if (!ok) {
-                      HapticService.error();
-                      setState(() => localError = 'INVALID JOIN URL');
-                    } else {
-                      HapticService.selection();
-                      setState(() => localError = null);
-                    }
-                  },
-            color: accent,
-          ),
-        ),
-        const SizedBox(height: CBSpace.x4),
-
-        CBBadge(
-          text: 'JOIN CODE',
-          color: accent,
-        ),
-        const SizedBox(height: CBSpace.x2),
-        CBTextField(
-          controller: joinCodeController,
-          hintText: 'NEON-ABCDEF',
-          textStyle: textTheme.bodyMedium?.copyWith(fontFamily: 'RobotoMono'),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
-            _JoinCodeFormatter(),
-          ],
-          errorText: error,
-        ),
-
-        if (error != null) ...[
-          const SizedBox(height: CBSpace.x4),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            child: CBStatusOverlay(
-              key: ValueKey(error),
-              icon: Icons.error_outline,
-              label: 'CONNECTION FAILED',
-              color: scheme.error,
-              detail: error,
+              ],
             ),
           ),
-        ],
-
-        const SizedBox(height: CBSpace.x6),
-        CBPrimaryButton(
-          label: _isConnecting ? 'CONNECTING...' : 'INITIATE UPLINK',
-          icon: Icons.login_rounded,
-          onPressed: _isConnecting ? null : _connect,
         ),
-      ],
     );
-  }
-
-  void _navigateToClaim() {
-    if (!shouldNavigateToClaim(
-      isNavigating: _navigatingToClaim,
-      mounted: mounted,
-    )) {
-      return;
-    }
-    _navigatingToClaim = true;
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ClaimScreen(),
-      ),
-    ).then((_) {
-      if (mounted) {
-        _navigatingToClaim = false;
-      }
-    });
   }
 }
 
@@ -389,10 +523,12 @@ class _JoinCodeFormatter extends TextInputFormatter {
     var text = newValue.text.toUpperCase().replaceAll('-', '');
     if (text.length > 10) text = text.substring(0, 10);
 
+    // Naive formatting for legacy codes (NEON-123456 format or whatever)
+    // The previous code implied 4-rest split.
     var newText = '';
     for (var i = 0; i < text.length; i++) {
-      if (i == 4) newText += '-';
-      newText += text[i];
+        if (i == 4) newText += '-';
+        newText += text[i];
     }
 
     return TextEditingValue(

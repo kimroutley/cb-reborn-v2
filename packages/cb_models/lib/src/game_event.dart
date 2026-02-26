@@ -27,5 +27,12 @@ sealed class GameEvent with _$GameEvent {
     required int day,
   }) = GameEventKill;
 
+  const factory GameEvent.tieBreak({
+    required int day,
+    required String strategy,
+    required List<String> tiedPlayerIds,
+    required List<String> resultantExileIds,
+  }) = GameEventTieBreak;
+
   factory GameEvent.fromJson(Map<String, dynamic> json) => _$GameEventFromJson(json);
 }

@@ -45,8 +45,9 @@ class RoofiAction implements NightActionStrategy {
           }
         }
 
-        context.addPrivateMessage(roofi.id, 'You silenced ${target.name}.');
-        context.addReport('Roofi silenced ${target.name}.');
+        context.addPrivateMessage(
+            roofi.id, 'You silenced ${target.name}. Their night action has been cancelled.');
+        context.addReport('Roofi chose to silence ${target.name}.');
       }
     }
   }

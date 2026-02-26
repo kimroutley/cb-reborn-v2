@@ -88,23 +88,23 @@ class RosterTile extends ConsumerWidget {
           // Status badges
           if (player.hasRumour && player.isAlive) ...[
             const SizedBox(width: 4),
-            MiniTag(text: 'R', color: scheme.secondary, tooltip: 'Rumour'),
+            CBMiniTag(text: 'R', color: scheme.secondary, tooltip: 'Rumour'),
           ],
           if (player.alibiDay != null && player.isAlive) ...[
             const SizedBox(width: 4),
-            MiniTag(text: 'A', color: scheme.tertiary, tooltip: 'Alibi'),
+            CBMiniTag(text: 'A', color: scheme.tertiary, tooltip: 'Alibi'),
           ],
           if (player.creepTargetId != null && player.isAlive) ...[
             const SizedBox(width: 4),
-            MiniTag(text: 'C', color: scheme.secondary, tooltip: 'Creep'),
+            CBMiniTag(text: 'C', color: scheme.secondary, tooltip: 'Creep'),
           ],
           if (player.clingerPartnerId != null && player.isAlive) ...[
             const SizedBox(width: 4),
-            MiniTag(text: 'L', color: scheme.primary, tooltip: 'Clinger'),
+            CBMiniTag(text: 'L', color: scheme.primary, tooltip: 'Clinger'),
           ],
           if (hasPendingDramaSwap && player.isAlive) ...[
             const SizedBox(width: 4),
-            MiniTag(
+            CBMiniTag(
               text: 'DQ',
               color: scheme.secondary,
               tooltip: 'Pending Drama Queen swap',
@@ -213,43 +213,6 @@ class RosterTile extends ConsumerWidget {
             ),
           ],
         ],
-      ),
-    );
-  }
-}
-
-class MiniTag extends StatelessWidget {
-  final String text;
-  final Color color;
-  final String tooltip;
-
-  const MiniTag({
-    super.key,
-    required this.text,
-    required this.color,
-    required this.tooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Tooltip(
-      message: tooltip,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.18),
-          border: Border.all(color: color.withValues(alpha: 0.45)),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          text,
-          style: textTheme.labelSmall?.copyWith(
-            color: color,
-            fontSize: 9,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
       ),
     );
   }

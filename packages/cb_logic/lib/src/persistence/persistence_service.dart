@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:isolate';
-import 'role_award_calculator.dart';
 
 import 'package:cb_models/cb_models.dart';
 import 'role_award_persistence.dart';
@@ -589,6 +588,34 @@ class PersistenceService {
   Future<void> clearAllSessions() async {
     await _sessionsBox.clear();
   }
+
+  // ────────────────── Role Awards (Proxies) ──────────────────
+
+  /// Load all stored role award progress entries.
+  List<PlayerRoleAwardProgress> loadRoleAwardProgresses() =>
+      roleAwards.loadRoleAwardProgresses();
+
+  /// Load role award progress for a specific player.
+  List<PlayerRoleAwardProgress> loadRoleAwardProgressesByPlayer(
+          String playerKey) =>
+      roleAwards.loadRoleAwardProgressesByPlayer(playerKey);
+
+  /// Load role award progress for a specific role.
+  List<PlayerRoleAwardProgress> loadRoleAwardProgressesByRole(String roleId) =>
+      roleAwards.loadRoleAwardProgressesByRole(roleId);
+
+  /// Load role award progress for a specific tier.
+  List<PlayerRoleAwardProgress> loadRoleAwardProgressesByTier(
+          RoleAwardTier tier) =>
+      roleAwards.loadRoleAwardProgressesByTier(tier);
+
+  /// Load recent role award unlocks.
+  List<PlayerRoleAwardProgress> loadRecentRoleAwardUnlocks({int limit = 20}) =>
+      roleAwards.loadRecentRoleAwardUnlocks(limit: limit);
+
+  /// Rebuild all role award progress entries from game records.
+  Future<List<PlayerRoleAwardProgress>> rebuildRoleAwardProgresses() =>
+      roleAwards.rebuildRoleAwardProgresses();
 
   // ────────────────── Lifecycle ──────────────────
 

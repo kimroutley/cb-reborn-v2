@@ -64,7 +64,8 @@ class AuthService {
     required String emailLink,
   }) async {
     await _ensureFirebaseInitialized();
-    return _firebaseAuth.signInWithEmailLink(email: email, emailLink: emailLink);
+    return _firebaseAuth.signInWithEmailLink(
+        email: email, emailLink: emailLink);
   }
 
   Future<UserCredential> signInWithGoogle() async {
@@ -78,28 +79,46 @@ class AuthService {
     final googleUser = await _googleSignIn.authenticate();
 
     final googleAuth = googleUser.authentication;
-    if (googleAuth.idToken == null) {
-      throw FirebaseAuthException(
-        code: 'google-sign-in-no-token',
-        message:
-            'Google sign-in succeeded, but no auth token was returned by Google.',
-      );
-    }
 
     final AuthCredential credential = GoogleAuthProvider.credential(
-      idToken: googleAuth.idToken,
+      idToken: googleAuth.idToken!,
     );
 
     return _firebaseAuth.signInWithCredential(credential);
+  }
+
+  Future<UserCredential> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) async {
+    await _ensureFirebaseInitialized();
+    return _firebaseAuth.signInWithEmailAndPassword(
+        email: email, password: password);
+  }
+
+  Future<UserCredential> createAccountWithEmailPassword({
+    required String email,
+    required String password,
+  }) async {
+    await _ensureFirebaseInitialized();
+    return _firebaseAuth.createUserWithEmailAndPassword(
+        email: email, password: password);
+  }
+
+  Future<void> sendPasswordReset({required String email}) async {
+    await _ensureFirebaseInitialized();
+    return _firebaseAuth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> signOut() async {
     if (!kIsWeb) {
       await _googleSignIn.signOut();
     }
-    if (_auth != null || Firebase.apps.isNotEmpty) {
-      await _firebaseAuth.signOut();
-    }
+    await _firebaseAuth.signOut();
+  }
+
+  Future<void> deleteAccount() async {
+    await _firebaseAuth.currentUser?.delete();
   }
 }
 

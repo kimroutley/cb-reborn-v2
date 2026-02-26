@@ -18,7 +18,6 @@ export 'src/scripting/script_builder.dart';
 export 'src/scripting/role_logic.dart';
 export 'src/scripting/step_key.dart';
 export 'src/persistence/persistence_service.dart';
-export 'src/chat_provider.dart';
 export 'src/strategy_generator.dart';
 export 'src/analytics_service.dart';
 export 'src/firebase_analytics_provider.dart';

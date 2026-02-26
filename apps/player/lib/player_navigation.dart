@@ -3,7 +3,7 @@ import 'player_destinations.dart';
 
 class PlayerNavigationNotifier extends Notifier<PlayerDestination> {
   @override
-  PlayerDestination build() => PlayerDestination.home;
+  PlayerDestination build() => PlayerDestination.connect;
 
   void setDestination(PlayerDestination destination) {
     state = destination;

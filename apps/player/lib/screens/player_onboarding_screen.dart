@@ -26,19 +26,23 @@ class _PlayerOnboardingScreenState
   @override
   Widget build(BuildContext context) {
     return CBPrismScaffold(
-      title: 'Onboarding',
+      title: 'JOIN THE CLUB',
       showAppBar: false,
+      useSafeArea: false, // PageView items handle layout within safely
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
         children: [
           _buildIntroPage(context),
-          PlayerAuthScreen(onSignedIn: () {
-            _pageController.nextPage(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }),
+          PlayerAuthScreen(
+            isEmbedded: true,
+            onSignedIn: () {
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            },
+          ),
           _buildConnectPage(context),
         ],
       ),
@@ -50,81 +54,80 @@ class _PlayerOnboardingScreenState
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return CBNeonBackground(
-      showOverlay: true,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              Icon(
-                Icons.nightlife_rounded,
-                size: 80,
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            Hero(
+              tag: 'auth_icon',
+              child: CBRoleAvatar(
                 color: scheme.secondary,
-                shadows: CBColors.iconGlow(scheme.secondary),
+                size: 100,
+                pulsing: true,
+                icon: Icons.nightlife_rounded,
               ),
-              const SizedBox(height: 32),
-              Text(
-                'SURVIVE THE NIGHT',
-                textAlign: TextAlign.center,
-                style: textTheme.displayMedium!.copyWith(
-                  color: scheme.secondary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2.0,
-                  shadows: CBColors.textGlow(scheme.secondary, intensity: 0.8),
-                ),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'CLUB BLACKOUT',
+              textAlign: TextAlign.center,
+              style: textTheme.displayMedium?.copyWith(
+                fontWeight: FontWeight.w900,
+                letterSpacing: 6,
+                height: 0.9,
+                color: scheme.secondary,
+                shadows: [
+                  BoxShadow(
+                    color: scheme.secondary.withAlpha(128),
+                    blurRadius: 12,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                'CLUB BLACKOUT REBORN',
-                style: textTheme.labelLarge!.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.7),
-                  letterSpacing: 4.0,
-                ),
-              ),
-              const SizedBox(height: 48),
-              CBPanel(
-                borderColor: scheme.secondary.withValues(alpha: 0.5),
-                child: Column(
-                  children: [
-                    Text(
-                      'TRUST NO ONE. DECEIVE EVERYONE. FIND THE DEALER.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyLarge!.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
+            ),
+            const SizedBox(height: 16),
+            CBBadge(
+              text: 'REBORN',
+              color: scheme.secondary,
+            ),
+            const SizedBox(height: 48),
+            CBPanel(
+              child: Column(
+                children: [
+                  Text(
+                    'TRUST NO ONE. DECEIVE EVERYONE. FIND THE DEALER.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyLarge!.copyWith(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      height: 1.5,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Join the lobby, receive your secret role, and use your abilities to outwit the competition. The party ends when you say it does.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium!.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.7),
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Join the lobby, receive your secret role, and use your abilities to outwit the competition.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium!.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.7),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const Spacer(),
-              CBPrimaryButton(
-                label: 'ENTER THE CLUB',
-                icon: Icons.login_rounded,
-                onPressed: () {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                backgroundColor: scheme.secondary.withValues(alpha: 0.2),
-                foregroundColor: scheme.secondary,
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
+            ),
+            const Spacer(),
+            CBPrimaryButton(
+              label: 'ENTER THE CLUB',
+              onPressed: () {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+          ],
         ),
       ),
     );

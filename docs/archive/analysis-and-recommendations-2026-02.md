@@ -19,7 +19,7 @@ This document outlines the current architectural state, evaluates code quality, 
 
 ### 2.1 Monorepo Structure
 The project follows a standard Flutter monorepo structure:
--   **`apps/`**: Contains the end-user applications (`host` for Windows/Tablet, `player` for Mobile/Web).
+-   **`apps/`**: Contains the end-user applications (`host` for Phone/Android, `player` for Mobile/Web).
 -   **`packages/`**: Contains shared libraries (`cb_logic`, `cb_models`, `cb_theme`, `cb_comms`).
 
 **Strengths:**

@@ -10,7 +10,7 @@ class ScriptBuilder {
         id: 'intro_01',
         title: 'WELCOME TO CLUB BLACKOUT',
         readAloudText:
-            'Welcome to Club Blackout. Some of you are staff members keeping this place running. Others... are here to ruin the party.',
+            'Welcome to Club Blackout. The neon is on, the drinks are flowing, and somebody in this room is not who they say they are. Staff are running the show. Party Animals are here to shut it down. Trust no one.',
         instructionText: 'Wait for players to settle.',
         actionType: ScriptActionType.info,
         aiVariationPrompt:
@@ -21,7 +21,7 @@ class ScriptBuilder {
         id: 'assign_roles_warning',
         title: 'ROLE ASSIGNMENT',
         readAloudText:
-            'Please check your devices now. You have received your role.',
+            'Check your devices now. Your role has been assigned. Read it carefully — your survival depends on it.',
         instructionText: 'Ensure all players have seen their role card.',
         actionType: ScriptActionType.confirm,
       ),
@@ -56,8 +56,8 @@ class ScriptBuilder {
         title: isContinuation ? 'MEDIC - CHOICE (CONT.)' : 'MEDIC - CHOICE',
         readAloudText: isContinuation
             ? ''
-            : 'Medic, choose your strategy for the game.',
-        instructionText: 'CHOOSE: PROTECT DAILY OR ONE-TIME REVIVE',
+            : 'Medic, wake up. You have a choice to make — protect someone every night, or save your power for a one-time resurrection.',
+        instructionText: 'CHOOSE YOUR STRATEGY: NIGHTLY PROTECTION OR ONE-TIME REVIVE',
         actionType: ScriptActionType.binaryChoice,
         roleId: RoleIds.medic,
         options: const ['PROTECT_DAILY', 'REVIVE'],
@@ -71,8 +71,8 @@ class ScriptBuilder {
     addSteps(
       creeps,
       'THE CREEP',
-      'Creep, wake up and choose a player to mimic.',
-      'SELECT A PLAYER TO MIMIC (INHERIT ALLIANCE/ROLE)',
+      'Creep, wake up. Choose someone to shadow — you will inherit their identity.',
+      'SELECT A PLAYER TO MIMIC (INHERIT ALLIANCE & ROLE)',
       actionType: ScriptActionType.selectPlayer,
     );
 
@@ -83,7 +83,7 @@ class ScriptBuilder {
     addSteps(
       clingers,
       'THE CLINGER',
-      'Clinger, wake up and choose your partner.',
+      'Clinger, wake up. Who are you obsessing over? Choose your partner wisely — their fate is now yours.',
       'SELECT A PARTNER TO OBSESS OVER',
       actionType: ScriptActionType.selectPlayer,
     );
@@ -99,8 +99,8 @@ class ScriptBuilder {
         title: isContinuation ? 'THE DRAMA QUEEN (CONT.)' : 'THE DRAMA QUEEN',
         readAloudText: isContinuation
             ? ''
-            : 'Drama Queen, wake up and pick two players for your vendetta.',
-        instructionText: 'SELECT TWO PLAYERS FOR POST-MORTEM SWAP',
+            : 'Drama Queen, wake up. Pick two players. If you die, their roles swap. Make it count.',
+        instructionText: 'SELECT TWO PLAYERS FOR POST-MORTEM ROLE SWAP',
         actionType: ScriptActionType.selectTwoPlayers,
         roleId: RoleIds.dramaQueen,
       ));
@@ -116,7 +116,7 @@ class ScriptBuilder {
         id: 'wallflower_info_global',
         title: 'WALLFLOWER IN PLAY',
         readAloudText:
-            'A heads-up for everyone: a Wallflower is in play. During the night\'s murder, they will be allowed to briefly open their eyes.',
+            'Heads up — there is a Wallflower in the club tonight. During the kill, they get a peek. Eyes everywhere.',
         instructionText:
             'Announce Wallflower mechanic. No player input required.',
         actionType: ScriptActionType.info,
@@ -136,7 +136,8 @@ class ScriptBuilder {
       ScriptStep(
         id: 'night_start_$dayCount',
         title: 'NIGHT PHASE',
-        readAloudText: 'It is now night time. Everyone close your eyes.',
+        readAloudText:
+            'The lights go down. Club Blackout falls silent. Close your eyes — the night shift begins.',
         instructionText: 'Wait for silence.',
         actionType: ScriptActionType.info,
       ),
@@ -248,7 +249,8 @@ class ScriptBuilder {
     steps.add(ScriptStep(
       id: 'night_end_$dayCount',
       title: 'WAKE UP',
-      readAloudText: 'The sun is rising. Everyone wake up.',
+      readAloudText:
+          'Dawn breaks. Open your eyes — let\'s see who made it through the night.',
       instructionText: 'Proceed to Morning Report.',
       actionType: ScriptActionType.info,
     ));
@@ -265,7 +267,8 @@ class ScriptBuilder {
       ScriptStep(
         id: 'day_results_$dayCount',
         title: 'MORNING REPORT',
-        readAloudText: 'The night is over. Here is what happened.',
+        readAloudText:
+            'Last call is over. The damage report is in. Let\'s see who didn\'t survive the night.',
         instructionText: 'Review the night report.',
         actionType: ScriptActionType.showInfo,
         aiVariationPrompt:
@@ -283,7 +286,7 @@ class ScriptBuilder {
         id: 'second_wind_convert_${sw.id}_$dayCount',
         title: 'SECOND WIND',
         readAloudText:
-            '${sw.name} survived the Dealer\'s attack. Dealers, do you convert or execute?',
+            '${sw.name} has a Second Wind — they survived the hit. Dealers, what\'s it going to be: recruit them, or finish the job?',
         instructionText:
             'Ask Dealers for decision. HOST INPUT: Convert or Execute?',
         actionType: ScriptActionType.binaryChoice,
@@ -296,7 +299,8 @@ class ScriptBuilder {
       ScriptStep(
         id: 'day_start_$dayCount',
         title: 'DAY $dayCount',
-        readAloudText: 'The Club is open. Discuss amongst yourselves.',
+        readAloudText:
+            'The club is open for business. Talk, argue, accuse — the clock is ticking.',
         instructionText: 'Start the timer.',
         actionType: ScriptActionType.showTimer,
         timerSeconds: timerSeconds,
@@ -304,7 +308,8 @@ class ScriptBuilder {
       ScriptStep(
         id: 'day_vote_$dayCount',
         title: 'VOTING',
-        readAloudText: 'Who do you want to exile from the club?',
+        readAloudText:
+            'Time\'s up. Cast your votes — who is getting thrown out of Club Blackout?',
         instructionText: 'Monitor voting via Dashboard.',
         actionType: ScriptActionType.selectPlayer,
       ),

@@ -13,17 +13,12 @@ class RoleDetailScreen extends StatelessWidget {
     final accent = CBColors.fromHex(role.colorHex);
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(role.name),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [SimulationModeBadgeAction()],
-      ),
-      body: CBNeonBackground(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
-          children: [
+    return CBPrismScaffold(
+      title: role.name,
+      actions: const [SimulationModeBadgeAction()],
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+        children: [
             CBPanel(
               borderColor: accent.withValues(alpha: 0.4),
               child: Column(
@@ -133,8 +128,7 @@ class RoleDetailScreen extends StatelessWidget {
                 ),
               ),
             ],
-          ],
-        ),
+        ],
       ),
     );
   }

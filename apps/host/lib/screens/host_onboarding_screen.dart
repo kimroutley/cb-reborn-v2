@@ -23,13 +23,22 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return CBPrismScaffold(
-      title: 'Onboarding',
+      title: 'Host Onboarding',
       showAppBar: false,
       body: PageView(
         controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(), // Prevent manual swiping
         children: [
           _buildIntroPage(context),
-          const HostAuthScreen(),
+          HostAuthScreen(
+            isEmbedded: true,
+            onSignedIn: () {
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            },
+          ),
           _buildAboutPage(context),
         ],
       ),
@@ -41,80 +50,76 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return CBNeonBackground(
-      showOverlay: true,
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              Icon(
-                Icons.admin_panel_settings_rounded,
-                size: 80,
-                color: scheme.primary,
-                shadows: CBColors.iconGlow(scheme.primary),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                'COMMAND THE NIGHT',
-                textAlign: TextAlign.center,
-                style: textTheme.displayMedium!.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2.0,
-                  shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'CLUB BLACKOUT REBORN',
-                style: textTheme.labelLarge!.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.7),
-                  letterSpacing: 4.0,
-                ),
-              ),
-              const SizedBox(height: 48),
-              CBPanel(
-                borderColor: scheme.primary.withValues(alpha: 0.5),
-                child: Column(
-                  children: [
-                    Text(
-                      'YOU ARE THE HOST. THE DIRECTOR. THE GOD OF THIS CLUB.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyLarge!.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Manage roles, trigger narrative events, and control the chaos from your dashboard. Keep the party alive... or watch it burn.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium!.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              CBPrimaryButton(
-                label: 'CONTINUE',
-                icon: Icons.arrow_forward_rounded,
-                onPressed: () {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-            ],
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Spacer(),
+          Hero(
+            tag: 'host_auth_icon',
+            child: CBRoleAvatar(
+              color: scheme.primary,
+              size: 100,
+              pulsing: true,
+              icon: Icons.admin_panel_settings_rounded,
+            ),
           ),
-        ),
+          const SizedBox(height: 32),
+          Text(
+            'COMMAND\nTHE NIGHT',
+            textAlign: TextAlign.center,
+            style: textTheme.displayMedium!.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w900,
+              height: 0.9,
+              letterSpacing: 4.0,
+              shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+            ),
+          ),
+          const SizedBox(height: 16),
+          CBBadge(
+            text: 'HOST PROTOCOL',
+            color: scheme.primary,
+          ),
+          const SizedBox(height: 48),
+          CBPanel(
+            borderColor: scheme.primary.withValues(alpha: 0.3),
+            child: Column(
+              children: [
+                Text(
+                  'YOU ARE THE HOST. THE DIRECTOR. THE GOD OF THIS CLUB.',
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyLarge!.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Manage roles, trigger narrative events, and control the chaos from your dashboard. Keep the party alive... or watch it burn.',
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          CBPrimaryButton(
+            label: 'INITIALIZE SYSTEM',
+            backgroundColor: scheme.primary,
+            onPressed: () {
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            },
+          ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }
@@ -122,45 +127,88 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
   Widget _buildAboutPage(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    return CBPrismScaffold(
-      title: 'About',
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
         child: Column(
           children: [
-            Text('ABOUT', style: textTheme.headlineMedium),
-            const SizedBox(height: 24),
+            Text(
+              'LEGAL & DATA PROTOCOLS',
+              style: textTheme.labelMedium?.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+                shadows: CBColors.textGlow(scheme.primary),
+              ),
+            ),
+            const SizedBox(height: 32),
             CBPanel(
-              margin: const EdgeInsets.only(bottom: 16),
-              borderColor: scheme.primary.withValues(alpha: 0.5),
+              margin: const EdgeInsets.only(bottom: 24),
+              borderColor: scheme.primary.withValues(alpha: 0.4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'DATA COLLECTION',
-                    style: textTheme.labelLarge!.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.0,
-                      shadows: CBColors.textGlow(scheme.primary, intensity: 0.4),
-                    ),
+                  Row(
+                    children: [
+                      Icon(Icons.shield_rounded, color: scheme.primary, size: 20),
+                      const SizedBox(width: 12),
+                      Text(
+                        'DATA COLLECTION',
+                        style: textTheme.titleSmall!.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Text(
                     'Club Blackout Reborn collects minimal data necessary for gameplay. '
                     'In local mode, all data is stored on your device. In cloud mode, '
                     'game state is synchronized via Firebase Firestore.',
                     style: textTheme.bodyMedium!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.85),
-                      height: 1.4,
+                      color: scheme.onSurface.withValues(alpha: 0.8),
+                      height: 1.5,
                     ),
                   ),
                 ],
               ),
             ),
-             const SizedBox(height: 48),
+            CBPanel(
+              margin: const EdgeInsets.only(bottom: 32),
+              borderColor: scheme.secondary.withValues(alpha: 0.4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.terminal_rounded,
+                          color: scheme.secondary, size: 20),
+                      const SizedBox(width: 12),
+                      Text(
+                        'SYSTEM STABILITY',
+                        style: textTheme.titleSmall!.copyWith(
+                          color: scheme.secondary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'This software is provided as-is. We are not responsible for '
+                    'broken friendships or emotional distress caused by betrayal.',
+                    style: textTheme.bodyMedium!.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.8),
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
             CBGhostButton(
-              label: 'BACK TO LOGIN',
+              label: 'BACK TO SYSTEM ACCESS',
               icon: Icons.arrow_back_rounded,
               onPressed: () {
                 _pageController.previousPage(

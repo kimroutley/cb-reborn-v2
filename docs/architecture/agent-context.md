@@ -23,7 +23,7 @@ This document provides the deep technical context required to work on the Club B
 The project is a **Flutter Monorepo** structured as follows:
 
 *   **`apps/`**: End-user applications.
-		*   `host/`: The "Command Center" (Flutter Windows/Tablet).
+		*   `host/`: The "Command Center" (Flutter Phone/Android — benchmarked on Google Pixel 10 Pro).
 		*   `player/`: The "Companion App" (Flutter Mobile/Web).
 *   **`packages/`**: Shared local packages. **Strict dependency order matters.**
 		*   `cb_models`: Core data models (Freezed), Enums, Role definitions. (Base)

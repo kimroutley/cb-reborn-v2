@@ -66,6 +66,9 @@ class PlayerGameState {
   // New: Host info
   final String? hostName;
 
+  // Rematch: host offered a replay with same players
+  final bool rematchOffered;
+
   const PlayerGameState({
     this.phase = 'lobby',
     this.dayCount = 0,
@@ -95,6 +98,7 @@ class PlayerGameState {
     this.activeEffect,
     this.activeEffectPayload,
     this.hostName,
+    this.rematchOffered = false,
   });
 
   bool get isLobby => phase == 'lobby';
@@ -134,6 +138,7 @@ class PlayerGameState {
       'hostName': hostName,
       'activeEffect': activeEffect,
       'activeEffectPayload': activeEffectPayload,
+      'rematchOffered': rematchOffered,
     };
   }
 
@@ -191,6 +196,7 @@ class PlayerGameState {
       hostName: map['hostName'] as String?,
       activeEffect: map['activeEffect'] as String?,
       activeEffectPayload: map['activeEffectPayload'] as Map<String, dynamic>?,
+      rematchOffered: map['rematchOffered'] as bool? ?? false,
     );
   }
 
@@ -218,6 +224,7 @@ class PlayerGameState {
       'creepTargetId': player.creepTargetId,
       'whoreDeflectionUsed': player.whoreDeflectionUsed,
       'tabooNames': player.tabooNames,
+      'blockedVoteTargets': player.blockedVoteTargets,
     };
   }
 
@@ -290,6 +297,7 @@ class PlayerGameState {
     dynamic myPlayerSnapshot = _undefined,
     dynamic activeEffect = _undefined,
     dynamic activeEffectPayload = _undefined,
+    bool? rematchOffered,
   }) {
     return PlayerGameState(
       phase: phase ?? this.phase,
@@ -334,6 +342,7 @@ class PlayerGameState {
           ? this.activeEffectPayload
           : activeEffectPayload as Map<String, dynamic>?,
       hostName: hostName ?? this.hostName,
+      rematchOffered: rematchOffered ?? this.rematchOffered,
     );
   }
 }
@@ -595,6 +604,19 @@ class PlayerBridge extends Notifier<PlayerGameState>
   }
 
   @override
+  Future<void> sendBulletin({
+    required String title,
+    required String floatContent,
+    String? roleId,
+  }) async {
+    _client?.send(GameMessage.bulletin(
+      title: title,
+      content: floatContent,
+      roleId: roleId,
+    ));
+  }
+
+  @override
   Future<void> leave() async {
     final playerId = state.myPlayerId;
     if (playerId != null) {
@@ -844,6 +866,25 @@ class PlayerBridge extends Notifier<PlayerGameState>
       return;
     }
 
+    // Strongest signal: match by Firebase authUid.
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null && uid.isNotEmpty) {
+        final uidMatch = nextState.players.cast<PlayerSnapshot?>().firstWhere(
+              (p) => p?.authUid == uid,
+              orElse: () => null,
+            );
+        if (uidMatch != null) {
+          _pendingClaimName = null;
+          claimPlayer(uidMatch.id);
+          return;
+        }
+      }
+    } catch (_) {
+      // Firebase not available; fall through to name matching.
+    }
+
+    // Fallback: match by join name.
     final pendingName = _pendingClaimName?.trim();
     if (pendingName == null || pendingName.isEmpty) {
       return;

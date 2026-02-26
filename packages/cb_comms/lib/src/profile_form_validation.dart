@@ -1,3 +1,47 @@
+enum UsernameValidationState {
+  valid,
+  tooShort,
+  tooLong,
+  invalidCharacters,
+}
+
+extension UsernameValidationStateExtension on UsernameValidationState {
+  String? get errorMessage {
+    switch (this) {
+      case UsernameValidationState.valid:
+        return null;
+      case UsernameValidationState.tooShort:
+        return 'Username too short.';
+      case UsernameValidationState.tooLong:
+        return 'Username too long.';
+      case UsernameValidationState.invalidCharacters:
+        return 'Use letters, numbers, spaces, underscores, or hyphens only.';
+    }
+  }
+}
+
+enum PublicIdValidationState {
+  valid,
+  tooShort,
+  tooLong,
+  invalidCharacters,
+}
+
+extension PublicIdValidationStateExtension on PublicIdValidationState {
+  String? get errorMessage {
+    switch (this) {
+      case PublicIdValidationState.valid:
+        return null;
+      case PublicIdValidationState.tooShort:
+        return 'Public ID too short.';
+      case PublicIdValidationState.tooLong:
+        return 'Public ID too long.';
+      case PublicIdValidationState.invalidCharacters:
+        return 'Use lowercase letters, numbers, underscores, or hyphens only.';
+    }
+  }
+}
+
 class ProfileFormValidation {
   static const int usernameMinLength = 3;
   static const int usernameMaxLength = 24;
@@ -10,31 +54,34 @@ class ProfileFormValidation {
     return input.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9_-]'), '');
   }
 
-  static String? validateUsername(String input) {
+  static UsernameValidationState validateUsername(String input) {
     final trimmed = input.trim();
     if (trimmed.length < usernameMinLength) {
-      return 'Username must be at least $usernameMinLength characters.';
+      return UsernameValidationState.tooShort;
     }
     if (trimmed.length > usernameMaxLength) {
-      return 'Username must be at most $usernameMaxLength characters.';
+      return UsernameValidationState.tooLong;
     }
     if (!_usernamePattern.hasMatch(trimmed)) {
-      return 'Use letters, numbers, spaces, underscores, or hyphens only.';
+      return UsernameValidationState.invalidCharacters;
     }
-    return null;
+    return UsernameValidationState.valid;
   }
 
-  static String? validatePublicPlayerId(String input) {
+  static PublicIdValidationState validatePublicPlayerId(
+    String input, {
+    String? initialValue,
+  }) {
     final sanitized = sanitizePublicPlayerId(input);
     if (sanitized.isEmpty) {
-      return null;
+      return PublicIdValidationState.valid;
     }
     if (sanitized.length < publicIdMinLength) {
-      return 'Public player ID must be at least $publicIdMinLength characters.';
+      return PublicIdValidationState.tooShort;
     }
     if (sanitized.length > publicIdMaxLength) {
-      return 'Public player ID must be at most $publicIdMaxLength characters.';
+      return PublicIdValidationState.tooLong;
     }
-    return null;
+    return PublicIdValidationState.valid;
   }
 }

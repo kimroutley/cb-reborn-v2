@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 /// Unified role avatar with glowing border for the chat feed.
 class CBRoleAvatar extends StatefulWidget {
   final String? assetPath;
+  final IconData? icon;
   final Color? color;
   final double size;
   final bool pulsing;
@@ -11,6 +12,7 @@ class CBRoleAvatar extends StatefulWidget {
   const CBRoleAvatar({
     super.key,
     this.assetPath,
+    this.icon,
     this.color,
     this.size = 36,
     this.pulsing = false,
@@ -95,7 +97,7 @@ class _CBRoleAvatarState extends State<CBRoleAvatar>
               ),
             ],
           ),
-          child: ClipOval(
+          child: Center(
             child: widget.assetPath != null
                 ? Image.asset(
                     widget.assetPath!,
@@ -103,13 +105,13 @@ class _CBRoleAvatarState extends State<CBRoleAvatar>
                     height: widget.size * 0.6,
                     fit: BoxFit.contain,
                     errorBuilder: (_, __, ___) => Icon(
-                      Icons.person,
+                      widget.icon ?? Icons.person,
                       color: effectiveColor,
                       size: widget.size * 0.5,
                     ),
                   )
                 : Icon(
-                    Icons.smart_toy,
+                    widget.icon ?? Icons.smart_toy,
                     color: effectiveColor,
                     size: widget.size * 0.5,
                   ),

@@ -35,12 +35,17 @@ class _GameActionTileState extends State<GameActionTile> {
     if (widget.step.isVote ||
         widget.step.actionType == ScriptActionType.selectPlayer.name ||
         isMultiSelect) {
+      final disabledIds = widget.step.isVote
+          ? widget.player.blockedVoteTargets
+          : const <String>[];
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PlayerSelectionScreen(
             players: widget.gameState.players.where((p) => p.isAlive).toList(),
             step: widget.step,
+            disabledPlayerIds: disabledIds,
             onPlayerSelected: (targetId) {
               if (widget.step.isVote) {
                 widget.bridge
@@ -51,6 +56,7 @@ class _GameActionTileState extends State<GameActionTile> {
               }
 
               if (!isMultiSelect || targetId.contains(',')) {
+                HapticService.eyesClosed();
                 Navigator.pop(context);
               }
             },
@@ -86,11 +92,12 @@ class _GameActionTileState extends State<GameActionTile> {
                       label: option.toUpperCase(),
                       backgroundColor: widget.roleColor.withValues(alpha: 0.2),
                       foregroundColor: widget.roleColor,
-                      onPressed: () {
-                        widget.bridge.sendAction(
-                            stepId: widget.step.id, targetId: option);
-                        Navigator.pop(context);
-                      },
+                    onPressed: () {
+                      widget.bridge.sendAction(
+                          stepId: widget.step.id, targetId: option);
+                      HapticService.eyesClosed();
+                      Navigator.pop(context);
+                    },
                     ),
                   ),
                 ),

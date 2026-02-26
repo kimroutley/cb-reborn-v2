@@ -40,7 +40,7 @@ cb_reborn/
 │   └── cb_comms/      # Firebase & WebSocket communication layer
 └── apps/              # Applications
     ├── player/        # Player mobile/web app (Flutter)
-    └── host/          # Host dashboard app (Flutter Desktop/Tablet)
+    └── host/          # Host dashboard app (Flutter Phone/Android)
 ```
 
 ### Tech Stack
@@ -151,7 +151,7 @@ If these package/bundle IDs differ in your Firebase projects, update the auth ga
    flutter run --dart-define=GEMINI_API_KEY=$env:GEMINI_API_KEY
    ```
 
-   **Host App (Desktop/Tablet):**
+   **Host App (Phone/Android):**
 
    ```bash
    cd apps/host

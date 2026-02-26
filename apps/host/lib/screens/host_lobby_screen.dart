@@ -12,11 +12,10 @@ import '../auth/auth_provider.dart';
 import '../cloud_host_bridge.dart';
 import '../host_destinations.dart';
 import '../host_navigation.dart';
-import '../widgets/bottom_controls.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/lobby/lobby_player_list.dart';
 import '../widgets/simulation_mode_badge_action.dart';
-import '../sheets/manual_role_assignment_sheet.dart';
+import '../sheets/game_settings_sheet.dart';
 
 class HostLobbyScreen extends ConsumerStatefulWidget {
   const HostLobbyScreen({super.key});
@@ -25,46 +24,44 @@ class HostLobbyScreen extends ConsumerStatefulWidget {
   ConsumerState<HostLobbyScreen> createState() => _HostLobbyScreenState();
 }
 
-class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
+class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
   static const String _playerJoinHost = 'cb-reborn.web.app';
 
   Future<void> _bootstrapCloudRuntime() async {
     if (!mounted) return;
-
     final controller = ref.read(gameProvider.notifier);
     final syncMode = ref.read(gameProvider).syncMode;
     final authState = ref.read(authProvider);
     final bridge = ref.read(cloudHostBridgeProvider);
 
     if (authState.user == null) {
-      showThemedSnackBar(
-        context,
-        'SIGN IN FIRST TO ESTABLISH CLOUD LINK.',
-        accentColor: Theme.of(context).colorScheme.error,
-      );
+      _showSnack('Sign in required to go online.', isError: true);
       return;
     }
-
-    if (syncMode != SyncMode.cloud) {
-      controller.setSyncMode(SyncMode.cloud);
-    }
+    if (syncMode != SyncMode.cloud) controller.setSyncMode(SyncMode.cloud);
 
     try {
       await bridge.start();
       if (!mounted) return;
-      showThemedSnackBar(
-        context,
-        'CLOUD LINK VERIFIED END-TO-END.',
-        accentColor: Theme.of(context).colorScheme.tertiary,
-      );
+      _showSnack('Cloud link active.');
     } catch (e) {
       debugPrint('[HostLobbyScreen] Cloud bridge start failed: $e');
       if (!mounted) return;
-      showThemedSnackBar(
-        context,
-        'CLOUD LINK FAILED. RETRY REQUIRED.',
-        accentColor: Theme.of(context).colorScheme.error,
-      );
+      _showSnack('Cloud link failed. Retry.', isError: true);
     }
   }
 
@@ -72,23 +69,14 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     final bridge = ref.read(cloudHostBridgeProvider);
     await bridge.stop();
     if (!mounted) return;
-    showThemedSnackBar(
-      context,
-      'CLOUD LINK OFFLINE.',
-      accentColor: Theme.of(context).colorScheme.secondary,
-    );
+    _showSnack('Cloud link offline.');
   }
 
   String _buildPlayerJoinUrl(String joinCode) {
-    return Uri.https(
-      _playerJoinHost,
-      '/join',
-      {
-        'mode': 'cloud',
-        'code': joinCode,
-        'autoconnect': '1',
-      },
-    ).toString();
+    return Uri.https(_playerJoinHost, '/join', {
+      'mode': 'cloud',
+      'code': joinCode,
+    }).toString();
   }
 
   Future<void> _copyToClipboard(
@@ -99,106 +87,16 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     await Clipboard.setData(ClipboardData(text: value));
     if (!context.mounted) return;
     HapticService.selection();
+    _showSnack(successMessage);
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
     showThemedSnackBar(
       context,
-      successMessage,
-      accentColor: Theme.of(context).colorScheme.tertiary,
-    );
-  }
-
-  void _showExpandedJoinQrSheet(
-    BuildContext context, {
-    required String joinUrl,
-    required String joinCode,
-  }) {
-    showThemedDialog<void>(
-      context: context,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'JOIN SESSION BEACON',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'CODE: $joinCode',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontFamily: 'RobotoMono',
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-          const SizedBox(height: 16),
-          Center(
-            child: CBGlassTile(
-              borderColor:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.45),
-              padding: const EdgeInsets.all(16),
-              child: QrImageView(
-                data: joinUrl,
-                size: 260,
-                version: QrVersions.auto,
-                backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                eyeStyle: QrEyeStyle(
-                  eyeShape: QrEyeShape.square,
-                  color: Theme.of(context).colorScheme.surface,
-                ),
-                dataModuleStyle: QrDataModuleStyle(
-                  dataModuleShape: QrDataModuleShape.square,
-                  color: Theme.of(context).colorScheme.surface,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              CBGhostButton(
-                label: 'Copy Code',
-                icon: Icons.pin_rounded,
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _copyToClipboard(
-                    context,
-                    value: joinCode,
-                    successMessage: 'Join code copied.',
-                  );
-                },
-                fullWidth: false,
-              ),
-              CBPrimaryButton(
-                label: 'Copy Link',
-                icon: Icons.link_rounded,
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _copyToClipboard(
-                    context,
-                    value: joinUrl,
-                    successMessage: 'Join link copied.',
-                  );
-                },
-                fullWidth: false,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showManualRoleAssignmentSheet(BuildContext context) {
-    showThemedBottomSheet<void>(
-      context: context,
-      accentColor: Theme.of(context).colorScheme.secondary,
-      child: const ManualRoleAssignmentSheet(),
+      message,
+      accentColor: isError
+          ? Theme.of(context).colorScheme.error
+          : Theme.of(context).colorScheme.tertiary,
     );
   }
 
@@ -210,482 +108,750 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
     final nav = ref.read(hostNavigationProvider.notifier);
     final linkState = ref.watch(cloudLinkStateProvider);
     final scheme = Theme.of(context).colorScheme;
+
     final joinUrl = _buildPlayerJoinUrl(session.joinCode);
-    final isCloudVerified = linkState.isVerified;
-    final isCloudBusy = linkState.phase == CloudLinkPhase.initializing ||
+    final isOnline = linkState.isVerified;
+    final hasError = linkState.phase == CloudLinkPhase.degraded;
+    final isConnecting = linkState.phase == CloudLinkPhase.initializing ||
         linkState.phase == CloudLinkPhase.publishing ||
         linkState.phase == CloudLinkPhase.verifying;
-    final hasCloudError = linkState.phase == CloudLinkPhase.degraded;
-    final requiresAuth = linkState.phase == CloudLinkPhase.requiresAuth;
-    final cloudStatusKey = linkState.phase.name;
-
-    final hasMinPlayers = gameState.players.length >= Game.minPlayers;
-    final isManual = gameState.gameStyle == GameStyle.manual;
-    final allRolesAssigned = gameState.players.every(
-      (p) => p.role.id != 'unassigned' && p.alliance != Team.unknown,
-    );
+    final playerCount = gameState.players.length;
+    final canStart = playerCount >= Game.minPlayers;
 
     return CBPrismScaffold(
-      title: 'LOBBY',
+      title: 'THE LOBBY',
       drawer: const CustomDrawer(currentDestination: HostDestination.lobby),
       actions: const [SimulationModeBadgeAction()],
-      body: ListView(
-        padding: const EdgeInsets.all(24),
-        children: [
-          // ── SYSTEM STATUS ──
-          CBMessageBubble(
-            sender: 'SYSTEM',
-            message: "ESTABLISHING CLUB CONNECTION... BROADCASTING ON CODE: ${session.joinCode}",
-            style: CBMessageStyle.system,
-            color: scheme.primary,
-          ),
+      appBarBottom: TabBar(
+        controller: _tabController,
+        indicatorColor: scheme.primary,
+        labelColor: scheme.primary,
+        unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.5),
+        labelStyle: const TextStyle(
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.5,
+          fontSize: 11,
+        ),
+        tabs: const [
+          Tab(text: 'ROSTER', icon: Icon(Icons.groups_rounded, size: 18)),
+          Tab(text: 'CONNECT', icon: Icon(Icons.qr_code_rounded, size: 18)),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        child: Column(
+          children: [
+            // ─── NETWORK STATUS BAR (persistent) ───
+            _NetworkBar(
+              isOnline: isOnline,
+              isConnecting: isConnecting,
+              hasError: hasError,
+              onToggle: (val) {
+                if (val) {
+                  _bootstrapCloudRuntime();
+                } else {
+                  _terminateCloudRuntime();
+                }
+              },
+            ),
 
-          const SizedBox(height: 24),
-
-          CBPanel(
-            borderColor: scheme.primary.withValues(alpha: 0.35),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CBSectionHeader(
-                  title: 'JOIN BEACON',
-                  icon: Icons.qr_code_2_rounded,
-                  color: scheme.primary,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'SCAN TO OPEN PLAYER JOIN SESSION',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.72),
-                        letterSpacing: 1.1,
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 16),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 260),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  child: CBGlassTile(
-                    key: ValueKey(cloudStatusKey),
-                  borderColor: isCloudVerified
-                        ? scheme.tertiary.withValues(alpha: 0.45)
-                    : (hasCloudError
-                      ? scheme.error.withValues(alpha: 0.45)
-                      : (requiresAuth
-                        ? scheme.secondary.withValues(alpha: 0.45)
-                        : scheme.primary.withValues(alpha: 0.35))),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    child: Row(
-                      children: [
-                        Icon(
-                      isCloudVerified
-                              ? Icons.cloud_done_rounded
-                        : (hasCloudError
-                          ? Icons.cloud_off_rounded
-                          : (requiresAuth
-                            ? Icons.lock_outline_rounded
-                            : Icons.cloud_sync_rounded)),
-                          size: 16,
-                      color: isCloudVerified
-                              ? scheme.tertiary
-                        : (hasCloudError
-                          ? scheme.error
-                          : (requiresAuth
-                            ? scheme.secondary
-                            : scheme.primary)),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                      isCloudVerified
-                        ? 'CLOUD LINK: VERIFIED'
-                        : (hasCloudError
-                          ? 'CLOUD LINK: DEGRADED'
-                          : (requiresAuth
-                            ? 'CLOUD LINK: SIGN-IN REQUIRED'
-                            : (isCloudBusy
-                              ? 'CLOUD LINK: ESTABLISHING...'
-                              : 'CLOUD LINK: OFFLINE'))),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                          color: isCloudVerified
-                                      ? scheme.tertiary
-                            : (hasCloudError
-                              ? scheme.error
-                              : (requiresAuth
-                                ? scheme.secondary
-                                : scheme.primary)),
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.0,
-                                ),
-                          ),
-                        ),
-                    if (hasCloudError)
-                          IconButton(
-                            tooltip: 'Retry cloud link',
-                            visualDensity: VisualDensity.compact,
-                            icon: Icon(
-                              Icons.refresh_rounded,
-                              color: scheme.error,
-                              size: 16,
-                            ),
-                            onPressed: _bootstrapCloudRuntime,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                if ((linkState.message ?? '').trim().isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    linkState.message!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.72),
-                        ),
-                  ),
-                ],
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CBPrimaryButton(
-                        label:
-                            isCloudVerified ? 'RE-VERIFY LINK' : 'ESTABLISH LINK',
-                        icon: Icons.cloud_sync_rounded,
-                        onPressed: isCloudBusy ? null : _bootstrapCloudRuntime,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: CBGhostButton(
-                        label: 'GO OFFLINE',
-                        icon: Icons.cloud_off_rounded,
-                        color: scheme.secondary,
-                        onPressed: isCloudBusy ? null : _terminateCloudRuntime,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 220),
-                  opacity: isCloudVerified ? 1 : 0.82,
-                  child: CBGlassTile(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    borderColor: scheme.primary.withValues(alpha: 0.35),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.pin_rounded,
-                          size: 16,
-                          color: scheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'JOIN CODE: ${session.joinCode}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: scheme.primary,
-                                  fontFamily: 'RobotoMono',
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.0,
-                                ),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Copy code',
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () {
-                            _copyToClipboard(
-                              context,
-                              value: session.joinCode,
-                              successMessage: 'Join code copied.',
-                            );
-                          },
-                          icon: Icon(
-                            Icons.copy_rounded,
-                            size: 16,
-                            color: scheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Center(
-                  child: AnimatedScale(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    scale: isCloudVerified ? 1 : 0.97,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () {
-                        _showExpandedJoinQrSheet(
-                          context,
-                          joinUrl: joinUrl,
-                          joinCode: session.joinCode,
-                        );
-                      },
-                      child: CBGlassTile(
-                        borderColor: scheme.primary.withValues(alpha: 0.4),
-                        padding: const EdgeInsets.all(14),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+            // ─── TABBED CONTENT ───
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // ── Tab 1: ROSTER ──
+                  Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                        child: Row(
                           children: [
-                            QrImageView(
-                              data: joinUrl,
-                              size: 180,
-                              version: QrVersions.auto,
-                              backgroundColor: scheme.onPrimary,
-                              eyeStyle: QrEyeStyle(
-                                eyeShape: QrEyeShape.square,
-                                color: scheme.surface,
-                              ),
-                              dataModuleStyle: QrDataModuleStyle(
-                                dataModuleShape: QrDataModuleShape.square,
-                                color: scheme.surface,
+                            Expanded(
+                              child: _GlassIconButton(
+                                icon: Icons.tune_rounded,
+                                tooltip: 'Timer & tie-break settings',
+                                color: scheme.primary,
+                                onTap: () => showThemedBottomSheet(
+                                  context: context,
+                                  child: const GameSettingsSheet(),
+                                ),
+                                expanded: true,
+                                label: 'CONFIG',
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              isCloudVerified
-                                  ? 'TAP TO EXPAND'
-                                : 'LINK NOT VERIFIED YET',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
-                                  ?.copyWith(
-                                    color: scheme.primary.withValues(alpha: 0.8),
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 1.0,
-                                  ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _GlassIconButton(
+                                icon: Icons.smart_toy_rounded,
+                                tooltip: 'Add bot player',
+                                color: scheme.tertiary,
+                                onTap: () {
+                                  HapticService.light();
+                                  controller.addBot();
+                                },
+                                expanded: true,
+                                label: 'ADD BOT',
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                CBGlassTile(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  borderColor: scheme.primary.withValues(alpha: 0.2),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SelectableText(
-                          joinUrl,
-                          maxLines: 2,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: scheme.primary,
-                                fontFamily: 'RobotoMono',
-                              ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        tooltip: 'Copy join link',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () {
-                          _copyToClipboard(
-                            context,
-                            value: joinUrl,
-                            successMessage: 'Join link copied.',
-                          );
-                        },
-                        icon: Icon(
-                          Icons.link_rounded,
-                          size: 18,
-                          color: scheme.primary,
+                      const Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: LobbyPlayerList(),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          const SizedBox(height: 28),
-
-          // ── CONFIGURATION PANEL ──
-          CBPanel(
-            borderColor: scheme.primary.withValues(alpha: 0.4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CBSectionHeader(
-                  title: 'NETWORK PROTOCOLS',
-                  icon: Icons.settings_input_component_rounded,
-                  color: scheme.primary,
-                ),
-                const SizedBox(height: 16),
-                _buildConfigOption(
-                  context,
-                  label: 'SYNC MODE',
-                  currentValue: SyncMode.cloud.name.toUpperCase(),
-                  nextValue: 'LOCKED',
-                  color: scheme.primary,
-                  onTap: () {}
-                ),
-                const SizedBox(height: 12),
-                _buildConfigOption(
-                  context,
-                  label: 'GAME STYLE',
-                  currentValue: gameState.gameStyle.label.toUpperCase(),
-                  nextValue: GameStyle.values[(gameState.gameStyle.index + 1) % GameStyle.values.length].label.toUpperCase(),
-                  color: scheme.secondary,
-                  onTap: () {
-                    const styles = GameStyle.values;
-                    final next = styles[(gameState.gameStyle.index + 1) % styles.length];
-                    controller.setGameStyle(next);
-                  }
-                ),
-                if (isManual) ...[
-                  const SizedBox(height: 16),
-                  CBPrimaryButton(
-                    label: 'ASSIGN ROLES MANUALLY',
-                    icon: Icons.badge_rounded,
-                    backgroundColor: scheme.secondary.withValues(alpha: 0.2),
-                    foregroundColor: scheme.secondary,
-                    onPressed: () => _showManualRoleAssignmentSheet(context),
+                  // ── Tab 2: CONNECT ──
+                  ListView(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    children: [
+                      _JoinCard(
+                        joinCode: session.joinCode,
+                        joinUrl: joinUrl,
+                        isOnline: isOnline,
+                        onCopyCode: () => _copyToClipboard(
+                          context,
+                          value: session.joinCode,
+                          successMessage: 'Code copied.',
+                        ),
+                        onCopyLink: () => _copyToClipboard(
+                          context,
+                          value: joinUrl,
+                          successMessage: 'Link copied.',
+                        ),
+                        onExpandQr: () => _showQrDialog(
+                          context,
+                          joinUrl: joinUrl,
+                          joinCode: session.joinCode,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _ConnectionHints(
+                        joinCode: session.joinCode,
+                        isOnline: isOnline,
+                        scheme: scheme,
+                      ),
+                    ],
                   ),
                 ],
-              ],
+              ),
             ),
-          ),
 
-          const SizedBox(height: 28),
-
-          // ── PLAYER LIST ──
-          const LobbyPlayerList(),
-
-          const SizedBox(height: 24),
-
-          BottomControls(
-            isLobby: true,
-            isEndGame: false,
-            playerCount: gameState.players.length,
-            onAction: () {
-              if (!hasMinPlayers) {
-                showThemedSnackBar(
-                  context,
-                  'Need at least ${Game.minPlayers} players to open the club.',
-                  accentColor: scheme.error,
-                );
-                return;
-              }
-              if (isManual && !allRolesAssigned) {
-                showThemedSnackBar(
-                  context,
-                  'Manual start requires every player to have role + alliance. Complete assignment first.',
-                  accentColor: scheme.secondary,
-                );
-                return;
-              }
-
-              final success = controller.startGame();
-              if (success) {
-                nav.setDestination(HostDestination.game);
-              } else {
-                if (gameState.phase != GamePhase.lobby) {
-                  showThemedSnackBar(
-                    context,
-                    'SESSION ALREADY ACTIVE. OPENING COMMAND SCREEN.',
-                    accentColor: scheme.tertiary,
-                  );
-                  nav.setDestination(HostDestination.game);
-                  return;
-                }
-
-                showThemedSnackBar(
-                  context,
-                  'Unable to start session. Check roster and setup.',
-                  accentColor: scheme.error,
-                );
-              }
-            },
-            onAddMock: controller.addBot,
-            eyesOpen: gameState.eyesOpen,
-            onToggleEyes: controller.toggleEyes,
-            onBack: () => nav.setDestination(HostDestination.home),
-            requiredPlayers: Game.minPlayers,
-          ),
-
-          const SizedBox(height: 28),
-        ],
+            // ─── LAUNCH BAR (persistent) ───
+            _LaunchBar(
+              canStart: canStart,
+              playerCount: playerCount,
+              minPlayers: Game.minPlayers,
+              onContinue: () {
+                HapticFeedback.heavyImpact();
+                nav.setDestination(HostDestination.gameSetup);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildConfigOption(
+  void _showQrDialog(
     BuildContext context, {
-    required String label,
-    required String currentValue,
-    required String nextValue,
-    required Color color,
-    required VoidCallback onTap,
+    required String joinUrl,
+    required String joinCode,
   }) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return CBGlassTile(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      borderColor: color.withValues(alpha: 0.3),
-      onTap: onTap,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    showThemedDialog<void>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label.toUpperCase(),
-                style: textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.6),
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                currentValue,
-                style: textTheme.labelLarge?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.6,
-                  fontFamily: 'RobotoMono',
-                  shadows: CBColors.textGlow(color, intensity: 0.3),
-                ),
-              ),
-            ],
+          Text(
+            'SCAN TO ENTER',
+            style: textTheme.labelLarge?.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 3.0,
+            ),
           ),
+          const SizedBox(height: 24),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: scheme.primary.withValues(alpha: 0.6),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: scheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 32,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: QrImageView(
+                data: joinUrl,
+                size: 220,
+                version: QrVersions.auto,
+                eyeStyle: QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: scheme.primary,
+                ),
+                dataModuleStyle: QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: scheme.primary,
+                ),
+                backgroundColor: Colors.black,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            joinCode,
+            textAlign: TextAlign.center,
+            style: textTheme.headlineMedium?.copyWith(
+              fontFamily: 'RobotoMono',
+              fontWeight: FontWeight.w900,
+              letterSpacing: 6.0,
+              color: scheme.primary,
+              shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
+            ),
+          ),
+          const SizedBox(height: 24),
           Row(
             children: [
-              Text(
-                'NEXT: $nextValue',
-                style: textTheme.labelSmall?.copyWith(
-                  color: color.withValues(alpha: 0.7),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
+              Expanded(
+                child: CBGhostButton(
+                  label: 'COPY CODE',
+                  icon: Icons.content_copy_rounded,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _copyToClipboard(
+                      context,
+                      value: joinCode,
+                      successMessage: 'Code copied.',
+                    );
+                  },
                 ),
               ),
-              const SizedBox(width: 8),
-              Icon(Icons.cached_rounded, size: 14, color: color.withValues(alpha: 0.5)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: CBPrimaryButton(
+                  label: 'COPY LINK',
+                  icon: Icons.link_rounded,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _copyToClipboard(
+                      context,
+                      value: joinUrl,
+                      successMessage: 'Link copied.',
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── NETWORK BAR ─────────────────────────────────────────────
+
+class _NetworkBar extends StatelessWidget {
+  final bool isOnline;
+  final bool isConnecting;
+  final bool hasError;
+  final ValueChanged<bool> onToggle;
+
+  const _NetworkBar({
+    required this.isOnline,
+    required this.isConnecting,
+    required this.hasError,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final Color accent;
+    final String label;
+    final IconData icon;
+
+    if (isOnline) {
+      accent = scheme.tertiary;
+      label = 'ONLINE';
+      icon = Icons.cloud_done_rounded;
+    } else if (isConnecting) {
+      accent = scheme.secondary;
+      label = 'CONNECTING...';
+      icon = Icons.cloud_sync_rounded;
+    } else if (hasError) {
+      accent = scheme.error;
+      label = 'OFFLINE - TAP TO RETRY';
+      icon = Icons.cloud_off_rounded;
+    } else {
+      accent = scheme.onSurfaceVariant;
+      label = 'OFFLINE';
+      icon = Icons.cloud_off_rounded;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+      child: CBGlassTile(
+        isPrismatic: isOnline,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        borderColor: accent.withValues(alpha: 0.4),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: accent),
+            const SizedBox(width: 10),
+            if (isConnecting)
+              SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  color: accent,
+                ),
+              ),
+            if (isConnecting) const SizedBox(width: 8),
+            Text(
+              label,
+              style: textTheme.labelSmall?.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+                fontFamily: 'RobotoMono',
+              ),
+            ),
+            const Spacer(),
+            SizedBox(
+              height: 28,
+              child: Switch.adaptive(
+                value: isOnline,
+                activeTrackColor: accent,
+                onChanged: isConnecting ? null : onToggle,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── JOIN CARD ───────────────────────────────────────────────
+
+class _JoinCard extends StatelessWidget {
+  final String joinCode;
+  final String joinUrl;
+  final bool isOnline;
+  final VoidCallback onCopyCode;
+  final VoidCallback onCopyLink;
+  final VoidCallback onExpandQr;
+
+  const _JoinCard({
+    required this.joinCode,
+    required this.joinUrl,
+    required this.isOnline,
+    required this.onCopyCode,
+    required this.onCopyLink,
+    required this.onExpandQr,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return CBGlassTile(
+      isPrismatic: true,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // QR Code (phone-friendly — tap to expand)
+          GestureDetector(
+            onTap: onExpandQr,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160, maxHeight: 160),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: scheme.primary.withValues(alpha: 0.4),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: scheme.primary.withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: QrImageView(
+                  data: joinUrl,
+                  version: QrVersions.auto,
+                  eyeStyle: QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: scheme.primary,
+                  ),
+                  dataModuleStyle: QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: scheme.primary,
+                  ),
+                  backgroundColor: Colors.black,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Join Code (hero text)
+          GestureDetector(
+            onTap: onCopyCode,
+            child: Text(
+              joinCode,
+              style: textTheme.headlineMedium?.copyWith(
+                fontFamily: 'RobotoMono',
+                fontWeight: FontWeight.w900,
+                letterSpacing: 6,
+                color: scheme.primary,
+                shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Action row: icon buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _GlassIconButton(
+                icon: Icons.content_copy_rounded,
+                tooltip: 'Copy code',
+                color: scheme.primary,
+                onTap: onCopyCode,
+              ),
+              const SizedBox(width: 12),
+              _GlassIconButton(
+                icon: Icons.link_rounded,
+                tooltip: 'Copy link',
+                color: scheme.primary,
+                onTap: onCopyLink,
+              ),
+              const SizedBox(width: 12),
+              _GlassIconButton(
+                icon: Icons.fullscreen_rounded,
+                tooltip: 'Expand QR',
+                color: scheme.primary,
+                onTap: onExpandQr,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── LAUNCH BAR ─────────────────────────────────────────────
+
+class _LaunchBar extends StatelessWidget {
+  final bool canStart;
+  final int playerCount;
+  final int minPlayers;
+  final VoidCallback onContinue;
+
+  const _LaunchBar({
+    required this.canStart,
+    required this.playerCount,
+    required this.minPlayers,
+    required this.onContinue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final missing = (minPlayers - playerCount).clamp(0, minPlayers);
+
+    final String badgeText;
+    final Color badgeColor;
+    final IconData badgeIcon;
+
+    if (!canStart) {
+      badgeText = 'NEED $missing MORE';
+      badgeColor = scheme.secondary;
+      badgeIcon = Icons.group_add_rounded;
+    } else {
+      badgeText = '$playerCount JOINED';
+      badgeColor = scheme.tertiary;
+      badgeIcon = Icons.check_circle_rounded;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+      child: CBGlassTile(
+        isPrismatic: canStart,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        borderColor: canStart
+            ? scheme.primary.withValues(alpha: 0.5)
+            : scheme.onSurfaceVariant.withValues(alpha: 0.3),
+        child: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: badgeColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: badgeColor.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(badgeIcon, size: 16, color: badgeColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      badgeText,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: badgeColor,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                        fontFamily: 'RobotoMono',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: CBPrimaryButton(
+                  label: 'CONTINUE TO SETUP',
+                  icon: Icons.arrow_forward_rounded,
+                  onPressed: canStart ? onContinue : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── CONNECTION HINTS (CONNECT TAB) ─────────────────────────
+
+class _ConnectionHints extends StatelessWidget {
+  final String joinCode;
+  final bool isOnline;
+  final ColorScheme scheme;
+
+  const _ConnectionHints({
+    required this.joinCode,
+    required this.isOnline,
+    required this.scheme,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'HOW TO JOIN',
+          style: textTheme.labelSmall?.copyWith(
+            color: scheme.primary,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _hintRow(
+          context,
+          Icons.qr_code_scanner_rounded,
+          'SCAN QR',
+          'Players scan the QR code above with their phone camera.',
+        ),
+        const SizedBox(height: 10),
+        _hintRow(
+          context,
+          Icons.keyboard_rounded,
+          'ENTER CODE',
+          'Open the Player app and type code $joinCode on the connect screen.',
+        ),
+        const SizedBox(height: 10),
+        _hintRow(
+          context,
+          Icons.link_rounded,
+          'SHARE LINK',
+          'Copy the join link and send it via any messaging app.',
+        ),
+        if (!isOnline) ...[
+          const SizedBox(height: 16),
+          CBGlassTile(
+            borderColor: scheme.error.withValues(alpha: 0.3),
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Icon(Icons.wifi_off_rounded,
+                    color: scheme.error, size: 18),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Toggle ONLINE above so players can connect from their devices.',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.7),
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _hintRow(
+      BuildContext ctx, IconData icon, String title, String desc) {
+    final scheme = Theme.of(ctx).colorScheme;
+    final textTheme = Theme.of(ctx).textTheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: scheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: scheme.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Icon(icon, size: 16, color: scheme.primary),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                desc,
+                style: textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.6),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── REUSABLE GLASS ICON BUTTON ─────────────────────────────
+
+class _GlassIconButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool expanded;
+  final String? label;
+
+  const _GlassIconButton({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+    required this.onTap,
+    this.expanded = false,
+    this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Material(
+      type: MaterialType.transparency,
+      child: Tooltip(
+        message: tooltip,
+        child: InkWell(
+          onTap: () {
+            HapticService.selection();
+            onTap();
+          },
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: expanded
+                ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
+                : const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: color.withValues(alpha: 0.25),
+                width: 1,
+              ),
+            ),
+            child: expanded && label != null
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 16, color: color),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          label!,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: color,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.0,
+                            fontSize: 9,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Icon(icon, size: 18, color: color),
+          ),
+        ),
       ),
     );
   }

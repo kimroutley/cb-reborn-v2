@@ -67,9 +67,9 @@ void main() {
     });
   });
 
-  group('shouldNavigateToClaim', () {
+  group('shouldNavigateAfterJoin', () {
     test('returns true when mounted and not currently navigating', () {
-      final allowed = shouldNavigateToClaim(
+      final allowed = shouldNavigateAfterJoin(
         isNavigating: false,
         mounted: true,
       );
@@ -78,7 +78,7 @@ void main() {
     });
 
     test('returns false when already navigating', () {
-      final allowed = shouldNavigateToClaim(
+      final allowed = shouldNavigateAfterJoin(
         isNavigating: true,
         mounted: true,
       );
@@ -87,7 +87,7 @@ void main() {
     });
 
     test('returns false when widget is unmounted', () {
-      final allowed = shouldNavigateToClaim(
+      final allowed = shouldNavigateAfterJoin(
         isNavigating: false,
         mounted: false,
       );

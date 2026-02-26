@@ -35,9 +35,9 @@ enum AuthStatus {
 }
 
 class AuthNotifier extends Notifier<AuthState> {
+  static bool _googleSignInInitialized = false;
   FirebaseAuth? _auth;
   FirebaseFirestore? _firestore;
-  GoogleSignIn? _googleSignIn;
   StreamSubscription? _userSub;
 
   final usernameController = TextEditingController();
@@ -93,12 +93,24 @@ class AuthNotifier extends Notifier<AuthState> {
         return;
       }
 
-      _googleSignIn ??= GoogleSignIn.instance;
-      await _googleSignIn!.initialize();
-      final GoogleSignInAccount googleUser =
-          await _googleSignIn!.authenticate();
+      if (!_googleSignInInitialized) {
+        await GoogleSignIn.instance.initialize();
+        _googleSignInInitialized = true;
+      }
+      final googleUser = await GoogleSignIn.instance.authenticate();
 
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      // ignore: unnecessary_null_comparison
+      if (googleUser == null) {
+        state = const AuthState(AuthStatus.initial);
+        return;
+      }
+
+      final googleAuth = googleUser.authentication;
+      if (googleAuth.idToken == null) {
+        state = const AuthState(AuthStatus.error,
+            error: 'Terminal protocol failed. No authorization token returned.');
+        return;
+      }
       final AuthCredential credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
       );
@@ -190,6 +202,58 @@ class AuthNotifier extends Notifier<AuthState> {
     return repository.getProfile(user.uid);
   }
 
+  Future<void> signInWithEmailPassword(String email, String password) async {
+    if (!_ensureFirebaseServices()) {
+      state = const AuthState(AuthStatus.error,
+          error: 'Authentication services are unavailable.');
+      return;
+    }
+    state = state.copyWith(status: AuthStatus.loading);
+    try {
+      await _auth!.signInWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      state = AuthState(AuthStatus.error,
+          error: e.message ?? 'Sign-in failed. Check your credentials.');
+    } catch (_) {
+      state = const AuthState(AuthStatus.error,
+          error: 'Sign-in failed. Please try again.');
+    }
+  }
+
+  Future<void> createAccountWithEmailPassword(
+      String email, String password) async {
+    if (!_ensureFirebaseServices()) {
+      state = const AuthState(AuthStatus.error,
+          error: 'Authentication services are unavailable.');
+      return;
+    }
+    state = state.copyWith(status: AuthStatus.loading);
+    try {
+      await _auth!.createUserWithEmailAndPassword(
+          email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      state = AuthState(AuthStatus.error,
+          error: e.message ?? 'Account creation failed.');
+    } catch (_) {
+      state = const AuthState(AuthStatus.error,
+          error: 'Account creation failed. Please try again.');
+    }
+  }
+
+  Future<bool> sendPasswordReset(String email) async {
+    if (!_ensureFirebaseServices()) return false;
+    try {
+      await _auth!.sendPasswordResetEmail(email: email);
+      return true;
+    } on FirebaseAuthException catch (e) {
+      state = AuthState(AuthStatus.error,
+          error: e.message ?? 'Password reset failed.');
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> signOut() async {
     await const PlayerSessionCacheRepository().clear();
 
@@ -199,8 +263,11 @@ class AuthNotifier extends Notifier<AuthState> {
     }
 
     if (!kIsWeb) {
-      _googleSignIn ??= GoogleSignIn.instance;
-      await _googleSignIn?.signOut();
+      if (!_googleSignInInitialized) {
+        await GoogleSignIn.instance.initialize();
+        _googleSignInInitialized = true;
+      }
+      await GoogleSignIn.instance.signOut();
     }
     await _auth!.signOut();
     state = const AuthState(AuthStatus.unauthenticated);
@@ -210,6 +277,7 @@ class AuthNotifier extends Notifier<AuthState> {
     if (_auth != null && _firestore != null) {
       return true;
     }
+
 
     try {
       _auth = FirebaseAuth.instance;

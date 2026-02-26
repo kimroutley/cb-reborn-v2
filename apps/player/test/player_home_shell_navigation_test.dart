@@ -39,7 +39,7 @@ class _TestLocalBridge extends PlayerBridge {
 
 class _HomeFirstNavigationNotifier extends PlayerNavigationNotifier {
   @override
-  PlayerDestination build() => PlayerDestination.home;
+  PlayerDestination build() => PlayerDestination.connect;
 }
 
 class _LobbyFirstNavigationNotifier extends PlayerNavigationNotifier {
@@ -100,7 +100,7 @@ void main() {
       tester.element(find.byType(PlayerHomeShell)),
     );
 
-    expect(container.read(playerNavigationProvider), PlayerDestination.home);
+    expect(container.read(playerNavigationProvider), PlayerDestination.connect);
 
     final cloud =
         container.read(cloudPlayerBridgeProvider.notifier) as _TestCloudBridge;

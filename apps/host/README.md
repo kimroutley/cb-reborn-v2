@@ -2,11 +2,13 @@
 
 Host/dashboard app for Club Blackout Reborn.
 
+**Target device**: Phone-first. Benchmarked on Google Pixel 10 Pro (~6.3" portrait).
+
 ## What this app does
 
 - Creates/hosts a session (local WebSocket or cloud sync)
 - Runs the game loop (lobby → setup → night/day cycles → endgame)
-- Provides tactical monitoring + God Mode tools
+- Provides tactical monitoring + God Mode tools via a tabbed Command Center (Feed ↔ Nerve Centre tabs)
 - Generates Games Night recaps and displays stats/history
 
 ## Firebase Auth Setup (Email Link)

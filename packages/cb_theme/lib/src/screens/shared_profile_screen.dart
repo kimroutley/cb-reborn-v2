@@ -772,10 +772,11 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
     final publicIdValidation =
         ProfileFormValidation.validatePublicPlayerId(rawPublicId);
 
-    if (usernameValidation != null || publicIdValidation != null) {
+    if (usernameValidation != UsernameValidationState.valid || 
+        publicIdValidation != PublicIdValidationState.valid) {
       setState(() {
-        _usernameError = usernameValidation;
-        _publicIdError = publicIdValidation;
+        _usernameError = usernameValidation.errorMessage;
+        _publicIdError = publicIdValidation.errorMessage;
       });
       _syncDirtyFlag();
       return;

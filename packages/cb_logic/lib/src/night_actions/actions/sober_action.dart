@@ -27,8 +27,9 @@ class SoberAction implements NightActionStrategy {
         context.protectedPlayerIds.add(targetId);
 
         final target = context.getPlayer(targetId);
-        context.addPrivateMessage(sober.id, 'You blocked ${target.name}.');
-        context.addReport('Sober blocked ${target.name}.');
+        context.addPrivateMessage(
+            sober.id, 'You blocked ${target.name}. Their night action has been neutralised.');
+        context.addReport('Sober chose to block ${target.name}.');
       }
     }
   }

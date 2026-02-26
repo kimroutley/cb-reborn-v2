@@ -31,6 +31,13 @@ abstract class PlayerBridgeActions {
     String? playerName,
   });
 
+  /// Send a message to the public feed.
+  Future<void> sendBulletin({
+    required String title,
+    required String floatContent,
+    String? roleId,
+  });
+
   /// Disconnect from the current session.
   Future<void> leave();
 }

@@ -28,8 +28,9 @@ class SilverFoxAction implements NightActionStrategy {
       if (targetId != null) {
         final target = context.getPlayer(targetId);
         context.updatePlayer(target.copyWith(alibiDay: context.dayCount));
-        context.addPrivateMessage(fox.id, 'Alibi provided for ${target.name}.');
-        context.addReport('Fox shielded ${target.name}.');
+        context.addPrivateMessage(
+            fox.id, 'Alibi planted for ${target.name}. They cannot be voted out tomorrow.');
+        context.addReport('Silver Fox chose to give alibi to ${target.name}.');
         context.addTeaser('${target.name} has an alibi.');
       }
     }

@@ -64,6 +64,28 @@ class FakeAuthService implements AuthService {
   Future<void> signOut() async {
     emitUser(null);
   }
+
+  @override
+  Future<void> deleteAccount() async {}
+
+  @override
+  Future<UserCredential> signInWithEmailPassword({
+    required String email,
+    required String password,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<UserCredential> createAccountWithEmailPassword({
+    required String email,
+    required String password,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> sendPasswordReset({required String email}) async {}
 }
 
 // Fake UserRepository implementation
