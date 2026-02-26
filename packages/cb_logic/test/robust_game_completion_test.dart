@@ -62,12 +62,13 @@ void _runUntilEndOrFail(
 
     final step = state.currentStep;
     if (step != null) {
-      final isInteractive = step.actionType == ScriptActionType.selectPlayer ||
-          step.actionType == ScriptActionType.selectTwoPlayers ||
-          step.actionType == ScriptActionType.binaryChoice ||
-          step.actionType == ScriptActionType.multiSelect ||
-          step.actionType == ScriptActionType.optional ||
-          step.id.startsWith('day_vote_');
+      final isInteractive =
+          step.actionType == ScriptActionType.selectPlayer ||
+              step.actionType == ScriptActionType.selectTwoPlayers ||
+              step.actionType == ScriptActionType.binaryChoice ||
+              step.actionType == ScriptActionType.multiSelect ||
+              step.actionType == ScriptActionType.optional ||
+              step.id.startsWith('day_vote_');
 
       if (isInteractive) {
         game.simulatePlayersForCurrentStep();

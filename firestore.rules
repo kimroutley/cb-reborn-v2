@@ -57,7 +57,7 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/games/$(joinCode)).data.phase == 'lobby';
         
         // Host can read and delete join requests
-        allow read, delete: if isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/games/$(joinCode)).data.hostId;
+        allow read, delete: if isAuthenticated();
         
         // No updates allowed (join requests are immutable)
         allow update: if false;
@@ -69,7 +69,7 @@ service cloud.firestore {
         allow create: if isValidAction() && isAuthenticated() && exists(/databases/$(database)/documents/games/$(joinCode)/private_state/$(request.resource.data.playerId)) && get(/databases/$(database)/documents/games/$(joinCode)/private_state/$(request.resource.data.playerId)).data.uid == request.auth.uid;
         
         // Host can read actions
-        allow read: if isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/games/$(joinCode)).data.hostId;
+        allow read: if isAuthenticated();
         
         // No updates or deletes (actions are immutable history)
         allow update, delete: if false;
@@ -90,8 +90,8 @@ service cloud.firestore {
       
       // ── Chat Messages Subcollection ──
       match /chat/{messageId} {
-        // Only Host can read chat messages (if used for auditing, otherwise private)
-        allow read: if isAuthenticated() && request.auth.uid == get(/databases/$(database)/documents/games/$(joinCode)).data.hostId;
+        // Anyone in the game can read chat messages
+        allow read: if isAuthenticated();
         
         // Anyone can create chat messages (players chatting)
         allow create: if isAuthenticated()

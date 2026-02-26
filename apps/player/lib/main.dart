@@ -13,11 +13,9 @@ import 'screens/hall_of_fame_screen.dart';
 import 'screens/intro_screen.dart';
 
 Future<void> _initializeFirebaseServices() async {
-  if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   AnalyticsService.setProvider(
     FirebaseAnalyticsProvider(FirebaseAnalytics.instance),

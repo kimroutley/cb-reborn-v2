@@ -2,8 +2,7 @@ import 'package:cb_models/cb_models.dart';
 import '../game_resolution_logic.dart';
 
 class GameAdminController {
-  static GameState forceKillPlayer(GameState state, String id,
-      {String reason = 'host_kick'}) {
+  static GameState forceKillPlayer(GameState state, String id, {String reason = 'host_kick'}) {
     final p = state.players.firstWhere(
       (p) => p.id == id,
       orElse: () => throw Exception('Player not found'),
@@ -142,12 +141,12 @@ class GameAdminController {
     );
 
     final feedEvent = FeedEvent(
-      id: '${DateTime.now().millisecondsSinceEpoch}_sys',
-      type: FeedEventType.system,
-      title: '',
-      content: msg,
-      timestamp: DateTime.now(),
-    );
+        id: '${DateTime.now().millisecondsSinceEpoch}_sys',
+        type: FeedEventType.system,
+        title: '',
+        content: msg,
+        timestamp: DateTime.now(),
+      );
 
     return state.copyWith(
       bulletinBoard: [...state.bulletinBoard, entry],

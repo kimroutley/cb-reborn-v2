@@ -461,6 +461,7 @@ class CloudHostBridge {
               'deathDay': p.deathDay,
               'hasRumour': p.hasRumour,
               'drinksOwed': p.drinksOwed,
+              'currentBetTargetId': p.currentBetTargetId,
               'penalties': p.penalties,
               // Hide role info in public doc
               'roleId': isEndGame ? p.role.id : 'hidden',
@@ -501,6 +502,7 @@ class CloudHostBridge {
       'claimedPlayerIds': session.claimedPlayerIds,
       'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
       'gameHistory': game.gameHistory.isNotEmpty ? game.gameHistory : null,
+      'deadPoolBets': game.deadPoolBets.isNotEmpty ? game.deadPoolBets : null,
       'updatedAt': DateTime.now().millisecondsSinceEpoch,
     };
 
@@ -538,8 +540,6 @@ class CloudHostBridge {
         'creepTargetId': p.creepTargetId,
         'whoreDeflectionUsed': p.whoreDeflectionUsed,
         'tabooNames': p.tabooNames,
-        'currentBetTargetId': p.currentBetTargetId,
-        'deadPoolTargetId': game.deadPoolBets[p.id],
         'privateMessages': rawPrivateMessages,
         'ghost_messages': ghostMessages,
       };

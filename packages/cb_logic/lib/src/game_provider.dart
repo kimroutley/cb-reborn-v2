@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'analytics_service.dart';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:cb_models/cb_models.dart';
@@ -32,8 +31,7 @@ class Game extends _$Game {
     ref.onDispose(() {
       _persistDebounceTimer?.cancel();
     });
-    _narrationController =
-        GameNarrationController(ref.read(geminiNarrationServiceProvider));
+    _narrationController = GameNarrationController(ref.read(geminiNarrationServiceProvider));
     return const GameState();
   }
 
@@ -59,8 +57,7 @@ class Game extends _$Game {
       if (saved == null) return false;
       final (gameState, _) = saved;
       state = gameState;
-      _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name); // approximate
+      _gameStartedAt = DateTime.now(); // approximate
       return true;
     } catch (_) {
       return false;
@@ -134,7 +131,6 @@ class Game extends _$Game {
       final (gameState, _) = saved;
       state = gameState;
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
       return true;
     } catch (_) {
       return false;
@@ -198,7 +194,6 @@ class Game extends _$Game {
       );
 
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
       _persist();
       return true;
     } catch (_) {
@@ -630,8 +625,7 @@ class Game extends _$Game {
   String exportGameLog() => _narrationController.exportGameLog(state);
 
   /// Generate an AI-ready recap prompt for Gemini
-  String generateAIRecapPrompt(String style) =>
-      _narrationController.generateAIRecapPrompt(state, style);
+  String generateAIRecapPrompt(String style) => _narrationController.generateAIRecapPrompt(state, style);
 
   /// Generate dynamic read-aloud narration from the last resolved night report
   /// using Gemini.
@@ -639,8 +633,7 @@ class Game extends _$Game {
     String? personalityId,
     String? voice,
     String? variationPrompt,
-  }) =>
-      _narrationController.generateDynamicNightNarration(
+  }) => _narrationController.generateDynamicNightNarration(
         state,
         personalityId: personalityId,
         voice: voice,
@@ -650,8 +643,7 @@ class Game extends _$Game {
   Future<String?> _generateCurrentStepNarrationVariation({
     String? personalityId,
   }) async {
-    return _narrationController.generateCurrentStepNarrationVariation(state,
-        personalityId: personalityId);
+    return _narrationController.generateCurrentStepNarrationVariation(state, personalityId: personalityId);
   }
 
   /// Prepare a one-time narration override for the current step.
@@ -1311,8 +1303,7 @@ class Game extends _$Game {
   }
 
   void mergePlayers({required String sourceId, required String targetId}) {
-    state = GamePlayerController.mergePlayers(state,
-        sourceId: sourceId, targetId: targetId);
+    state = GamePlayerController.mergePlayers(state, sourceId: sourceId, targetId: targetId);
   }
 
   void assignRole(String playerId, String roleId) {
@@ -1387,7 +1378,6 @@ class Game extends _$Game {
       sessionController.clearRoleConfirmations();
       sessionController.setForceStartOverride(false);
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
       _persist();
       return true;
     }
@@ -1408,7 +1398,6 @@ class Game extends _$Game {
     sessionController.clearRoleConfirmations();
     sessionController.setForceStartOverride(false);
     _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
     _persist();
     return true;
   }
@@ -1657,7 +1646,6 @@ class Game extends _$Game {
   void _checkAndResolveWinCondition(List<Player> players) {
     final win = GameResolutionLogic.checkWinCondition(players);
     if (win != null) {
-      AnalyticsService.logGameCompleted(winner: win.winner.name, dayCount: state.dayCount, duration: DateTime.now().difference(_gameStartedAt ?? DateTime.now()));
       state = GameResolutionLogic.applyWinResult(state, win);
       archiveGame();
     }

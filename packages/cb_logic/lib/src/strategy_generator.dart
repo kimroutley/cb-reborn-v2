@@ -42,8 +42,7 @@ class StrategyGenerator {
       }
 
       // "What If" scenarios
-      if (role.id == RoleIds.minor &&
-          !alive.any((p) => p.role.id == RoleIds.bouncer)) {
+      if (role.id == RoleIds.minor && !alive.any((p) => p.role.id == RoleIds.bouncer)) {
         tips.add(
           "🛡️ WHAT IF I'M ATTACKED? Since the Bouncer is dead, your death protection is virtually unbreakable.",
         );

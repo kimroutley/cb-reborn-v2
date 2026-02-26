@@ -1,3 +1,4 @@
+import '../widgets/cb_sliding_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:cb_models/cb_models.dart';
 import '../colors.dart';
@@ -165,9 +166,6 @@ class _CBGuideScreenState extends State<CBGuideScreen>
       case 0:
         return CBIndexedHandbook(
           gameState: widget.gameState,
-          activeCategoryIndex: _activeHandbookCategoryIndex,
-          onCategoryChanged: (index) =>
-              setState(() => _activeHandbookCategoryIndex = index),
         );
       case 1:
         return CBFadeSlide(child: _buildOperativesTab());

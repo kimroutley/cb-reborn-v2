@@ -1,4 +1,4 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'package:cb_models/cb_models.dart';
 import 'night_actions/night_actions.dart';
 
@@ -360,6 +360,7 @@ class GameResolutionLogic {
         return '${actor.name} targeted ${target.name}.';
     }
   }
+
 
   static GameState handleDeathTriggers(GameState state, String deadPlayerId) {
     final deadPlayer = state.players.firstWhere((p) => p.id == deadPlayerId);

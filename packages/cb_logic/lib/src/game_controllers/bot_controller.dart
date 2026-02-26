@@ -50,11 +50,10 @@ class GameBotController {
     }
 
     if (state.players.any((p) => p.name == name)) {
-      name = '$name ${state.players.length + 1}';
+       name = '$name ${state.players.length + 1}';
     }
 
-    final id =
-        'bot_${name.toLowerCase().replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}';
+    final id = 'bot_${name.toLowerCase().replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}';
 
     final newPlayer = Player(
       id: id,
@@ -77,8 +76,7 @@ class GameBotController {
 
   static int simulateBotTurns(
     GameState state,
-    void Function({required String stepId, String? targetId, String? voterId})
-        onInteract,
+    void Function({required String stepId, String? targetId, String? voterId}) onInteract,
   ) {
     final step = state.currentStep;
     if (step == null) return 0;
@@ -100,9 +98,8 @@ class GameBotController {
     }
     // 2. Fallback: Group action (no actor ID in step, check role)
     else if (step.roleId != null && step.roleId != 'unassigned') {
-      final botsWithRole = state.players
-          .where((p) => p.role.id == step.roleId && p.isBot)
-          .toList();
+      final botsWithRole =
+          state.players.where((p) => p.role.id == step.roleId && p.isBot).toList();
       if (botsWithRole.isNotEmpty && !state.actionLog.containsKey(step.id)) {
         // If any bot has this role, we assume the bot(s) can act for the group
         return _performRandomStepAction(state, step, onInteract);
@@ -115,8 +112,7 @@ class GameBotController {
   static int _performRandomStepAction(
     GameState state,
     ScriptStep step,
-    void Function({required String stepId, String? targetId, String? voterId})
-        onInteract,
+    void Function({required String stepId, String? targetId, String? voterId}) onInteract,
   ) {
     final rng = Random();
     var actionCount = 0;
@@ -164,13 +160,9 @@ class GameBotController {
     return null;
   }
 
-  static List<Player> _eligibleTargetsForStep(
-      GameState state, ScriptStep step) {
+  static List<Player> _eligibleTargetsForStep(GameState state, ScriptStep step) {
     final actorId = _extractActorId(step.id);
-    final actor = actorId == null
-        ? null
-        : state.players.firstWhere((p) => p.id == actorId,
-            orElse: () => state.players.first); // fallback
+    final actor = actorId == null ? null : state.players.firstWhere((p) => p.id == actorId, orElse: () => state.players.first); // fallback
 
     List<Player> pool;
     if (step.id.startsWith('medic_act_') && actor?.medicChoice == 'REVIVE') {
@@ -202,8 +194,7 @@ class GameBotController {
   static int _simulateDayVotes(
       GameState state,
       String stepId,
-      void Function({required String stepId, String? targetId, String? voterId})
-          onInteract,
+      void Function({required String stepId, String? targetId, String? voterId}) onInteract,
       {bool botsOnly = false}) {
     final rng = Random();
     final alive = state.players.where((p) => p.isAlive).toList();

@@ -75,8 +75,7 @@ void main() {
     final sessions = await service.loadAllSessions();
     stopwatch.stop();
 
-    print(
-        'Loaded ${sessions.length} sessions in ${stopwatch.elapsedMilliseconds}ms');
+    print('Loaded ${sessions.length} sessions in ${stopwatch.elapsedMilliseconds}ms');
 
     expect(sessions.length, recordCount);
   });

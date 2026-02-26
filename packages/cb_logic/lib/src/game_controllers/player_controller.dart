@@ -8,8 +8,7 @@ class GamePlayerController {
     return value.trim().toLowerCase().replaceAll(_whitespaceRegex, ' ');
   }
 
-  static String _buildUniqueName(String desired, List<Player> players,
-      {String? excludePlayerId}) {
+  static String _buildUniqueName(String desired, List<Player> players, {String? excludePlayerId}) {
     final base = desired.trim();
     if (base.isEmpty) {
       return desired;
@@ -102,15 +101,13 @@ class GamePlayerController {
     );
   }
 
-  static GameState updatePlayerName(
-      GameState state, String id, String newName) {
+  static GameState updatePlayerName(GameState state, String id, String newName) {
     final trimmed = newName.trim();
     if (trimmed.isEmpty) {
       return state;
     }
 
-    final updatedName =
-        _buildUniqueName(trimmed, state.players, excludePlayerId: id);
+    final updatedName = _buildUniqueName(trimmed, state.players, excludePlayerId: id);
     return state.copyWith(
       players: state.players
           .map((p) => p.id == id ? p.copyWith(name: updatedName) : p)
@@ -118,8 +115,7 @@ class GamePlayerController {
     );
   }
 
-  static GameState mergePlayers(GameState state,
-      {required String sourceId, required String targetId}) {
+  static GameState mergePlayers(GameState state, {required String sourceId, required String targetId}) {
     if (sourceId == targetId) {
       return state;
     }
@@ -134,8 +130,7 @@ class GamePlayerController {
     final tgt = target.first;
     final mergedTarget = tgt.copyWith(
       authUid: tgt.authUid ?? src.authUid,
-      name:
-          _buildUniqueName(tgt.name, state.players, excludePlayerId: targetId),
+      name: _buildUniqueName(tgt.name, state.players, excludePlayerId: targetId),
     );
 
     return state.copyWith(

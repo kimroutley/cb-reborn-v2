@@ -81,8 +81,10 @@ class PlayerMatcher {
   static Map<String, List<String>> findDuplicates(List<String> names) {
     if (names.isEmpty) return {};
 
-    final entries = List<_PlayerEntry>.generate(names.length,
-        (i) => _PlayerEntry(i, names[i], canonicalizeName(names[i])));
+    final entries = List<_PlayerEntry>.generate(
+      names.length,
+      (i) => _PlayerEntry(i, names[i], canonicalizeName(names[i]))
+    );
 
     // Sort by length to optimize comparisons
     entries.sort((a, b) {
