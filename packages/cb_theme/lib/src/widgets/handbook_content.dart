@@ -5,7 +5,15 @@ import '../widgets.dart'; // Import to get CBPanel, CBSectionHeader, CBAllianceG
 class CBIndexedHandbook extends StatefulWidget {
   final GameState? gameState;
 
-  const CBIndexedHandbook({super.key, this.gameState});
+  final int activeCategoryIndex;
+  final ValueChanged<int>? onCategoryChanged;
+
+  const CBIndexedHandbook({
+    super.key,
+    this.gameState,
+    this.activeCategoryIndex = 0,
+    this.onCategoryChanged,
+  });
 
   @override
   State<CBIndexedHandbook> createState() => _CBIndexedHandbookState();
@@ -13,7 +21,6 @@ class CBIndexedHandbook extends StatefulWidget {
 
 class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
   final ScrollController _scrollController = ScrollController();
-  int _activeCategoryIndex = 0;
 
   final List<_HandbookCategory> _categories = [
     _HandbookCategory(
@@ -145,9 +152,20 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
     ),
   ];
 
+  @override
+  void didUpdateWidget(CBIndexedHandbook oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.activeCategoryIndex != oldWidget.activeCategoryIndex) {
+      _scrollToCategory(widget.activeCategoryIndex);
+    }
+  }
+
   void _scrollToCategory(int index) {
     if (!mounted) return;
-    setState(() => _activeCategoryIndex = index);
+    // Notify parent if triggered internally (e.g. tap)
+    if (widget.activeCategoryIndex != index) {
+        widget.onCategoryChanged?.call(index);
+    }
 
     // Approximate height-based scrolling
     double offset = 0;
@@ -190,7 +208,7 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
                   itemCount: _categories.length,
                   itemBuilder: (context, index) {
                     final cat = _categories[index];
-                    final isActive = _activeCategoryIndex == index;
+                    final isActive = widget.activeCategoryIndex == index;
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -233,7 +251,7 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
                   // ── INJECT LIVE DATA FOR OVERVIEW ──
                   if (index == 0 && widget.gameState != null) ...[
                     const SizedBox(height: 16),
-                    CBAllianceGraph(players: widget.gameState!.players),
+                    CBAllianceGraph(roles: widget.gameState!.players.map((p) => p.role).toList()),
                     const SizedBox(height: 24),
                     CBPhaseTimeline(currentPhase: widget.gameState!.phase),
                     const SizedBox(height: 32),
