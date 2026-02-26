@@ -1,5 +1,7 @@
+import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,11 +12,22 @@ import 'screens/stats_screen.dart';
 import 'screens/hall_of_fame_screen.dart';
 import 'screens/intro_screen.dart';
 
+Future<void> _initializeFirebaseServices() async {
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
+  AnalyticsService.setProvider(
+    FirebaseAnalyticsProvider(FirebaseAnalytics.instance),
+  );
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
+    await _initializeFirebaseServices();
 
     final launchUri = Uri.base;
     final hasJoinPayload = launchUri.queryParameters.containsKey('code') &&

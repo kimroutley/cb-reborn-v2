@@ -105,8 +105,15 @@ class AuthNotifier extends Notifier<AuthState> {
       );
 
       await _auth!.signInWithCredential(credential);
-    } catch (e, stackTrace) {
-      AnalyticsService.logError('Sign in failed: $e', stackTrace: stackTrace.toString());
+    } catch (e, stack) {
+      final String stackString = stack.toString();
+      final String truncatedStack = stackString.length > 100
+          ? stackString.substring(0, 100)
+          : stackString;
+      AnalyticsService.logError(
+        e.toString(),
+        stackTrace: truncatedStack,
+      );
       state = AuthState(AuthStatus.error,
           error: 'Terminal link failed. Biometric interference detected.');
     }
@@ -181,8 +188,12 @@ class AuthNotifier extends Notifier<AuthState> {
             : trimmedAvatarEmoji,
       );
       state = AuthState(AuthStatus.authenticated, user: user);
-    } catch (e, stackTrace) {
-      AnalyticsService.logError('Save username failed: $e', stackTrace: stackTrace.toString());
+    } catch (e, stack) {
+      final stackString = stack.toString();
+      final truncatedStack = stackString.length <= 100
+          ? stackString
+          : stackString.substring(0, 100);
+      AnalyticsService.logError(e.toString(), stackTrace: truncatedStack);
       state = AuthState(AuthStatus.needsProfile,
           user: user, error: 'Failed to establish identity. System breach.');
     }
