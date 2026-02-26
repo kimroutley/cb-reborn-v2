@@ -612,7 +612,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
         boxShadow: [
           BoxShadow(color: color.withValues(alpha: 0.05), blurRadius: 10)
         ],
-      },
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

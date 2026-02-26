@@ -44,7 +44,6 @@ class CBAllianceGraph extends StatelessWidget {
 
   Widget _buildTeamSection(BuildContext context, String title, List<Role> roles, Color titleColor) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -239,7 +239,6 @@ class CBMessageBubble extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ),
               ],
             ),
           ),
