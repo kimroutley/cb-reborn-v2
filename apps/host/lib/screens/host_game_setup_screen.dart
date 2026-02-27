@@ -351,61 +351,85 @@ class _RoleActionsBar extends StatelessWidget {
     required this.onClear,
   });
 
+  static const double _compactBreakpoint = 380;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-
-    return Row(
-      children: [
-        if (!isManualStyle)
-          Expanded(
-            child: CBPrimaryButton(
-              label: 'AUTO ASSIGN',
-              icon: Icons.auto_fix_high_rounded,
-              onPressed: onAutoAssign,
-            ),
-          ),
-        if (!isManualStyle && hasAssigned) const SizedBox(width: 10),
-        if (hasAssigned)
-          CBGhostButton(
-            label: 'CLEAR',
-            icon: Icons.clear_all_rounded,
-            color: scheme.error,
-            onPressed: onClear,
-          ),
-        if (isManualStyle && !hasAssigned)
-          Expanded(
-            child: CBGlassTile(
-              borderColor: scheme.onSurfaceVariant.withValues(alpha: 0.2),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.touch_app_rounded,
-                      size: 16,
-                      color: scheme.onSurfaceVariant),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      'TAP PLAYERS BELOW TO ASSIGN ROLES',
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelSmall
-                          ?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8,
-                            fontSize: 11,
-                          ),
-                    ),
+    final manualHint = CBGlassTile(
+      borderColor: scheme.onSurfaceVariant.withValues(alpha: 0.2),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.touch_app_rounded,
+              size: 16, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              'TAP PLAYERS BELOW TO ASSIGN ROLES',
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                    fontSize: 11,
                   ),
-                ],
-              ),
             ),
           ),
-      ],
+        ],
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < _compactBreakpoint;
+        if (isCompact) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isManualStyle)
+                CBPrimaryButton(
+                  label: 'AUTO ASSIGN',
+                  icon: Icons.auto_fix_high_rounded,
+                  onPressed: onAutoAssign,
+                ),
+              if (!isManualStyle && hasAssigned) const SizedBox(height: 10),
+              if (hasAssigned)
+                CBGhostButton(
+                  label: 'CLEAR',
+                  icon: Icons.clear_all_rounded,
+                  color: scheme.error,
+                  onPressed: onClear,
+                ),
+              if (isManualStyle && !hasAssigned) manualHint,
+            ],
+          );
+        }
+        return Row(
+          children: [
+            if (!isManualStyle)
+              Expanded(
+                child: CBPrimaryButton(
+                  label: 'AUTO ASSIGN',
+                  icon: Icons.auto_fix_high_rounded,
+                  onPressed: onAutoAssign,
+                ),
+              ),
+            if (!isManualStyle && hasAssigned) const SizedBox(width: 10),
+            if (hasAssigned)
+              CBGhostButton(
+                label: 'CLEAR',
+                icon: Icons.clear_all_rounded,
+                color: scheme.error,
+                onPressed: onClear,
+              ),
+            if (isManualStyle && !hasAssigned) Expanded(child: manualHint),
+          ],
+        );
+      },
     );
   }
 }
@@ -563,48 +587,67 @@ class _SetupLaunchBar extends StatelessWidget {
             : scheme.onSurfaceVariant.withValues(alpha: 0.3),
         child: SafeArea(
           top: false,
-          child: Row(
-            children: [
-              Flexible(
-                flex: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: badgeColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: badgeColor.withValues(alpha: 0.4),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 380;
+              final badge = Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: badgeColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: badgeColor.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(badgeIcon, size: 16, color: badgeColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      badgeText,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: badgeColor,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                        fontFamily: 'RobotoMono',
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(alignment: Alignment.centerLeft, child: badge),
+                    const SizedBox(height: 10),
+                    CBPrimaryButton(
+                      label: 'START GAME',
+                      icon: Icons.nightlife_rounded,
+                      onPressed: allAssigned ? onStart : null,
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Flexible(flex: 0, child: badge),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CBPrimaryButton(
+                      label: 'START GAME',
+                      icon: Icons.nightlife_rounded,
+                      onPressed: allAssigned ? onStart : null,
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(badgeIcon, size: 16, color: badgeColor),
-                      const SizedBox(width: 6),
-                      Text(
-                        badgeText,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.labelSmall?.copyWith(
-                          color: badgeColor,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
-                          fontFamily: 'RobotoMono',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: CBPrimaryButton(
-                  label: 'START GAME',
-                  icon: Icons.nightlife_rounded,
-                  onPressed: allAssigned ? onStart : null,
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         ),
       ),

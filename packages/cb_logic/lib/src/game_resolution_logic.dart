@@ -241,6 +241,7 @@ class GameResolutionLogic {
       return DayResolution(
         players: players,
         report: [...report, 'The club decided to abstain from exiling anyone.'],
+        events: events,
       );
     }
 
@@ -252,6 +253,7 @@ class GameResolutionLogic {
       return DayResolution(
         players: players,
         report: [...report, 'The club decided to abstain from exiling anyone.'],
+        events: events,
       );
     }
 
@@ -349,10 +351,12 @@ class GameResolutionLogic {
               .where((name) => name.isNotEmpty)
               .join(', ');
 
+          final count = doomedIds.length;
           return DayResolution(
             players: updatedPlayers,
             report: [
               ...report,
+              'The club descended into a BLOODBATH! $count patron${count == 1 ? '' : 's'} ${count == 1 ? 'was' : 'were'} kicked out.',
               'Tie break: BLOODBATH. The club made spectacularly poor life choices and exiled everyone tied.',
               if (names.isNotEmpty) 'Exiled in the chaos: $names.',
             ],

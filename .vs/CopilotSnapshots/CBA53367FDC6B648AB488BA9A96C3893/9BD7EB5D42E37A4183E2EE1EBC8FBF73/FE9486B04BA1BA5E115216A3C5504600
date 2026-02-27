@@ -1,0 +1,109 @@
+﻿import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import '../firebase_options.dart';
+
+class AuthService {
+  final FirebaseAuth? _auth;
+  final GoogleSignIn _googleSignIn;
+
+  AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
+      : _auth = auth,
+        _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
+
+  FirebaseAuth get _firebaseAuth => _auth ?? FirebaseAuth.instance;
+
+  Future<void> _ensureFirebaseInitialized() async {
+    if (_auth != null) {
+      return;
+    }
+    if (Firebase.apps.isNotEmpty) {
+      return;
+    }
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
+  Stream<User?> get authStateChanges {
+    if (_auth != null || Firebase.apps.isNotEmpty) {
+      return _firebaseAuth.authStateChanges();
+    }
+
+    return Stream<void>.fromFuture(_ensureFirebaseInitialized())
+        .asyncExpand((_) => _firebaseAuth.authStateChanges());
+  }
+
+  User? get currentUser => (_auth != null || Firebase.apps.isNotEmpty)
+      ? _firebaseAuth.currentUser
+      : null;
+
+  Future<void> sendSignInLinkToEmail({
+    required String email,
+    required ActionCodeSettings actionCodeSettings,
+  }) async {
+    await _ensureFirebaseInitialized();
+    return _firebaseAuth.sendSignInLinkToEmail(
+      email: email,
+      actionCodeSettings: actionCodeSettings,
+    );
+  }
+
+  bool isSignInWithEmailLink(String link) {
+    if (!(_auth != null || Firebase.apps.isNotEmpty)) {
+      return false;
+    }
+    return _firebaseAuth.isSignInWithEmailLink(link);
+  }
+
+  Future<UserCredential> signInWithEmailLink({
+    required String email,
+    required String emailLink,
+  }) async {
+    await _ensureFirebaseInitialized();
+    return _firebaseAuth.signInWithEmailLink(
+        email: email, emailLink: emailLink);
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    await _ensureFirebaseInitialized();
+
+    if (kIsWeb) {
+      return _firebaseAuth.signInWithPopup(GoogleAuthProvider());
+    }
+
+    await _googleSignIn.initialize();
+    final googleUser = await _googleSignIn.authenticate();
+
+    if (googleUser == null) {
+      throw FirebaseAuthException(
+        code: 'ERROR_ABORTED_BY_USER',
+        message: 'Sign in aborted by user',
+      );
+    }
+
+    final googleAuth = googleUser.authentication;
+
+    final AuthCredential credential = GoogleAuthProvider.credential(
+      idToken: googleAuth.idToken!,
+    );
+
+    return _firebaseAuth.signInWithCredential(credential);
+  }
+
+  Future<void> signOut() async {
+    if (!kIsWeb) {
+      await _googleSignIn.signOut();
+    }
+    if (_auth != null || Firebase.apps.isNotEmpty) {
+      await _firebaseAuth.signOut();
+    }
+  }
+}
+
+final authServiceProvider = Provider<AuthService>((ref) {
+  return AuthService();
+});

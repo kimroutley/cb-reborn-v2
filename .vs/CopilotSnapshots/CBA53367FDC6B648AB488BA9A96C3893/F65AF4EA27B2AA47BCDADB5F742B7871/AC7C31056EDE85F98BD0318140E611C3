@@ -1,0 +1,102 @@
+﻿import 'enums.dart';
+
+/// Runtime player snapshot used by bridge-driven app UIs.
+class PlayerSnapshot {
+  final String id;
+  final String name;
+  final String? authUid;
+  final String roleId;
+  final String roleName;
+  final String roleDescription;
+  final String roleColorHex;
+  final String alliance;
+  final bool isAlive;
+  final int? deathDay;
+  final int? silencedDay;
+  final String? medicChoice;
+  final int lives;
+  final int drinksOwed;
+  final String? currentBetTargetId;
+  final List<String> penalties;
+  final bool hasRumour;
+  final String? clingerPartnerId;
+  final bool hasReviveToken;
+  final bool secondWindPendingConversion;
+  final String? creepTargetId;
+  final bool whoreDeflectionUsed;
+  final List<String> tabooNames;
+
+  const PlayerSnapshot({
+    required this.id,
+    required this.name,
+    this.authUid,
+    required this.roleId,
+    required this.roleName,
+    this.roleDescription = '',
+    this.roleColorHex = '#888888',
+    this.alliance = 'unknown',
+    this.isAlive = true,
+    this.deathDay,
+    this.silencedDay,
+    this.medicChoice,
+    this.lives = 1,
+    this.drinksOwed = 0,
+    this.currentBetTargetId,
+    this.penalties = const [],
+    this.hasRumour = false,
+    this.clingerPartnerId,
+    this.hasReviveToken = false,
+    this.secondWindPendingConversion = false,
+    this.creepTargetId,
+    this.whoreDeflectionUsed = false,
+    this.tabooNames = const [],
+  });
+
+  factory PlayerSnapshot.fromMap(Map<String, dynamic> map) {
+    return PlayerSnapshot(
+      id: map['id'] as String? ?? '',
+      name: map['name'] as String? ?? '',
+      authUid: map['authUid'] as String?,
+      roleId: map['roleId'] as String? ?? '',
+      roleName: map['roleName'] as String? ?? '',
+      roleDescription: map['roleDescription'] as String? ?? '',
+      roleColorHex: map['roleColorHex'] as String? ?? '#888888',
+      alliance: map['alliance'] as String? ?? 'unknown',
+      isAlive: map['isAlive'] as bool? ?? true,
+      deathDay: map['deathDay'] as int?,
+      silencedDay: map['silencedDay'] as int?,
+      medicChoice: map['medicChoice'] as String?,
+      lives: map['lives'] as int? ?? 1,
+      drinksOwed: map['drinksOwed'] as int? ?? 0,
+      currentBetTargetId: map['currentBetTargetId'] as String?,
+      penalties:
+          (map['penalties'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const <String>[],
+      hasRumour: map['hasRumour'] as bool? ?? false,
+      clingerPartnerId: map['clingerPartnerId'] as String?,
+      hasReviveToken: map['hasReviveToken'] as bool? ?? false,
+      secondWindPendingConversion:
+          map['secondWindPendingConversion'] as bool? ?? false,
+      creepTargetId: map['creepTargetId'] as String?,
+      whoreDeflectionUsed: map['whoreDeflectionUsed'] as bool? ?? false,
+      tabooNames:
+          (map['tabooNames'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const <String>[],
+    );
+  }
+
+  Team get allianceTeam {
+    return switch (alliance) {
+      'clubStaff' => Team.clubStaff,
+      'partyAnimals' => Team.partyAnimals,
+      _ => Team.partyAnimals,
+    };
+  }
+
+  bool get isClubStaff => alliance == 'clubStaff';
+  bool get isPartyAnimal => alliance == 'partyAnimals';
+}

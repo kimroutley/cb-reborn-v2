@@ -1,7 +1,10 @@
 ---
 name: Tie-Break Workshop & Implementation
 overview: Workshop and implement robust tie-break options for the voting phase. Replaces the simple boolean toggle with a strategy-based approach (Peaceful, Chaotic, Bloodbath) and ensures all outcomes are logged for stats and shenanigans.
-todos: []
+todos:
+  - id: implement-tie-break
+    content: Implement TieBreakStrategy enum, logic, provider updates, and Host UI.
+    status: done
 isProject: false
 ---
 

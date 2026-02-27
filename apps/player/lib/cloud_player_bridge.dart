@@ -456,6 +456,16 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     return [];
   }
 
+  /// Register a Web Push subscription so the backend can send notifications.
+  /// Call after [PushSubscriptionRegister.getSubscription] returns a map (web only).
+  Future<void> registerPushSubscription(
+    Map<String, dynamic> subscription,
+  ) async {
+    if (_firebase == null || state.myPlayerId == null) return;
+    await _firebase!.setPushSubscription(state.myPlayerId!, subscription);
+    debugPrint('[CloudPlayerBridge] Registered push subscription');
+  }
+
   void _persistSessionCache() {
     final joinCode = _cachedJoinCode;
     if (joinCode == null || joinCode.isEmpty) {

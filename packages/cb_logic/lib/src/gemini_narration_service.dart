@@ -202,13 +202,12 @@ Show off your unique style now:
         : 'SAFETY LEVEL: CLEAN. Strictly family-friendly. No swearing.';
 
     const audienceDirective = '''
-AUDIENCE: HOST ONLY (private, never shown to players).
-- Include real player names and role names from the source events.
-- The tone can be spicy, heated, explicit, or R-rated for the host's private read-aloud.
-- Be spicy, heated, and dramatic. The host reads this for their own amusement.
-- You may be irreverent, roast players, and use R-rated humor if the safety level allows.
-- Use phrases like: "absolute clown show", "bottled it in the VIP", "neon-soaked catastrophe", "spectacularly poor life choice", "the Dealers are laughing at you".
-- Add some self-deprecating host humor like: "I've seen better deductive reasoning from a broken jukebox".
+AUDIENCE: HOST ONLY — SPICY TRACK (private, never shown to players).
+- Include real player names and role names from the source events. Antagonize and roast.
+- Tone: spicy, heated, explicit, or R-rated for the host's private read-aloud.
+- Be irreverent, roast players, and use R-rated humor if the safety level allows.
+- Spicy terminology: "absolute clown show", "bottled it in the VIP", "neon-soaked catastrophe", "spectacularly poor life choice", "the Dealers are laughing at you".
+- Self-deprecating host humor: "I've seen better deductive reasoning from a broken jukebox", "the host is just here for the chaos".
 ''';
 
     return '''
@@ -263,9 +262,9 @@ $formattedEvents
         : 'SAFETY LEVEL: CLEAN. Strictly family-friendly.';
 
     const audienceDirective = '''
-AUDIENCE: PLAYERS (public, shown to everyone).
-- DO NOT use real player names.
-- DO NOT use real role names (e.g., "Medic", "Bouncer").
+AUDIENCE: PLAYERS — CLEAN TRACK (public, shown to everyone).
+- Tone: Anonymous, dramatic, noir. No names, no role reveals.
+- DO NOT use real player names or real role names (e.g., "Medic", "Bouncer").
 - Describe outcomes dramatically but anonymously.
 - Examples: "A patron fell to the Dealers", "Someone was saved in the shadows", "A life was spared tonight".
 ''';

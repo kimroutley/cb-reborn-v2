@@ -2,6 +2,7 @@ import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GameSettingsSheet extends ConsumerStatefulWidget {
@@ -130,46 +131,51 @@ class _GameSettingsSheetState extends ConsumerState<GameSettingsSheet> {
             }),
             const SizedBox(height: 16),
 
-            // Tie Breaks
+            // Tie Break strategy
             CBGlassTile(
               borderColor: scheme.outlineVariant.withValues(alpha: 0.2),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                children: [
-                  Icon(Icons.balance_rounded,
-                      size: 18, color: scheme.onSurface.withValues(alpha: 0.6)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'RANDOM TIE-BREAKS',
-                          style: textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
+              child: InkWell(
+                onTap: () => _showTieBreakPicker(context, ref),
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  children: [
+                    Icon(Icons.balance_rounded,
+                        size: 18, color: scheme.onSurface.withValues(alpha: 0.6)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TIE BREAK',
+                            style: textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Tied votes pick a random exile.',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.5),
-                            fontSize: 10,
+                          Text(
+                            TieBreakStrategyExtension(gameState.tieBreakStrategy).description,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.5),
+                              fontSize: 10,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  Switch.adaptive(
-                    value:
-                        gameState.tieBreakStrategy == TieBreakStrategy.random,
-                    activeTrackColor: scheme.primary,
-                    onChanged: (value) {
-                      HapticService.selection();
-                      controller.setTieBreak(value);
-                    },
-                  ),
-                ],
+                    Text(
+                      TieBreakStrategyExtension(gameState.tieBreakStrategy).label,
+                      style: textTheme.labelMedium?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.chevron_right_rounded,
+                        size: 20, color: scheme.onSurface.withValues(alpha: 0.5)),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -214,6 +220,69 @@ class _GameSettingsSheetState extends ConsumerState<GameSettingsSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showTieBreakPicker(BuildContext context, WidgetRef ref) {
+    final gameState = ref.read(gameProvider);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    showThemedDialog(
+      context: context,
+      accentColor: scheme.primary,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'TIE BREAK STRATEGY',
+            style: textTheme.labelLarge!.copyWith(
+              color: scheme.primary,
+              letterSpacing: 1.6,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...TieBreakStrategy.values.map((strategy) {
+            final isActive = gameState.tieBreakStrategy == strategy;
+            return ListTile(
+              dense: true,
+              selected: isActive,
+              selectedTileColor: scheme.primary.withValues(alpha: 0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              leading: Icon(
+                isActive ? Icons.radio_button_checked : Icons.radio_button_off,
+                color: isActive
+                    ? scheme.primary
+                    : scheme.onSurface.withValues(alpha: 0.4),
+                size: 18,
+              ),
+              title: Text(
+                TieBreakStrategyExtension(strategy).label,
+                style: textTheme.labelMedium!.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              subtitle: Text(
+                TieBreakStrategyExtension(strategy).description,
+                style: textTheme.labelSmall!.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.6),
+                  fontSize: 11,
+                ),
+              ),
+              onTap: () {
+                ref.read(gameProvider.notifier).setTieBreakStrategy(strategy);
+                HapticFeedback.selectionClick();
+                Navigator.pop(context);
+              },
+            );
+          }),
+        ],
       ),
     );
   }

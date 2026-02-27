@@ -103,8 +103,9 @@ Runbook execution continued in this workspace and compile drift was remediated. 
 ## Immediate next actions (ordered)
 
 1. Compile gate rerun: ✅ complete (`flutter test` passes in both apps).
-2. Complete secrets provisioning (GitHub UI or machine with `gh`) and rerun CI preflight.
-3. Execute runbook Sections 3–5 with device evidence capture via `STATUS_UPDATE_TEMPLATE_2026-02-20.md`.
+2. **Follow [LETS_DO_IT_RUNBOOK.md](LETS_DO_IT_RUNBOOK.md)** for: secrets provisioning, VAPID/push setup, and real-device validation.
+3. Complete secrets provisioning (GitHub UI or machine with `gh`) and rerun CI preflight.
+4. Execute runbook Sections 3–5 with device evidence capture via `STATUS_UPDATE_TEMPLATE_2026-02-20.md`.
 
 ## Deployment posture
 

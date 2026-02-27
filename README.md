@@ -246,6 +246,8 @@ The nervous system.
 - **Real-device multiplayer validation** (local/cloud/mode-switch/deep-link checklist)
 - **Role mechanics parity audit** against `docs/architecture/role-mechanics.md`
 
+**→ To unblock CI deploy, enable push notifications, and run device validation:** see **[`docs/operations/LETS_DO_IT_RUNBOOK.md`](docs/operations/LETS_DO_IT_RUNBOOK.md)**.
+
 ## 🤝 Contributing
 
 1. Fork the repository

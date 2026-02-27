@@ -1,0 +1,30 @@
+﻿import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../auth/auth_provider.dart';
+import '../bootstrap/player_bootstrap_gate.dart';
+import 'player_home_shell.dart';
+import '../widgets/effects_overlay.dart';
+import 'player_onboarding_screen.dart';
+
+class PlayerIntroScreen extends ConsumerStatefulWidget {
+  const PlayerIntroScreen({super.key});
+
+  @override
+  ConsumerState<PlayerIntroScreen> createState() => _PlayerIntroScreenState();
+}
+
+class _PlayerIntroScreenState extends ConsumerState<PlayerIntroScreen> {
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+
+    if (authState.user == null) {
+      return const PlayerOnboardingScreen();
+    }
+
+    return PlayerBootstrapGate(
+      child: const EffectsOverlay(child: PlayerHomeShell()),
+    );
+  }
+}

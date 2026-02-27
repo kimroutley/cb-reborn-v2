@@ -1,0 +1,230 @@
+﻿import 'dart:convert';
+
+class GameMessage {
+  final String type;
+  final Map<String, dynamic> payload;
+
+  const GameMessage({required this.type, this.payload = const {}});
+
+  factory GameMessage.fromJson(String raw) {
+    final map = jsonDecode(raw) as Map<String, dynamic>;
+    return GameMessage(
+      type: map['type'] as String,
+      payload: map['payload'] as Map<String, dynamic>? ?? {},
+    );
+  }
+
+  String toJson() => jsonEncode({'type': type, 'payload': payload});
+
+  factory GameMessage.stateSync({
+    required String phase,
+    required int dayCount,
+    required List<Map<String, dynamic>> players,
+    Map<String, dynamic>? currentStep,
+    String? winnerId,
+    List<String>? endGameReport,
+    Map<String, int>? voteTally,
+    Map<String, String>? votesByVoter,
+    List<String>? nightReport,
+    List<String>? dayReport,
+    Map<String, List<String>>? privateMessages,
+    List<Map<String, dynamic>>? bulletinBoard,
+    bool eyesOpen = true,
+    List<String> claimedPlayerIds = const [],
+    List<String> roleConfirmedPlayerIds = const [],
+    List<String>? gameHistory,
+    Map<String, String>? deadPoolBets,
+    int globalDrinkDebt = 0,
+    String hostName = 'Club Host',
+  }) {
+    return GameMessage(type: 'state_sync', payload: {
+      'phase': phase,
+      'dayCount': dayCount,
+      'players': players,
+      if (currentStep != null) 'currentStep': currentStep,
+      if (bulletinBoard != null) 'bulletinBoard': bulletinBoard,
+      'eyesOpen': eyesOpen,
+      if (winnerId != null) 'winner': winnerId,
+      if (endGameReport != null) 'endGameReport': endGameReport,
+      if (voteTally != null) 'voteTally': voteTally,
+      if (votesByVoter != null) 'votesByVoter': votesByVoter,
+      if (nightReport != null) 'nightReport': nightReport,
+      if (dayReport != null) 'dayReport': dayReport,
+      if (privateMessages != null) 'privateMessages': privateMessages,
+      'claimedPlayerIds': claimedPlayerIds,
+      'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
+      if (gameHistory != null) 'gameHistory': gameHistory,
+      if (deadPoolBets != null) 'deadPoolBets': deadPoolBets,
+      'globalDrinkDebt': globalDrinkDebt,
+      'hostName': hostName,
+    });
+  }
+
+  factory GameMessage.stepUpdate({
+    required String? stepId,
+    required String? title,
+    required String? readAloudText,
+    required String phase,
+  }) {
+    return GameMessage(type: 'step_update', payload: {
+      'stepId': stepId,
+      'title': title,
+      'readAloudText': readAloudText,
+      'phase': phase,
+    });
+  }
+
+  factory GameMessage.bulletin({
+    required String title,
+    required String content,
+    String? roleId,
+  }) {
+    return GameMessage(type: 'bulletin', payload: {
+      'title': title,
+      'content': content,
+      if (roleId != null) 'roleId': roleId,
+    });
+  }
+
+  factory GameMessage.playerKicked({required String playerId}) {
+    return GameMessage(type: 'player_kicked', payload: {
+      'playerId': playerId,
+    });
+  }
+
+  factory GameMessage.ping() => const GameMessage(type: 'ping');
+
+  factory GameMessage.joinCodeResponse(
+      {required bool accepted, String? error}) {
+    return GameMessage(type: 'join_response', payload: {
+      'accepted': accepted,
+      if (error != null) 'error': error,
+    });
+  }
+
+  factory GameMessage.claimResponse({required bool success, String? playerId}) {
+    return GameMessage(type: 'claim_response', payload: {
+      'success': success,
+      if (playerId != null) 'playerId': playerId,
+    });
+  }
+
+  factory GameMessage.effect(String effectType,
+      {int? duration, Map<String, dynamic>? payload}) {
+    return GameMessage(type: 'effect', payload: {
+      'effectType': effectType,
+      if (duration != null) 'duration': duration,
+      if (payload != null) 'payload': payload,
+    });
+  }
+
+  factory GameMessage.sound(String soundId, {double? volume}) {
+    return GameMessage(type: 'sound', payload: {
+      'soundId': soundId,
+      if (volume != null) 'volume': volume,
+    });
+  }
+
+  factory GameMessage.playerJoin({
+    required String joinCode,
+    String? playerName,
+    String? uid,
+  }) {
+    return GameMessage(type: 'player_join', payload: {
+      'joinCode': joinCode,
+      if (playerName != null && playerName.trim().isNotEmpty)
+        'playerName': playerName.trim(),
+      if (uid != null && uid.trim().isNotEmpty) 'uid': uid.trim(),
+    });
+  }
+
+  factory GameMessage.playerClaim({required String playerId}) {
+    return GameMessage(type: 'player_claim', payload: {
+      'playerId': playerId,
+    });
+  }
+
+  factory GameMessage.playerVote({
+    required String voterId,
+    required String targetId,
+  }) {
+    return GameMessage(type: 'player_vote', payload: {
+      'voterId': voterId,
+      'targetId': targetId,
+    });
+  }
+
+  factory GameMessage.playerAction({
+    required String stepId,
+    required String targetId,
+    String? voterId,
+    String? actorId,
+  }) {
+    return GameMessage(type: 'player_action', payload: {
+      'stepId': stepId,
+      'targetId': targetId,
+      if (voterId != null) 'voterId': voterId,
+      if (actorId != null) 'actorId': actorId,
+    });
+  }
+
+  factory GameMessage.actionResult({
+    required String stepId,
+    required String actorId,
+    required String targetId,
+    required String resultText,
+  }) {
+    return GameMessage(type: 'action_result', payload: {
+      'stepId': stepId,
+      'actorId': actorId,
+      'targetId': targetId,
+      'resultText': resultText,
+    });
+  }
+
+  factory GameMessage.playerBet({
+    required String playerId,
+    required String targetPlayerId,
+  }) {
+    return GameMessage(type: 'player_bet', payload: {
+      'playerId': playerId,
+      'targetPlayerId': targetPlayerId,
+    });
+  }
+
+  factory GameMessage.ghostChat({
+    required String playerId,
+    required String message,
+    String? playerName,
+  }) {
+    return GameMessage(type: 'ghost_chat', payload: {
+      'playerId': playerId,
+      'message': message,
+      if (playerName != null) 'playerName': playerName,
+    });
+  }
+
+  factory GameMessage.playerLeave({required String playerId}) {
+    return GameMessage(type: 'player_leave', payload: {
+      'playerId': playerId,
+    });
+  }
+
+  factory GameMessage.playerReconnect(
+      {required List<String> claimedPlayerIds}) {
+    return GameMessage(type: 'player_reconnect', payload: {
+      'claimedPlayerIds': claimedPlayerIds,
+    });
+  }
+
+  factory GameMessage.playerRoleConfirm({required String playerId}) {
+    return GameMessage(type: 'player_role_confirm', payload: {
+      'playerId': playerId,
+    });
+  }
+
+  factory GameMessage.pong() => const GameMessage(type: 'pong');
+
+  @override
+  String toString() => 'GameMessage($type, $payload)';
+}

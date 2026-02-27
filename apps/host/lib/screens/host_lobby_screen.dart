@@ -415,42 +415,74 @@ class _NetworkBar extends StatelessWidget {
         isPrismatic: isOnline,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         borderColor: accent.withValues(alpha: 0.4),
-        child: Row(
-          children: [
-            Icon(icon, size: 16, color: accent),
-            const SizedBox(width: 10),
-            if (isConnecting)
-              SizedBox(
-                width: 12,
-                height: 12,
-                child: CircularProgressIndicator(
-                  strokeWidth: 1.5,
-                  color: accent,
-                ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isCompact = constraints.maxWidth < 280;
+            final labelWidget = Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.labelSmall?.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+                fontFamily: 'RobotoMono',
               ),
-            if (isConnecting) const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-                style: textTheme.labelSmall?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2.0,
-                  fontFamily: 'RobotoMono',
-                ),
-              ),
-            ),
-            const Spacer(),
-            SizedBox(
+            );
+            final switchWidget = SizedBox(
               height: 28,
               child: Switch.adaptive(
                 value: isOnline,
                 activeTrackColor: accent,
                 onChanged: isConnecting ? null : onToggle,
               ),
-            ),
-          ],
+            );
+            if (isCompact) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(icon, size: 16, color: accent),
+                      const SizedBox(width: 8),
+                      if (isConnecting)
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            color: accent,
+                          ),
+                        ),
+                      if (isConnecting) const SizedBox(width: 6),
+                      Expanded(child: labelWidget),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Align(alignment: Alignment.centerRight, child: switchWidget),
+                ],
+              );
+            }
+            return Row(
+              children: [
+                Icon(icon, size: 16, color: accent),
+                const SizedBox(width: 10),
+                if (isConnecting)
+                  SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      color: accent,
+                    ),
+                  ),
+                if (isConnecting) const SizedBox(width: 8),
+                Flexible(child: labelWidget),
+                const Spacer(),
+                switchWidget,
+              ],
+            );
+          },
         ),
       ),
     );
@@ -610,6 +642,34 @@ class _LaunchBar extends StatelessWidget {
       badgeIcon = Icons.check_circle_rounded;
     }
 
+    final badge = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: badgeColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: badgeColor.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(badgeIcon, size: 16, color: badgeColor),
+          const SizedBox(width: 6),
+          Text(
+            badgeText,
+            overflow: TextOverflow.ellipsis,
+            style: textTheme.labelSmall?.copyWith(
+              color: badgeColor,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
+              fontFamily: 'RobotoMono',
+            ),
+          ),
+        ],
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
       child: CBGlassTile(
@@ -620,48 +680,38 @@ class _LaunchBar extends StatelessWidget {
             : scheme.onSurfaceVariant.withValues(alpha: 0.3),
         child: SafeArea(
           top: false,
-          child: Row(
-            children: [
-              Flexible(
-                flex: 0,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: badgeColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: badgeColor.withValues(alpha: 0.4),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 380;
+              if (isCompact) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(alignment: Alignment.centerLeft, child: badge),
+                    const SizedBox(height: 10),
+                    CBPrimaryButton(
+                      label: 'CONTINUE TO SETUP',
+                      icon: Icons.arrow_forward_rounded,
+                      onPressed: canStart ? onContinue : null,
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Flexible(flex: 0, child: badge),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CBPrimaryButton(
+                      label: 'CONTINUE TO SETUP',
+                      icon: Icons.arrow_forward_rounded,
+                      onPressed: canStart ? onContinue : null,
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(badgeIcon, size: 16, color: badgeColor),
-                      const SizedBox(width: 6),
-                      Text(
-                        badgeText,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.labelSmall?.copyWith(
-                          color: badgeColor,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
-                          fontFamily: 'RobotoMono',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: CBPrimaryButton(
-                  label: 'CONTINUE TO SETUP',
-                  icon: Icons.arrow_forward_rounded,
-                  onPressed: canStart ? onContinue : null,
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -810,6 +860,8 @@ class _GlassIconButton extends StatelessWidget {
     this.label,
   });
 
+  static const double _minTouchTarget = 44;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -823,10 +875,15 @@ class _GlassIconButton extends StatelessWidget {
             onTap();
           },
           borderRadius: BorderRadius.circular(10),
-          child: Container(
-            padding: expanded
-                ? const EdgeInsets.symmetric(horizontal: 10, vertical: 10)
-                : const EdgeInsets.all(13),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minWidth: _minTouchTarget,
+              minHeight: _minTouchTarget,
+            ),
+            child: Container(
+              padding: expanded
+                  ? const EdgeInsets.symmetric(horizontal: 12, vertical: 12)
+                  : const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
@@ -856,7 +913,8 @@ class _GlassIconButton extends StatelessWidget {
                       ),
                     ],
                   )
-                : Icon(icon, size: 18, color: color),
+                : Icon(icon, size: 20, color: color),
+            ),
           ),
         ),
       ),

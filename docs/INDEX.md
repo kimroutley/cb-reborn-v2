@@ -76,6 +76,8 @@ Rolling status, QA checklists, and runbooks that track the live state of the pro
 | [`docs/operations/player-ui-polish-qa-2026-02-21.md`](operations/player-ui-polish-qa-2026-02-21.md) | QA checklist for the player app UI polish pass. |
 | [`docs/operations/host-lobby-ui-qa-2026-02-21.md`](operations/host-lobby-ui-qa-2026-02-21.md) | QA checklist for the host lobby UI refactor. |
 | [`docs/operations/player-startup-cache-qa-checklist.md`](operations/player-startup-cache-qa-checklist.md) | QA checklist for player app startup and cache behavior. |
+| [`docs/COMMUNICATION_AND_PUSH.md`](COMMUNICATION_AND_PUSH.md) | Host–player communication audit, push notification event catalog, and target architecture. |
+| [`docs/operations/LETS_DO_IT_RUNBOOK.md`](operations/LETS_DO_IT_RUNBOOK.md) | **Unblock CI deploy, VAPID/push setup, and real-device validation** — single runbook. |
 | [`docs/operations/TODAYS_RUNBOOK_2026-02-20.md`](operations/TODAYS_RUNBOOK_2026-02-20.md) | Day-of runbook for the 2026-02-20 work session. |
 | [`docs/operations/runbook-execution-2026-02-20.md`](operations/runbook-execution-2026-02-20.md) | Execution log for the 2026-02-20 runbook. |
 | [`docs/operations/STATUS_UPDATE_TEMPLATE_2026-02-20.md`](operations/STATUS_UPDATE_TEMPLATE_2026-02-20.md) | Template used for status updates on 2026-02-20. |

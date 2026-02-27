@@ -17,7 +17,9 @@ import 'about_screen.dart';
 import 'settings_screen.dart';
 
 // Trigger provider for confirming game start
-final confirmGameStartProvider = NotifierProvider<ConfirmGameStartNotifier, int>(ConfirmGameStartNotifier.new);
+final confirmGameStartProvider =
+    NotifierProvider<ConfirmGameStartNotifier, int>(
+        ConfirmGameStartNotifier.new);
 
 class ConfirmGameStartNotifier extends Notifier<int> {
   @override
@@ -66,8 +68,9 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
 
     // Only allow if we are actually waiting for confirmation
     if (onboarding.awaitingStartConfirmation) {
-      ref.read(playerOnboardingProvider.notifier)
-         .setAwaitingStartConfirmation(false);
+      ref
+          .read(playerOnboardingProvider.notifier)
+          .setAwaitingStartConfirmation(false);
       _beginTransitionToGame();
     }
   }
@@ -75,6 +78,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
   void _onBridgeChanged(ActiveBridge? previous, ActiveBridge next) {
     final nav = ref.read(playerNavigationProvider.notifier);
     final onboarding = ref.read(playerOnboardingProvider.notifier);
+    final onboardingState = ref.read(playerOnboardingProvider);
 
     final prevState = previous?.state;
     final prevPhase = prevState?.phase;
@@ -136,11 +140,23 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
       default:
         break;
     }
+
+    // Safety net: if the player has already confirmed role during setup,
+    // auto-progress without requiring an extra tap.
+    if (nextPhase == 'setup' && onboardingState.awaitingStartConfirmation) {
+      final myId = nextState.myPlayerId;
+      final isRoleConfirmed =
+          myId != null && nextState.roleConfirmedPlayerIds.contains(myId);
+      if (isRoleConfirmed) {
+        onboarding.setAwaitingStartConfirmation(false);
+        _beginTransitionToGame();
+      }
+    }
   }
 
   // _showStartConfirmationDialog removed
 
-    void _beginTransitionToGame() {
+  void _beginTransitionToGame() {
     if (!mounted) {
       return;
     }

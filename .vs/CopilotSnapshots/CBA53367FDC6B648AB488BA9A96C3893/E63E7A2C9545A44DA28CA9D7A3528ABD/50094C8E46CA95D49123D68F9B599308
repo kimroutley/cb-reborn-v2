@@ -1,0 +1,86 @@
+﻿{
+  "inputs": [
+    {
+      "id": "arg0",
+      "type": "promptString",
+      "description": "API key for authentication",
+      "default": "",
+      "password": true
+    }
+  ],
+  "servers": {
+    "GitHub": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "internalMetadata": {
+        "description": "Connect AI assistants to GitHub - manage repos, issues, PRs, and workflows through natural language.",
+        "version": "0.31.0",
+        "repository": "https://github.com/github/github-mcp-server",
+        "id": "io.github.github/github-mcp-server",
+        "owner_avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+        "publishedDate": "19/02/2026 4:48:08 PM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    },
+    "oraios/serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "${workspaceFolder}"
+      ],
+      "internalMetadata": {
+        "description": "Semantic code retrieval & editing tools for coding agents.",
+        "version": "1.0.0",
+        "repository": "https://github.com/oraios/serena",
+        "id": "oraios/serena",
+        "owner_avatar_url": "https://avatars.githubusercontent.com/u/181485370?v=4",
+        "publishedDate": "9/09/2025 10:55:23 AM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    },
+    "Context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@1.0.31"
+      ],
+      "env": {
+        "CONTEXT7_API_KEY": "${input:arg0}"
+      },
+      "internalMetadata": {
+        "description": "Up-to-date code docs for any prompt",
+        "version": "1.0.31",
+        "repository": "https://github.com/upstash/context7",
+        "id": "io.github.upstash/context7",
+        "owner_avatar_url": "https://avatars.githubusercontent.com/u/74989412?v=4",
+        "publishedDate": "28/11/2025 12:23:38 PM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    },
+    "ContextStream MCP Server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@contextstream/mcp-server@0.3.63"
+      ],
+      "internalMetadata": {
+        "description": "ContextStream MCP server for code context, memory, search, and AI tools.",
+        "version": "0.3.63",
+        "repository": "https://github.com/contextstream/mcp-server",
+        "id": "io.github.contextstreamio/mcp-server",
+        "owner_avatar_url": "https://avatars.githubusercontent.com/u/243372423?v=4",
+        "publishedDate": "2/01/2026 10:09:41 PM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    }
+  }
+}

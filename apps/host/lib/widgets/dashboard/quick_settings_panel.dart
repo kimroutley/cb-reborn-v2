@@ -62,7 +62,7 @@ class QuickSettingsPanel extends ConsumerWidget {
           // Tie Break
           _SettingRow(
             label: 'TIE BREAK',
-            value: TieBreakStrategyExtension(gameState.tieBreakStrategy).label,
+            value: gameState.tieBreakStrategy.label,
             icon: Icons.balance_rounded,
             color: scheme.primary,
             onTap: () => _showTieBreakPicker(context, ref),
@@ -323,14 +323,14 @@ class QuickSettingsPanel extends ConsumerWidget {
                 size: 18,
               ),
               title: Text(
-                TieBreakStrategyExtension(strategy).label,
+                strategy.label,
                 style: textTheme.labelMedium!.copyWith(
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.0,
                 ),
               ),
               subtitle: Text(
-                TieBreakStrategyExtension(strategy).description,
+                strategy.description,
                 style: textTheme.labelSmall!.copyWith(
                   color: scheme.onSurface.withValues(alpha: 0.6),
                   fontSize: 11,

@@ -527,8 +527,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     HostSettings settings,
     HostSettingsNotifier notifier,
   ) {
-    showThemedBottomSheet(
+    showThemedBottomSheet<void>(
       context: context,
+      accentColor: Theme.of(context).colorScheme.tertiary,
       child: PersonalityPickerModal(
         selectedPersonalityId: settings.hostPersonalityId,
         onPersonalitySelected: (id) {

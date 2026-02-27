@@ -1,0 +1,89 @@
+﻿import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+import '../screens/dashboard_view.dart';
+
+class NerveCenterSheet extends StatelessWidget {
+  final GameState gameState;
+  final Game controller;
+  final VoidCallback onBack;
+
+  const NerveCenterSheet({
+    super.key,
+    required this.gameState,
+    required this.controller,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    
+    return DraggableScrollableSheet(
+      initialChildSize: 0.4,
+      minChildSize: 0.1,
+      maxChildSize: 0.95,
+      builder: (context, scrollController) {
+        return CBGlassTile(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          borderColor: scheme.primary.withValues(alpha: 0.3),
+          isPrismatic: true,
+          child: Column(
+            children: [
+              // Handle
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: scheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Sticky Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Icon(Icons.radar_rounded, color: scheme.primary, size: 20),
+                    const SizedBox(width: 12),
+                    Text(
+                      'NERVE CENTER',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.bold,
+                        color: scheme.primary,
+                      ),
+                    ),
+                    const Spacer(),
+                    CBBadge(
+                      text: "PHASE: ${gameState.phase.name.toUpperCase()}",
+                      color: scheme.secondary,
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 32),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: DashboardView(
+                    gameState: gameState,
+                    onAction: controller.advancePhase,
+                    onAddMock: controller.addBot,
+                    eyesOpen: gameState.eyesOpen,
+                    onToggleEyes: controller.toggleEyes,
+                    onBack: onBack,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

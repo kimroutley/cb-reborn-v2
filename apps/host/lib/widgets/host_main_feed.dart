@@ -363,11 +363,8 @@ class _HostMainFeedState extends ConsumerState<HostMainFeed> {
                 tappableRole = roleCatalogMap[entry.roleId];
               }
 
-              // Tag host-only recap entries so the host can distinguish them
-              if (entry.isHostOnly &&
-                  entry.type != 'hostIntel' &&
-                  (entry.title.contains('RECAP') ||
-                      entry.title.contains('NARRATOR'))) {
+              // Tag all host-only entries (e.g. spicy recap) so the host can distinguish them
+              if (entry.isHostOnly && entry.type != 'hostIntel') {
                 final isSpicy = entry.title.contains('SPICY');
                 bubbleTags = [
                   ...?bubbleTags,

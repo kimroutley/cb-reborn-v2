@@ -1,0 +1,362 @@
+﻿import 'package:cb_models/cb_models.dart' hide PlayerSnapshot;
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../active_bridge.dart';
+import '../player_bridge.dart';
+import '../player_bridge_actions.dart';
+import '../widgets/biometric_identity_header.dart';
+import '../widgets/custom_drawer.dart';
+import '../widgets/game_action_tile.dart';
+import '../widgets/ghost_lounge_content.dart';
+import 'role_reveal_screen.dart';
+import '../widgets/role_detail_dialog.dart';
+
+class GameScreen extends ConsumerStatefulWidget {
+  const GameScreen({super.key});
+
+  @override
+  ConsumerState<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends ConsumerState<GameScreen> {
+  final ScrollController _scrollController = ScrollController();
+  final TextEditingController _chatController = TextEditingController();
+  String? _lastStepId;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _chatController.dispose();
+    super.dispose();
+  }
+
+  void _sendMessage() {
+    final text = _chatController.text.trim();
+    if (text.isEmpty) return;
+
+    final player = ref.read(activeBridgeProvider).state.myPlayerSnapshot;
+    if (player == null) return;
+
+    ref.read(activeBridgeProvider).actions.sendBulletin(
+          title: player.roleName, // Character Name for anonymity
+          floatContent: text,
+          roleId: player.roleId,
+        );
+
+    _chatController.clear();
+    FocusScope.of(context).unfocus();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
+  void _showRoleReveal(PlayerSnapshot player, PlayerBridgeActions bridge) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => RoleRevealScreen(
+          player: player,
+          onConfirm: () => bridge.confirmRole(playerId: player.id),
+        ),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final activeBridge = ref.watch(activeBridgeProvider);
+    final gameState = activeBridge.state;
+    final bridge = activeBridge.actions;
+    final player = gameState.myPlayerSnapshot;
+    final playerId = gameState.myPlayerId;
+
+    if (player == null || playerId == null) {
+      return CBPrismScaffold(
+        title: 'CONNECTING...',
+        drawer: const CustomDrawer(),
+        body: Center(child: CBBreathingLoader()),
+      );
+    }
+
+    // Scroll handling
+    final newStep = gameState.currentStep;
+    final canAct =
+        newStep != null && (newStep.roleId == player.roleId || newStep.isVote);
+
+    if (newStep != null && newStep.id != _lastStepId && canAct) {
+      _lastStepId = newStep.id;
+      HapticFeedback.mediumImpact();
+      _scrollToBottom();
+    } else if (newStep == null) {
+      _lastStepId = null;
+    }
+
+    final isRoleConfirmed = gameState.roleConfirmedPlayerIds.contains(playerId);
+    if (gameState.phase == 'setup' && !isRoleConfirmed) {
+      _showRoleReveal(player, bridge);
+    }
+
+    if (!player.isAlive) {
+      return GhostLoungeContent(
+        gameState: gameState,
+        playerId: playerId,
+        bridge: bridge,
+      );
+    }
+
+    final roleColor =
+        Color(int.parse(player.roleColorHex.replaceAll('#', '0xff')));
+
+    return Theme(
+      data: CBTheme.buildTheme(CBTheme.buildColorScheme(roleColor)),
+      child: CBPrismScaffold(
+        title: 'GAME TERMINAL',
+        drawer: const CustomDrawer(),
+        body: Column(
+          children: [
+            BiometricIdentityHeader(
+              player: player,
+              roleColor: roleColor,
+              isMyTurn: canAct,
+            ),
+            Expanded(
+              child: ListView(
+                controller: _scrollController,
+                padding: const EdgeInsets.only(top: 16, bottom: 200),
+                children: [
+                  // Phase/Day Header
+                  CBFeedSeparator(
+                    label:
+                        "${gameState.phase.toUpperCase()} • DAY ${gameState.dayCount}",
+                    color: roleColor,
+                    isCinematic: true,
+                  ),
+
+                  // Bulletin Board
+                  ..._buildBulletinList(gameState, player, scheme),
+
+                  // Private Messages
+                  if (gameState.privateMessages.containsKey(playerId))
+                    ..._buildPrivateMessages(
+                        gameState.privateMessages[playerId]!, scheme),
+
+                  // Current Step Narration
+                  if (newStep != null && newStep.readAloudText.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: CBMessageBubble(
+                        sender: 'DIRECTIVE',
+                        message: newStep.readAloudText,
+                        avatarAsset: 'assets/roles/${player.roleId}.png',
+                        color: roleColor,
+                        style: CBMessageStyle.standard,
+                        isSender: false,
+                        groupPosition: CBMessageGroupPosition.single,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            _ChatInputBar(
+              controller: _chatController,
+              onSend: _sendMessage,
+              roleColor: roleColor,
+            ),
+          ],
+        ),
+        bottomNavigationBar: canAct
+            ? _buildGameActionBar(
+                context,
+                newStep,
+                roleColor,
+                player,
+                gameState,
+                playerId,
+                bridge,
+              )
+            : null,
+      ),
+    );
+  }
+
+  List<Widget> _buildBulletinList(
+      List<BulletinEntry> entries, ColorScheme scheme) {
+    if (entries.isEmpty) return [];
+
+    final widgets = <Widget>[];
+    if (entries.isNotEmpty) {
+      widgets.add(const CBFeedSeparator(label: 'PUBLIC FEED'));
+    }
+
+    for (int i = 0; i < entries.length; i++) {
+      final entry = entries[i];
+      final prevEntry = i > 0 ? entries[i - 1] : null;
+      final nextEntry = i < entries.length - 1 ? entries[i + 1] : null;
+
+      final role = roleCatalogMap[entry.roleId] ?? roleCatalog.first;
+      final color = entry.roleId != null
+          ? CBColors.fromHex(role.colorHex)
+          : scheme.primary;
+      final senderName = role.id == 'unassigned' ? entry.title : role.name;
+
+      final isPrevSameSender = prevEntry != null &&
+          prevEntry.title == entry.title; // Simplified check
+      final isNextSameSender =
+          nextEntry != null && nextEntry.title == entry.title;
+
+      CBMessageGroupPosition groupPos = CBMessageGroupPosition.single;
+      if (isPrevSameSender && isNextSameSender) {
+        groupPos = CBMessageGroupPosition.middle;
+      } else if (isPrevSameSender && !isNextSameSender) {
+        groupPos = CBMessageGroupPosition.bottom;
+      } else if (!isPrevSameSender && isNextSameSender) {
+        groupPos = CBMessageGroupPosition.top;
+      }
+
+      widgets.add(CBMessageBubble(
+        sender: senderName,
+        message: entry.content,
+        style: entry.type == 'system'
+            ? CBMessageStyle.system
+            : CBMessageStyle.narrative,
+        color: color,
+        avatarAsset: entry.roleId != null ? role.assetPath : null,
+        groupPosition: groupPos,
+        onAvatarTap: entry.roleId != null
+            ? () => showRoleDetailDialog(context, role)
+            : null,
+      ));
+    }
+    return widgets;
+  }
+
+  List<Widget> _buildPrivateMessages(
+      List<String> messages, ColorScheme scheme) {
+    if (messages.isEmpty) return [];
+
+    final widgets = <Widget>[];
+    widgets.add(const CBFeedSeparator(label: 'ENCRYPTED INTEL'));
+
+    for (int i = 0; i < messages.length; i++) {
+      final msg = messages[i];
+      // Private messages usually come from System or specific roles but stored as strings.
+      // We'll treat them as a continuous stream from "HQ/Security"
+
+      CBMessageGroupPosition groupPos = CBMessageGroupPosition.single;
+      if (messages.length > 1) {
+        if (i == 0) {
+          groupPos = CBMessageGroupPosition.top;
+        } else if (i == messages.length - 1) {
+          groupPos = CBMessageGroupPosition.bottom;
+        } else {
+          groupPos = CBMessageGroupPosition.middle;
+        }
+      }
+
+      widgets.add(CBMessageBubble(
+        sender: 'SECURITY',
+        message: msg,
+        style: CBMessageStyle.standard,
+        color: scheme.tertiary,
+        isSender: false,
+        avatarAsset: 'assets/roles/security.png',
+        groupPosition: groupPos,
+      ));
+    }
+    return widgets;
+  }
+
+  Widget _buildGameActionBar(
+    BuildContext context,
+    StepSnapshot step,
+    Color roleColor,
+    PlayerSnapshot player,
+    PlayerGameState gameState,
+    String playerId,
+    PlayerBridgeActions bridge,
+  ) {
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: CBPanel(
+          padding: const EdgeInsets.all(12),
+          borderColor: roleColor.withValues(alpha: 0.4),
+          child: GameActionTile(
+            step: step,
+            roleColor: roleColor,
+            player: player,
+            gameState: gameState,
+            playerId: playerId,
+            bridge: bridge,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatInputBar extends StatelessWidget {
+  final TextEditingController controller;
+  final VoidCallback onSend;
+  final Color roleColor;
+
+  const _ChatInputBar({
+    required this.controller,
+    required this.onSend,
+    required this.roleColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Material(
+      color: scheme.surface.withValues(alpha: 0.9),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: CBGlassTile(
+          borderColor: roleColor.withValues(alpha: 0.5),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  style: theme.textTheme.bodyMedium,
+                  textInputAction: TextInputAction.send,
+                  onSubmitted: (_) => onSend(),
+                  decoration: InputDecoration(
+                    hintText: 'Send message...',
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.send_rounded, color: roleColor),
+                onPressed: onSend,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

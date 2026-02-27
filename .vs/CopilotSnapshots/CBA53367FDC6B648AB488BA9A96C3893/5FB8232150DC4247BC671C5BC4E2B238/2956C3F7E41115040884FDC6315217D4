@@ -1,0 +1,106 @@
+﻿import 'package:flutter/material.dart';
+import 'cb_panel.dart'; // Import specific widget to avoid circular dependency
+// Assuming colors are here
+
+class CBSlidingPanel extends StatelessWidget {
+  final bool isOpen;
+  final VoidCallback onClose;
+  final Widget child;
+  final double width;
+  final String title;
+
+  const CBSlidingPanel({
+    super.key,
+    required this.isOpen,
+    required this.onClose,
+    required this.child,
+    this.width = 400,
+    this.title = 'DETAILS',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Cyberpunk easing: snappy entry, smooth exit
+    const curve = Curves.easeOutExpo;
+    const duration = Duration(milliseconds: 400);
+
+    return Stack(
+      children: [
+        // 1. Scrim (Tap to close)
+        if (isOpen)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: onClose,
+              child: AnimatedOpacity(
+                duration: duration,
+                curve: curve,
+                opacity: isOpen ? 1 : 0,
+                child: Container(
+                  color: Colors.black
+                      .withValues(alpha: 0.5), // Valid Flutter 3.27+ syntax
+                ),
+              ),
+            ),
+          ),
+
+        // 2. The Sliding Panel (From Right)
+        AnimatedPositioned(
+          duration: duration,
+          curve: curve,
+          top: 0,
+          bottom: 0,
+          right: isOpen ? 0 : -width, // Slide out completely
+          width: width,
+          child: CBPanel(
+            padding: EdgeInsets.zero,
+            borderColor:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outlineVariant
+                            .withValues(alpha: 0.2),
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        title.toUpperCase(),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  letterSpacing: 2.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: onClose,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ],
+                  ),
+                ),
+                // Content
+                Expanded(
+                  child: child,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

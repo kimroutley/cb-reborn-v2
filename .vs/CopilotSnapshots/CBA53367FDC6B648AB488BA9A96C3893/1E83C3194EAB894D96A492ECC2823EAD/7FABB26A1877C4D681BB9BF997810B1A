@@ -1,0 +1,162 @@
+﻿import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_models/cb_models.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+
+import '../sheets/message_context_sheet.dart';
+
+class HostMainFeed extends StatefulWidget {
+  final GameState gameState;
+  final Function(String message) onSendNarrative;
+
+  const HostMainFeed({
+    super.key,
+    required this.gameState,
+    required this.onSendNarrative,
+  });
+
+  @override
+  State<HostMainFeed> createState() => _HostMainFeedState();
+}
+
+class _HostMainFeedState extends State<HostMainFeed> {
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  void _onSend() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    widget.onSendNarrative(text);
+    _controller.clear();
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    // Use game history as the base for the feed
+    final history = widget.gameState.gameHistory;
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            itemCount: history.length,
+            itemBuilder: (context, index) {
+              final log = history[index];
+              
+              // Handle special log types (like [GHOST] prefixes)
+              if (log.startsWith('[GHOST] ')) {
+                final withoutPrefix = log.replaceFirst('[GHOST] ', '');
+                final colonIdx = withoutPrefix.indexOf(': ');
+                final sender = colonIdx != -1 
+                    ? withoutPrefix.substring(0, colonIdx) 
+                    : 'GHOST';
+                final message = colonIdx != -1 
+                    ? withoutPrefix.substring(colonIdx + 2) 
+                    : withoutPrefix;
+
+                return CBMessageBubble(
+                  sender: sender,
+                  message: message,
+                  style: CBMessageStyle.standard,
+                  color: scheme.primary,
+                  isSender: false,
+                  isCompact: true,
+                  onTap: () => showMessageContextActions(
+                    context,
+                    playerName: sender,
+                    message: message,
+                  ),
+                );
+              }
+              
+              if (log.startsWith('[NARRATION] ')) {
+                 return CBMessageBubble(
+                  sender: 'DIRECTIVE',
+                  message: log.replaceFirst('[NARRATION] ', ''),
+                  style: CBMessageStyle.narrative,
+                  color: scheme.secondary,
+                  isSender: true,
+                  isCompact: true,
+                  isPrismatic: true,
+                );
+              }
+
+              // Normal logs - use separators for major phase changes
+              if (log.startsWith('--- PHASE CHANGED TO:')) {
+                return CBFeedSeparator(
+                  label: log.replaceFirst('--- PHASE CHANGED TO: ', '').toUpperCase(),
+                  color: scheme.tertiary,
+                );
+              }
+
+              // Default system log bubble
+              return CBMessageBubble(
+                sender: 'SYSTEM',
+                message: log,
+                style: CBMessageStyle.system,
+                color: scheme.outline,
+                isSender: false,
+                isCompact: true,
+              );
+            },
+          ),
+        ),
+        
+        // Narrative Entry Area
+        CBPanel(
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          borderColor: scheme.primary.withValues(alpha: 0.3),
+          child: Row(
+            children: [
+              Expanded(
+                child: CBTextField(
+                  controller: _controller,
+                  hintText: 'Enter direct narration...',
+                  textStyle: textTheme.bodyMedium!,
+                  textInputAction: TextInputAction.send,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  onSubmitted: (_) => _onSend(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: _onSend,
+                icon: Icon(Icons.send_rounded, color: scheme.primary),
+                tooltip: 'Push Narration',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

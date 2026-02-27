@@ -1,0 +1,86 @@
+﻿import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_models/cb_models.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class GameSettingsSheet extends ConsumerWidget {
+  const GameSettingsSheet({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gameState = ref.watch(gameProvider);
+    final controller = ref.read(gameProvider.notifier);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return CBGlassTile(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'GAME SETTINGS',
+              style: textTheme.headlineSmall?.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Game Style
+            Text('Game Style', style: textTheme.titleMedium),
+            const SizedBox(height: 8),
+            SegmentedButton<GameStyle>(
+              segments: const [
+                ButtonSegment(value: GameStyle.reactive, label: Text('Reactive')),
+                ButtonSegment(value: GameStyle.chaos, label: Text('Chaos')),
+              ],
+              selected: {gameState.gameStyle},
+              onSelectionChanged: (newSelection) {
+                controller.setGameStyle(newSelection.first);
+              },
+            ),
+            const SizedBox(height: 24),
+
+            // Tie Breaks
+            SwitchListTile(
+              title: Text('Random Tie-Breaks', style: textTheme.titleMedium),
+              subtitle: Text('If votes are tied, a player is chosen randomly.'),
+              value: gameState.tieBreaksRandomly,
+              onChanged: (value) {
+                controller.setTieBreak(value);
+              },
+              activeColor: scheme.primary,
+            ),
+            const SizedBox(height: 16),
+
+            // Discussion Timer
+            ListTile(
+              title: Text('Discussion Timer', style: textTheme.titleMedium),
+              trailing: SizedBox(
+                width: 100,
+                child: CBTextField(
+                  initialValue: gameState.discussionTimerSeconds.toString(),
+                  keyboardType: TextInputType.number,
+                  onSubmitted: (value) {
+                    final seconds = int.tryParse(value) ?? 300;
+                    controller.setDiscussionTimer(seconds);
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            CBPrimaryButton(
+              label: 'CLOSE',
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

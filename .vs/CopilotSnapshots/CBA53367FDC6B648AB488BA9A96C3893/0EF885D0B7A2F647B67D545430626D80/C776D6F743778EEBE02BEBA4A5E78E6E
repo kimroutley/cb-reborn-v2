@@ -1,0 +1,51 @@
+﻿name: cb_host
+description: "Club Blackout Host App"
+publish_to: 'none'
+version: 1.0.0+1
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  animations: ^2.0.11
+  flutter_riverpod: ^3.0.0
+  riverpod_annotation: ^4.0.0
+  cb_models:
+    path: ../../packages/cb_models
+  cb_logic:
+    path: ../../packages/cb_logic
+  cb_theme:
+    path: ../../packages/cb_theme
+  cb_comms:
+    path: ../../packages/cb_comms
+  qr_flutter: ^4.1.0
+  firebase_core: ^4.4.0
+  cloud_firestore: ^6.1.2
+  firebase_auth: ^6.1.4
+  google_sign_in: ^7.2.0
+  app_links: ^7.0.0
+  hive_ce_flutter: ^2.3.4
+  firebase_analytics: ^12.0.1
+  intl: ^0.20.2
+  dynamic_color: ^1.1.2
+  package_info_plus: ^9.0.0
+  shared_preferences: ^2.2.3
+  flutter_secure_storage: ^9.0.0
+  collection: ^1.19.1
+  mobile_scanner: ^7.2.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  firebase_auth_mocks: ^0.15.1
+  hive_ce: ^2.19.3
+  riverpod_generator: ^4.0.0+1
+  build_runner: ^2.11.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/roles/
+    - assets/backgrounds/
+    - assets/images/

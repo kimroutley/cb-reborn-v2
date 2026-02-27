@@ -158,13 +158,13 @@ class EndGameView extends StatelessWidget {
           const SizedBox(height: 24),
 
           CBPrimaryButton(
-            label: 'PLAY AGAIN (SAME PLAYERS)',
+            label: 'REMATCH',
             icon: Icons.replay_rounded,
             onPressed: onRematchWithPlayers,
           ),
           const SizedBox(height: 10),
           CBGhostButton(
-            label: 'NEW GAME',
+            label: 'RETURN TO LOBBY',
             icon: Icons.refresh_rounded,
             onPressed: onReturnToLobby,
           ),

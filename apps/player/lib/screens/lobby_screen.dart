@@ -8,6 +8,7 @@ import '../active_bridge.dart';
 import '../player_bridge.dart';
 import '../player_onboarding_provider.dart';
 import '../widgets/custom_drawer.dart';
+import '../widgets/notifications_prompt_banner.dart';
 import 'player_home_shell.dart';
 import 'role_reveal_screen.dart';
 
@@ -51,27 +52,27 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     final bridgeState = ref.read(activeBridgeProvider).state;
     final player = bridgeState.myPlayerSnapshot;
     final myId = bridgeState.myPlayerId;
-    final isConfirmed = myId != null &&
-        bridgeState.roleConfirmedPlayerIds.contains(myId);
+    final isConfirmed =
+        myId != null && bridgeState.roleConfirmedPlayerIds.contains(myId);
 
     if (player == null) {
       ref.read(activeBridgeProvider).actions.sendBulletin(
-        title: 'LOUNGE',
-        floatContent: text,
-        roleId: null,
-      );
+            title: 'LOUNGE',
+            floatContent: text,
+            roleId: null,
+          );
     } else if (isConfirmed && player.roleId != 'unassigned') {
       ref.read(activeBridgeProvider).actions.sendBulletin(
-        title: player.roleName,
-        floatContent: text,
-        roleId: player.roleId,
-      );
+            title: player.roleName,
+            floatContent: text,
+            roleId: player.roleId,
+          );
     } else {
       ref.read(activeBridgeProvider).actions.sendBulletin(
-        title: player.name,
-        floatContent: text,
-        roleId: null,
-      );
+            title: player.name,
+            floatContent: text,
+            roleId: null,
+          );
     }
 
     _chatController.clear();
@@ -87,7 +88,12 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         barrierDismissible: false,
         builder: (context) => RoleRevealScreen(
           player: player,
-          onConfirm: () => bridge.confirmRole(playerId: player.id),
+          onConfirm: () {
+            bridge.confirmRole(playerId: player.id);
+            // If setup is waiting on manual start confirmation, progress
+            // immediately after identity acknowledgement.
+            ref.read(confirmGameStartProvider.notifier).trigger();
+          },
         ),
       );
     });
@@ -235,7 +241,10 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         myId != null && gameState.roleConfirmedPlayerIds.contains(myId);
     final isPastLobby = gameState.phase != 'lobby';
 
-    if (isPastLobby && hasRole && !isRoleConfirmed && _lastRevealedRoleId != myPlayer.roleId) {
+    if (isPastLobby &&
+        hasRole &&
+        !isRoleConfirmed &&
+        _lastRevealedRoleId != myPlayer.roleId) {
       _lastRevealedRoleId = myPlayer.roleId;
       _showRoleReveal(myPlayer);
     }
@@ -265,11 +274,15 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
     final (statusIcon, statusColor) = switch (status.tone) {
       _LobbyStatusTone.readyToJoin => (Icons.bolt_rounded, scheme.tertiary),
-      _LobbyStatusTone.waitingPlayers =>
-        (Icons.groups_3_rounded, scheme.secondary),
+      _LobbyStatusTone.waitingPlayers => (
+          Icons.groups_3_rounded,
+          scheme.secondary
+        ),
       _LobbyStatusTone.setup => (Icons.badge_rounded, scheme.primary),
-      _LobbyStatusTone.waitingHost =>
-        (Icons.hourglass_top_rounded, scheme.onSurfaceVariant),
+      _LobbyStatusTone.waitingHost => (
+          Icons.hourglass_top_rounded,
+          scheme.onSurfaceVariant
+        ),
     };
 
     return CBPrismScaffold(
@@ -281,6 +294,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
               children: [
+                const NotificationsPromptBanner(),
+                const SizedBox(height: 16),
                 // ── STATUS CARD ──
                 CBGlassTile(
                   isPrismatic: status.tone == _LobbyStatusTone.readyToJoin,
@@ -361,8 +376,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                       children: [
                         if (isRoleConfirmed && roleColor != null)
                           CBRoleAvatar(
-                            assetPath:
-                                'assets/roles/${myPlayer!.roleId}.png',
+                            assetPath: 'assets/roles/${myPlayer!.roleId}.png',
                             color: roleColor,
                             size: 44,
                             breathing: true,
@@ -375,8 +389,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                               color: scheme.primary.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color:
-                                    scheme.primary.withValues(alpha: 0.3),
+                                color: scheme.primary.withValues(alpha: 0.3),
                               ),
                             ),
                             child: Icon(Icons.person_rounded,
@@ -396,8 +409,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                                   color: isRoleConfirmed
                                       ? roleColor
                                       : scheme.onSurface,
-                                  shadows: isRoleConfirmed &&
-                                          roleColor != null
+                                  shadows: isRoleConfirmed && roleColor != null
                                       ? CBColors.textGlow(roleColor,
                                           intensity: 0.3)
                                       : null,
@@ -405,20 +417,16 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                               ),
                               if (isRoleConfirmed)
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.only(top: 4),
+                                  padding: const EdgeInsets.only(top: 4),
                                   child: CBMiniTag(
-                                    text: myPlayer!.roleName
-                                        .toUpperCase(),
-                                    color: roleColor ??
-                                        scheme.primary,
+                                    text: myPlayer!.roleName.toUpperCase(),
+                                    color: roleColor ?? scheme.primary,
                                   ),
                                 )
                               else
                                 Text(
                                   'SESSION ACCESS GRANTED',
-                                  style:
-                                      textTheme.labelSmall?.copyWith(
+                                  style: textTheme.labelSmall?.copyWith(
                                     color: scheme.onSurfaceVariant,
                                     fontSize: 9,
                                     letterSpacing: 1.0,
@@ -542,8 +550,10 @@ List<Widget> _buildBulletinList(
       }
     }
 
-    final isPrevSameSender = prevEntry != null && prevEntry.title == entry.title;
-    final isNextSameSender = nextEntry != null && nextEntry.title == entry.title;
+    final isPrevSameSender =
+        prevEntry != null && prevEntry.title == entry.title;
+    final isNextSameSender =
+        nextEntry != null && nextEntry.title == entry.title;
 
     CBMessageGroupPosition groupPos = CBMessageGroupPosition.single;
     if (isPrevSameSender && isNextSameSender) {

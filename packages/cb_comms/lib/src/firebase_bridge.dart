@@ -93,6 +93,24 @@ class FirebaseBridge {
     return playerPrivateDoc(playerId).snapshots();
   }
 
+  /// Reference to a player's push subscription doc (for Web Push targeting).
+  DocumentReference<Map<String, dynamic>> pushSubscriptionDoc(String playerId) =>
+      gameDoc.collection('push_subscriptions').doc(playerId);
+
+  /// Player: Store Web Push subscription so the backend can send notifications.
+  Future<void> setPushSubscription(
+    String playerId,
+    Map<String, dynamic> subscription,
+  ) async {
+    try {
+      await pushSubscriptionDoc(playerId).set(subscription);
+      debugPrint('[FirebaseBridge] Set push subscription for $playerId');
+    } catch (e) {
+      debugPrint('[FirebaseBridge] Failed to set push subscription: $e');
+      rethrow;
+    }
+  }
+
   /// Player: Send a join request (creates a claim in `joins` subcollection).
   Future<void> sendJoinRequest(String playerName) async {
     try {

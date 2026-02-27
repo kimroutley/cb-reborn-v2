@@ -1,0 +1,151 @@
+﻿import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_models/cb_models.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../sheets/message_context_sheet.dart';
+
+class HostMainFeed extends ConsumerStatefulWidget {
+  final GameState gameState;
+
+  const HostMainFeed({
+    super.key,
+    required this.gameState,
+  });
+
+  @override
+  ConsumerState<HostMainFeed> createState() => _HostMainFeedState();
+}
+
+class _HostMainFeedState extends ConsumerState<HostMainFeed> {
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  void _onSend() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    ref.read(gameProvider.notifier).postBulletin(
+      title: 'HOST',
+      content: text,
+      roleId: null, // Indicates a message from the host
+      type: 'chat',
+    );
+
+    _controller.clear();
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    // Use the unified bulletinBoard for the feed
+    final messages = widget.gameState.bulletinBoard;
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            itemCount: messages.length,
+            itemBuilder: (context, index) {
+              final entry = messages[index];
+              final isHost = entry.roleId == null;
+
+              // Resolve sender name (Host sees Player Name)
+              String senderName = entry.title;
+              String? avatarAsset;
+              Color bubbleColor = scheme.primary;
+
+              if (isHost) {
+                senderName = 'HOST';
+                avatarAsset = 'assets/roles/host_avatar.png'; // Assuming this exists
+                bubbleColor = scheme.secondary;
+              } else if (entry.roleId != null) {
+                try {
+                  final player = widget.gameState.players.firstWhere(
+                    (p) => p.role.id == entry.roleId,
+                  );
+                  senderName = player.name; // Host sees Player's real name
+                  avatarAsset = 'assets/roles/${player.role.id}.png';
+                  bubbleColor = CBColors.fromHex(player.role.colorHex);
+                } catch (_) {
+                  // Player not found, use default title
+                }
+              }
+
+              return CBMessageBubble(
+                sender: senderName,
+                message: entry.content,
+                style: isHost ? CBMessageStyle.narrative : CBMessageStyle.standard,
+                color: bubbleColor,
+                isSender: isHost,
+                isCompact: true,
+                isPrismatic: isHost,
+                avatarAsset: avatarAsset,
+                onTap: isHost ? null : () => showMessageContextActions(
+                  context,
+                  playerName: senderName,
+                  message: entry.content,
+                ),
+              );
+            },
+          ),
+        ),
+
+        // Narrative Entry Area
+        CBPanel(
+          margin: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          borderColor: scheme.primary.withValues(alpha: 0.3),
+          child: Row(
+            children: [
+              Expanded(
+                child: CBTextField(
+                  controller: _controller,
+                  hintText: 'Send public message...',
+                  textStyle: textTheme.bodyMedium!,
+                  textInputAction: TextInputAction.send,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  onSubmitted: (_) => _onSend(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: _onSend,
+                icon: Icon(Icons.send_rounded, color: scheme.primary),
+                tooltip: 'Send Message',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

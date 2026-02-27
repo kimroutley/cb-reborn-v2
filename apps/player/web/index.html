@@ -40,6 +40,12 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      window.__cbPwaInstallPrompt = e;
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

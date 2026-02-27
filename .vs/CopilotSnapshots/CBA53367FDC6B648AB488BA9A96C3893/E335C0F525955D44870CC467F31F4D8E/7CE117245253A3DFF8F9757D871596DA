@@ -1,0 +1,193 @@
+﻿import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../sheets/message_context_sheet.dart';
+
+// _HostChatEntry is no longer needed as we use BulletinEntry
+
+/// Host-side chat view showing ghost chat messages from dead players and
+/// allowing the host to send narrative messages.
+///
+/// Uses [CBGlassTile] for the container and [CBMessageBubble] for messages
+/// to mirror the Player App's chat aesthetics.
+class HostChatView extends ConsumerStatefulWidget {
+  final GameState gameState;
+
+  const HostChatView({super.key, required this.gameState});
+
+  @override
+  ConsumerState<HostChatView> createState() => _HostChatViewState();
+}
+
+class _HostChatViewState extends ConsumerState<HostChatView> {
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  /// No local state needed for messages now (using bulletinBoard)
+  // final List<_HostChatEntry> _hostMessages = [];
+
+  // Override dispose as usual
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Ghost parsing removed as it's separate from live feed.
+  // If we want ghost messages, we should integrate them into bulletinBoard
+  // or handle them via separate logic. For now, sticking to live feed.
+
+  void _sendNarrativeMessage() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    // Post to bulletin board as HOST
+    ref.read(gameProvider.notifier).postBulletin(
+      title: 'HOST',
+      content: text,
+      type: 'chat',
+      roleId: null,
+    );
+
+    _controller.clear();
+    // Scroll handling...
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final messages = widget.gameState.bulletinBoard;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CBSectionHeader(
+          title: 'COMMS CHANNEL',
+          icon: Icons.chat_bubble_outline_rounded,
+          color: scheme.secondary,
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: CBGlassTile(
+            borderColor: scheme.secondary.withValues(alpha: 0.25),
+            padding: EdgeInsets.zero,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: messages.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          'NO TRANSMISSIONS YET.',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurface.withValues(alpha: 0.3),
+                                letterSpacing: 1.5,
+                              ),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final entry = messages[index];
+                        final isHost = entry.roleId == null;
+
+                        String senderName = entry.title;
+                        String? avatarAsset;
+
+                        if (isHost) {
+                          senderName = 'HOST';
+                          avatarAsset = 'assets/roles/host_avatar.png';
+                        } else {
+                          try {
+                            final player = widget.gameState.players.firstWhere(
+                              (p) => p.role.id == entry.roleId,
+                            );
+                            senderName = player.name; // Host sees Player Name
+                            avatarAsset = 'assets/roles/${player.role.id}.png';
+                          } catch (_) {}
+                        }
+
+                        if (isHost) {
+                          return CBMessageBubble(
+                            sender: senderName,
+                            message: entry.content,
+                            style: CBMessageStyle.narrative,
+                            color: scheme.secondary,
+                            isSender: true,
+                            isCompact: true,
+                            isPrismatic: true,
+                          );
+                        }
+
+                        return CBMessageBubble(
+                          sender: senderName,
+                          message: entry.content,
+                          style: CBMessageStyle.standard,
+                          color: scheme.primary,
+                          isSender: false,
+                          isCompact: true,
+                          avatarAsset: avatarAsset,
+                          onTap: () => showMessageContextActions(
+                            context,
+                            playerName: senderName,
+                            message: entry.content,
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        CBGlassTile(
+          borderColor: scheme.secondary.withValues(alpha: 0.25),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: CBTextField(
+                  controller: _controller,
+                  textStyle: Theme.of(context).textTheme.bodyMedium!,
+                  textInputAction: TextInputAction.send,
+                  decoration: InputDecoration(
+                    hintText: 'Send narrative message...',
+                    hintStyle:
+                        Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.4),
+                            ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    border: InputBorder.none,
+                  ),
+                  onSubmitted: (_) => _sendNarrativeMessage(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: _sendNarrativeMessage,
+                icon: Icon(Icons.send_rounded, color: scheme.secondary),
+                tooltip: 'Send narrative',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}

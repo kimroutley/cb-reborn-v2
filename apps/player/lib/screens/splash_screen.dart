@@ -10,51 +10,49 @@ class SplashScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final scheme = theme.colorScheme;
-    return Scaffold(
-      body: CBNeonBackground(
-        child: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Logo placeholder - replace with actual asset when available
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(CBRadius.lg),
-                    border: Border.all(color: scheme.primary, width: 1.5),
-                    boxShadow:
-                        CBColors.boxGlow(scheme.primary, intensity: 0.25),
-                  ),
-                  child: Icon(
-                    Icons.nightlife,
-                    size: 60,
-                    color: scheme.primary,
-                  ),
-                ),
-                const SizedBox(height: CBSpace.x8),
-                Text(
-                  'CLUB BLACKOUT',
-                  style: textTheme.displayLarge!.copyWith(
-                    shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
-                  ),
-                ),
-                const SizedBox(height: CBSpace.x2),
-                Text(
-                  'REBORN',
-                  style: textTheme.labelLarge!.copyWith(
-                    color: scheme.secondary,
-                    shadows:
-                        CBColors.textGlow(scheme.secondary, intensity: 0.4),
-                  ),
-                ),
-                const SizedBox(height: CBSpace.x12),
-                const CBBreathingSpinner(size: 48),
-              ],
+    return CBPrismScaffold(
+      title: 'CLUB BLACKOUT',
+      showAppBar: false,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo placeholder - replace with actual asset when available
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(CBRadius.lg),
+                border: Border.all(color: scheme.primary, width: 1.5),
+                boxShadow:
+                    CBColors.boxGlow(scheme.primary, intensity: 0.25),
+              ),
+              child: Icon(
+                Icons.nightlife,
+                size: 60,
+                color: scheme.primary,
+              ),
             ),
-          ),
+            const SizedBox(height: CBSpace.x8),
+            Text(
+              'CLUB BLACKOUT',
+              style: textTheme.displayLarge!.copyWith(
+                shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
+              ),
+            ),
+            const SizedBox(height: CBSpace.x2),
+            Text(
+              'REBORN',
+              style: textTheme.labelLarge!.copyWith(
+                color: scheme.secondary,
+                shadows:
+                    CBColors.textGlow(scheme.secondary, intensity: 0.4),
+              ),
+            ),
+            const SizedBox(height: CBSpace.x12),
+            const CBBreathingSpinner(size: 48),
+          ],
         ),
       ),
     );

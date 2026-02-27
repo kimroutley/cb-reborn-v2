@@ -1,0 +1,122 @@
+﻿import 'package:cb_models/cb_models.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class RoleRevealScreen extends StatelessWidget {
+  final PlayerSnapshot player;
+  final VoidCallback onConfirm;
+
+  const RoleRevealScreen({
+    super.key,
+    required this.player,
+    required this.onConfirm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final roleColor = Color(int.parse(player.roleColorHex.replaceAll('#', '0xff')));
+    final role = roleCatalog.firstWhere((r) => r.id == player.roleId, orElse: () => roleCatalog.first);
+
+    return Theme(
+      data: CBTheme.buildTheme(CBTheme.buildColorScheme(roleColor)),
+      child: CBPrismScaffold(
+        title: 'IDENTITY ASSIGNED',
+        showAppBar: true,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 64),
+              Hero(
+                tag: 'role_avatar_${player.roleName}',
+                child: CBRoleAvatar(
+                  assetPath: role.assetPath,
+                  color: roleColor,
+                  size: 120,
+                  pulsing: true,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                player.roleName.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineLarge?.copyWith(
+                  color: roleColor,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                  shadows: CBColors.textGlow(roleColor, intensity: 0.8),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'ALLIANCE: ${player.alliance.toUpperCase()}',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              CBPanel(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CBSectionHeader(
+                      title: 'ROLE DESCRIPTION',
+                      icon: Icons.description_outlined,
+                      color: roleColor,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      player.roleDescription,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.85),
+                        height: 1.5,
+                      ),
+                    ),
+                    if (role.tacticalTip.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      CBSectionHeader(
+                        title: 'TACTICAL TIP',
+                        icon: Icons.lightbulb_outline_rounded,
+                        color: scheme.secondary,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        role.tacticalTip,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 48),
+            ],
+          ),
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: CBPrimaryButton(
+              label: 'CONFIRM IDENTITY',
+              icon: Icons.fingerprint_rounded,
+              backgroundColor: roleColor,
+              onPressed: () {
+                HapticFeedback.selectionClick();
+                onConfirm();
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

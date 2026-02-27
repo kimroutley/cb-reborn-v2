@@ -1,0 +1,487 @@
+﻿import 'dart:async';
+
+import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_models/cb_models.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+
+import '../auth/auth_provider.dart';
+import '../cloud_host_bridge.dart';
+import '../host_destinations.dart';
+import '../host_navigation.dart';
+import '../widgets/custom_drawer.dart';
+import '../widgets/lobby/lobby_player_list.dart';
+import '../widgets/simulation_mode_badge_action.dart';
+import '../sheets/manual_role_assignment_sheet.dart';
+import 'host_chat_view.dart';
+
+class HostLobbyScreen extends ConsumerStatefulWidget {
+  const HostLobbyScreen({super.key});
+
+  @override
+  ConsumerState<HostLobbyScreen> createState() => _HostLobbyScreenState();
+}
+
+class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
+  static const String _playerJoinHost = 'cb-reborn.web.app';
+
+  Future<void> _bootstrapCloudRuntime() async {
+    if (!mounted) return;
+
+    final controller = ref.read(gameProvider.notifier);
+    final syncMode = ref.read(gameProvider).syncMode;
+    final authState = ref.read(authProvider);
+    final bridge = ref.read(cloudHostBridgeProvider);
+
+    if (authState.user == null) {
+      _showSnack(
+        'AUTHORIZATION REQUIRED: SIGN IN TO ENABLE UPLINK.',
+        isError: true,
+      );
+      return;
+    }
+
+    if (syncMode != SyncMode.cloud) {
+      controller.setSyncMode(SyncMode.cloud);
+    }
+
+    try {
+      await bridge.start();
+      if (!mounted) return;
+      _showSnack(
+        'UPLINK ESTABLISHED: SECURE CHANNEL ACTIVE.',
+        isError: false,
+      );
+    } catch (e) {
+      debugPrint('[HostLobbyScreen] Cloud bridge start failed: $e');
+      if (!mounted) return;
+      _showSnack(
+        'UPLINK FAILED: RETRY PROTOCOL INITIATED.',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _terminateCloudRuntime() async {
+    final bridge = ref.read(cloudHostBridgeProvider);
+    await bridge.stop();
+    if (!mounted) return;
+    _showSnack(
+      'UPLINK DISCONNECTED: GOING DARK.',
+      isError: false,
+    );
+  }
+
+  String _buildPlayerJoinUrl(String joinCode) {
+    // Ensuring clean join URL format
+    return Uri.https(
+      _playerJoinHost,
+      '/join',
+      {
+        'mode': 'cloud',
+        'code': joinCode, // Ensure code is uppercase/trimmed elsewhere if needed
+      },
+    ).toString();
+  }
+
+  Future<void> _copyToClipboard(
+    BuildContext context, {
+    required String value,
+    required String successMessage,
+  }) async {
+    await Clipboard.setData(ClipboardData(text: value));
+    if (!context.mounted) return;
+    HapticService.selection();
+    _showSnack(successMessage, isError: false);
+  }
+
+  void _showSnack(String message, {bool isError = false}) {
+    showThemedSnackBar(
+      context,
+      message,
+      accentColor: isError
+          ? Theme.of(context).colorScheme.error
+          : Theme.of(context).colorScheme.tertiary,
+    );
+  }
+
+  void _showExpandedJoinQrSheet(
+    BuildContext context, {
+    required String joinUrl,
+    required String joinCode,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    showThemedDialog<void>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.qr_code_scanner_rounded,
+                  color: scheme.primary, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'ACCESS BEACON',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: scheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 24,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: QrImageView(
+                data: joinUrl,
+                size: 240,
+                version: QrVersions.auto,
+                backgroundColor: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'ACCESS KEY',
+            textAlign: TextAlign.center,
+            style: textTheme.labelSmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            joinCode,
+            textAlign: TextAlign.center,
+            style: textTheme.headlineMedium?.copyWith(
+              color: scheme.onSurface,
+              fontFamily: 'RobotoMono',
+              fontWeight: FontWeight.bold,
+              letterSpacing: 4.0,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            children: [
+              Expanded(
+                child: CBGhostButton(
+                  label: 'COPY KEY',
+                  icon: Icons.copy_rounded,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _copyToClipboard(
+                      context,
+                      value: joinCode,
+                      successMessage: 'ACCESS KEY COPIED TO CLIPBOARD.',
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: CBPrimaryButton(
+                  label: 'SHARE LINK',
+                  icon: Icons.share_rounded,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _copyToClipboard(
+                      context,
+                      value: joinUrl,
+                      successMessage: 'UPLINK URL COPIED.',
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showManualRoleAssignmentSheet(BuildContext context) {
+    showThemedBottomSheet<void>(
+      context: context,
+      accentColor: Theme.of(context).colorScheme.secondary,
+      child: const ManualRoleAssignmentSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final gameState = ref.watch(gameProvider);
+    final session = ref.watch(sessionProvider);
+    final controller = ref.read(gameProvider.notifier);
+    final nav = ref.read(hostNavigationProvider.notifier);
+    final linkState = ref.watch(cloudLinkStateProvider);
+    final authState = ref.watch(authProvider);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final joinUrl = _buildPlayerJoinUrl(session.joinCode);
+
+    // Status Logic
+    final isCloudVerified = linkState.isVerified;
+    final hasCloudError = linkState.phase == CloudLinkPhase.degraded;
+
+    final statusColor = isCloudVerified 
+        ? scheme.tertiary 
+        : (hasCloudError ? scheme.error : scheme.onSurfaceVariant);
+
+    final playerCount = gameState.players.length;
+    final canStart = playerCount >= Game.minPlayers;
+
+    return CBPrismScaffold(
+      title: 'LOBBY',
+      drawer: const CustomDrawer(currentDestination: HostDestination.lobby),
+      actions: const [SimulationModeBadgeAction()],
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ─── 1. PROTOCOL STATUS HEADER ───
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: CBGlassTile(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                borderColor: statusColor.withValues(alpha: 0.4),
+                child: Row(
+                  children: [
+                    Icon(Icons.hub_rounded, size: 16, color: statusColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      isCloudVerified ? 'UPLINK SECURE' : 'UPLINK OFFLINE',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const Spacer(),
+                    // Cloud Toggle
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch.adaptive(
+                        value: isCloudVerified,
+                        activeTrackColor: scheme.tertiary,
+                        onChanged: (val) {
+                          if (val) {
+                            _bootstrapCloudRuntime();
+                          } else {
+                            _terminateCloudRuntime();
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ─── 2. MAIN CONTENT AREA ───
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ─── LEFT PANE ───
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        // MAIN ACCESS CARD
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: CBGlassTile(
+                            padding: EdgeInsets.zero,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () => _showExpandedJoinQrSheet(
+                                context,
+                                joinUrl: joinUrl,
+                                joinCode: session.joinCode,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.verified_user_outlined, color: scheme.primary, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          (authState.user?.displayName ?? 'HOST').toUpperCase(),
+                                          style: textTheme.labelMedium?.copyWith(
+                                            color: scheme.primary,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      session.joinCode,
+                                      style: textTheme.headlineLarge?.copyWith(
+                                        fontFamily: 'RobotoMono',
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 4,
+                                        color: scheme.primary,
+                                        shadows: CBColors.textGlow(scheme.primary),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.qr_code_2_rounded, size: 16, color: scheme.onSurfaceVariant),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'TAP TO REVEAL BEACON',
+                                          style: textTheme.labelSmall?.copyWith(
+                                            color: scheme.onSurfaceVariant,
+                                            letterSpacing: 2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // TODO: Add Game Settings Panel here
+                      ],
+                    ),
+                  ),
+                  // ─── RIGHT PANE ───
+                  Expanded(
+                    flex: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 16, 16, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // GUEST LIST
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: Row(
+                              children: [
+                                Icon(Icons.people_outline_rounded, size: 18, color: scheme.secondary),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'GUEST LIST',
+                                  style: textTheme.labelMedium?.copyWith(
+                                    color: scheme.secondary,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  '$playerCount / ${Game.maxPlayers}',
+                                  style: textTheme.labelSmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontFamily: 'RobotoMono',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Expanded(
+                            flex: 2,
+                            child: LobbyPlayerList(),
+                          ),
+                          const SizedBox(height: 16),
+                          // COMMS CHANNEL
+                          Expanded(
+                            flex: 3,
+                            child: HostChatView(gameState: gameState),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ─── 4. ACTION BAR ───
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: CBGlassTile(
+                isPrismatic: true,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                child: SafeArea( // Bottom Safe Area
+                  top: false,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Primary Action: START GAME
+                      CBPrimaryButton(
+                        label: canStart 
+                            ? 'INITIATE SEQUENCE' 
+                            : 'WAITING FOR PLAYERS ($playerCount/${Game.minPlayers})',
+                        icon: Icons.play_arrow_rounded,
+                        onPressed: canStart
+                            ? () {
+                                controller.startGame(); // Ensure this handles the transition
+                                nav.setDestination(HostDestination.game);
+                              }
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      // Secondary Actions Grid
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CBGhostButton(
+                              label: 'ROLES',
+                              icon: Icons.admin_panel_settings_outlined,
+                              onPressed: () => _showManualRoleAssignmentSheet(context),
+                            ),
+                          ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CBGhostButton(
+                            label: 'SETTINGS',
+                            icon: Icons.tune_rounded,
+                            onPressed: () {
+                                // Add settings navigation or sheet here if needed
+                                // For now, maybe just a placeholder or navigate to game logic settings
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -10,6 +10,7 @@ import '../widgets/biometric_identity_header.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/game_action_tile.dart';
 import '../widgets/ghost_lounge_content.dart';
+import '../widgets/notifications_prompt_banner.dart';
 import '../widgets/role_strategy_sheet.dart';
 import 'role_reveal_screen.dart';
 import '../widgets/role_detail_dialog.dart';
@@ -27,6 +28,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   String? _lastStepId;
   int? _lastSilencedDay;
   Map<String, RoleStrategy>? _strategyCatalog;
+  // Tracks which roleId the reveal dialog was shown for, preventing the dialog
+  // from re-queuing on every rebuild while awaiting server-side confirmation.
+  String? _shownRevealForRoleId;
 
   @override
   void initState() {
@@ -80,6 +84,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _showRoleReveal(PlayerSnapshot player, PlayerBridgeActions bridge) {
+    // Mark immediately so no subsequent rebuild re-queues the dialog before
+    // the server round-trip completes and roleConfirmedPlayerIds is updated.
+    _shownRevealForRoleId = player.roleId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       showDialog(
@@ -101,39 +108,43 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       context: context,
       barrierDismissible: false,
       accentColor: scheme.error,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.warning_amber_rounded,
-                  color: scheme.error, size: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text('YOU\'VE BEEN ROOFIED',
-                    style: textTheme.titleMedium?.copyWith(
-                        color: scheme.error,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Your drink was spiked. You are paralysed — your night action has been cancelled.\n\nKeep your eyes closed and say nothing.',
-            style: textTheme.bodyMedium
-                ?.copyWith(color: scheme.onSurface.withValues(alpha: 0.7)),
-          ),
-          const SizedBox(height: 24),
-          Align(
-            alignment: Alignment.centerRight,
-            child: CBGhostButton(
-              label: 'ACKNOWLEDGED',
-              color: scheme.error,
-              onPressed: () => Navigator.of(context).pop(),
+      child: CBPanel(
+        borderColor: scheme.error.withValues(alpha: 0.5),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.warning_amber_rounded,
+                    color: scheme.error, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text('YOU\'VE BEEN ROOFIED',
+                      style: textTheme.titleMedium?.copyWith(
+                          color: scheme.error,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2)),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              'Your drink was spiked. You are paralysed — your night action has been cancelled.\n\nKeep your eyes closed and say nothing.',
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: scheme.onSurface.withValues(alpha: 0.7)),
+            ),
+            const SizedBox(height: 24),
+            Align(
+              alignment: Alignment.centerRight,
+              child: CBGhostButton(
+                label: 'ACKNOWLEDGED',
+                color: scheme.error,
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -181,7 +192,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
 
     final isRoleConfirmed = gameState.roleConfirmedPlayerIds.contains(playerId);
-    if (!isRoleConfirmed && player.roleId.isNotEmpty && player.roleId != 'unassigned') {
+    // Reset the local guard if the server has now confirmed (e.g. new game same
+    // role) or if the player has been assigned a different role than before.
+    if (isRoleConfirmed) {
+      _shownRevealForRoleId = null;
+    }
+    if (!isRoleConfirmed &&
+        player.roleId.isNotEmpty &&
+        player.roleId != 'unassigned' &&
+        _shownRevealForRoleId != player.roleId) {
       _showRoleReveal(player, bridge);
     }
 
@@ -211,6 +230,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         drawer: const CustomDrawer(),
         body: Column(
           children: [
+            const NotificationsPromptBanner(),
             BiometricIdentityHeader(
               player: player,
               gameState: gameState,
@@ -583,51 +603,11 @@ class _PlayerEndGameView extends StatelessWidget {
               ),
             const SizedBox(height: 24),
 
-            if (gameState.rematchOffered) ...[
-              CBPrimaryButton(
-                label: 'PLAY AGAIN AS NEW ROLE',
-                icon: Icons.replay_rounded,
-                onPressed: () {
-                  HapticService.medium();
-                },
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'THE HOST HAS OFFERED A REMATCH.\nYOU WILL BE ASSIGNED A NEW ROLE.',
-                textAlign: TextAlign.center,
-                style: textTheme.labelSmall?.copyWith(
-                  color: scheme.tertiary.withValues(alpha: 0.7),
-                  letterSpacing: 0.5,
-                  fontSize: 9,
-                ),
-              ),
-              const SizedBox(height: 16),
-            ] else ...[
-              CBGlassTile(
-                borderColor: scheme.onSurfaceVariant.withValues(alpha: 0.2),
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Icon(Icons.hourglass_top_rounded,
-                        size: 18,
-                        color: scheme.onSurfaceVariant),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'WAITING FOR HOST TO START A NEW GAME...',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          fontSize: 9,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+            if (gameState.rematchOffered)
+              _buildRematchOffered(context, scheme, textTheme)
+            else
+              _buildWaitingForHost(scheme, textTheme),
+            const SizedBox(height: 16),
 
             CBGhostButton(
               label: 'LEAVE SESSION',
@@ -641,6 +621,60 @@ class _PlayerEndGameView extends StatelessWidget {
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRematchOffered(
+    BuildContext context,
+    ColorScheme scheme,
+    TextTheme textTheme,
+  ) {
+    return Column(
+      children: [
+        CBPrimaryButton(
+          label: 'REJOIN WITH NEW ROLE',
+          icon: Icons.replay_rounded,
+          onPressed: () {
+            HapticService.medium();
+            // TODO: Implement rejoin logic
+          },
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'THE HOST HAS OFFERED A REMATCH.',
+          textAlign: TextAlign.center,
+          style: textTheme.labelSmall?.copyWith(
+            color: scheme.tertiary.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.7,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWaitingForHost(ColorScheme scheme, TextTheme textTheme) {
+    return CBGlassTile(
+      borderColor: scheme.onSurfaceVariant.withValues(alpha: 0.2),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Icon(Icons.hourglass_top_rounded,
+              size: 18, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'WAITING FOR HOST TO START A NEW GAME...',
+              style: textTheme.labelSmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                fontSize: 9,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,0 +1,238 @@
+﻿import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cb_comms/cb_comms_player.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import '../player_session_cache.dart';
+
+@immutable
+class AuthState {
+  final AuthStatus status;
+  final User? user;
+  final String? error;
+
+  const AuthState(this.status, {this.user, this.error});
+
+  AuthState copyWith({AuthStatus? status, User? user, String? error}) {
+    return AuthState(
+      status ?? this.status,
+      user: user ?? this.user,
+      error: error ?? this.error,
+    );
+  }
+}
+
+enum AuthStatus {
+  initial,
+  loading,
+  unauthenticated,
+  needsProfile,
+  authenticated,
+  error,
+}
+
+class AuthNotifier extends Notifier<AuthState> {
+  // ignore: new_with_undefined_constructor_default
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  FirebaseAuth? _auth;
+  FirebaseFirestore? _firestore;
+  StreamSubscription? _userSub;
+
+  final usernameController = TextEditingController();
+
+  AuthNotifier() {
+    _googleSignIn.initialize();
+  }
+
+  @override
+  AuthState build() {
+    if (!_ensureFirebaseServices()) {
+      return const AuthState(AuthStatus.unauthenticated);
+    }
+
+    final currentUser = _auth!.currentUser;
+
+    _userSub?.cancel();
+    _userSub = _auth!.authStateChanges().listen((user) async {
+      if (user != null) {
+        state = AuthState(AuthStatus.loading, user: user);
+        final profile = await _loadProfile(user);
+        if (profile.exists) {
+          state = AuthState(AuthStatus.authenticated, user: user);
+        } else {
+          state = AuthState(AuthStatus.needsProfile, user: user);
+        }
+      } else {
+        state = const AuthState(AuthStatus.unauthenticated);
+      }
+    });
+
+    ref.onDispose(() {
+      _userSub?.cancel();
+      usernameController.dispose();
+    });
+
+    if (currentUser != null) {
+      return AuthState(AuthStatus.loading, user: currentUser);
+    }
+
+    return const AuthState(AuthStatus.initial);
+  }
+
+  Future<void> signInWithGoogle() async {
+    if (!_ensureFirebaseServices()) {
+      state = const AuthState(
+        AuthStatus.error,
+        error: 'Authentication services are unavailable.',
+      );
+      return;
+    }
+
+    state = state.copyWith(status: AuthStatus.loading);
+    try {
+      if (kIsWeb) {
+        await _auth!.signInWithPopup(GoogleAuthProvider());
+        return;
+      }
+
+      final googleUser = await _googleSignIn.authenticate();
+
+      // ignore: unnecessary_null_comparison
+      if (googleUser == null) {
+        state = const AuthState(AuthStatus.initial);
+        return;
+      }
+
+      final googleAuth = googleUser.authentication;
+      if (googleAuth.idToken == null) {
+        state = const AuthState(AuthStatus.error,
+            error: 'Terminal protocol failed. No authorization token returned.');
+        return;
+      }
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+
+      await _auth!.signInWithCredential(credential);
+    } catch (e) {
+      state = AuthState(AuthStatus.error,
+          error: 'Terminal link failed. Biometric interference detected.');
+    }
+  }
+
+  Future<void> saveUsername({
+    String? publicPlayerId,
+    String? avatarEmoji,
+  }) async {
+    if (!_ensureFirebaseServices()) {
+      state = const AuthState(
+        AuthStatus.error,
+        error: 'Authentication services are unavailable.',
+      );
+      return;
+    }
+
+    final user = _auth!.currentUser;
+    final username = usernameController.text.trim();
+    final trimmedPublicPlayerId = publicPlayerId?.trim();
+    final trimmedAvatarEmoji = avatarEmoji?.trim();
+    if (user == null) return;
+    if (username.length < 3) {
+      state = state.copyWith(
+          status: AuthStatus.needsProfile,
+          error: 'Username must be at least 3 characters.');
+      return;
+    }
+
+    state = state.copyWith(status: AuthStatus.loading);
+
+    try {
+      final repository = ProfileRepository(firestore: _firestore!);
+      final usernameAvailable = await repository.isUsernameAvailable(
+        username,
+        excludingUid: user.uid,
+      );
+      if (!usernameAvailable) {
+        state = const AuthState(
+          AuthStatus.needsProfile,
+          error: 'Handle already claimed. Choose a different moniker.',
+        ).copyWith(user: user);
+        return;
+      }
+
+      if (trimmedPublicPlayerId != null && trimmedPublicPlayerId.isNotEmpty) {
+        final publicPlayerIdAvailable =
+            await repository.isPublicPlayerIdAvailable(
+          trimmedPublicPlayerId,
+          excludingUid: user.uid,
+        );
+        if (!publicPlayerIdAvailable) {
+          state = const AuthState(
+            AuthStatus.needsProfile,
+            error: 'Public player ID already registered. Try another tag.',
+          ).copyWith(user: user);
+          return;
+        }
+      }
+
+      await repository.upsertBasicProfile(
+        uid: user.uid,
+        username: username,
+        email: user.email,
+        isHost: false,
+        publicPlayerId:
+            (trimmedPublicPlayerId == null || trimmedPublicPlayerId.isEmpty)
+                ? null
+                : trimmedPublicPlayerId,
+        avatarEmoji: (trimmedAvatarEmoji == null || trimmedAvatarEmoji.isEmpty)
+            ? null
+            : trimmedAvatarEmoji,
+      );
+      state = AuthState(AuthStatus.authenticated, user: user);
+    } catch (e) {
+      state = AuthState(AuthStatus.needsProfile,
+          user: user, error: 'Failed to establish identity. System breach.');
+    }
+  }
+
+  Future<DocumentSnapshot<Map<String, dynamic>>> _loadProfile(User user) {
+    final repository = ProfileRepository(firestore: _firestore!);
+    return repository.getProfile(user.uid);
+  }
+
+  Future<void> signOut() async {
+    await const PlayerSessionCacheRepository().clear();
+
+    if (!_ensureFirebaseServices()) {
+      state = const AuthState(AuthStatus.unauthenticated);
+      return;
+    }
+
+    if (!kIsWeb) {
+      await _googleSignIn.signOut();
+    }
+    await _auth!.signOut();
+    state = const AuthState(AuthStatus.unauthenticated);
+  }
+
+  bool _ensureFirebaseServices() {
+    if (_auth != null && _firestore != null) {
+      return true;
+    }
+
+
+    try {
+      _auth = FirebaseAuth.instance;
+      _firestore = FirebaseFirestore.instance;
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+}
+
+final authProvider =
+    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

@@ -1,0 +1,446 @@
+﻿import 'package:cb_player/auth/auth_provider.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cb_models/cb_models.dart' hide PlayerSnapshot;
+import '../active_bridge.dart';
+import '../player_onboarding_provider.dart';
+import '../widgets/custom_drawer.dart';
+import 'player_home_shell.dart';
+
+class LobbyScreen extends ConsumerStatefulWidget {
+  const LobbyScreen({super.key});
+
+  @override
+  ConsumerState<LobbyScreen> createState() => _LobbyScreenState();
+}
+
+class _LobbyScreenState extends ConsumerState<LobbyScreen> {
+  static const int _minimumPlayersHintThreshold = 4;
+  final TextEditingController _chatController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (mounted) {
+        final prefs = await SharedPreferences.getInstance();
+        final seenGuide = prefs.getBool('player_guide_seen') ?? false;
+        if (!seenGuide && mounted) {
+          await _showPlayerGuideDialog(context);
+          await prefs.setBool('player_guide_seen', true);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _chatController.dispose();
+    super.dispose();
+  }
+
+  void _sendMessage() {
+    final text = _chatController.text.trim();
+    if (text.isEmpty) return;
+
+    final player = ref.read(activeBridgeProvider).state.myPlayerSnapshot;
+    if (player == null) {
+      // If player is not claimed yet, send as a generic 'lounge' user
+      ref.read(activeBridgeProvider).actions.sendBulletin(
+        title: 'LOUNGE', // Generic name for unclaimed players
+        floatContent: text,
+        roleId: null, // No role assigned yet
+      );
+    } else {
+      ref.read(activeBridgeProvider).actions.sendBulletin(
+        title: player.roleName, // This will be 'Unassigned' in lobby, which is fine
+        floatContent: text,
+        roleId: player.roleId,
+      );
+    }
+
+    _chatController.clear();
+    FocusScope.of(context).unfocus();
+  }
+
+  Future<void> _showPlayerGuideDialog(BuildContext context) async {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return showThemedDialog(
+      context: context,
+      accentColor: scheme.secondary,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'WELCOME, PATRON',
+            style: textTheme.headlineSmall!.copyWith(
+              color: scheme.secondary,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+              shadows: CBColors.textGlow(scheme.secondary),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildGuideRow(
+            context,
+            Icons.chat_bubble_outline_rounded,
+            'STAY INFORMED',
+            'Watch the feed for game events, narrative clues, and voting results.',
+          ),
+          const SizedBox(height: 16),
+          _buildGuideRow(
+            context,
+            Icons.fingerprint_rounded,
+            'YOUR IDENTITY',
+            'When the game starts, hold your identity card to reveal your secret role.',
+          ),
+          const SizedBox(height: 16),
+          _buildGuideRow(
+            context,
+            Icons.menu_rounded,
+            'THE BLACKBOOK',
+            'Check the side menu for role guides and game rules at any time.',
+          ),
+          const SizedBox(height: 32),
+          CBPrimaryButton(
+            label: 'ACKNOWLEDGED',
+            backgroundColor: scheme.secondary.withValues(alpha: 0.2),
+            foregroundColor: scheme.secondary,
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuideRow(
+      BuildContext context, IconData icon, String title, String description) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: scheme.secondary, size: 24),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.7),
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // _saveUsername logic removed
+
+  ({String title, String detail, _LobbyStatusTone tone}) _buildLobbyStatus({
+    required int playerCount,
+    required bool awaitingStartConfirmation,
+    required String phase,
+  }) {
+    if (awaitingStartConfirmation) {
+      return (
+        title: 'READY TO JOIN',
+        detail: 'Host started the game. Confirm your join now.',
+        tone: _LobbyStatusTone.readyToJoin,
+      );
+    }
+
+    if (playerCount < _minimumPlayersHintThreshold) {
+      return (
+        title: 'WAITING FOR MORE PLAYERS',
+        detail:
+            'Need at least $_minimumPlayersHintThreshold players for a full session.',
+        tone: _LobbyStatusTone.waitingPlayers,
+      );
+    }
+
+    if (phase == 'setup') {
+      return (
+        title: 'WAITING FOR HOST TO ASSIGN YOU A ROLE',
+        detail: 'Role cards are being assigned. Stay ready.',
+        tone: _LobbyStatusTone.setup,
+      );
+    }
+
+    return (
+      title: 'WAITING FOR HOST TO START',
+      detail: 'Review the Game Bible in the side drawer while you wait.',
+      tone: _LobbyStatusTone.waitingHost,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final gameState = ref.watch(activeBridgeProvider).state;
+    final authState = ref.watch(authProvider);
+    final onboarding = ref.watch(playerOnboardingProvider);
+
+    // Resolution of player name - logic kept for display
+    final preferredName = gameState.myPlayerSnapshot?.name.trim();
+    final profileName = authState.user?.displayName?.trim();
+    final displayName = (preferredName != null && preferredName.isNotEmpty)
+        ? preferredName.toUpperCase()
+        : (profileName != null && profileName.isNotEmpty
+            ? profileName.toUpperCase()
+            : 'UNKNOWN PATRON');
+
+    final status = _buildLobbyStatus(
+      playerCount: gameState.players.length,
+      awaitingStartConfirmation: onboarding.awaitingStartConfirmation,
+      phase: gameState.phase,
+    );
+
+    final (statusIcon, statusColor) = switch (status.tone) {
+      _LobbyStatusTone.readyToJoin => (Icons.bolt_rounded, scheme.tertiary),
+      _LobbyStatusTone.waitingPlayers => (
+          Icons.groups_3_rounded,
+          scheme.secondary
+        ),
+      _LobbyStatusTone.setup => (Icons.badge_rounded, scheme.primary),
+      _LobbyStatusTone.waitingHost => (
+          Icons.hourglass_top_rounded,
+          scheme.onSurfaceVariant
+        ),
+    };
+
+    return CBPrismScaffold(
+      title: 'THE LOUNGE',
+      drawer: const CustomDrawer(),
+      body: Stack(
+        children: [
+          // ── MAIN FEED ──
+          Positioned.fill(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+              children: [
+                // ── STATUS CARD ──
+                CBGlassTile(
+                  isPrismatic: status.tone == _LobbyStatusTone.readyToJoin,
+                  borderColor: statusColor.withValues(alpha: 0.5),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(statusIcon, color: statusColor, size: 24),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'STATUS: ${status.title}',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: statusColor,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        status.detail,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.9),
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // ── WELCOME / IDENTITY ──
+                if (!onboarding.awaitingStartConfirmation) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'CURRENT IDENTITY',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: scheme.primary,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to profile using the drawer logic or direct provider
+                          // Assuming drawer handles it, but here we might need manual nav or simulate drawer
+                          // For now, prompt them to use the drawer
+                          Scaffold.of(context).openDrawer();
+                        },
+                        child: Text(
+                          'EDIT',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: scheme.secondary,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  CBGlassTile(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: scheme.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: scheme.primary.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Icon(Icons.person_rounded,
+                              color: scheme.primary, size: 24),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                displayName,
+                                style: textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              Text(
+                                'ACCESS GRANTED • WAITING FOR SIGNAL',
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+
+                // ── LIVE FEED ──
+                Row(
+                  children: [
+                    Icon(Icons.rss_feed_rounded,
+                        size: 16, color: scheme.tertiary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'LIVE FEED',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: scheme.tertiary,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                if (gameState.players.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: CBBreathingLoader(color: scheme.primary),
+                    ),
+                  ),
+
+                ...gameState.players.reversed.take(8).map((p) { // Show latest first
+                final isMe = p.id == gameState.myPlayerSnapshot?.id || p.name == displayName; // Approx match
+                return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: CBGlassTile(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      borderColor: isMe ? scheme.tertiary.withValues(alpha: 0.3) : Colors.transparent,
+                      child: Row(
+                        children: [
+                          Icon(
+                            isMe ? Icons.face_rounded : Icons.person_outline_rounded,
+                            size: 16,
+                            color: isMe ? scheme.tertiary : scheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              isMe ? '${p.name.toUpperCase()} (YOU)' : p.name.toUpperCase(),
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: isMe ? scheme.tertiary : scheme.onSurface,
+                                fontWeight: isMe ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                          if (!isMe)
+                            Text(
+                              'CONNECTED',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                                fontSize: 9,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+
+          // ── ACTION BUTTON (FLOATING) ──
+          if (onboarding.awaitingStartConfirmation)
+            Positioned(
+              bottom: 32,
+              left: 24,
+              right: 24,
+              child: CBPrimaryButton(
+                label: 'CONFIRM & JOIN',
+                icon: Icons.fingerprint_rounded,
+                onPressed: () {
+                  HapticService.heavy();
+                  ref.read(confirmGameStartProvider.notifier).trigger();
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+enum _LobbyStatusTone {
+  waitingPlayers,
+  waitingHost,
+  setup,
+  readyToJoin,
+}

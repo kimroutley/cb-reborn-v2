@@ -1,0 +1,46 @@
+﻿{
+  "inputs": [
+    {
+      "id": "arg0",
+      "type": "promptString",
+      "description": "API key for authentication",
+      "default": "",
+      "password": true
+    }
+  ],
+  "servers": {
+    "GitHub": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "internalMetadata": {
+        "description": "Connect AI assistants to GitHub - manage repos, issues, PRs, and workflows through natural language.",
+        "version": "0.31.0",
+        "repository": "https://github.com/github/github-mcp-server",
+        "id": "io.github.github/github-mcp-server",
+        "owner_avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+        "publishedDate": "19/02/2026 4:48:08 PM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    },
+    "Context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@1.0.31"
+      ],
+      "env": {
+        "CONTEXT7_API_KEY": "${input:arg0}"
+      },
+      "internalMetadata": {
+        "description": "Up-to-date code docs for any prompt",
+        "version": "1.0.31",
+        "repository": "https://github.com/upstash/context7",
+        "id": "io.github.upstash/context7",
+        "owner_avatar_url": "https://avatars.githubusercontent.com/u/74989412?v=4",
+        "publishedDate": "28/11/2025 12:23:38 PM",
+        "registry": "https://api.mcp.github.com/v0.1/servers/"
+      }
+    }
+  }
+}
