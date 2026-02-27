@@ -474,7 +474,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       canPop: !_hasChanges,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop || !_hasChanges) return;
-        final nav = Navigator.of(context);
         final discard = await showCBDiscardChangesDialog(
           context,
           message: 'Unsaved profile edits. Leave without saving?',

@@ -331,9 +331,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       String senderName = role.id == 'unassigned' ? entry.title : role.name;
 
       // If the viewer is the Club Manager, reveal the real player name
-      if (isClubManager && entry.roleId != null && entry.roleId != myPlayer?.roleId) {
+      if (isClubManager &&
+          entry.roleId != null &&
+          entry.roleId != myPlayer?.roleId) {
         try {
-          final senderPlayer = gameState.players.firstWhere((p) => p.roleId == entry.roleId);
+          final senderPlayer =
+              gameState.players.firstWhere((p) => p.roleId == entry.roleId);
           senderName = '${role.name} (${senderPlayer.name})';
         } catch (_) {
           // Player not found, fallback to role name
@@ -522,105 +525,99 @@ class _PlayerEndGameView extends StatelessWidget {
 
     return CBPrismScaffold(
       title: 'GAME OVER',
-      body: CBNeonBackground(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          children: [
-            CBStatusOverlay(
-              icon: Icons.emoji_events_rounded,
-              label: 'GAME OVER',
-              color: winColor,
-              detail: '$winnerName VICTORY',
-            ),
-            const SizedBox(height: 24),
-
-            CBGlassTile(
-              isPrismatic: true,
-              borderColor: roleColor.withValues(alpha: 0.5),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  CBRoleAvatar(
-                    assetPath: 'assets/roles/${player.roleId}.png',
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        children: [
+          CBStatusOverlay(
+            icon: Icons.emoji_events_rounded,
+            label: 'GAME OVER',
+            color: winColor,
+            detail: '$winnerName VICTORY',
+          ),
+          const SizedBox(height: 24),
+          CBGlassTile(
+            isPrismatic: true,
+            borderColor: roleColor.withValues(alpha: 0.5),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                CBRoleAvatar(
+                  assetPath: 'assets/roles/${player.roleId}.png',
+                  color: roleColor,
+                  size: 56,
+                  breathing: true,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'YOU WERE',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.5),
+                    letterSpacing: 2.0,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  player.roleName.toUpperCase(),
+                  style: textTheme.headlineSmall?.copyWith(
                     color: roleColor,
-                    size: 56,
-                    breathing: true,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    shadows: CBColors.textGlow(roleColor, intensity: 0.5),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                CBMiniTag(
+                  text: player.isAlive ? 'SURVIVED' : 'ELIMINATED',
+                  color: player.isAlive ? scheme.tertiary : scheme.error,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (gameState.endGameReport.isNotEmpty)
+            CBPanel(
+              borderColor: winColor.withValues(alpha: 0.3),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CBSectionHeader(
+                    title: 'RESOLUTION',
+                    icon: Icons.summarize_rounded,
+                    color: winColor,
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    'YOU WERE',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.5),
-                      letterSpacing: 2.0,
-                      fontWeight: FontWeight.w900,
+                  for (final line in gameState.endGameReport)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Text(
+                        line,
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.8),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    player.roleName.toUpperCase(),
-                    style: textTheme.headlineSmall?.copyWith(
-                      color: roleColor,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.5,
-                      shadows: CBColors.textGlow(roleColor, intensity: 0.5),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  CBMiniTag(
-                    text: player.isAlive ? 'SURVIVED' : 'ELIMINATED',
-                    color: player.isAlive ? scheme.tertiary : scheme.error,
-                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-
-            if (gameState.endGameReport.isNotEmpty)
-              CBPanel(
-                borderColor: winColor.withValues(alpha: 0.3),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    CBSectionHeader(
-                      title: 'RESOLUTION',
-                      icon: Icons.summarize_rounded,
-                      color: winColor,
-                    ),
-                    const SizedBox(height: 12),
-                    for (final line in gameState.endGameReport)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 6),
-                        child: Text(
-                          line,
-                          textAlign: TextAlign.center,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.8),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 24),
-
-            if (gameState.rematchOffered)
-              _buildRematchOffered(context, scheme, textTheme)
-            else
-              _buildWaitingForHost(scheme, textTheme),
-            const SizedBox(height: 16),
-
-            CBGhostButton(
-              label: 'LEAVE SESSION',
-              icon: Icons.exit_to_app_rounded,
-              color: scheme.error,
-              onPressed: () {
-                HapticService.light();
-                bridge.leave();
-              },
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
+          const SizedBox(height: 24),
+          if (gameState.rematchOffered)
+            _buildRematchOffered(context, scheme, textTheme)
+          else
+            _buildWaitingForHost(scheme, textTheme),
+          const SizedBox(height: 16),
+          CBGhostButton(
+            label: 'LEAVE SESSION',
+            icon: Icons.exit_to_app_rounded,
+            color: scheme.error,
+            onPressed: () {
+              HapticService.light();
+              bridge.leave();
+            },
+          ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

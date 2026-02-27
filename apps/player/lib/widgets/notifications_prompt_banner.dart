@@ -35,8 +35,8 @@ class _NotificationsPromptBannerState
     final isConnected = bridge.state.isConnected;
     if (!isCloud || !isConnected) return const SizedBox.shrink();
 
-    final supported = PushNotificationService.isNotificationPermissionSupported;
-    final installAvailable = PushNotificationService.isPwaInstallPromptAvailable;
+    final supported = isNotificationPermissionSupported;
+    final installAvailable = isPwaInstallPromptAvailable;
     final promptState = ref.watch(notificationsPromptProvider);
 
     if (!supported && !installAvailable) return const SizedBox.shrink();
@@ -120,7 +120,7 @@ class _NotificationsPromptBannerState
                 if (supported && !promptState.isGranted) const SizedBox(width: 8),
                 OutlinedButton(
                   onPressed: () async {
-                    await PushNotificationService.showPwaInstallPrompt();
+                    await showPwaInstallPrompt();
                   },
                   child: const Text('Install app'),
                 ),

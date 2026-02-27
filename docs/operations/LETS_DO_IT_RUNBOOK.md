@@ -4,11 +4,20 @@ One place to unblock CI deploy, enable push notifications, and run real-device v
 
 ---
 
+## Quick start
+
+1. **Unblock deploy** → Add the 3 GitHub secrets (Section 1). Push to `main` or re-run the workflow. **Verify:** “Deploy to Firebase” job succeeds.
+2. **Push (optional)** → Run the VAPID setup script, then follow the printed steps (Section 2). **Verify:** Player can enable notifications in lobby/game; test with app closed.
+3. **Device QA** → Run the smoke checklist (Section 3). **Verify:** Execution log filled with date, devices, pass/fail.
+
+---
+
 ## 1. Firebase CI deploy (unblock GitHub Actions)
 
 Deploy to Firebase Hosting and Firestore rules currently fails until these **repository secrets** exist.
 
-**Where:** GitHub repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.
+**Where:** GitHub repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**.  
+**Checklist:** [GITHUB_SECRETS_CHECKLIST.md](GITHUB_SECRETS_CHECKLIST.md) — tick as you add each secret.
 
 | Secret name | What to put |
 |-------------|-------------|
@@ -18,25 +27,40 @@ Deploy to Firebase Hosting and Firestore rules currently fails until these **rep
 
 After adding all three, push to `main` (or re-run the workflow). The **Deploy to Firebase** job will validate and deploy.
 
+**Verify:** In GitHub Actions, the “Deploy to Firebase” job completes without “Missing required secret” errors. Hosting and Firestore rules are updated.
+
 ---
 
 ## 2. Push notifications (VAPID + service worker)
 
 So players get notifications when the browser/app is closed.
 
-### 2.1 Generate VAPID keys
+### 2.1 Generate VAPID keys (script)
 
 From repo root:
 
+**PowerShell (Windows):**
+```powershell
+.\scripts\setup_push_vapid.ps1
+```
+
+**Bash (macOS/Linux):**
+```bash
+./scripts/setup_push_vapid.sh
+```
+
+The script installs dependencies, runs `npx web-push generate-vapid-keys`, and prints the exact next steps. Copy the **public** and **private** key strings from the output.
+
+**Manual alternative:** From repo root:
 ```bash
 cd functions
 npm install
 npx web-push generate-vapid-keys
 ```
 
-Copy the **public** and **private** key strings.
-
 ### 2.2 Configure Firebase Functions
+
+If you see a deprecation error, run once: `firebase experiments:enable legacyRuntimeConfigCommands`
 
 ```bash
 firebase functions:config:set vapid.public_key="PASTE_PUBLIC_KEY" vapid.private_key="PASTE_PRIVATE_KEY"
@@ -60,17 +84,12 @@ firebase deploy --only functions
 
 ### 2.5 Service worker (web build)
 
-After every **player web build**, append the push handler so push works when the tab is closed:
+- **CI:** The GitHub Actions workflow already runs `node scripts/append_push_to_sw.js` after the player web build, so every deploy to Firebase Hosting includes the push handler.
+- **Local deploy:** Use one of:
+  - **`scripts/build_player_web.ps1`** (Windows) or **`scripts/build_player_web.sh`** (macOS/Linux) — builds web and appends the push handler; then deploy `apps/player/build/web` (e.g. `firebase deploy --only hosting`).
+  - **`scripts/deploy_firebase.ps1`** — when you do a full deploy (without `-SkipBuild`), it builds player web and appends the push handler before deploying.
 
-```bash
-cd apps/player
-flutter build web
-cd ../..
-node scripts/append_push_to_sw.js
-```
-
-Then deploy the contents of `apps/player/build/web` (e.g. via the CI deploy above, or `firebase deploy --only hosting`).  
-If you use CI, add a step to run `node scripts/append_push_to_sw.js` after the web build and before uploading the artifact.
+**Verify:** In the player app (web), join a cloud game, allow notifications when prompted, then close the tab. Trigger an event (e.g. host assigns role or advances phase). A push notification should appear.
 
 ---
 
@@ -78,7 +97,7 @@ If you use CI, add a step to run `node scripts/append_push_to_sw.js` after the w
 
 Use the **QA Smoke Checklist** and tick as you go:
 
-- **Checklist:** [`docs/operations/qa-smoke-checklist.md`](qa-smoke-checklist.md)
+- **Checklist:** [qa-smoke-checklist.md](qa-smoke-checklist.md)
 
 Priority order:
 
@@ -89,6 +108,8 @@ Priority order:
 
 Fill the **Execution log** at the bottom of the smoke checklist (date, devices, build refs, pass/fail, follow-ups).
 
+**Verify:** Execution log is filled. All priority items ticked or explicitly skipped with a reason.
+
 ---
 
 ## 4. Quick reference
@@ -96,6 +117,7 @@ Fill the **Execution log** at the bottom of the smoke checklist (date, devices, 
 | Goal | Doc / action |
 |------|----------------|
 | Unblock Firebase deploy | Add 3 secrets (Section 1). |
-| Enable push when app closed | VAPID + `vapidPublicKeyBase64` + deploy functions + append script after web build (Section 2). |
+| Enable push when app closed | Run `scripts/setup_push_vapid.ps1` or `.sh`, then Section 2.2–2.4; CI/local build already append push handler (Section 2.5). |
+| Local player web build with push | `scripts/build_player_web.ps1` or `scripts/build_player_web.sh`. |
 | Validate on devices | Run [qa-smoke-checklist.md](qa-smoke-checklist.md) (Section 3). |
 | Host iOS email-link | Smoke checklist → “Host iOS email-link E2E”. |

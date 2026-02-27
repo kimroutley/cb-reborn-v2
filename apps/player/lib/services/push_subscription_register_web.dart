@@ -17,12 +17,16 @@ Future<Map<String, dynamic>?> getPushSubscription([
 
   try {
     final container = html.window.navigator.serviceWorker;
+    if (container == null) return null;
     final reg = await container.ready;
 
     // applicationServerKey: Uint8List from base64url-decoded key.
     final decoded = base64Url.decode(base64Url.normalize(vapidPublicKeyBase64));
 
-    final sub = await reg.pushManager.subscribe({
+    final pushManager = reg.pushManager;
+    if (pushManager == null) return null;
+
+    final sub = await pushManager.subscribe({
       'userVisibleOnly': true,
       'applicationServerKey': decoded,
     });

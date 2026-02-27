@@ -4,6 +4,10 @@ Sends Web Push notifications when the host updates game state or player private 
 
 ## Setup
 
+**Option A – Script (from repo root):** Run `.\scripts\setup_push_vapid.ps1` (Windows) or `./scripts/setup_push_vapid.sh` (macOS/Linux). It installs deps, generates keys, and prints the exact next steps.
+
+**Option B – Manual:**
+
 1. **Install dependencies**
    ```bash
    cd functions && npm install

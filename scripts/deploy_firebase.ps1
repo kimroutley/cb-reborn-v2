@@ -50,6 +50,8 @@ try {
 		} finally {
 			Pop-Location
 		}
+		Write-Host "Appending push handler to service worker..." -ForegroundColor Cyan
+		& node (Join-Path $repoRoot "scripts\append_push_to_sw.js")
 	}
 
 	Write-Host "Deploying Firebase target: $deployTarget" -ForegroundColor Cyan

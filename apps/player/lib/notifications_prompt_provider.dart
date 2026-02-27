@@ -46,13 +46,13 @@ class NotificationsPromptNotifier extends Notifier<NotificationsPromptState> {
   }
 
   Future<NotificationPermission> requestPermission() async {
-    if (!PushNotificationService.isNotificationPermissionSupported) {
+    if (!isNotificationPermissionSupported) {
       return NotificationPermission.unsupported;
     }
     state = state.copyWith(isRequesting: true);
     try {
       final result =
-          await PushNotificationService.requestNotificationPermission();
+          await requestNotificationPermission();
       state = state.copyWith(
         permission: result,
         askedBefore: true,

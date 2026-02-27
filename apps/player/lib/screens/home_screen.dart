@@ -70,6 +70,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   static const Duration _connectAttemptTimeout = Duration(seconds: 12);
+
   /// Cloud join can take longer (Firestore snapshot + host lobby). Must be >= CloudPlayerBridge snapshot timeout.
   static const Duration _cloudJoinTimeout = Duration(seconds: 25);
   static const Duration _profileLookupTimeout = Duration(seconds: 5);
@@ -281,28 +282,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           !normalizedHost.startsWith('wss://')) {
         throw 'LOCAL HOST MUST START WITH WS:// OR WSS:// (E.G. WS://192.168.1.100)';
       }
-      await ref
-          .read(cloudPlayerBridgeProvider.notifier)
-          .disconnect()
-          .timeout(_connectAttemptTimeout, onTimeout: () => throw TimeoutException('Disconnect timed out. Please try again.'));
-      await ref
-          .read(playerBridgeProvider.notifier)
-          .connect(host)
-          .timeout(_connectAttemptTimeout, onTimeout: () => throw TimeoutException('Could not reach host. Check the address and that the host app is running.'));
+      await ref.read(cloudPlayerBridgeProvider.notifier).disconnect().timeout(
+          _connectAttemptTimeout,
+          onTimeout: () => throw TimeoutException(
+              'Disconnect timed out. Please try again.'));
+      await ref.read(playerBridgeProvider.notifier).connect(host).timeout(
+          _connectAttemptTimeout,
+          onTimeout: () => throw TimeoutException(
+              'Could not reach host. Check the address and that the host app is running.'));
       await ref
           .read(playerBridgeProvider.notifier)
           .joinGame(code, playerName)
-          .timeout(_connectAttemptTimeout, onTimeout: () => throw TimeoutException('Join timed out. Check your code and try again.'));
+          .timeout(_connectAttemptTimeout,
+              onTimeout: () => throw TimeoutException(
+                  'Join timed out. Check your code and try again.'));
     } else {
       // Cloud mode
-      await ref
-          .read(playerBridgeProvider.notifier)
-          .disconnect()
-          .timeout(_connectAttemptTimeout, onTimeout: () => throw TimeoutException('Disconnect timed out. Please try again.'));
+      await ref.read(playerBridgeProvider.notifier).disconnect().timeout(
+          _connectAttemptTimeout,
+          onTimeout: () => throw TimeoutException(
+              'Disconnect timed out. Please try again.'));
       await ref
           .read(cloudPlayerBridgeProvider.notifier)
           .joinGame(code, playerName)
-          .timeout(_cloudJoinTimeout, onTimeout: () => throw TimeoutException('Cloud join timed out. Confirm the host lobby is live and your code is correct, then try again.'));
+          .timeout(_cloudJoinTimeout,
+              onTimeout: () => throw TimeoutException(
+                  'Cloud join timed out. Confirm the host lobby is live and your code is correct, then try again.'));
     }
   }
 
@@ -523,7 +528,7 @@ class _LoadingDialogOverlay extends StatelessWidget {
     return AbsorbPointer(
       absorbing: true,
       child: Container(
-        color: Colors.black.withValues(alpha: 0.55),
+        color: scheme.scrim.withValues(alpha: 0.55),
         alignment: Alignment.center,
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
