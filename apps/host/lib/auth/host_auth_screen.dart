@@ -214,7 +214,7 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                         fontWeight: FontWeight.w900,
                         letterSpacing: 4,
                         height: 0.9,
-                        color: Colors.white,
+                        color: scheme.onSurface,
                         shadows: CBColors.textGlow(scheme.primary),
                       ),
                     ),
@@ -279,14 +279,14 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                               height: 24,
                               errorBuilder: (_, __, ___) => const Icon(
                                   Icons.g_mobiledata,
-                                  color: Colors.white,
+                                  color: CBColors.onSurface,
                                   size: 28),
                             ),
                             const SizedBox(width: CBSpace.x4),
                             Text(
                               'SCAN MANAGER BADGE (GOOGLE)',
                               style: textTheme.titleMedium?.copyWith(
-                                color: Colors.white,
+                                color: scheme.onSurface,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 2,
                                 shadows: CBColors.textGlow(scheme.primary),
@@ -521,7 +521,7 @@ class _LinkSentMessage extends ConsumerWidget {
             Text(
               'LINK DISPATCHED',
               style: textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
+                color: scheme.onSurface,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 4,
                 shadows: CBColors.textGlow(scheme.tertiary),
@@ -597,7 +597,7 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
               'ISSUE MANAGER LICENSE',
               textAlign: TextAlign.center,
               style: textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
+                color: scheme.onSurface,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,
                 shadows: CBColors.textGlow(scheme.secondary),

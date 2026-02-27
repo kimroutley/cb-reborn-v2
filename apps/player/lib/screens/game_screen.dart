@@ -634,7 +634,10 @@ class _PlayerEndGameView extends StatelessWidget {
           icon: Icons.replay_rounded,
           onPressed: () {
             HapticService.medium();
-            // TODO: Implement rejoin logic
+            // Normally the PlayerHomeShell auto-navigates to lobby when
+            // the host resets the phase. This is a safety-net: disconnect
+            // so the shell re-routes to connect → auto-rejoin into lobby.
+            bridge.leave();
           },
         ),
         const SizedBox(height: 12),

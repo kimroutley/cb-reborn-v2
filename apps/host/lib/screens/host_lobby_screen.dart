@@ -285,7 +285,7 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen>
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: CBColors.voidBlack,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: scheme.primary.withValues(alpha: 0.6),
@@ -527,7 +527,7 @@ class _JoinCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: CBColors.voidBlack,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: scheme.primary.withValues(alpha: 0.4),
@@ -552,7 +552,7 @@ class _JoinCard extends StatelessWidget {
                     dataModuleShape: QrDataModuleShape.square,
                     color: scheme.primary,
                   ),
-                  backgroundColor: Colors.black,
+                  backgroundColor: CBColors.voidBlack,
                 ),
               ),
             ),

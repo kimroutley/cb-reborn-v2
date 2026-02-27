@@ -573,11 +573,11 @@ class _RoleStrategySheetState extends State<RoleStrategySheet>
   ) {
     final (Color tipColor, IconData tipIcon) = switch (tip.type) {
       TipType.critical => (scheme.error, Icons.warning_amber_rounded),
-      TipType.warning => (Colors.amber, Icons.shield_rounded),
+      TipType.warning => (CBColors.alertOrange, Icons.shield_rounded),
       TipType.opportunity => (CBColors.neonGreen, Icons.local_fire_department_rounded),
       TipType.strategy => (scheme.primary, Icons.lightbulb_outline_rounded),
       TipType.deception => (scheme.tertiary, Icons.theater_comedy_rounded),
-      TipType.survival => (Colors.blueAccent, Icons.favorite_rounded),
+      TipType.survival => (scheme.primary, Icons.favorite_rounded),
     };
 
     return Container(

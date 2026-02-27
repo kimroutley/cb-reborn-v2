@@ -47,8 +47,7 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
     _initializeProgress();
 
     try {
-      await _runBootstrapSteps()
-          .timeout(const Duration(seconds: 30));
+      await _runBootstrapSteps().timeout(const Duration(seconds: 30));
     } catch (e) {
       debugPrint('[Bootstrap] Bootstrap timed out or failed: $e');
     }
@@ -232,61 +231,58 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
 
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      body: CBNeonBackground(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 380),
-              child: CBPanel(
-                borderColor: scheme.primary.withValues(alpha: 0.5),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const CBBreathingLoader(size: 54),
-                    const SizedBox(height: 20),
-                    Text(
-                      'LOADING PLAYER CLIENT',
-                      textAlign: TextAlign.center,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: scheme.primary,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                      ),
+    return CBPrismScaffold(
+      title: 'LOADING',
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 380),
+            child: CBPanel(
+              borderColor: scheme.primary.withValues(alpha: 0.5),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CBBreathingLoader(size: 54),
+                  const SizedBox(height: 20),
+                  Text(
+                    'LOADING PLAYER CLIENT',
+                    textAlign: TextAlign.center,
+                    style: textTheme.labelLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _status,
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.9),
-                      ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _status,
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.9),
                     ),
-                    const SizedBox(height: 16),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(99),
-                      child: LinearProgressIndicator(
-                        value: _progress,
-                        minHeight: 8,
-                        backgroundColor:
-                            scheme.onSurface.withValues(alpha: 0.15),
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(scheme.primary),
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: _progress,
+                      minHeight: 8,
+                      backgroundColor: scheme.onSurface.withValues(alpha: 0.15),
+                      valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _progressLabel,
-                      textAlign: TextAlign.center,
-                      style: textTheme.labelMedium?.copyWith(
-                        color: scheme.primary.withValues(alpha: 0.95),
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.4,
-                      ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    _progressLabel,
+                    textAlign: TextAlign.center,
+                    style: textTheme.labelMedium?.copyWith(
+                      color: scheme.primary.withValues(alpha: 0.95),
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

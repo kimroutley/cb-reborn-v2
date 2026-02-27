@@ -342,10 +342,10 @@ class LiveIntelPanel extends StatelessWidget {
                   ),
                   child: Text(
                     '${player.lives}HP',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 7,
                       fontWeight: FontWeight.w900,
-                      color: Colors.black,
+                      color: scheme.surface,
                     ),
                   ),
                 ),

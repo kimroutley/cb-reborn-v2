@@ -162,7 +162,7 @@ class GodModeControls extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Divider(height: 1, color: Colors.white12),
+                  Divider(height: 1, color: scheme.outlineVariant.withValues(alpha: 0.12)),
                   const SizedBox(height: 16),
                   Text(
                     'AVAILABLE INTERVENTIONS',

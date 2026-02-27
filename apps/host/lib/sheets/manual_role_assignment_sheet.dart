@@ -41,11 +41,11 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
             color: scheme.secondary,
           ),
           const SizedBox(height: 16),
-          
+
           _TeamBalanceBar(players: currentState.players),
-          
+
           const SizedBox(height: 20),
-          
+
           // Role Source (Draggable)
           SizedBox(
             height: 90,
@@ -56,12 +56,13 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final role = assignableRoles[index];
                 final roleColor = CBColors.fromHex(role.colorHex);
-                
+
                 return Draggable<String>(
                   data: role.id,
                   feedback: Material(
                     type: MaterialType.transparency,
-                    child: _RoleChip(role: role, color: roleColor, isDragging: true),
+                    child: _RoleChip(
+                        role: role, color: roleColor, isDragging: true),
                   ),
                   childWhenDragging: Opacity(
                     opacity: 0.3,
@@ -86,7 +87,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
               itemBuilder: (context, index) {
                 final player = currentState.players[index];
                 return _PlayerTargetTile(
-                  player: player, 
+                  player: player,
                   controller: controller,
                 );
               },
@@ -110,22 +111,38 @@ class _TeamBalanceBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final staff = players.where((p) => p.role.alliance == Team.clubStaff).length;
-    final party = players.where((p) => p.role.alliance == Team.partyAnimals).length;
-    final wild = players.where((p) => p.role.alliance == Team.neutral || (p.role.alliance == Team.unknown && p.role.id != 'unassigned')).length;
+    final staff =
+        players.where((p) => p.role.alliance == Team.clubStaff).length;
+    final party =
+        players.where((p) => p.role.alliance == Team.partyAnimals).length;
+    final wild = players
+        .where((p) =>
+            p.role.alliance == Team.neutral ||
+            (p.role.alliance == Team.unknown && p.role.id != 'unassigned'))
+        .length;
     final unassigned = players.where((p) => p.role.id == 'unassigned').length;
-    
+
     final scheme = Theme.of(context).colorScheme;
 
     return Row(
       children: [
-        Expanded(child: _StatPill(label: 'STAFF', count: staff, color: scheme.secondary)),
+        Expanded(
+            child: _StatPill(
+                label: 'STAFF', count: staff, color: scheme.secondary)),
         const SizedBox(width: 8),
-        Expanded(child: _StatPill(label: 'PARTY', count: party, color: scheme.primary)),
+        Expanded(
+            child:
+                _StatPill(label: 'PARTY', count: party, color: scheme.primary)),
         const SizedBox(width: 8),
-        Expanded(child: _StatPill(label: 'WILD', count: wild, color: scheme.tertiary)),
+        Expanded(
+            child:
+                _StatPill(label: 'WILD', count: wild, color: scheme.tertiary)),
         const SizedBox(width: 8),
-        Expanded(child: _StatPill(label: 'EMPTY', count: unassigned, color: scheme.onSurface.withValues(alpha: 0.5))),
+        Expanded(
+            child: _StatPill(
+                label: 'EMPTY',
+                count: unassigned,
+                color: scheme.onSurface.withValues(alpha: 0.5))),
       ],
     );
   }
@@ -136,7 +153,8 @@ class _StatPill extends StatelessWidget {
   final int count;
   final Color color;
 
-  const _StatPill({required this.label, required this.count, required this.color});
+  const _StatPill(
+      {required this.label, required this.count, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -152,8 +170,8 @@ class _StatPill extends StatelessWidget {
           Text(
             count.toString(),
             style: TextStyle(
-              color: color, 
-              fontWeight: FontWeight.w900, 
+              color: color,
+              fontWeight: FontWeight.w900,
               fontSize: 16,
               fontFamily: 'RobotoMono',
             ),
@@ -161,8 +179,8 @@ class _StatPill extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: color.withValues(alpha: 0.7), 
-              fontSize: 8, 
+              color: color.withValues(alpha: 0.7),
+              fontSize: 8,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,
             ),
@@ -179,8 +197,8 @@ class _RoleChip extends StatelessWidget {
   final bool isDragging;
 
   const _RoleChip({
-    required this.role, 
-    required this.color, 
+    required this.role,
+    required this.color,
     this.isDragging = false,
   });
 
@@ -190,15 +208,15 @@ class _RoleChip extends StatelessWidget {
       width: 70,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isDragging ? Colors.black : color.withValues(alpha: 0.1),
+        color: isDragging ? CBColors.voidBlack : color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDragging ? color : color.withValues(alpha: 0.3),
           width: isDragging ? 2 : 1,
         ),
-        boxShadow: isDragging 
-          ? [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 16)] 
-          : null,
+        boxShadow: isDragging
+            ? [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 16)]
+            : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -233,7 +251,9 @@ class _PlayerTargetTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final hasRole = player.role.id != 'unassigned';
-    final roleColor = hasRole ? CBColors.fromHex(player.role.colorHex) : scheme.outlineVariant;
+    final roleColor = hasRole
+        ? CBColors.fromHex(player.role.colorHex)
+        : scheme.outlineVariant;
 
     return DragTarget<String>(
       onWillAcceptWithDetails: (details) => details.data != player.role.id,
@@ -247,7 +267,7 @@ class _PlayerTargetTile extends StatelessWidget {
         return GestureDetector(
           onTap: () {
             // Functional improvement: Tap to select role
-             showThemedBottomSheet<void>(
+            showThemedBottomSheet<void>(
               context: context,
               accentColor: scheme.secondary,
               child: SinglePlayerRoleSheet(
@@ -272,7 +292,7 @@ class _PlayerTargetTile extends StatelessWidget {
                   pulsing: isHovering,
                 ),
                 const SizedBox(width: 16),
-                
+
                 // Name & Role
                 Expanded(
                   child: Column(
@@ -286,28 +306,34 @@ class _PlayerTargetTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 2),
-                      hasRole 
-                      ? CBMiniTag(text: player.role.name.toUpperCase(), color: roleColor)
-                      : Text(
-                          'TAP OR DRAG ROLE HERE',
-                          style: textTheme.labelSmall?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.3),
-                            fontSize: 9,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                      hasRole
+                          ? CBMiniTag(
+                              text: player.role.name.toUpperCase(),
+                              color: roleColor)
+                          : Text(
+                              'TAP OR DRAG ROLE HERE',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurface.withValues(alpha: 0.3),
+                                fontSize: 9,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                     ],
                   ),
                 ),
-                
+
                 // Clear button
                 if (hasRole)
                   IconButton(
-                    icon: Icon(Icons.close_rounded, size: 18, color: scheme.onSurface.withValues(alpha: 0.5)),
-                    onPressed: () => controller.assignRole(player.id, 'unassigned'),
+                    icon: Icon(Icons.close_rounded,
+                        size: 18,
+                        color: scheme.onSurface.withValues(alpha: 0.5)),
+                    onPressed: () =>
+                        controller.assignRole(player.id, 'unassigned'),
                   )
                 else
-                  Icon(Icons.add_circle_outline_rounded, size: 20, color: scheme.onSurface.withValues(alpha: 0.2)),
+                  Icon(Icons.add_circle_outline_rounded,
+                      size: 20, color: scheme.onSurface.withValues(alpha: 0.2)),
               ],
             ),
           ),

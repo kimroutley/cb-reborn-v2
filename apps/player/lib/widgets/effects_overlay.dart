@@ -40,7 +40,7 @@ class EffectsOverlay extends ConsumerWidget {
         builder: (context, opacity, child) {
           return Opacity(
             opacity: opacity,
-            child: Container(color: Colors.black),
+            child: Container(color: CBColors.voidBlack),
           );
         },
         onEnd: () {
@@ -91,7 +91,7 @@ class EffectsOverlay extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(
                         vertical: 12, horizontal: 20),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.7),
+                      color: CBColors.voidBlack.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: Theme.of(context)

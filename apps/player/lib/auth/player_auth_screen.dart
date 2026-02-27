@@ -127,7 +127,7 @@ class _AuthLoadingDialog extends StatelessWidget {
     return AbsorbPointer(
       absorbing: true,
       child: Container(
-        color: Colors.black.withValues(alpha: 0.58),
+        color: scheme.scrim.withValues(alpha: 0.58),
         alignment: Alignment.center,
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
