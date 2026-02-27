@@ -56,6 +56,7 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
       return;
     }
     await _setStatus('BOOTSTRAP COMPLETE');
+    if (!mounted) return;
     setState(() => _ready = true);
   }
 

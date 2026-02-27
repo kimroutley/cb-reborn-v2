@@ -348,6 +348,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       await _performConnection();
       success = true;
     } on TimeoutException catch (e) {
+      if (!mounted) return;
       setState(() {
         _connectionError = (e.message?.isNotEmpty == true)
             ? e.message!
@@ -355,6 +356,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       });
     } catch (e) {
       final message = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+      if (!mounted) return;
       setState(() {
         _connectionError = message;
       });
