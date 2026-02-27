@@ -135,67 +135,68 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
       drawer: const CustomDrawer(),
       body: Stack(
         children: [
-            // ── ANIMATED BACKGROUND ──
-            _buildDynamicBackground(scheme),
+          // ── ANIMATED BACKGROUND ──
+          _buildDynamicBackground(scheme),
 
-            // ── STORY CONTENT ──
-            PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                  _startTimer();
-                });
-              },
-              children: _buildSlides(scheme),
-            ),
+          // ── STORY CONTENT ──
+          PageView(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+                _startTimer();
+              });
+            },
+            children: _buildSlides(scheme),
+          ),
 
-            // ── NAVIGATION OVERLAY ──
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _previousPage,
-                    behavior: HitTestBehavior.translucent,
-                    child: const SizedBox.expand(),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _nextPage,
-                    behavior: HitTestBehavior.translucent,
-                    child: const SizedBox.expand(),
-                  ),
-                ),
-              ],
-            ),
-
-            // ── TOP INDICATORS ──
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildProgressBar(scheme),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        const CBConnectionDot(
-                            isConnected: true, label: "SESSION RECAP"),
-                        const SizedBox(width: 8),
-                        const SimulationModeBadgeAction(),
-                        const Spacer(),
-                        IconButton(
-                          icon: Icon(Icons.close, color: scheme.onSurface),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  ],
+          // ── NAVIGATION OVERLAY ──
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: _previousPage,
+                  behavior: HitTestBehavior.translucent,
+                  child: const SizedBox.expand(),
                 ),
               ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: _nextPage,
+                  behavior: HitTestBehavior.translucent,
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ],
+          ),
+
+          // ── TOP INDICATORS ──
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildProgressBar(scheme),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const CBConnectionDot(
+                          isConnected: true, label: "SESSION RECAP"),
+                      const SizedBox(width: 8),
+                      const SimulationModeBadgeAction(),
+                      const Spacer(),
+                      IconButton(
+                        tooltip: 'Close',
+                        icon: Icon(Icons.close, color: scheme.onSurface),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
+          ),
         ],
       ),
     );
@@ -337,7 +338,8 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
         _ => Icons.emoji_events,
       };
 
-  static Color _specialAwardColor(String id, ColorScheme scheme) => switch (id) {
+  static Color _specialAwardColor(String id, ColorScheme scheme) =>
+      switch (id) {
         'cannon_fodder' => scheme.error,
         'the_npc' => scheme.onSurface.withValues(alpha: 0.4),
         'friendly_fire_champion' => scheme.error,
@@ -420,9 +422,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.auto_awesome,
-              color: scheme.tertiary,
-              size: 80),
+          Icon(Icons.auto_awesome, color: scheme.tertiary, size: 80),
           const SizedBox(height: 32),
           Text(
             widget.session.sessionName.toUpperCase(),
@@ -432,8 +432,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                   color: scheme.onSurface,
                   letterSpacing: 4,
                 )
-                .copyWith(
-                    shadows: CBColors.textGlow(scheme.tertiary)),
+                .copyWith(shadows: CBColors.textGlow(scheme.tertiary)),
           ),
           const SizedBox(height: 24),
           Text(
@@ -484,9 +483,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
               style: textTheme.headlineMedium!
                   .copyWith(
                       color: scheme.primary) // Previously CBColors.neonBlue
-                  .copyWith(
-                      shadows: CBColors.textGlow(
-                          scheme.primary))),
+                  .copyWith(shadows: CBColors.textGlow(scheme.primary))),
           const SizedBox(height: 48),
           Wrap(
             spacing: 12,
@@ -603,8 +600,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
               style: textTheme.headlineMedium!
                   .copyWith(
                       color: scheme.tertiary) // Previously CBColors.matrixGreen
-                  .copyWith(
-                      shadows: CBColors.textGlow(scheme.tertiary))),
+                  .copyWith(shadows: CBColors.textGlow(scheme.tertiary))),
           const SizedBox(height: 48),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,

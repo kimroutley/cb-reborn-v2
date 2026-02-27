@@ -346,6 +346,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                           ),
                         ),
                         IconButton(
+                          tooltip: 'Close scanner',
                           icon: Icon(Icons.close, color: scheme.onSurface),
                           onPressed: () => setState(() => _isScanning = false),
                         ),

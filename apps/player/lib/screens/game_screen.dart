@@ -478,6 +478,7 @@ class _ChatInputBar extends StatelessWidget {
                 ),
               ),
               IconButton(
+                tooltip: 'Send message',
                 icon: Icon(Icons.send_rounded, color: roleColor),
                 onPressed: onSend,
               ),

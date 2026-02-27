@@ -391,6 +391,7 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                       prefixIcon: Icon(Icons.lock_rounded,
                           color: scheme.primary.withAlpha(128), size: 20),
                       suffixIcon: IconButton(
+                        tooltip: 'Toggle password visibility',
                         icon: Icon(
                           _obscurePassword
                               ? Icons.visibility_off_rounded
@@ -413,6 +414,7 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                         prefixIcon: Icon(Icons.lock_outline_rounded,
                             color: scheme.primary.withAlpha(128), size: 20),
                         suffixIcon: IconButton(
+                          tooltip: 'Toggle password visibility',
                           icon: Icon(
                             _obscureConfirm
                                 ? Icons.visibility_off_rounded

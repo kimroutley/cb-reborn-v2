@@ -93,6 +93,7 @@ class _ActionInputBarState extends State<ActionInputBar> {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
+                  tooltip: 'Send action',
                   onPressed: _handleSend,
                   icon: const Icon(Icons.send),
                   color: scheme.primary,

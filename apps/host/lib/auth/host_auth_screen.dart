@@ -118,8 +118,8 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
     if (email.isEmpty || password.isEmpty) return;
     if (_isCreatingAccount) {
       if (password != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Passwords do not match.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Passwords do not match.')));
         return;
       }
       await notifier.createAccountWithEmailPassword(email, password);
@@ -345,6 +345,7 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                             size: 20,
                             color: scheme.primary.withValues(alpha: 0.5)),
                         suffixIcon: IconButton(
+                          tooltip: 'Toggle password visibility',
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility_off_rounded
@@ -352,8 +353,8 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                             color: scheme.onSurface.withValues(alpha: 0.4),
                             size: 18,
                           ),
-                          onPressed: () =>
-                              setState(() => _obscurePassword = !_obscurePassword),
+                          onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword),
                         ),
                       ),
                       obscureText: _obscurePassword,
@@ -369,6 +370,7 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                               size: 20,
                               color: scheme.primary.withValues(alpha: 0.5)),
                           suffixIcon: IconButton(
+                            tooltip: 'Toggle password visibility',
                             icon: Icon(
                               _obscureConfirm
                                   ? Icons.visibility_off_rounded
@@ -386,9 +388,7 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                     const SizedBox(height: CBSpace.x4),
 
                     CBPrimaryButton(
-                      label: _isCreatingAccount
-                          ? 'CREATE ACCOUNT'
-                          : 'SIGN IN',
+                      label: _isCreatingAccount ? 'CREATE ACCOUNT' : 'SIGN IN',
                       icon: _isCreatingAccount
                           ? Icons.how_to_reg_rounded
                           : Icons.login_rounded,
@@ -416,8 +416,7 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                         ),
                         if (!_isCreatingAccount)
                           TextButton(
-                            onPressed: () =>
-                                _handleForgotPassword(notifier),
+                            onPressed: () => _handleForgotPassword(notifier),
                             child: Text(
                               'FORGOT PASSWORD?',
                               style: textTheme.labelSmall?.copyWith(

@@ -325,6 +325,7 @@ class _PlayerTargetTile extends StatelessWidget {
                 // Clear button
                 if (hasRole)
                   IconButton(
+                    tooltip: 'Clear role',
                     icon: Icon(Icons.close_rounded,
                         size: 18,
                         color: scheme.onSurface.withValues(alpha: 0.5)),

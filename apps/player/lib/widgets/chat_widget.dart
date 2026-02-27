@@ -37,22 +37,23 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
 
     final gameState = ref.read(gameProvider);
     String? roleId;
-    
+
     // Attempt to find the player's role ID for proper avatar display
     try {
-      final player = gameState.players.firstWhere((p) => p.id == widget.playerId);
+      final player =
+          gameState.players.firstWhere((p) => p.id == widget.playerId);
       roleId = player.role.id;
     } catch (_) {
       // Player might not be fully initialized or in lobby without role
     }
 
     ref.read(gameProvider.notifier).postBulletin(
-      title: widget.playerName,
-      content: text,
-      roleId: roleId, // Important: Host Feed uses this to show avatar
-      type: 'chat',
-    );
-    
+          title: widget.playerName,
+          content: text,
+          roleId: roleId, // Important: Host Feed uses this to show avatar
+          type: 'chat',
+        );
+
     _controller.clear();
     _scrollToBottom();
   }
@@ -71,13 +72,14 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    
+
     // Watch shared game state instead of local chat provider
     final gameState = ref.watch(gameProvider);
     final messages = gameState.bulletinBoard;
 
     // Listen for new messages to auto-scroll
-    ref.listen(gameProvider.select((s) => s.bulletinBoard.length), (prev, next) {
+    ref.listen(gameProvider.select((s) => s.bulletinBoard.length),
+        (prev, next) {
       if (next > (prev ?? 0) && _autoScroll) {
         Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
       }
@@ -104,42 +106,44 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
               },
               child: ListView.builder(
                 controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   final entry = messages[index];
-                  
+
                   // specialized handling for system/phase announcements
                   if (entry.type == 'system' || entry.type == 'phase') {
-                    final isNight = entry.content.toUpperCase().contains('NIGHT');
+                    final isNight =
+                        entry.content.toUpperCase().contains('NIGHT');
                     return CBFeedSeparator(
                       label: entry.content,
-                      color: entry.type == 'system' 
-                          ? scheme.error 
+                      color: entry.type == 'system'
+                          ? scheme.error
                           : (isNight ? scheme.secondary : scheme.primary),
                       isCinematic: true,
                     );
                   }
 
                   // Resolve sender details
-                  bool isMe = entry.title == widget.playerName; 
+                  bool isMe = entry.title == widget.playerName;
                   Color bubbleColor = scheme.primary;
                   String? avatarAsset;
                   CBMessageStyle style = CBMessageStyle.standard;
-                  
+
                   if (entry.roleId == null) {
                     // Host message
                     avatarAsset = 'assets/roles/host_avatar.png';
                     style = CBMessageStyle.narrative;
-                    
+
                     // Resolve color based on personality in GameState
                     final pid = gameState.hostPersonalityId;
                     if (pid == 'the_ice_queen') {
-                      bubbleColor = scheme.tertiary; 
+                      bubbleColor = scheme.tertiary;
                     } else if (pid == 'protocol_9') {
-                      bubbleColor = scheme.error; 
+                      bubbleColor = scheme.error;
                     } else if (pid == 'blood_sport_promoter') {
-                      bubbleColor = scheme.secondary; 
+                      bubbleColor = scheme.secondary;
                     } else {
                       bubbleColor = scheme.secondary;
                     }
@@ -147,16 +151,16 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
                     // Player message
                     try {
                       // We need to find the player by roleId to match Host logic
-                      final senderPlayer = gameState.players.firstWhere(
-                        (p) => p.role.id == entry.roleId
-                      );
-                      
+                      final senderPlayer = gameState.players
+                          .firstWhere((p) => p.role.id == entry.roleId);
+
                       // Check if it's actually me (by player ID)
                       if (senderPlayer.id == widget.playerId) {
                         isMe = true;
                       }
-                      
-                      bubbleColor = CBColors.fromHex(senderPlayer.role.colorHex);
+
+                      bubbleColor =
+                          CBColors.fromHex(senderPlayer.role.colorHex);
                       avatarAsset = 'assets/roles/${senderPlayer.role.id}.png';
                     } catch (_) {
                       // Fallback if role lookup fails
@@ -182,7 +186,9 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: scheme.surface,
-              border: Border(top: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2))),
+              border: Border(
+                  top: BorderSide(
+                      color: scheme.outlineVariant.withValues(alpha: 0.2))),
             ),
             child: Row(
               children: [
@@ -201,6 +207,7 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
+                  tooltip: 'Send message',
                   onPressed: _sendMessage,
                   icon: Icon(Icons.send_rounded, color: scheme.primary),
                   style: IconButton.styleFrom(

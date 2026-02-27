@@ -67,6 +67,7 @@ class PlayerCard extends StatelessWidget {
                   ),
                   if (onDelete != null)
                     IconButton(
+                      tooltip: 'Remove player',
                       icon: Icon(Icons.remove_circle_outline,
                           color: scheme.error, size: 20),
                       onPressed: onDelete,
