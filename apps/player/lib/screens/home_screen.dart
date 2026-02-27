@@ -398,65 +398,70 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'CONNECT TO HOST',
-                      textAlign: TextAlign.center,
-                      style: textTheme.displayMedium!.copyWith(
-                        color: scheme.primary,
-                        letterSpacing: 4,
-                        fontWeight: FontWeight.w900,
-                        shadows: CBColors.textGlow(scheme.primary),
+                    CBFadeSlide(
+                      child: Text(
+                        'CONNECT TO HOST',
+                        textAlign: TextAlign.center,
+                        style: textTheme.displayMedium!.copyWith(
+                          color: scheme.primary,
+                          letterSpacing: 4,
+                          fontWeight: FontWeight.w900,
+                          shadows: CBColors.textGlow(scheme.primary),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 48),
-                    CBPanel(
-                      borderColor: scheme.primary.withValues(alpha: 0.4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildSyncModeSelector(context),
-                          const SizedBox(height: 24),
-                          CBTextField(
-                            controller: _joinCodeController,
-                            hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
-                            textCapitalization: TextCapitalization.characters,
-                          ),
-                          if (_mode == PlayerSyncMode.local) ...[
-                            const SizedBox(height: 16),
+                    CBFadeSlide(
+                      delay: const Duration(milliseconds: 120),
+                      child: CBPanel(
+                        borderColor: scheme.primary.withValues(alpha: 0.4),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildSyncModeSelector(context),
+                            const SizedBox(height: 24),
                             CBTextField(
-                              controller: _hostIpController,
-                              hintText:
-                                  'HOST IP ADDRESS (E.G. WS://192.168.1.100)',
-                              keyboardType: TextInputType.url,
+                              controller: _joinCodeController,
+                              hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
+                              textCapitalization: TextCapitalization.characters,
                             ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'LOCAL MODE TIP: HOST + PLAYER MUST BE ON THE SAME NETWORK AND THE HOST APP MUST BE RUNNING. IF YOU ARE UNSURE, USE CLOUD MODE.',
-                              textAlign: TextAlign.center,
-                              style: textTheme.bodySmall!.copyWith(
-                                color: scheme.primary.withValues(alpha: 0.9),
-                                fontWeight: FontWeight.w600,
+                            if (_mode == PlayerSyncMode.local) ...[
+                              const SizedBox(height: 16),
+                              CBTextField(
+                                controller: _hostIpController,
+                                hintText:
+                                    'HOST IP ADDRESS (E.G. WS://192.168.1.100)',
+                                keyboardType: TextInputType.url,
                               ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'LOCAL MODE TIP: HOST + PLAYER MUST BE ON THE SAME NETWORK AND THE HOST APP MUST BE RUNNING. IF YOU ARE UNSURE, USE CLOUD MODE.',
+                                textAlign: TextAlign.center,
+                                style: textTheme.bodySmall!.copyWith(
+                                  color: scheme.primary.withValues(alpha: 0.9),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 24),
+                            CBPrimaryButton(
+                              label: _isConnecting
+                                  ? 'CONNECTING...'
+                                  : 'ENTER THE CLUB',
+                              onPressed:
+                                  _isConnecting ? null : _connectFromButton,
                             ),
+                            if (_connectionError != null) ...[
+                              const SizedBox(height: 16),
+                              Text(
+                                _connectionError!,
+                                textAlign: TextAlign.center,
+                                style: textTheme.bodySmall!
+                                    .copyWith(color: scheme.error),
+                              ),
+                            ],
                           ],
-                          const SizedBox(height: 24),
-                          CBPrimaryButton(
-                            label: _isConnecting
-                                ? 'CONNECTING...'
-                                : 'ENTER THE CLUB',
-                            onPressed:
-                                _isConnecting ? null : _connectFromButton,
-                          ),
-                          if (_connectionError != null) ...[
-                            const SizedBox(height: 16),
-                            Text(
-                              _connectionError!,
-                              textAlign: TextAlign.center,
-                              style: textTheme.bodySmall!
-                                  .copyWith(color: scheme.error),
-                            ),
-                          ],
-                        ],
+                        ),
                       ),
                     ),
                   ],

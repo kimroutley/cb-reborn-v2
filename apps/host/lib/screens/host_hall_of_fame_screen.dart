@@ -124,93 +124,99 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
           : Column(
               children: [
                 // Tab Bar
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: CBGlassTile(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    borderColor: scheme.primary.withValues(alpha: 0.3),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      dividerColor: Colors.transparent,
-                      indicator: BoxDecoration(
-                        color: scheme.primary.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                            color: scheme.primary.withValues(alpha: 0.4)),
-                      ),
-                      labelStyle: textTheme.labelSmall!.copyWith(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
-                      unselectedLabelStyle: textTheme.labelSmall,
-                      labelColor: scheme.primary,
-                      unselectedLabelColor:
-                          scheme.onSurface.withValues(alpha: 0.4),
-                      tabs: [
-                        const Tab(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.leaderboard_rounded, size: 16),
-                              SizedBox(width: 6),
-                              Text('LEADERBOARD'),
-                            ],
-                          ),
+                CBFadeSlide(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: CBGlassTile(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 4),
+                      borderColor: scheme.primary.withValues(alpha: 0.3),
+                      child: TabBar(
+                        controller: _tabController,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        dividerColor: Colors.transparent,
+                        indicator: BoxDecoration(
+                          color: scheme.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                              color: scheme.primary.withValues(alpha: 0.4)),
                         ),
-                        const Tab(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.insights_rounded, size: 16),
-                              SizedBox(width: 6),
-                              Text('STATS'),
-                            ],
-                          ),
+                        labelStyle: textTheme.labelSmall!.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
                         ),
-                        Tab(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.emoji_events_rounded, size: 16),
-                              const SizedBox(width: 6),
-                              const Text('AWARDS'),
-                              if (_recentUnlockCount > 0) ...[
+                        unselectedLabelStyle: textTheme.labelSmall,
+                        labelColor: scheme.primary,
+                        unselectedLabelColor:
+                            scheme.onSurface.withValues(alpha: 0.4),
+                        tabs: [
+                          const Tab(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.leaderboard_rounded, size: 16),
+                                SizedBox(width: 6),
+                                Text('LEADERBOARD'),
+                              ],
+                            ),
+                          ),
+                          const Tab(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.insights_rounded, size: 16),
+                                SizedBox(width: 6),
+                                Text('STATS'),
+                              ],
+                            ),
+                          ),
+                          Tab(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.emoji_events_rounded,
+                                    size: 16),
                                 const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 5, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: scheme.tertiary,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '$_recentUnlockCount',
-                                    style: textTheme.labelSmall!.copyWith(
-                                      color: scheme.onTertiary,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w900,
+                                const Text('AWARDS'),
+                                if (_recentUnlockCount > 0) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: scheme.tertiary,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '$_recentUnlockCount',
+                                      style: textTheme.labelSmall!.copyWith(
+                                        color: scheme.onTertiary,
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.w900,
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildLeaderboardTab(scheme, textTheme),
-                      _buildOverviewTab(scheme, textTheme),
-                      _buildAwardsTab(scheme, textTheme),
-                    ],
+                  child: CBFadeSlide(
+                    delay: const Duration(milliseconds: 100),
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _buildLeaderboardTab(scheme, textTheme),
+                        _buildOverviewTab(scheme, textTheme),
+                        _buildAwardsTab(scheme, textTheme),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -231,8 +237,7 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.emoji_events_outlined,
-                    size: 48,
-                    color: scheme.primary.withValues(alpha: 0.3)),
+                    size: 48, color: scheme.primary.withValues(alpha: 0.3)),
                 const SizedBox(height: 16),
                 Text(
                   'NO RECORDS YET',
@@ -275,8 +280,7 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
   // ─── OVERVIEW TAB ──────────────────────────────────────────
 
   Widget _buildOverviewTab(ColorScheme scheme, TextTheme textTheme) {
-    final totalUnlocks =
-        _roleUnlockCounts.values.fold(0, (sum, v) => sum + v);
+    final totalUnlocks = _roleUnlockCounts.values.fold(0, (sum, v) => sum + v);
 
     return RefreshIndicator(
       onRefresh: _loadData,
@@ -409,8 +413,7 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
   // ─── AWARDS TAB ───────────────────────────────────────────
 
   Widget _buildAwardsTab(ColorScheme scheme, TextTheme textTheme) {
-    final totalUnlocked =
-        _roleUnlockCounts.values.fold(0, (sum, v) => sum + v);
+    final totalUnlocked = _roleUnlockCounts.values.fold(0, (sum, v) => sum + v);
     final totalAwards = allRoleAwardDefinitions().length;
 
     return RefreshIndicator(
@@ -445,9 +448,8 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
-                          value: totalAwards > 0
-                              ? totalUnlocked / totalAwards
-                              : 0,
+                          value:
+                              totalAwards > 0 ? totalUnlocked / totalAwards : 0,
                           minHeight: 4,
                           backgroundColor:
                               scheme.onSurface.withValues(alpha: 0.1),
@@ -474,8 +476,8 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
               padding: const EdgeInsets.only(bottom: 10),
               child: CBGlassTile(
                 onTap: awards.isNotEmpty
-                    ? () => setState(() => _expandedRoleId =
-                        isExpanded ? null : role.id)
+                    ? () => setState(
+                        () => _expandedRoleId = isExpanded ? null : role.id)
                     : null,
                 borderColor: roleColor.withValues(alpha: 0.4),
                 padding: const EdgeInsets.all(14),
@@ -507,12 +509,11 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
                               if (awards.isNotEmpty)
                                 Row(
                                   children: awards.map((a) {
-                                    final u = _unlockedAwardIds
-                                        .contains(a.awardId);
+                                    final u =
+                                        _unlockedAwardIds.contains(a.awardId);
                                     final tc = _tierColor(a.tier, scheme);
                                     return Padding(
-                                      padding:
-                                          const EdgeInsets.only(right: 4),
+                                      padding: const EdgeInsets.only(right: 4),
                                       child: Container(
                                         width: 8,
                                         height: 8,
@@ -562,8 +563,7 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
                               isExpanded
                                   ? Icons.expand_less_rounded
                                   : Icons.expand_more_rounded,
-                              color:
-                                  scheme.onSurface.withValues(alpha: 0.3),
+                              color: scheme.onSurface.withValues(alpha: 0.3),
                               size: 20,
                             ),
                           ),
@@ -572,8 +572,7 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
                     if (isExpanded && awards.isNotEmpty) ...[
                       const SizedBox(height: 14),
                       ...awards.map((award) {
-                        final isU =
-                            _unlockedAwardIds.contains(award.awardId);
+                        final isU = _unlockedAwardIds.contains(award.awardId);
                         final tc = _tierColor(award.tier, scheme);
                         final tierName = switch (award.tier) {
                           RoleAwardTier.rookie => 'ROOKIE',
@@ -590,8 +589,7 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
                             isPrismatic: isU,
                             borderColor: isU
                                 ? tc.withValues(alpha: 0.5)
-                                : scheme.outlineVariant
-                                    .withValues(alpha: 0.15),
+                                : scheme.outlineVariant.withValues(alpha: 0.15),
                             child: Row(
                               children: [
                                 Container(
@@ -611,8 +609,8 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
                                     boxShadow: isU
                                         ? [
                                             BoxShadow(
-                                                color: tc.withValues(
-                                                    alpha: 0.2),
+                                                color:
+                                                    tc.withValues(alpha: 0.2),
                                                 blurRadius: 6)
                                           ]
                                         : null,
@@ -636,14 +634,13 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
                                     children: [
                                       Text(
                                         award.title.toUpperCase(),
-                                        style:
-                                            textTheme.labelSmall?.copyWith(
+                                        style: textTheme.labelSmall?.copyWith(
                                           fontWeight: FontWeight.w900,
                                           letterSpacing: 0.8,
                                           color: isU
                                               ? scheme.onSurface
-                                              : scheme.onSurface.withValues(
-                                                  alpha: 0.35),
+                                              : scheme.onSurface
+                                                  .withValues(alpha: 0.35),
                                           shadows: isU
                                               ? CBColors.textGlow(tc,
                                                   intensity: 0.2)
@@ -653,8 +650,7 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
                                       const SizedBox(height: 2),
                                       Text(
                                         award.description,
-                                        style:
-                                            textTheme.labelSmall?.copyWith(
+                                        style: textTheme.labelSmall?.copyWith(
                                           color: scheme.onSurface
                                               .withValues(alpha: 0.45),
                                           fontSize: 9,
@@ -929,8 +925,7 @@ class _ExplainerRow extends StatelessWidget {
               shape: BoxShape.circle,
               color: color,
               boxShadow: [
-                BoxShadow(
-                    color: color.withValues(alpha: 0.4), blurRadius: 4),
+                BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 4),
               ],
             ),
           ),

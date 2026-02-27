@@ -27,83 +27,88 @@ class StatsScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CBPanel(
-                borderColor: scheme.primary.withValues(alpha: 0.4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CBSectionHeader(
-                      title: "CAREER METRICS",
-                      icon: Icons.show_chart_rounded,
-                      color: scheme.primary,
-                    ),
-                    const SizedBox(height: CBSpace.x6),
-                    _buildStatRow(
-                      "GAMES PLAYED",
-                      "${stats.gamesPlayed}",
-                      scheme.secondary,
-                      context,
-                    ),
-                    const SizedBox(height: CBSpace.x4),
-                    _buildStatRow(
-                      "GAMES WON",
-                      "${stats.gamesWon}",
-                      scheme.primary,
-                      context,
-                    ),
-                    const SizedBox(height: CBSpace.x4),
-                    _buildStatRow(
-                      "WIN RATE",
-                      "${stats.winRate.toStringAsFixed(0)}%",
-                      scheme.tertiary,
-                      context,
-                    ),
-                    const SizedBox(height: CBSpace.x4),
-                    _buildStatRow(
-                      "FAVORITE ROLE",
-                      stats.favoriteRole.toUpperCase(),
-                      scheme.primary,
-                      context,
-                    ),
-                  ],
+              CBFadeSlide(
+                child: CBPanel(
+                  borderColor: scheme.primary.withValues(alpha: 0.4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CBSectionHeader(
+                        title: "CAREER METRICS",
+                        icon: Icons.show_chart_rounded,
+                        color: scheme.primary,
+                      ),
+                      const SizedBox(height: CBSpace.x6),
+                      _buildStatRow(
+                        "GAMES PLAYED",
+                        "${stats.gamesPlayed}",
+                        scheme.secondary,
+                        context,
+                      ),
+                      const SizedBox(height: CBSpace.x4),
+                      _buildStatRow(
+                        "GAMES WON",
+                        "${stats.gamesWon}",
+                        scheme.primary,
+                        context,
+                      ),
+                      const SizedBox(height: CBSpace.x4),
+                      _buildStatRow(
+                        "WIN RATE",
+                        "${stats.winRate.toStringAsFixed(0)}%",
+                        scheme.tertiary,
+                        context,
+                      ),
+                      const SizedBox(height: CBSpace.x4),
+                      _buildStatRow(
+                        "FAVORITE ROLE",
+                        stats.favoriteRole.toUpperCase(),
+                        scheme.primary,
+                        context,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: CBSpace.x8),
-              CBGlassTile(
-                isPrismatic: true,
-                onTap: () {
-                  ref
-                      .read(playerNavigationProvider.notifier)
-                      .setDestination(PlayerDestination.hallOfFame);
-                },
-                child: Row(
-                  children: [
-                    Icon(Icons.emoji_events_rounded,
-                        color: scheme.primary, size: 32),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "VIEW HALL OF FAME",
-                            style: textTheme.labelLarge!.copyWith(
-                              color: scheme.onSurface,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.5,
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 100),
+                child: CBGlassTile(
+                  isPrismatic: true,
+                  onTap: () {
+                    ref
+                        .read(playerNavigationProvider.notifier)
+                        .setDestination(PlayerDestination.hallOfFame);
+                  },
+                  child: Row(
+                    children: [
+                      Icon(Icons.emoji_events_rounded,
+                          color: scheme.primary, size: 32),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "VIEW HALL OF FAME",
+                              style: textTheme.labelLarge!.copyWith(
+                                color: scheme.onSurface,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.5,
+                              ),
                             ),
-                          ),
-                          Text(
-                            "Check your awards and standing",
-                            style: textTheme.bodySmall!.copyWith(
-                              color: scheme.onSurface.withValues(alpha: 0.7),
+                            Text(
+                              "Check your awards and standing",
+                              style: textTheme.bodySmall!.copyWith(
+                                color: scheme.onSurface.withValues(alpha: 0.7),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Icon(Icons.chevron_right_rounded, color: scheme.primary),
-                  ],
+                      Icon(Icons.chevron_right_rounded, color: scheme.primary),
+                    ],
+                  ),
                 ),
               ),
             ],

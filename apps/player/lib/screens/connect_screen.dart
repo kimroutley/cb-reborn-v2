@@ -188,33 +188,35 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
     // Check if code manually entered
     final manualCode = _normalizeJoinCode(joinCodeController.text);
-    if (manualCode.length == 9) { // 4-4? normalized logic adds - at 4. NEON-ABCD is 9 chars.
-       // The normalization logic:
-       // NEONABCD (8) -> NEON-ABCD (9).
-       // Actually let's check normalizeJoinCode implementation:
-       // if length != 10 (compact) -> return upper.
-       // return sub(0,4) - sub(4). (Compact length 10 implies 10 chars -> XXXX-XXXXXX (11 chars)).
-       // Wait, `compact.length != 10`.
-       // Typically codes are 4-6 chars or UUIDs?
-       // Let's assume the previous logic: `if (code.length != 11)` check implies strict format.
-       // I'll stick to using the existing logic.
+    if (manualCode.length == 9) {
+      // 4-4? normalized logic adds - at 4. NEON-ABCD is 9 chars.
+      // The normalization logic:
+      // NEONABCD (8) -> NEON-ABCD (9).
+      // Actually let's check normalizeJoinCode implementation:
+      // if length != 10 (compact) -> return upper.
+      // return sub(0,4) - sub(4). (Compact length 10 implies 10 chars -> XXXX-XXXXXX (11 chars)).
+      // Wait, `compact.length != 10`.
+      // Typically codes are 4-6 chars or UUIDs?
+      // Let's assume the previous logic: `if (code.length != 11)` check implies strict format.
+      // I'll stick to using the existing logic.
     }
 
     if (joinUrlController.text.trim().isNotEmpty) {
-       // Preferred path if URL present
-       if (!_tryApplyJoinUrl(joinUrlController.text)) {
-          // If URL fails but we have manual code, ignore URL field?
-          // No, existing logic prioritized URL field.
-          // But in new UI, we only expose Code field freely.
-       }
+      // Preferred path if URL present
+      if (!_tryApplyJoinUrl(joinUrlController.text)) {
+        // If URL fails but we have manual code, ignore URL field?
+        // No, existing logic prioritized URL field.
+        // But in new UI, we only expose Code field freely.
+      }
     }
-    
+
     final code = _normalizeJoinCode(joinCodeController.text);
 
     // The previous validation was strict length 11.
     // NEON-ABCDEF is 11 chars (4 + 1 + 6).
-    
-    if (code.length < 5) { // Relaxed check, server will reject if invalid
+
+    if (code.length < 5) {
+      // Relaxed check, server will reject if invalid
       HapticService.error();
       setState(() {
         localError = 'INVALID CODE FORMAT';
@@ -234,7 +236,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       if (!mounted) return;
       final errorStr = e.toString();
       // Remove 'Exception: ' prefix if present
-      final displayError = errorStr.startsWith('Exception: ') 
+      final displayError = errorStr.startsWith('Exception: ')
           ? errorStr.replaceFirst('Exception: ', '')
           : errorStr;
       setState(() => localError = displayError.toUpperCase());
@@ -257,14 +259,14 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
           _connect();
           return;
         }
-        
+
         // Try as raw code
         // We set it to controller and trigger connect
         // Normalize first
         // If it looks like a valid code (e.g. alphanumeric)
-        joinCodeController.text = code; 
+        joinCodeController.text = code;
         // Force normalization via connect or tryApply
-        
+
         HapticService.selection();
         setState(() => _isScanning = false);
         _connect();
@@ -281,7 +283,9 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       return;
     }
 
-    ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.lobby);
+    ref
+        .read(playerNavigationProvider.notifier)
+        .setDestination(PlayerDestination.lobby);
   }
 
   @override
@@ -314,7 +318,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
               onDetect: _onScan,
             ),
             // Overlay
-             Center(
+            Center(
               child: Container(
                 width: 250,
                 height: 250,
@@ -337,7 +341,8 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                           style: textTheme.titleMedium?.copyWith(
                             color: scheme.onSurface,
                             fontWeight: FontWeight.bold,
-                            shadows: CBColors.textGlow(scheme.primary, intensity: 0.3),
+                            shadows: CBColors.textGlow(scheme.primary,
+                                intensity: 0.3),
                           ),
                         ),
                         IconButton(
@@ -351,8 +356,8 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                       child: Text(
                         'Point camera at the Host screen QR code',
                         textAlign: TextAlign.center,
-                        style: textTheme.bodyMedium
-                            ?.copyWith(color: scheme.onSurface.withValues(alpha: 0.75)),
+                        style: textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.75)),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -371,16 +376,17 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     return CBPrismScaffold(
       title: 'ESTABLISH LINK',
       body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 16),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 16),
 
-                // Scan Button (Prominent)
-                GestureDetector(
+              // Scan Button (Prominent)
+              CBFadeSlide(
+                child: GestureDetector(
                   onTap: () {
                     HapticService.medium();
                     setState(() => _isScanning = true);
@@ -413,11 +419,14 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                     ),
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-                // Manual Entry Divider
-                Row(
+              // Manual Entry Divider
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 100),
+                child: Row(
                   children: [
                     Expanded(child: Divider(color: scheme.outlineVariant)),
                     Padding(
@@ -433,11 +442,14 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                     Expanded(child: Divider(color: scheme.outlineVariant)),
                   ],
                 ),
+              ),
 
-                const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-                // Manual Entry Field
-                CBTextField(
+              // Manual Entry Field
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 200),
+                child: CBTextField(
                   controller: joinCodeController,
                   hintText: 'NEON-123456',
                   textAlign: TextAlign.center,
@@ -450,68 +462,75 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                     _JoinCodeFormatter(),
                   ],
                 ),
+              ),
 
-                const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-                CBPrimaryButton(
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 300),
+                child: CBPrimaryButton(
                   label: _isConnecting ? 'CONNECTING...' : 'Enter The Club',
                   onPressed: _isConnecting ? null : _connect,
-                  icon:
-                      _isConnecting ? Icons.hourglass_empty : Icons.arrow_forward,
+                  icon: _isConnecting
+                      ? Icons.hourglass_empty
+                      : Icons.arrow_forward,
                 ),
+              ),
 
-                if (error != null) ...[
-                  const SizedBox(height: 24),
-                  CBGlassTile(
-                    borderColor: scheme.error,
-                    child: Row(
-                      children: [
-                        Icon(Icons.error_outline, color: scheme.error),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            error,
-                            style: textTheme.bodyMedium
-                                ?.copyWith(color: scheme.error),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 48),
-
-                // Just Browsing
-                TextButton(
-                  onPressed: () {
-                    HapticService.selection();
-                    // Go to Guides
-                    ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.guides);
-                    Navigator.of(context).maybePop();
-                  },
-                  child: Column(
+              if (error != null) ...[
+                const SizedBox(height: 24),
+                CBGlassTile(
+                  borderColor: scheme.error,
+                  child: Row(
                     children: [
-                       Text(
-                        'JUST BROWSING?',
-                        style: textTheme.labelLarge?.copyWith(
-                          color: scheme.secondary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Read the Club Bible & Roles',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
+                      Icon(Icons.error_outline, color: scheme.error),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          error,
+                          style: textTheme.bodyMedium
+                              ?.copyWith(color: scheme.error),
                         ),
                       ),
                     ],
                   ),
                 ),
               ],
-            ),
+
+              const SizedBox(height: 48),
+
+              // Just Browsing
+              TextButton(
+                onPressed: () {
+                  HapticService.selection();
+                  // Go to Guides
+                  ref
+                      .read(playerNavigationProvider.notifier)
+                      .setDestination(PlayerDestination.guides);
+                  Navigator.of(context).maybePop();
+                },
+                child: Column(
+                  children: [
+                    Text(
+                      'JUST BROWSING?',
+                      style: textTheme.labelLarge?.copyWith(
+                        color: scheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Read the Club Bible & Roles',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
+      ),
     );
   }
 }
@@ -527,8 +546,8 @@ class _JoinCodeFormatter extends TextInputFormatter {
     // The previous code implied 4-rest split.
     var newText = '';
     for (var i = 0; i < text.length; i++) {
-        if (i == 4) newText += '-';
-        newText += text[i];
+      if (i == 4) newText += '-';
+      newText += text[i];
     }
 
     return TextEditingValue(

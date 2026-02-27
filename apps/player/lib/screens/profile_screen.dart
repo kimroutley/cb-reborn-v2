@@ -340,8 +340,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       return;
     }
 
-    final pv = ProfileFormValidation.validatePublicPlayerId(
-        publicId,
+    final pv = ProfileFormValidation.validatePublicPlayerId(publicId,
         initialValue: _initialPublicId);
     if (pv != PublicIdValidationState.valid) {
       setState(() {
@@ -392,8 +391,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     setState(() => _uploadingPhoto = true);
     try {
       final service = ProfilePhotoService();
-      final url =
-          await service.pickAndUpload(uid: user.uid, source: source);
+      final url = await service.pickAndUpload(uid: user.uid, source: source);
       if (url != null && mounted) {
         setState(() => _photoUrl = url);
         _showFeedback('Photo updated!');
@@ -546,40 +544,51 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: Column(
                     children: [
                       // ─── THE ID CARD ───
-                      CBMemberIdCard(
-                        usernameController: _usernameController,
-                        publicIdController: _publicIdController,
-                        photoUrl: _photoUrl,
-                        avatarEmoji: _selectedAvatar,
-                        uid: user?.uid,
-                        createdAt: _createdAt,
-                        isHost: false,
-                        isUploadingPhoto: _uploadingPhoto,
-                        editingField: _editingField,
-                        usernameError: _usernameError,
-                        publicIdError: _publicIdError,
-                        onPhotoTap: _showPhotoPickerSheet,
-                        onFieldTap: _startEditing,
-                        onFieldSubmit: _stopEditing,
+                      CBFadeSlide(
+                        child: CBMemberIdCard(
+                          usernameController: _usernameController,
+                          publicIdController: _publicIdController,
+                          photoUrl: _photoUrl,
+                          avatarEmoji: _selectedAvatar,
+                          uid: user?.uid,
+                          createdAt: _createdAt,
+                          isHost: false,
+                          isUploadingPhoto: _uploadingPhoto,
+                          editingField: _editingField,
+                          usernameError: _usernameError,
+                          publicIdError: _publicIdError,
+                          onPhotoTap: _showPhotoPickerSheet,
+                          onFieldTap: _startEditing,
+                          onFieldSubmit: _stopEditing,
+                        ),
                       ),
                       const SizedBox(height: 24),
 
                       // ─── ACCOLADES ───
                       if (_unlockedAwards.isNotEmpty || _loadingAwards > 0)
-                        _buildAccolades(scheme, textTheme),
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 80),
+                          child: _buildAccolades(scheme, textTheme),
+                        ),
                       if (_unlockedAwards.isNotEmpty || _loadingAwards > 0)
                         const SizedBox(height: 24),
 
                       // ─── TERMINAL PANEL ───
-                      _buildTerminal(scheme, textTheme, user),
+                      CBFadeSlide(
+                        delay: const Duration(milliseconds: 160),
+                        child: _buildTerminal(scheme, textTheme, user),
+                      ),
                       const SizedBox(height: 24),
 
                       // ─── ACTIONS ───
                       if (_hasChanges)
-                        CBPrimaryButton(
-                          label: _saving ? 'SAVING...' : 'SAVE CHANGES',
-                          icon: Icons.save_rounded,
-                          onPressed: _saving ? null : _saveProfile,
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 240),
+                          child: CBPrimaryButton(
+                            label: _saving ? 'SAVING...' : 'SAVE CHANGES',
+                            icon: Icons.save_rounded,
+                            onPressed: _saving ? null : _saveProfile,
+                          ),
                         ),
                     ],
                   ),
@@ -669,8 +678,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  Widget _buildTerminal(
-      ColorScheme scheme, TextTheme textTheme, User? user) {
+  Widget _buildTerminal(ColorScheme scheme, TextTheme textTheme, User? user) {
     final email = user?.email ?? '---';
 
     return CBGlassTile(
@@ -703,8 +711,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _TerminalRow(label: 'CREATED', value: _formatDate(_createdAt)),
           _TerminalRow(label: 'UPDATED', value: _formatDate(_updatedAt)),
           if (_totalUnlocked > 0)
-            _TerminalRow(
-                label: 'AWARDS', value: '$_totalUnlocked UNLOCKED'),
+            _TerminalRow(label: 'AWARDS', value: '$_totalUnlocked UNLOCKED'),
           const SizedBox(height: 12),
           Row(
             children: [

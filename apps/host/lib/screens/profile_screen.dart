@@ -255,7 +255,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         );
       });
     } catch (_) {
-      if (mounted) setState(() => _awardSnapshot = const _WalletAwardSnapshot.empty());
+      if (mounted) {
+        setState(() => _awardSnapshot = const _WalletAwardSnapshot.empty());
+      }
     } finally {
       if (mounted) setState(() => _loadingAwards = false);
     }
@@ -368,8 +370,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             },
           ),
           ListTile(
-            leading:
-                Icon(Icons.photo_library_rounded, color: scheme.secondary),
+            leading: Icon(Icons.photo_library_rounded, color: scheme.secondary),
             title: const Text('CHOOSE FROM GALLERY'),
             onTap: () {
               Navigator.pop(ctx);
@@ -378,8 +379,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           if (_photoUrl != null)
             ListTile(
-              leading:
-                  Icon(Icons.delete_outline_rounded, color: scheme.error),
+              leading: Icon(Icons.delete_outline_rounded, color: scheme.error),
               title: const Text('REMOVE PHOTO'),
               onTap: () async {
                 Navigator.pop(ctx);
@@ -394,8 +394,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
             ),
           ListTile(
-            leading:
-                Icon(Icons.emoji_emotions_rounded, color: scheme.tertiary),
+            leading: Icon(Icons.emoji_emotions_rounded, color: scheme.tertiary),
             title: const Text('CHANGE AVATAR EMOJI'),
             onTap: () {
               Navigator.pop(ctx);
@@ -479,22 +478,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           message: 'Unsaved profile edits. Leave without saving?',
         );
         if (!mounted || !discard) return;
-        
+
         // Discard changes
         if (mounted) {
           setState(() {
-             _usernameController.text = _initialUsername;
-             _publicIdController.text = _initialPublicId;
-             _selectedAvatar = _initialAvatar;
-             _selectedPreferredStyle = _initialPreferredStyle;
+            _usernameController.text = _initialUsername;
+            _publicIdController.text = _initialPublicId;
+            _selectedAvatar = _initialAvatar;
+            _selectedPreferredStyle = _initialPreferredStyle;
           });
         }
-        
+
         // Wait for frame to update canPop property
         if (context.mounted) {
-           WidgetsBinding.instance.addPostFrameCallback((_) {
-             if (mounted) Navigator.of(context).pop();
-           });
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) Navigator.of(context).pop();
+          });
         }
       },
       child: CBPrismScaffold(
@@ -509,44 +508,58 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   child: Column(
                     children: [
                       // ─── HOST ID CARD ───
-                      CBMemberIdCard(
-                        usernameController: _usernameController,
-                        publicIdController: _publicIdController,
-                        photoUrl: _photoUrl,
-                        avatarEmoji: _selectedAvatar,
-                        uid: user?.uid,
-                        createdAt: _createdAt,
-                        isHost: true,
-                        isUploadingPhoto: _uploadingPhoto,
-                        editingField: _editingField,
-                        usernameError: _usernameError,
-                        publicIdError: _publicIdError,
-                        onPhotoTap: _showPhotoPickerSheet,
-                        onFieldTap: _startEditing,
-                        onFieldSubmit: _stopEditing,
+                      CBFadeSlide(
+                        child: CBMemberIdCard(
+                          usernameController: _usernameController,
+                          publicIdController: _publicIdController,
+                          photoUrl: _photoUrl,
+                          avatarEmoji: _selectedAvatar,
+                          uid: user?.uid,
+                          createdAt: _createdAt,
+                          isHost: true,
+                          isUploadingPhoto: _uploadingPhoto,
+                          editingField: _editingField,
+                          usernameError: _usernameError,
+                          publicIdError: _publicIdError,
+                          onPhotoTap: _showPhotoPickerSheet,
+                          onFieldTap: _startEditing,
+                          onFieldSubmit: _stopEditing,
+                        ),
                       ),
                       const SizedBox(height: 24),
 
                       // ─── ACCOLADES ───
                       if (_awardSnapshot.unlockedCount > 0 || _loadingAwards)
-                        _buildAccolades(scheme, textTheme),
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 80),
+                          child: _buildAccolades(scheme, textTheme),
+                        ),
                       if (_awardSnapshot.unlockedCount > 0 || _loadingAwards)
                         const SizedBox(height: 24),
 
                       // ─── PREFERRED STYLE ───
-                      _buildStyleSelector(scheme, textTheme),
+                      CBFadeSlide(
+                        delay: const Duration(milliseconds: 160),
+                        child: _buildStyleSelector(scheme, textTheme),
+                      ),
                       const SizedBox(height: 24),
 
                       // ─── TERMINAL PANEL ───
-                      _buildTerminal(scheme, textTheme, user),
+                      CBFadeSlide(
+                        delay: const Duration(milliseconds: 240),
+                        child: _buildTerminal(scheme, textTheme, user),
+                      ),
                       const SizedBox(height: 24),
 
                       // ─── ACTIONS ───
                       if (_hasChanges)
-                        CBPrimaryButton(
-                          label: _saving ? 'SAVING...' : 'SAVE CHANGES',
-                          icon: Icons.save_rounded,
-                          onPressed: _saving ? null : _saveProfile,
+                        CBFadeSlide(
+                          delay: const Duration(milliseconds: 320),
+                          child: CBPrimaryButton(
+                            label: _saving ? 'SAVING...' : 'SAVE CHANGES',
+                            icon: Icons.save_rounded,
+                            onPressed: _saving ? null : _saveProfile,
+                          ),
                         ),
                     ],
                   ),
@@ -684,8 +697,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  Widget _buildTerminal(
-      ColorScheme scheme, TextTheme textTheme, User? user) {
+  Widget _buildTerminal(ColorScheme scheme, TextTheme textTheme, User? user) {
     final email = user?.email ?? '---';
 
     return CBGlassTile(

@@ -21,103 +21,108 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         child: Column(
           children: [
-            CBPanel(
-              borderColor: scheme.primary.withValues(alpha: 0.35),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CBSectionHeader(
-                    title: 'AUDIO & FEEDBACK',
-                    icon: Icons.graphic_eq_rounded,
-                    color: scheme.primary,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSettingRow(
-                    context,
-                    title: 'SOUND EFFECTS',
-                    subtitle: 'UI CLICKS AND INTERACTION SOUNDS',
-                    value: settings.soundEffectsEnabled,
-                    onChanged: notifier.toggleSoundEffects,
-                    icon: Icons.volume_up_rounded,
-                    color: scheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSettingRow(
-                    context,
-                    title: 'MUSIC',
-                    subtitle: 'BACKGROUND AMBIENCE AND TRACKS',
-                    value: settings.musicEnabled,
-                    onChanged: notifier.toggleMusic,
-                    icon: Icons.music_note_rounded,
-                    color: scheme.secondary,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSettingRow(
-                    context,
-                    title: 'HAPTIC FEEDBACK',
-                    subtitle: 'VIBRATION ON TOUCH INTERACTIONS',
-                    value: settings.hapticsEnabled,
-                    onChanged: notifier.toggleHaptics,
-                    icon: Icons.vibration_rounded,
-                    color: scheme.tertiary,
-                  ),
-                ],
+            CBFadeSlide(
+              child: CBPanel(
+                borderColor: scheme.primary.withValues(alpha: 0.35),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CBSectionHeader(
+                      title: 'AUDIO & FEEDBACK',
+                      icon: Icons.graphic_eq_rounded,
+                      color: scheme.primary,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSettingRow(
+                      context,
+                      title: 'SOUND EFFECTS',
+                      subtitle: 'UI CLICKS AND INTERACTION SOUNDS',
+                      value: settings.soundEffectsEnabled,
+                      onChanged: notifier.toggleSoundEffects,
+                      icon: Icons.volume_up_rounded,
+                      color: scheme.primary,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSettingRow(
+                      context,
+                      title: 'MUSIC',
+                      subtitle: 'BACKGROUND AMBIENCE AND TRACKS',
+                      value: settings.musicEnabled,
+                      onChanged: notifier.toggleMusic,
+                      icon: Icons.music_note_rounded,
+                      color: scheme.secondary,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSettingRow(
+                      context,
+                      title: 'HAPTIC FEEDBACK',
+                      subtitle: 'VIBRATION ON TOUCH INTERACTIONS',
+                      value: settings.hapticsEnabled,
+                      onChanged: notifier.toggleHaptics,
+                      icon: Icons.vibration_rounded,
+                      color: scheme.tertiary,
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),
-            CBPanel(
-              borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CBSectionHeader(
-                    title: 'DISPLAY',
-                    icon: Icons.monitor_rounded,
-                    color: scheme.onSurface,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Icon(Icons.contrast_rounded,
-                          color: scheme.onSurface.withValues(alpha: 0.7),
-                          size: 20),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'HIGH CONTRAST MODE',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge!
-                                  .copyWith(
-                                    color: scheme.onSurface,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            Text(
-                              'COMING SOON',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall!
-                                  .copyWith(
-                                    color:
-                                        scheme.onSurface.withValues(alpha: 0.4),
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                            ),
-                          ],
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 100),
+              child: CBPanel(
+                borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CBSectionHeader(
+                      title: 'DISPLAY',
+                      icon: Icons.monitor_rounded,
+                      color: scheme.onSurface,
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Icon(Icons.contrast_rounded,
+                            color: scheme.onSurface.withValues(alpha: 0.7),
+                            size: 20),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'HIGH CONTRAST MODE',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge!
+                                    .copyWith(
+                                      color: scheme.onSurface,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                              Text(
+                                'COMING SOON',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall!
+                                    .copyWith(
+                                      color: scheme.onSurface
+                                          .withValues(alpha: 0.4),
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      CBSwitch(
-                        value: false,
-                        onChanged: (val) {}, // Placeholder
-                        color: scheme.onSurface,
-                      ),
-                    ],
-                  ),
-                ],
+                        CBSwitch(
+                          value: false,
+                          onChanged: (val) {}, // Placeholder
+                          color: scheme.onSurface,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

@@ -297,38 +297,40 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                 const NotificationsPromptBanner(),
                 const SizedBox(height: 16),
                 // ── STATUS CARD ──
-                CBGlassTile(
-                  isPrismatic: status.tone == _LobbyStatusTone.readyToJoin,
-                  borderColor: statusColor.withValues(alpha: 0.5),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(statusIcon, color: statusColor, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'PROTOCOL: ${status.title}',
-                              style: textTheme.labelLarge?.copyWith(
-                                color: statusColor,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
+                CBFadeSlide(
+                  child: CBGlassTile(
+                    isPrismatic: status.tone == _LobbyStatusTone.readyToJoin,
+                    borderColor: statusColor.withValues(alpha: 0.5),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(statusIcon, color: statusColor, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'PROTOCOL: ${status.title}',
+                                style: textTheme.labelLarge?.copyWith(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.5,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        status.detail,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.8),
-                          height: 1.5,
+                          ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        Text(
+                          status.detail,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.8),
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 

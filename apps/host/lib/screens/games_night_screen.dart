@@ -53,52 +53,58 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
     return CBPrismScaffold(
       title: 'GAMES NIGHT',
       actions: const [SimulationModeBadgeAction()],
-      drawer: const CustomDrawer(currentDestination: HostDestination.gamesNight),
+      drawer:
+          const CustomDrawer(currentDestination: HostDestination.gamesNight),
       body: _isLoading
           ? const Center(child: CBBreathingLoader())
           : RefreshIndicator(
-                onRefresh: _loadData,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-                  children: [
-                    CBSectionHeader(
+              onRefresh: _loadData,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                children: [
+                  CBFadeSlide(
+                    child: CBSectionHeader(
                       title: 'ACTIVE SESSION',
                       icon: Icons.play_circle_outline_rounded,
                       color: scheme.tertiary,
                     ),
-                    const SizedBox(height: 12),
-                    _buildActiveSessionPanel(context, activeSession, scheme),
-                    const SizedBox(height: 28),
-                    CBSectionHeader(
+                  ),
+                  const SizedBox(height: 12),
+                  CBFadeSlide(
+                    delay: const Duration(milliseconds: 80),
+                    child: _buildActiveSessionPanel(
+                        context, activeSession, scheme),
+                  ),
+                  const SizedBox(height: 28),
+                  CBFadeSlide(
+                    delay: const Duration(milliseconds: 160),
+                    child: CBSectionHeader(
                       title: 'RECENT SESSIONS',
                       icon: Icons.history_rounded,
                       color: scheme.primary,
                     ),
-                    const SizedBox(height: 12),
-                    if (_sessions.isEmpty)
-                      CBPanel(
-                        padding: const EdgeInsets.all(16),
-                        borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
-                        child: Text(
-                          'No sessions yet. Start a Games Night to begin tracking rounds.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.75)),
-                        ),
-                      )
-                    else
-                      ..._sessions.map((s) =>
-                          _buildSessionDismissibleTile(context, s, scheme)),
-                    const SizedBox(height: 120),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_sessions.isEmpty)
+                    CBPanel(
+                      padding: const EdgeInsets.all(16),
+                      borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
+                      child: Text(
+                        'No sessions yet. Start a Games Night to begin tracking rounds.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.75)),
+                      ),
+                    )
+                  else
+                    ..._sessions.map((s) =>
+                        _buildSessionDismissibleTile(context, s, scheme)),
+                  const SizedBox(height: 120),
+                ],
               ),
+            ),
     );
   }
 

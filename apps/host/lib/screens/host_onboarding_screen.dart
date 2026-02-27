@@ -8,7 +8,8 @@ class HostOnboardingScreen extends ConsumerStatefulWidget {
   const HostOnboardingScreen({super.key});
 
   @override
-  ConsumerState<HostOnboardingScreen> createState() => _HostOnboardingScreenState();
+  ConsumerState<HostOnboardingScreen> createState() =>
+      _HostOnboardingScreenState();
 }
 
 class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
@@ -56,67 +57,81 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Spacer(),
-          Hero(
-            tag: 'host_auth_icon',
-            child: CBRoleAvatar(
-              color: scheme.primary,
-              size: 100,
-              pulsing: true,
-              icon: Icons.admin_panel_settings_rounded,
+          CBFadeSlide(
+            child: Hero(
+              tag: 'host_auth_icon',
+              child: CBRoleAvatar(
+                color: scheme.primary,
+                size: 100,
+                pulsing: true,
+                icon: Icons.admin_panel_settings_rounded,
+              ),
             ),
           ),
           const SizedBox(height: 32),
-          Text(
-            'COMMAND\nTHE NIGHT',
-            textAlign: TextAlign.center,
-            style: textTheme.displayMedium!.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-              height: 0.9,
-              letterSpacing: 4.0,
-              shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 100),
+            child: Text(
+              'COMMAND\nTHE NIGHT',
+              textAlign: TextAlign.center,
+              style: textTheme.displayMedium!.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w900,
+                height: 0.9,
+                letterSpacing: 4.0,
+                shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+              ),
             ),
           ),
           const SizedBox(height: 16),
-          CBBadge(
-            text: 'HOST PROTOCOL',
-            color: scheme.primary,
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 200),
+            child: CBBadge(
+              text: 'HOST PROTOCOL',
+              color: scheme.primary,
+            ),
           ),
           const SizedBox(height: 48),
-          CBPanel(
-            borderColor: scheme.primary.withValues(alpha: 0.3),
-            child: Column(
-              children: [
-                Text(
-                  'YOU ARE THE HOST. THE DIRECTOR. THE GOD OF THIS CLUB.',
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyLarge!.copyWith(
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                    height: 1.5,
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 300),
+            child: CBPanel(
+              borderColor: scheme.primary.withValues(alpha: 0.3),
+              child: Column(
+                children: [
+                  Text(
+                    'YOU ARE THE HOST. THE DIRECTOR. THE GOD OF THIS CLUB.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyLarge!.copyWith(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      height: 1.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Manage roles, trigger narrative events, and control the chaos from your dashboard. Keep the party alive... or watch it burn.',
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium!.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.7),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Manage roles, trigger narrative events, and control the chaos from your dashboard. Keep the party alive... or watch it burn.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium!.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.7),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const Spacer(),
-          CBPrimaryButton(
-            label: 'INITIALIZE SYSTEM',
-            backgroundColor: scheme.primary,
-            onPressed: () {
-              _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 400),
+            child: CBPrimaryButton(
+              label: 'INITIALIZE SYSTEM',
+              backgroundColor: scheme.primary,
+              onPressed: () {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+            ),
           ),
           const SizedBox(height: 24),
         ],
@@ -150,7 +165,8 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.shield_rounded, color: scheme.primary, size: 20),
+                      Icon(Icons.shield_rounded,
+                          color: scheme.primary, size: 20),
                       const SizedBox(width: 12),
                       Text(
                         'DATA COLLECTION',
