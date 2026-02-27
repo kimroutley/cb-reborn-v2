@@ -46,7 +46,9 @@ class _HostHallOfFameScreenState extends ConsumerState<HostHallOfFameScreen>
     PersistenceService? service;
     try {
       service = PersistenceService.instance;
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('PersistenceService init failed: $e');
+    }
 
     final stats = service?.computeStats() ?? const GameStats();
 

@@ -440,7 +440,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 try {
                   await ProfilePhotoService().removePhoto(uid: user.uid);
                   if (mounted) setState(() => _photoUrl = null);
-                } catch (_) {}
+                } catch (e) {
+                  debugPrint('removePhoto failed: $e');
+                }
                 if (mounted) setState(() => _uploadingPhoto = false);
               },
             ),

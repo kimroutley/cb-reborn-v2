@@ -71,7 +71,7 @@ class PlayerAuthScreen extends ConsumerWidget {
           errorMessage: authState.error,
         );
       case AuthStatus.authenticated:
-        return Container();
+        return const SizedBox.shrink();
       default:
         return const _AuthSplash(key: ValueKey('auth_splash'));
     }
@@ -194,8 +194,8 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
     if (email.isEmpty || password.isEmpty) return;
     if (_isCreatingAccount) {
       if (password != _confirmPasswordController.text) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Passwords do not match.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Passwords do not match.')));
         return;
       }
       await notifier.createAccountWithEmailPassword(email, password);
@@ -330,8 +330,8 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                               children: [
                                 Text(
                                   'GUEST LIST CHECK',
-                                  style: textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold),
+                                  style: textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
@@ -352,11 +352,10 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                   Row(
                     children: [
                       Expanded(
-                          child: Divider(
-                              color: scheme.onSurface.withAlpha(26))),
+                          child:
+                              Divider(color: scheme.onSurface.withAlpha(26))),
                       Padding(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
                           'OR EMAIL',
                           style: textTheme.labelSmall?.copyWith(
@@ -367,8 +366,8 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                         ),
                       ),
                       Expanded(
-                          child: Divider(
-                              color: scheme.onSurface.withAlpha(26))),
+                          child:
+                              Divider(color: scheme.onSurface.withAlpha(26))),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -430,7 +429,9 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                   const SizedBox(height: 16),
 
                   CBPrimaryButton(
-                    label: _isCreatingAccount ? 'CREATE ACCOUNT' : 'ENTER THE CLUB',
+                    label: _isCreatingAccount
+                        ? 'CREATE ACCOUNT'
+                        : 'ENTER THE CLUB',
                     icon: _isCreatingAccount
                         ? Icons.how_to_reg_rounded
                         : Icons.login_rounded,
@@ -457,8 +458,7 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
                       ),
                       if (!_isCreatingAccount)
                         TextButton(
-                          onPressed: () =>
-                              _handleForgotPassword(notifier),
+                          onPressed: () => _handleForgotPassword(notifier),
                           child: Text(
                             'FORGOT PASSWORD?',
                             style: textTheme.labelSmall?.copyWith(

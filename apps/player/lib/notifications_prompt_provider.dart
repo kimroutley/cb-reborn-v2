@@ -42,7 +42,9 @@ class NotificationsPromptNotifier extends Notifier<NotificationsPromptState> {
       final prefs = await SharedPreferences.getInstance();
       final asked = prefs.getBool(_keyNotificationPermissionAsked) ?? false;
       state = state.copyWith(askedBefore: asked);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('loadAskedBefore failed: $e');
+    }
   }
 
   Future<NotificationPermission> requestPermission() async {
@@ -51,8 +53,7 @@ class NotificationsPromptNotifier extends Notifier<NotificationsPromptState> {
     }
     state = state.copyWith(isRequesting: true);
     try {
-      final result =
-          await requestNotificationPermission();
+      final result = await requestNotificationPermission();
       state = state.copyWith(
         permission: result,
         askedBefore: true,

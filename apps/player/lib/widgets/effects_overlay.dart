@@ -40,7 +40,7 @@ class EffectsOverlay extends ConsumerWidget {
         builder: (context, opacity, child) {
           return Opacity(
             opacity: opacity,
-            child: Container(color: CBColors.voidBlack),
+            child: ColoredBox(color: CBColors.voidBlack),
           );
         },
         onEnd: () {
@@ -61,7 +61,7 @@ class EffectsOverlay extends ConsumerWidget {
         builder: (context, opacity, child) {
           return Opacity(
             opacity: opacity,
-            child: Container(color: Theme.of(context).colorScheme.tertiary),
+            child: ColoredBox(color: Theme.of(context).colorScheme.tertiary),
           );
         },
         onEnd: () {

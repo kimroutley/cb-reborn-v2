@@ -28,7 +28,8 @@ class PlayerStat {
     return roleCatalogMap[id]?.name ?? id;
   }
 
-  PlayerStat copyWith({int? gamesPlayed, int? gamesWon, Map<String, int>? rolesPlayed}) {
+  PlayerStat copyWith(
+      {int? gamesPlayed, int? gamesWon, Map<String, int>? rolesPlayed}) {
     return PlayerStat(
       playerName: playerName,
       gamesPlayed: gamesPlayed ?? this.gamesPlayed,
@@ -74,7 +75,9 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen>
     PersistenceService? service;
     try {
       service = PersistenceService.instance;
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('PersistenceService init failed: $e');
+    }
 
     final records = service?.loadGameRecords() ?? const <GameRecord>[];
     final Map<String, PlayerStat> playerStats = {};
@@ -240,8 +243,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.emoji_events_outlined,
-                    size: 48,
-                    color: scheme.primary.withValues(alpha: 0.3)),
+                    size: 48, color: scheme.primary.withValues(alpha: 0.3)),
                 const SizedBox(height: 16),
                 Text(
                   'NO RECORDS YET',
@@ -283,8 +285,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen>
   // ─── AWARDS TAB ───────────────────────────────────────────
 
   Widget _buildAwardsTab(ColorScheme scheme, TextTheme textTheme) {
-    final totalUnlocked =
-        _roleUnlockCounts.values.fold(0, (sum, v) => sum + v);
+    final totalUnlocked = _roleUnlockCounts.values.fold(0, (sum, v) => sum + v);
     final totalAwards = allRoleAwardDefinitions().length;
 
     return RefreshIndicator(
@@ -319,9 +320,8 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen>
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
-                          value: totalAwards > 0
-                              ? totalUnlocked / totalAwards
-                              : 0,
+                          value:
+                              totalAwards > 0 ? totalUnlocked / totalAwards : 0,
                           minHeight: 4,
                           backgroundColor:
                               scheme.onSurface.withValues(alpha: 0.1),
@@ -427,8 +427,7 @@ class _LeaderboardCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    _MiniStat(
-                        label: 'PLAYED', value: '${stat.gamesPlayed}'),
+                    _MiniStat(label: 'PLAYED', value: '${stat.gamesPlayed}'),
                     const SizedBox(width: 16),
                     _MiniStat(label: 'WON', value: '${stat.gamesWon}'),
                     const SizedBox(width: 16),
