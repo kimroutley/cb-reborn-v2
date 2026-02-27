@@ -42,10 +42,25 @@ void main() {
     );
 
     await tester.tap(find.text('Open Profile'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    await tester.enterText(find.byType(TextField).first, 'Host One');
+    await tester.pump(); // Start navigation
+    await tester.pump(const Duration(seconds: 1)); // Wait
+    
+    // Debug: check what is on screen
+    expect(find.byType(ProfileScreen), findsOneWidget);
+    // Try finding by explicit type if needed, or by key if available.
+    // Assuming CBTextField uses TextField internally. 
+    // If not found, look for any EditableText.
+    final editable = find.byType(EditableText);
+    if (editable.evaluate().isEmpty) {
+       // Maybe it's still loading?
+       if (find.byType(CircularProgressIndicator).evaluate().isNotEmpty) {
+         print("Still loading...");
+       }
+    }
+    
+    final textField = find.byType(TextField).first;
+    expect(textField, findsOneWidget);
+    await tester.enterText(textField, 'Host One');
     await tester.pump();
     expect(container.read(hostProfileDirtyProvider), isTrue);
 

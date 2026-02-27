@@ -96,6 +96,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.initState();
     _usernameController.addListener(_onInputChanged);
     _publicIdController.addListener(_onInputChanged);
+    if (widget.startInEditMode) {
+      _editingField = 'username';
+    }
     _loadProfile();
   }
 
@@ -477,16 +480,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           message: 'Unsaved profile edits. Leave without saving?',
         );
         if (!mounted || !discard) return;
-        nav.maybePop();
+        
+        // Discard changes
+        if (mounted) {
+          setState(() {
+             _usernameController.text = _initialUsername;
+             _publicIdController.text = _initialPublicId;
+             _selectedAvatar = _initialAvatar;
+             _selectedPreferredStyle = _initialPreferredStyle;
+          });
+        }
+        
+        // Wait for frame to update canPop property
+        if (context.mounted) {
+           WidgetsBinding.instance.addPostFrameCallback((_) {
+             if (mounted) Navigator.of(context).pop();
+           });
+        }
       },
-      child: Scaffold(
+      child: CBPrismScaffold(
+        title: 'HOST I.D.',
         drawer: const CustomDrawer(currentDestination: HostDestination.profile),
-        appBar: AppBar(
-          title: const Text(
-            'HOST I.D.',
-            style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5),
-          ),
-        ),
         body: _loadingProfile
             ? const Center(child: CBBreathingLoader())
             : GestureDetector(
