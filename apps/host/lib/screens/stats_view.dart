@@ -65,10 +65,11 @@ class _StatsViewState extends State<StatsView> {
               CBBadge(text: 'ANALYTICS ENGINE', color: scheme.primary),
               const Spacer(),
               if (widget.onOpenCommand != null) ...[
-                OutlinedButton.icon(
+                CBGhostButton(
+                  label: 'Command',
+                  icon: Icons.dashboard_customize_rounded,
+                  fullWidth: false,
                   onPressed: widget.onOpenCommand,
-                  icon: const Icon(Icons.dashboard_customize_rounded, size: 16),
-                  label: const Text('Command'),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -305,9 +306,7 @@ class _StatsViewState extends State<StatsView> {
   Widget _buildVotingArchive(ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
     final eventLog = widget.gameState.eventLog;
-    final voteEvents = eventLog
-        .whereType<GameEventVote>()
-        .toList()
+    final voteEvents = eventLog.whereType<GameEventVote>().toList()
       ..sort((a, b) => a.day.compareTo(b.day));
 
     if (voteEvents.isEmpty) {
@@ -355,7 +354,8 @@ class _StatsViewState extends State<StatsView> {
                 child: Row(
                   children: [
                     Icon(Icons.how_to_vote_rounded,
-                        size: 12, color: scheme.onSurface.withValues(alpha: 0.4)),
+                        size: 12,
+                        color: scheme.onSurface.withValues(alpha: 0.4)),
                     const SizedBox(width: 6),
                     Text(
                       '$voterLabel → $targetLabel',

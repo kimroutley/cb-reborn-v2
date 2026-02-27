@@ -34,7 +34,8 @@ class BottomControls extends StatelessWidget {
     final hasNavigationActions = onBack != null || (isLobby && kDebugMode);
     final hasRoundActions = !isEndGame;
     final needsMorePlayers = isLobby && playerCount < requiredPlayers;
-    final missingPlayers = (requiredPlayers - playerCount).clamp(0, requiredPlayers);
+    final missingPlayers =
+        (requiredPlayers - playerCount).clamp(0, requiredPlayers);
 
     return CBPanel(
       borderColor: scheme.primary.withValues(alpha: 0.35),
@@ -45,12 +46,11 @@ class BottomControls extends StatelessWidget {
           Text(
             _panelTitle(),
             style: textTheme.labelLarge?.copyWith(
-                  color: scheme.onSurface,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
-                ),
+              color: scheme.onSurface,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
+            ),
           ),
-
           if (hasNavigationActions) ...[
             const SizedBox(height: 12),
             Text(
@@ -74,21 +74,22 @@ class BottomControls extends StatelessWidget {
               runSpacing: 10,
               children: [
                 if (onBack != null)
-                  OutlinedButton.icon(
+                  CBGhostButton(
+                    label: 'Back',
+                    icon: Icons.arrow_back_rounded,
+                    fullWidth: false,
                     onPressed: onBack,
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    label: const Text('Back'),
                   ),
                 if (isLobby && kDebugMode)
-                  OutlinedButton.icon(
+                  CBGhostButton(
+                    label: 'Add Bot',
+                    icon: Icons.smart_toy_rounded,
+                    fullWidth: false,
                     onPressed: onAddMock,
-                    icon: const Icon(Icons.smart_toy_rounded),
-                    label: const Text('Add Bot'),
                   ),
               ],
             ),
           ],
-
           if (hasRoundActions) ...[
             if (hasNavigationActions) const SizedBox(height: 12),
             Text(
@@ -128,8 +129,9 @@ class BottomControls extends StatelessWidget {
                             ? Icons.group_add_rounded
                             : Icons.check_circle_rounded,
                         size: 16,
-                        color:
-                            needsMorePlayers ? scheme.secondary : scheme.tertiary,
+                        color: needsMorePlayers
+                            ? scheme.secondary
+                            : scheme.tertiary,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -138,8 +140,9 @@ class BottomControls extends StatelessWidget {
                               ? 'Need $missingPlayers more players to launch.'
                               : 'Roster threshold reached. Ready to launch.',
                           style: textTheme.labelSmall?.copyWith(
-                            color:
-                                needsMorePlayers ? scheme.secondary : scheme.tertiary,
+                            color: needsMorePlayers
+                                ? scheme.secondary
+                                : scheme.tertiary,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.5,
                           ),

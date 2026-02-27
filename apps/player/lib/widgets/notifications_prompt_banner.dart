@@ -117,12 +117,14 @@ class _NotificationsPromptBannerState
                   ),
                 ),
               if (installAvailable) ...[
-                if (supported && !promptState.isGranted) const SizedBox(width: 8),
-                OutlinedButton(
+                if (supported && !promptState.isGranted)
+                  const SizedBox(width: 8),
+                CBGhostButton(
+                  label: 'Install app',
+                  fullWidth: false,
                   onPressed: () async {
                     await showPwaInstallPrompt();
                   },
-                  child: const Text('Install app'),
                 ),
               ],
             ],
