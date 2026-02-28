@@ -60,7 +60,11 @@ class Game extends _$Game {
       final (gameState, _) = saved;
       state = gameState;
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name); // approximate
+      AnalyticsService.logGameStarted(
+        playerCount: state.players.length,
+        gameStyle: state.gameStyle.name,
+        syncMode: state.syncMode.name,
+      ); // approximate
       return true;
     } catch (_) {
       return false;
@@ -134,7 +138,11 @@ class Game extends _$Game {
       final (gameState, _) = saved;
       state = gameState;
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+      AnalyticsService.logGameStarted(
+        playerCount: state.players.length,
+        gameStyle: state.gameStyle.name,
+        syncMode: state.syncMode.name,
+      );
       return true;
     } catch (_) {
       return false;
@@ -198,7 +206,11 @@ class Game extends _$Game {
       );
 
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+      AnalyticsService.logGameStarted(
+        playerCount: state.players.length,
+        gameStyle: state.gameStyle.name,
+        syncMode: state.syncMode.name,
+      );
       _persist();
       return true;
     } catch (_) {
@@ -1387,7 +1399,11 @@ class Game extends _$Game {
       sessionController.clearRoleConfirmations();
       sessionController.setForceStartOverride(false);
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+      AnalyticsService.logGameStarted(
+        playerCount: state.players.length,
+        gameStyle: state.gameStyle.name,
+        syncMode: state.syncMode.name,
+      );
       _persist();
       return true;
     }
@@ -1408,7 +1424,11 @@ class Game extends _$Game {
     sessionController.clearRoleConfirmations();
     sessionController.setForceStartOverride(false);
     _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+    AnalyticsService.logGameStarted(
+      playerCount: state.players.length,
+      gameStyle: state.gameStyle.name,
+      syncMode: state.syncMode.name,
+    );
     _persist();
     return true;
   }
@@ -1657,7 +1677,13 @@ class Game extends _$Game {
   void _checkAndResolveWinCondition(List<Player> players) {
     final win = GameResolutionLogic.checkWinCondition(players);
     if (win != null) {
-      AnalyticsService.logGameCompleted(winner: win.winner.name, dayCount: state.dayCount, duration: DateTime.now().difference(_gameStartedAt ?? DateTime.now()));
+      AnalyticsService.logGameCompleted(
+        winner: win.winner.name,
+        dayCount: state.dayCount,
+        duration: DateTime.now().difference(
+          _gameStartedAt ?? DateTime.now(),
+        ),
+      );
       state = GameResolutionLogic.applyWinResult(state, win);
       archiveGame();
     }
