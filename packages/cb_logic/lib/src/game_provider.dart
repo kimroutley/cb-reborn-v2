@@ -1676,6 +1676,16 @@ class Game extends _$Game {
         break;
       case GamePhase.night:
         final res = GameResolutionLogic.resolveNightActions(state);
+        final dayScript = ScriptBuilder.buildDayScript(
+          state.dayCount,
+          res.players,
+        );
+        final creepSetupSteps = res.pendingCreepSetups.isEmpty
+            ? <ScriptStep>[]
+            : ScriptBuilder.buildCreepInheritedSetupSteps(
+                state.dayCount,
+                res.pendingCreepSetups,
+              );
         state = state.copyWith(
           players: res.players,
           lastNightReport: res.report,
@@ -1689,10 +1699,7 @@ class Game extends _$Game {
           ],
           eventLog: [...state.eventLog, ...res.events],
           phase: GamePhase.day,
-          scriptQueue: ScriptBuilder.buildDayScript(
-            state.dayCount,
-            state.players,
-          ),
+          scriptQueue: [...creepSetupSteps, ...dayScript],
           scriptIndex: 0,
           actionLog: const {},
         );

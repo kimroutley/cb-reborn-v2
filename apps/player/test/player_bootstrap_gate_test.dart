@@ -135,7 +135,7 @@ void main() {
     expect(container.read(pendingJoinUrlProvider), isNull);
   });
 
-  testWidgets('bootstrap ignores local cache entries for cloud-only mode',
+  testWidgets('bootstrap restores local cache when hostAddress present',
       (tester) async {
     final localBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
@@ -149,6 +149,55 @@ void main() {
         'phase': 'lobby',
         'joinAccepted': true,
       },
+    );
+    final container = ProviderContainer(
+      overrides: [
+        playerSessionCacheRepositoryProvider
+            .overrideWithValue(_FakeCacheRepository(cacheEntry)),
+        playerBridgeProvider.overrideWith(() => localBridge),
+        cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: PlayerBootstrapGate(
+            skipPersistenceInit: true,
+            skipFirestoreCacheConfig: true,
+            skipAssetWarmup: true,
+            child: Text('READY'),
+          ),
+        ),
+      ),
+    );
+
+    await _pumpBootstrapProgress(tester);
+
+    expect(localBridge.restoredEntry, isNotNull);
+    expect(cloudBridge.restoredEntry, isNull);
+    final pendingJoin = container.read(pendingJoinUrlProvider);
+    expect(pendingJoin, isNotNull);
+    final uri = Uri.parse(pendingJoin!);
+    expect(uri.queryParameters['mode'], 'local');
+    expect(uri.queryParameters['code'], 'NEON-ABCDEF');
+    expect(uri.queryParameters['host'], 'ws://192.168.1.50');
+    expect(uri.queryParameters['autoconnect'], '1');
+  });
+
+  testWidgets('bootstrap clears local cache when hostAddress missing',
+      (tester) async {
+    final localBridge = _TrackingPlayerBridge();
+    final cloudBridge = _TrackingCloudBridge();
+    final cacheEntry = PlayerSessionCacheEntry(
+      joinCode: 'NEON-ABCDEF',
+      mode: CachedSyncMode.local,
+      savedAt: DateTime.now().toUtc(),
+      hostAddress: null,
+      playerName: 'Ava',
+      state: const <String, dynamic>{'phase': 'lobby'},
     );
     final container = ProviderContainer(
       overrides: [

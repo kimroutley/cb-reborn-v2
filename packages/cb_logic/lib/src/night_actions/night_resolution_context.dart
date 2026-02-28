@@ -21,6 +21,14 @@ class NightResolutionContext {
   final Map<String, String> killSources = {}; // targetId -> source/reason
   final Map<String, String> redirectedActions = {};
 
+  /// Creeps who inherited a role that requires setup (Medic, Clinger, Drama Queen).
+  /// Each entry: (creepPlayerId, inheritedRoleId).
+  final List<({String playerId, String roleId})> pendingCreepSetups = [];
+
+  void addPendingCreepSetup(String playerId, String roleId) {
+    pendingCreepSetups.add((playerId: playerId, roleId: roleId));
+  }
+
   NightResolutionContext({
     required List<Player> players,
     required this.log,
@@ -62,6 +70,7 @@ class NightResolutionContext {
       teasers: teasers,
       privateMessages: _privateMessages,
       events: events,
+      pendingCreepSetups: pendingCreepSetups,
     );
   }
 }

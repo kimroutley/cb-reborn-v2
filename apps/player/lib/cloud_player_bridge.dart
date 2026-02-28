@@ -307,13 +307,17 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
     final phase = data['phase'] as String? ?? 'lobby';
 
-    // Determine myPlayerId and myPlayerSnapshot after receiving new players list
+    // Determine myPlayerId and myPlayerSnapshot after receiving new players list.
+    // Public state redacts role (roleId 'hidden') during game; preserve our private role data.
     final String? updatedMyPlayerId =
         state.myPlayerId != null && players.any((p) => p.id == state.myPlayerId)
             ? state.myPlayerId
             : null;
     final PlayerSnapshot? updatedMyPlayerSnapshot = updatedMyPlayerId != null
-        ? players.firstWhere((p) => p.id == updatedMyPlayerId)
+        ? _mergePublicWithPrivatePlayer(
+            players.firstWhere((p) => p.id == updatedMyPlayerId),
+            state.myPlayerSnapshot,
+          )
         : null;
 
     state = state.copyWith(
@@ -345,6 +349,46 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
     _attemptAutoClaim(state);
     _persistSessionCache();
+  }
+
+  /// Merge public player snapshot with existing private snapshot.
+  /// Public state redacts role (roleId 'hidden') during game; keep private role when present.
+  PlayerSnapshot _mergePublicWithPrivatePlayer(
+    PlayerSnapshot fromPublic,
+    PlayerSnapshot? existingPrivate,
+  ) {
+    if (existingPrivate == null || fromPublic.id != existingPrivate.id) {
+      return fromPublic;
+    }
+    if (fromPublic.roleId != 'hidden' && fromPublic.roleId.isNotEmpty) {
+      return fromPublic; // End game or already revealed
+    }
+    return PlayerSnapshot(
+      id: fromPublic.id,
+      name: fromPublic.name,
+      authUid: fromPublic.authUid,
+      roleId: existingPrivate.roleId,
+      roleName: existingPrivate.roleName,
+      roleDescription: existingPrivate.roleDescription,
+      roleColorHex: existingPrivate.roleColorHex,
+      alliance: existingPrivate.alliance,
+      isAlive: fromPublic.isAlive,
+      deathDay: fromPublic.deathDay,
+      silencedDay: existingPrivate.silencedDay,
+      medicChoice: existingPrivate.medicChoice,
+      lives: existingPrivate.lives,
+      drinksOwed: fromPublic.drinksOwed,
+      currentBetTargetId: fromPublic.currentBetTargetId,
+      penalties: fromPublic.penalties,
+      hasRumour: fromPublic.hasRumour,
+      clingerPartnerId: existingPrivate.clingerPartnerId,
+      hasReviveToken: existingPrivate.hasReviveToken,
+      secondWindPendingConversion: existingPrivate.secondWindPendingConversion,
+      creepTargetId: existingPrivate.creepTargetId,
+      whoreDeflectionUsed: existingPrivate.whoreDeflectionUsed,
+      tabooNames: existingPrivate.tabooNames,
+      blockedVoteTargets: existingPrivate.blockedVoteTargets,
+    );
   }
 
   void _attemptAutoClaim(PlayerGameState gameState) {

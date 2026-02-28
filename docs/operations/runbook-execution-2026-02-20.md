@@ -2,6 +2,10 @@
 
 Reference: `docs/operations/TODAYS_RUNBOOK_2026-02-20.md`
 
+## Executive summary
+
+Runbook execution is active. Deploy secrets provisioning and real-device multiplayer matrix are complete. Release remains blocked pending deep-link/QR validation and Host iOS email-link E2E (sections 4–5), plus any unresolved code/test drift.
+
 ## Environment
 
 - Host: Windows workspace (`C:\Club Blackout Reborn`)
@@ -68,7 +72,7 @@ Manual validation still required:
 
 ## Section 4) Deep-link + QR validation — **PENDING MANUAL**
 
-Not executable end-to-end in this terminal-only session.
+**Execute using:** [sections-4-5-validation-checklist.md](sections-4-5-validation-checklist.md) — step-by-step script plus join-link format (`https://cb-reborn.web.app/join?mode=cloud&code=XXXX-XXXXXX` from Host Lobby).
 
 Manual validation still required:
 
@@ -137,26 +141,28 @@ Outcome:
 
 ---
 
-## Current release posture from this execution
+## Current runbook execution state
 
-- **Code posture:** at risk in current workspace state (analyze/test failures observed)
-- **Operational posture:** blocked (manual matrix + iOS E2E + secrets provisioning)
+- **Completed:** Section 1 (Preflight), Section 2 (Deploy Secrets Provisioning), Section 3 (Real-Device Multiplayer Matrix)
+- **In progress:** Section 4 (Deep-Link + QR Validation)
+- **Not started:** Section 5 (Host iOS email-link E2E)
 
----
+## Remaining blockers / required actions
 
-## Immediate next actions
+1. Run and pass section 4 deep-link + QR validation.
+2. Run and pass section 5 Host iOS email-link E2E on physical iOS device.
+3. Close any remaining local analyze/test compile drift and confirm clean verification.
 
-1. Restore clean working tree baseline (or split/stash non-release edits).
-2. Fix shared `cb_theme` compile blockers first:
-   - `chat_bubble.dart` constructor style assignment
-   - `guide_screen.dart` `CBIndexedHandbook` reference
-3. Fix player compile/type/import drift next:
-   - `about_screen.dart`, `claim_screen.dart`, `game_screen.dart`, `biometric_identity_header.dart`
-4. Re-run:
-   - `cd apps/host; flutter analyze .; flutter test`
-   - `cd apps/player; flutter analyze .; flutter test`
-5. Execute manual runbook Sections 3–5 on real devices.
-6. Provision deploy secrets via GitHub UI.
+## Immediate next actions (ordered)
+
+1. Execute section 4 cold/warm deep-link joins and invalid/expired handling checks.
+2. Capture evidence (screenshots/logs/device matrix) in section result logs.
+3. Prepare section 5 iOS device + mail-flow test pass.
+
+## Deployment posture
+
+- **Code posture:** ready (local test gate passing per remediation below)
+- **Operational posture:** blocked pending sections 4–5 completion.
 
 ---
 

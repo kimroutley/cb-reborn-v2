@@ -258,6 +258,28 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     isCinematic: true,
                   ),
 
+                  // Bartender: collapsible alliance intel from private messages
+                  if (player.roleId == RoleIds.bartender &&
+                      gameState.privateMessages.containsKey(playerId)) ...[
+                    _BartenderAlliancePanel(
+                      messages: gameState.privateMessages[playerId]!,
+                      scheme: scheme,
+                      roleColor: roleColor,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Club Manager: dossier of identified roles (from private messages)
+                  if (player.roleId == RoleIds.clubManager &&
+                      gameState.privateMessages.containsKey(playerId)) ...[
+                    _ClubManagerDossierPanel(
+                      messages: gameState.privateMessages[playerId]!,
+                      scheme: scheme,
+                      roleColor: roleColor,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
                   // Bulletin Board
                   ..._buildBulletinList(gameState, player, scheme),
 
@@ -484,6 +506,221 @@ class _ChatInputBar extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── BARTENDER ALLIANCE PANEL (collapsible, from private messages) ───────
+
+class _BartenderAllianceEntry {
+  const _BartenderAllianceEntry(this.name1, this.name2, this.isSame);
+  final String name1;
+  final String name2;
+  final bool isSame;
+}
+
+class _BartenderAlliancePanel extends StatelessWidget {
+  const _BartenderAlliancePanel({
+    required this.messages,
+    required this.scheme,
+    required this.roleColor,
+  });
+
+  final List<String> messages;
+  final ColorScheme scheme;
+  final Color roleColor;
+
+  static List<_BartenderAllianceEntry> _parseMessages(List<String> messages) {
+    final entries = <_BartenderAllianceEntry>[];
+    for (final msg in messages) {
+      final sameMatch = RegExp(r'^(.+?) and (.+?) are on the SAME side\.?$')
+          .firstMatch(msg.trim());
+      if (sameMatch != null) {
+        entries.add(_BartenderAllianceEntry(
+          sameMatch.group(1)!.trim(),
+          sameMatch.group(2)!.trim(),
+          true,
+        ));
+        continue;
+      }
+      final diffMatch =
+          RegExp(r'^(.+?) and (.+?) are on DIFFERENT sides\.?$').firstMatch(msg.trim());
+      if (diffMatch != null) {
+        entries.add(_BartenderAllianceEntry(
+          diffMatch.group(1)!.trim(),
+          diffMatch.group(2)!.trim(),
+          false,
+        ));
+      }
+    }
+    return entries;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = _parseMessages(messages);
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: CBGlassTile(
+        borderColor: roleColor.withValues(alpha: 0.4),
+        padding: EdgeInsets.zero,
+        child: ExpansionTile(
+          initiallyExpanded: true,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          leading: Icon(Icons.hub_rounded, color: roleColor, size: 24),
+          title: Text(
+            'ALLIANCE INTEL',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: roleColor,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          ),
+          subtitle: Text(
+            '${entries.length} comparison${entries.length == 1 ? '' : 's'}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant.withValues(alpha: 0.9),
+            ),
+          ),
+          children: [
+            for (final e in entries)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      e.isSame ? Icons.link_rounded : Icons.link_off_rounded,
+                      size: 18,
+                      color: e.isSame ? scheme.tertiary : scheme.error,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '${e.name1} & ${e.name2}: ${e.isSame ? 'SAME' : 'DIFFERENT'}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── CLUB MANAGER DOSSIER (collapsible, from private messages) ─────────────
+
+class _ClubManagerDossierEntry {
+  const _ClubManagerDossierEntry(this.playerName, this.roleName);
+  final String playerName;
+  final String roleName;
+}
+
+class _ClubManagerDossierPanel extends StatelessWidget {
+  const _ClubManagerDossierPanel({
+    required this.messages,
+    required this.scheme,
+    required this.roleColor,
+  });
+
+  final List<String> messages;
+  final ColorScheme scheme;
+  final Color roleColor;
+
+  static List<_ClubManagerDossierEntry> _parseMessages(List<String> messages) {
+    final entries = <_ClubManagerDossierEntry>[];
+    for (final msg in messages) {
+      final match = RegExp(r'^Inspection complete: (.+?) is the (.+?)\.?$')
+          .firstMatch(msg.trim());
+      if (match != null) {
+        entries.add(_ClubManagerDossierEntry(
+          match.group(1)!.trim(),
+          match.group(2)!.trim(),
+        ));
+      }
+    }
+    return entries;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = _parseMessages(messages);
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: CBGlassTile(
+        borderColor: roleColor.withValues(alpha: 0.4),
+        padding: EdgeInsets.zero,
+        child: ExpansionTile(
+          initiallyExpanded: true,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          leading: Icon(Icons.folder_special_rounded, color: roleColor, size: 24),
+          title: Text(
+            'DOSSIER',
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: roleColor,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          ),
+          subtitle: Text(
+            '${entries.length} identified',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant.withValues(alpha: 0.9),
+            ),
+          ),
+          children: [
+            for (final e in entries)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.person_search_rounded,
+                        size: 18, color: scheme.tertiary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurface,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: e.playerName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const TextSpan(text: ' → '),
+                            TextSpan(
+                              text: e.roleName,
+                              style: TextStyle(
+                                color: roleColor.withValues(alpha: 0.9),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );

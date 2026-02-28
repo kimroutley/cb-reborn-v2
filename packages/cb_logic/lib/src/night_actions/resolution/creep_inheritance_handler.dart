@@ -20,6 +20,13 @@ class CreepInheritanceHandler implements DeathHandler {
       );
       context.report.add(
           'The Creep ${creep.name} inherited the role of ${victim.role.name}.');
+      // If inherited role requires setup, queue it so the Creep gets the step on their device
+      final roleId = victim.role.id;
+      if (roleId == RoleIds.medic ||
+          roleId == RoleIds.clinger ||
+          roleId == RoleIds.dramaQueen) {
+        context.addPendingCreepSetup(creep.id, roleId);
+      }
     }
 
     return false; // Let other handlers continue processing the victim death.

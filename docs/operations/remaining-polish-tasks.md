@@ -1,32 +1,16 @@
-# Remaining Polish & Feature Tasks
+# Polish & Feature Tasks
 
-> **Status:** Pending Implementation
-> **Last Updated:** 2026-02-25
+> **Last Updated:** 2026-02-26  
+> **Completed Feb 2026 sprint:** See [archive](../archive/remaining-polish-tasks-2026-02.md) for the list of implemented items (strategy guides, operatives/Alliance Graph, drawer refactor, Blackbook centering, Gemini narrative runtime).
 
-This document tracks the remaining feature requests and polish items identified during the February 2026 sprint.
+This file tracks the **future polish backlog**. Move items here as they’re identified; move completed items to the archive when a sprint is done.
 
-## Player App Features
+---
 
-- [x] **Strategy Guides in Game Screen:**
-  - Incorporate role-specific strategy guides (Dos and Don'ts) into the "I'm playing as..." widget.
-  - Display context-aware tips based on current game state (e.g., betrayal advice, deception tactics).
+## Future polish (backlog)
 
-- [x] **Operatives Page Strategy Tab:**
-  - Enhance the strategy dialog/tab with "What Ifs" and "How to Play" hints.
-  - Integrate an **Alliance Graph** linking valuable roles (e.g., Ally Cat <-> Bouncer).
-
-## UI Polish (Host & Player)
-
-- [x] **Side Drawer Refactor:**
-  - Update side drawers in both apps to a modern "Glassmorphism + Material 3" aesthetic.
-  - Improve visual polish and consistency.
-
-- [x] **Guide/Blackbook Screen Centering:**
-  - Verify and polish the centering of full role cards sliding in from the side (ensure visual balance on mobile).
-
-## Backend / AI
-
-- [x] **Gemini Narrative Runtime Implementation:**
-  - Connect the configured API key and `ScriptStep` fields to the actual generative logic.
-  - Implement runtime script variation generation based on game state (sarcastic, ironic, dark humor modes).
-  - Add "Clean" vs "R-Rated" narration toggle.
+- [x] **Local-mode session restore (T7):** Restore host address and join code on relaunch when the last session was local (ws://). Implemented in `player_bootstrap_gate.dart` and `home_screen.dart` (2026-02-28).
+- [ ] **Player web PWA:** Install prompt, offline shell, and optional install-to-home-screen flow for the player web app.
+- [ ] **Host APK size:** Explore app bundle / split APKs or asset on-demand to reduce release APK size if needed.
+- [ ] **Accessibility pass:** Screen-reader labels added for connect flow (scan button, join code field). Remaining: lobby, game, role reveal; focus order; contrast checks.
+- [ ] **Analytics / crash reporting:** Optional first-party or Firebase Crashlytics integration for release builds (with consent).

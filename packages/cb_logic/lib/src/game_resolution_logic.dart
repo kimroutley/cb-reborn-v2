@@ -8,6 +8,8 @@ class NightResolution {
   final List<String> teasers;
   final Map<String, List<String>> privateMessages;
   final List<GameEvent> events;
+  /// Creeps who inherited a role requiring setup: (playerId, roleId).
+  final List<({String playerId, String roleId})> pendingCreepSetups;
 
   const NightResolution({
     required this.players,
@@ -15,6 +17,7 @@ class NightResolution {
     required this.teasers,
     required this.privateMessages,
     this.events = const [],
+    this.pendingCreepSetups = const [],
   });
 }
 

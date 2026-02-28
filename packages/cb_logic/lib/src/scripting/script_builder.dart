@@ -126,6 +126,57 @@ class ScriptBuilder {
     return steps;
   }
 
+  /// Setup steps for Creeps who just inherited Medic, Clinger, or Drama Queen.
+  /// Prepend these to the day script so the Creep's device gets the prompt.
+  static List<ScriptStep> buildCreepInheritedSetupSteps(
+    int dayCount,
+    List<({String playerId, String roleId})> pendingCreepSetups,
+  ) {
+    final steps = <ScriptStep>[];
+    for (final entry in pendingCreepSetups) {
+      switch (entry.roleId) {
+        case RoleIds.medic:
+          steps.add(ScriptStep(
+            id: 'medic_choice_${entry.playerId}_$dayCount',
+            title: 'MEDIC - CHOICE (INHERITED)',
+            readAloudText:
+                'You inherited the Medic. Choose your strategy: nightly protection or one-time revive.',
+            instructionText:
+                'CHOOSE YOUR STRATEGY: NIGHTLY PROTECTION OR ONE-TIME REVIVE',
+            actionType: ScriptActionType.binaryChoice,
+            roleId: RoleIds.medic,
+            options: const ['PROTECT_DAILY', 'REVIVE'],
+          ));
+          break;
+        case RoleIds.clinger:
+          steps.add(ScriptStep(
+            id: 'clinger_setup_${entry.playerId}_$dayCount',
+            title: 'THE CLINGER (INHERITED)',
+            readAloudText:
+                'You inherited the Clinger. Choose your partner to obsess over.',
+            instructionText: 'SELECT A PARTNER TO OBSESS OVER',
+            actionType: ScriptActionType.selectPlayer,
+            roleId: RoleIds.clinger,
+          ));
+          break;
+        case RoleIds.dramaQueen:
+          steps.add(ScriptStep(
+            id: 'drama_queen_setup_${entry.playerId}_$dayCount',
+            title: 'THE DRAMA QUEEN (INHERITED)',
+            readAloudText:
+                'You inherited the Drama Queen. Pick two players for post-mortem role swap.',
+            instructionText: 'SELECT TWO PLAYERS FOR POST-MORTEM ROLE SWAP',
+            actionType: ScriptActionType.selectTwoPlayers,
+            roleId: RoleIds.dramaQueen,
+          ));
+          break;
+        default:
+          break;
+      }
+    }
+    return steps;
+  }
+
   /// Generates the Night Script based on active roles
   static List<ScriptStep> buildNightScript(List<Player> players, int dayCount) {
     if (dayCount == 0 || players.isEmpty) {
@@ -282,6 +333,16 @@ class ScriptBuilder {
       (p) => p.isAlive && p.secondWindPendingConversion,
     );
     for (final sw in pendingConversions) {
+      // Show interactive status on Second Wind player's device during Dealer decision
+      steps.add(ScriptStep(
+        id: 'second_wind_status_${sw.id}_$dayCount',
+        title: 'SECOND WIND',
+        readAloudText: 'The Dealers are deciding your fate.',
+        instructionText: 'DEALERS ARE DECIDING YOUR FATE',
+        actionType: ScriptActionType.showInfo,
+        roleId: RoleIds.secondWind,
+      ));
+      // Host-only step: Dealers choose Convert or Execute
       steps.add(ScriptStep(
         id: 'second_wind_convert_${sw.id}_$dayCount',
         title: 'SECOND WIND',
@@ -290,7 +351,7 @@ class ScriptBuilder {
         instructionText:
             'Ask Dealers for decision. HOST INPUT: Convert or Execute?',
         actionType: ScriptActionType.binaryChoice,
-        roleId: null, // Host-mediated, no specific player ID to avoid sync lock
+        roleId: null,
         options: const ['CONVERT', 'EXECUTE'],
       ));
     }

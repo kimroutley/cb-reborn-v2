@@ -131,15 +131,16 @@ exports.onGameUpdated = functions.firestore
       });
     }
 
-    // New non-host-only bulletin (simplified: compare bulletinBoard length)
-    const bulletinBefore = (before.bulletinBoard || []).filter((b) => !b.isHostOnly);
-    const bulletinAfter = (after.bulletinBoard || []).filter((b) => !b.isHostOnly);
+    // New bulletin (public bulletinBoard; host-only entries are not written to Firestore)
+    const bulletinBefore = (before.bulletinBoard || []).filter((b) => b.isHostOnly !== true);
+    const bulletinAfter = (after.bulletinBoard || []).filter((b) => b.isHostOnly !== true);
     if (bulletinAfter.length > bulletinBefore.length && bulletinAfter.length > 0) {
       const last = bulletinAfter[bulletinAfter.length - 1];
+      const body = (last.content != null ? last.content : last.floatContent || '') || 'New message in the game.';
       notifications.push({
         playerIds,
         title: last.title || 'Club Blackout',
-        body: (last.content || last.floatContent || '').substring(0, 100) || 'New message in the game.',
+        body: String(body).substring(0, 100),
       });
     }
 

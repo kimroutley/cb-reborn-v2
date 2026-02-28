@@ -75,6 +75,17 @@ service cloud.firestore {
         allow update, delete: if false;
       }
       
+      // ── Push Subscriptions (Web Push targeting) ──
+      match /push_subscriptions/{playerId} {
+        // Authenticated users can register/update their own push subscription (doc id = playerId from game roster)
+        allow create, update: if isAuthenticated()
+          && request.resource.data.keys().hasAll(['endpoint', 'keys'])
+          && request.resource.data.endpoint is string
+          && request.resource.data.keys is map
+          && request.resource.data.keys.keys().hasAll(['p256dh', 'auth']);
+        allow read, delete: if isAuthenticated();
+      }
+      
       // ── Private Player State Subcollection ──
       match /private_state/{playerId} {
         // Only authenticated host or the owning player can read private state

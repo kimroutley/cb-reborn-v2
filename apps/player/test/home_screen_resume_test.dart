@@ -116,7 +116,55 @@ void main() {
   });
 
   testWidgets(
-      'pending legacy local autoconnect URL is coerced to cloud reconnect flow',
+      'pending legacy local autoconnect URL (no host) is coerced to cloud reconnect flow',
+      (tester) async {
+    final playerBridge = _TrackingPlayerBridge();
+    final cloudBridge = _TrackingCloudBridge();
+    // Legacy: mode=local + autoconnect but no host -> coerce to cloud
+    final pendingUrl = Uri(
+      path: '/join',
+      queryParameters: <String, String>{
+        'code': 'NEON-ABCDEF',
+        'mode': 'local',
+        'autoconnect': '1',
+      },
+    ).toString();
+    final container = ProviderContainer(
+      overrides: [
+        playerBridgeProvider.overrideWith(() => playerBridge),
+        cloudPlayerBridgeProvider.overrideWith(() => cloudBridge),
+        pendingJoinUrlProvider
+            .overrideWith(() => _SeededPendingJoinUrlNotifier(pendingUrl)),
+        authProvider.overrideWith(
+          () => _StubAuthNotifier(const AuthState(AuthStatus.unauthenticated)),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+
+    await _pumpFrames(tester);
+
+    expect(playerBridge.connectCalls, 0);
+    expect(playerBridge.joinGameCalls, 0);
+    expect(playerBridge.lastConnectUrl, isNull);
+    expect(playerBridge.lastJoinCode, isNull);
+    expect(playerBridge.disconnectCalls, 1);
+    expect(cloudBridge.joinGameCalls, 1);
+    expect(cloudBridge.lastJoinCode, 'NEON-ABCDEF');
+    expect(container.read(pendingJoinUrlProvider), isNull);
+  });
+
+  testWidgets('pending local autoconnect URL with host uses local reconnect flow',
       (tester) async {
     final playerBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
@@ -154,13 +202,11 @@ void main() {
 
     await _pumpFrames(tester);
 
-    expect(playerBridge.connectCalls, 0);
-    expect(playerBridge.joinGameCalls, 0);
-    expect(playerBridge.lastConnectUrl, isNull);
-    expect(playerBridge.lastJoinCode, isNull);
-    expect(playerBridge.disconnectCalls, 1);
-    expect(cloudBridge.joinGameCalls, 1);
-    expect(cloudBridge.lastJoinCode, 'NEON-ABCDEF');
+    expect(playerBridge.connectCalls, 1);
+    expect(playerBridge.lastConnectUrl, 'ws://192.168.1.44');
+    expect(playerBridge.joinGameCalls, 1);
+    expect(playerBridge.lastJoinCode, 'NEON-ABCDEF');
+    expect(cloudBridge.joinGameCalls, 0);
     expect(container.read(pendingJoinUrlProvider), isNull);
   });
 
