@@ -24,6 +24,15 @@ class _TestCloudBridge extends CloudPlayerBridge {
     state = state.copyWith(phase: phase, isConnected: true);
   }
 
+  void emitSetupConfirmed() {
+    state = state.copyWith(
+      phase: 'setup',
+      isConnected: true,
+      myPlayerId: 'p1',
+      roleConfirmedPlayerIds: const ['p1'],
+    );
+  }
+
   @override
   Future<void> disconnect() async {}
 }
@@ -143,7 +152,7 @@ void main() {
     cloud.emitJoinAcceptedLobby();
     await tester.pump();
 
-    cloud.emitPhase('setup');
+    cloud.emitSetupConfirmed();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 30));
 

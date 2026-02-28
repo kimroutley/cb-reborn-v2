@@ -1,3 +1,4 @@
+import 'package:cb_models/cb_models.dart';
 import '../night_action_strategy.dart';
 import '../night_resolution_context.dart';
 import 'death_handler.dart';
@@ -43,9 +44,28 @@ class DeathResolutionStrategy implements NightActionStrategy {
 
       if (context.protectedPlayerIds.contains(targetId)) {
         final victim = context.getPlayer(targetId);
-        context.addReport('A murder attempt on ${victim.name} was thwarted.');
-        context.addTeaser(
-            'A patron barely escaped a close encounter with "the staff".');
+
+        // Wallflower is virtually impossible to detect
+        if (victim.role.id != RoleIds.wallflower) {
+          context.addReport('A murder attempt on ${victim.name} was thwarted.');
+          context.addTeaser(
+              'A patron barely escaped a close encounter with "the staff".');
+        }
+
+        // Notify Medic if their protection was triggered
+        final medics = context.players.where((p) =>
+            p.isAlive &&
+            p.role.id == RoleIds.medic &&
+            p.medicChoice != 'REVIVE');
+
+        for (final medic in medics) {
+          final actionKey = 'medic_act_${medic.id}_${context.dayCount}';
+          final protectedId = context.log[actionKey];
+          if (protectedId == targetId) {
+            context.addPrivateMessage(medic.id,
+                'Your medical expertise was vital tonight. You successfully shielded your patient from a lethal encounter.');
+          }
+        }
         continue;
       }
 

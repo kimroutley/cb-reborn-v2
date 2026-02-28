@@ -36,7 +36,7 @@ List<String> resolveTeaSpillerReveals({
 
     final revealedVoter = revealedVoterMatches.first;
     lines.add(
-      'Tea Spiller exposed ${revealedVoter.name}: ${revealedVoter.role.name}.',
+      'THE TEA HAS BEEN SPILLED! ${teaSpiller.name.toUpperCase()} DRAGS ${revealedVoter.name.toUpperCase()} DOWN WITH THEM: THEY ARE THE ${revealedVoter.role.name.toUpperCase()}!',
     );
   }
 

@@ -94,7 +94,9 @@ void main() {
           expect(actionEvent.options, step.options);
           break;
         }
-        game.advancePhase();
+        if (!game.advanceStep()) {
+          game.advancePhase();
+        }
       }
       expect(found, true, reason: 'Should have found an interactive step');
     });
@@ -129,7 +131,9 @@ void main() {
           expect(addedEvents.any((e) => e.type == FeedEventType.action), true);
           break;
         }
-        game.advancePhase();
+        if (!game.advanceStep()) {
+          game.advancePhase();
+        }
       }
       expect(found, true, reason: 'Should have found a complex step');
     });
@@ -164,7 +168,9 @@ void main() {
           expect(firstEvent.timestamp, secondEvent.timestamp);
           break;
         }
-        game.advancePhase();
+        if (!game.advanceStep()) {
+          game.advancePhase();
+        }
       }
       expect(found, true);
     });

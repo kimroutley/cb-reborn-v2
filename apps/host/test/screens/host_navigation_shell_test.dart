@@ -55,9 +55,13 @@ void main() {
         .read(hostNavigationProvider.notifier)
         .setDestination(HostDestination.lobby);
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.textContaining('BROADCASTING ON CODE'), findsAtLeastNWidgets(1));
-    expect(find.text('JOIN BEACON'), findsOneWidget);
-    expect(find.textContaining('CLOUD LINK:'), findsOneWidget);
+
+    await tester.tap(find.text('CONNECT'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('THE LOBBY'), findsOneWidget);
+    expect(find.textContaining('Open the Player app and type code'),
+      findsOneWidget);
     expect(find.byType(QrImageView), findsOneWidget);
 
     // Allow debounced persistence timer from sync mode bootstrap to settle.

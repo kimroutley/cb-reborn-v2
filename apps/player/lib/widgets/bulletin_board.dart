@@ -73,10 +73,10 @@ class _CBBulletinBoardState extends State<CBBulletinBoard> {
           final payload = DayRecapCardPayload.tryParse(entry.content);
           if (payload != null) {
             return CBDayRecapCard(
-              title: payload.title.isNotEmpty
-                  ? payload.title
+              title: payload.playerTitle.isNotEmpty
+                  ? payload.playerTitle
                   : 'DAY ${payload.day} RECAP',
-              bullets: payload.bullets,
+              bullets: payload.playerBullets,
             );
           }
           // Fallback on parse failure

@@ -160,8 +160,8 @@ void main() {
       game.advancePhase();
 
       final updatedState = container.read(gameProvider);
-      expect(updatedState.phase, GamePhase.setup);
-      expect(updatedState.feedEvents.length, initialFeedCount);
+      expect(updatedState.phase, GamePhase.day);
+      expect(updatedState.feedEvents.length, greaterThan(initialFeedCount));
       expect(updatedState.scriptIndex, initialScriptIndex);
     });
   });
@@ -1422,12 +1422,12 @@ void main() {
       updated = container.read(gameProvider);
       expect(
         updated.gameHistory.any((line) =>
-            line.contains('Tea Spiller exposed Buddy: The Party Animal.')),
+            line.contains('TEA DRAGS BUDDY DOWN')),
         true,
       );
       expect(
         updated.lastDayReport.any((line) =>
-            line.contains('Tea Spiller exposed Buddy: The Party Animal.')),
+            line.contains('TEA DRAGS BUDDY DOWN')),
         true,
       );
     });

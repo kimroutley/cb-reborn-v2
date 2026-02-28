@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:cb_logic/cb_logic.dart';
@@ -37,11 +38,38 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
   String _status = 'INITIALIZING CLUB SYSTEMS...';
   int _totalUnits = 1;
   int _completedUnits = 0;
+  StreamSubscription? _errorSubscription;
 
   @override
   void initState() {
     super.initState();
     _runBootstrap();
+    _setupErrorListener();
+  }
+
+  @override
+  void dispose() {
+    _errorSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupErrorListener() {
+    // We delay the listener setup slightly to ensure providers are ready
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _errorSubscription = ref
+          .read(cloudPlayerBridgeProvider.notifier)
+          .bridgeErrors
+          .listen((error) {
+        if (mounted) {
+          showThemedSnackBar(
+            context,
+            error.message,
+            accentColor: Theme.of(context).colorScheme.error,
+          );
+        }
+      });
+    });
   }
 
   Future<void> _runBootstrap() async {
@@ -166,32 +194,43 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
         return;
       }
 
-      if (entry.mode == CachedSyncMode.cloud) {
-        ref.read(cloudPlayerBridgeProvider.notifier).restoreFromCache(entry);
-        final qp = <String, String>{
-          'code': entry.joinCode,
-          'mode': 'cloud',
-          'autoconnect': '1',
-        };
-        ref.read(pendingJoinUrlProvider.notifier).setValue(
-              Uri(path: '/join', queryParameters: qp).toString(),
-            );
-      } else if (entry.mode == CachedSyncMode.local &&
-          entry.hostAddress != null &&
-          entry.hostAddress!.trim().isNotEmpty) {
+      if (entry.mode == CachedSyncMode.local) {
+        final host = entry.hostAddress?.trim();
+        if (host == null || host.isEmpty) {
+          await cache.clear().timeout(
+                const Duration(seconds: 3),
+                onTimeout: () {},
+              );
+          _advanceProgress();
+          return;
+        }
+
         ref.read(playerBridgeProvider.notifier).restoreFromCache(entry);
+
         final qp = <String, String>{
           'code': entry.joinCode,
           'mode': 'local',
-          'host': entry.hostAddress!.trim(),
+          'host': host,
           'autoconnect': '1',
         };
         ref.read(pendingJoinUrlProvider.notifier).setValue(
               Uri(path: '/join', queryParameters: qp).toString(),
             );
-      } else {
-        await cache.clear().timeout(const Duration(seconds: 3));
+
+        _advanceProgress();
+        return;
       }
+
+      ref.read(cloudPlayerBridgeProvider.notifier).restoreFromCache(entry);
+
+      final qp = <String, String>{
+        'code': entry.joinCode,
+        'mode': 'cloud',
+        'autoconnect': '1',
+      };
+      ref.read(pendingJoinUrlProvider.notifier).setValue(
+            Uri(path: '/join', queryParameters: qp).toString(),
+          );
     } catch (e) {
       debugPrint('[Bootstrap] Session restore failed: $e');
     }
@@ -244,58 +283,92 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return CBPrismScaffold(
-      title: 'LOADING',
+      title: 'BOOTSTRAP',
+      showAppBar: false,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 380),
-            child: CBPanel(
-              borderColor: scheme.primary.withValues(alpha: 0.5),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CBBreathingLoader(size: 54),
-                  const SizedBox(height: 20),
-                  Text(
-                    'LOADING PLAYER CLIENT',
-                    textAlign: TextAlign.center,
-                    style: textTheme.labelLarge?.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                    ),
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Hero(
+                  tag: 'auth_icon',
+                  child: CBRoleAvatar(
+                    color: scheme.secondary,
+                    size: 80,
+                    pulsing: true,
+                    icon: Icons.nightlife_rounded,
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _status,
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.9),
-                    ),
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  'CLUB BLACKOUT',
+                  textAlign: TextAlign.center,
+                  style: textTheme.headlineMedium?.copyWith(
+                    color: scheme.secondary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 4,
+                    shadows:
+                        CBColors.textGlow(scheme.secondary, intensity: 0.6),
                   ),
-                  const SizedBox(height: 16),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
-                    child: LinearProgressIndicator(
-                      value: _progress,
-                      minHeight: 8,
-                      backgroundColor: scheme.onSurface.withValues(alpha: 0.15),
-                      valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
-                    ),
+                ),
+                const SizedBox(height: 8),
+                CBBadge(text: 'REBORN', color: scheme.secondary),
+                const SizedBox(height: 48),
+                CBPanel(
+                  borderColor: scheme.primary.withValues(alpha: 0.5),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CBBreathingLoader(size: 54),
+                      const SizedBox(height: 24),
+                      Text(
+                        'INITIALIZING SYSTEMS',
+                        textAlign: TextAlign.center,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _status,
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.8),
+                          fontFamily: 'monospace',
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          value: _progress,
+                          minHeight: 12,
+                          backgroundColor:
+                              scheme.onSurface.withValues(alpha: 0.1),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(scheme.primary),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _progressLabel,
+                        textAlign: TextAlign.center,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: scheme.primary.withValues(alpha: 0.95),
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    _progressLabel,
-                    textAlign: TextAlign.center,
-                    style: textTheme.labelMedium?.copyWith(
-                      color: scheme.primary.withValues(alpha: 0.95),
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

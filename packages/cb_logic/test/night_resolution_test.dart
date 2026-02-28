@@ -7,17 +7,23 @@ Role _role(
   String id, {
   Team alliance = Team.partyAnimals,
   int priority = 100,
-}) =>
-    Role(
-      id: id,
-      name: id.toUpperCase(),
-      alliance: alliance,
-      type: 'Test',
-      description: 'Test role',
-      nightPriority: priority,
-      assetPath: '',
-      colorHex: '#FF0000',
-    );
+}) {
+  final canonical = roleCatalogMap[id];
+  if (canonical != null) {
+    return canonical;
+  }
+
+  return Role(
+    id: id,
+    name: id,
+    alliance: alliance,
+    type: 'Test',
+    description: 'Test role',
+    nightPriority: priority,
+    assetPath: '',
+    colorHex: '#FF0000',
+  );
+}
 
 Player _player(String name, Role role, {Team? alliance}) => Player(
       id: name.toLowerCase(),
@@ -206,6 +212,44 @@ void main() {
       final updatedDealer1 =
           result.players.firstWhere((p) => p.id == dealer1.id);
       expect(updatedDealer1.silencedDay, 1);
+    });
+
+    test('Roofi targeting dealer blocks that dealer next night', () {
+      final dealer =
+          _player('Dealer', _role(RoleIds.dealer, alliance: Team.clubStaff));
+      final roofi = _player('Roofi', _role(RoleIds.roofi));
+      final victim = _player('Victim', _role(RoleIds.partyAnimal));
+      final players = [dealer, roofi, victim];
+
+      final nightOneLog = {
+        'roofi_act_${roofi.id}_1': dealer.id,
+      };
+
+      final nightOne = _resolveNight(players, nightOneLog);
+      final updatedDealer =
+          nightOne.players.firstWhere((p) => p.id == dealer.id);
+      expect(updatedDealer.blockedKillNight, 2);
+
+      final nightTwoLog = {
+        'dealer_act_${dealer.id}_2': victim.id,
+      };
+
+      final nightTwo = GameResolutionLogic.resolveNightActions(
+        GameState(
+          players: nightOne.players,
+          actionLog: nightTwoLog,
+          dayCount: 2,
+          privateMessages: nightOne.privateMessages,
+        ),
+      );
+
+      final updatedVictim =
+          nightTwo.players.firstWhere((p) => p.id == victim.id);
+      expect(updatedVictim.isAlive, true);
+      expect(
+        nightTwo.report.any((line) => line.contains('could not perform a kill')),
+        true,
+      );
     });
 
     test('Bouncer checks ID', () {

@@ -152,7 +152,7 @@ void main() {
       );
 
       expect(result.lines, isNotEmpty);
-      expect(result.lines.first, contains('Tea Spiller exposed Dealer'));
+      expect(result.lines.first, contains('TEA DRAGS DEALER DOWN'));
 
       final dramaLineIndex = result.lines.indexWhere(
         (line) => line.contains('Drama Queen chaos'),
@@ -240,7 +240,7 @@ void main() {
       );
 
       expect(result.lines, isNotEmpty);
-      expect(result.lines.single, contains('Tea Spiller exposed Buddy'));
+      expect(result.lines.single, contains('TEA DRAGS BUDDY DOWN'));
     });
 
     test('drama queen swap follows explicit selected pair', () {

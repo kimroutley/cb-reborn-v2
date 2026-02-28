@@ -10,6 +10,8 @@ class SecondWindHandler implements DeathHandler {
         !victim.secondWindConverted &&
         targetedByDealer) {
       context.updatePlayer(victim.copyWith(secondWindPendingConversion: true));
+      context.addPrivateMessage(victim.id,
+          "The hit should have killed you, but you're built different. You've survived, but the club staff has noticed your 'resilience'. You are being recruited...");
       context.report.add('Second Wind triggered for ${victim.name}.');
       context.teasers.add('Someone survived a lethal encounter.');
       return true; // Prevent default death

@@ -78,6 +78,7 @@ class CloudHostBridge {
   String? _resolvedHostUid;
 
   int? _lastPublishedHash;
+  Future<void> _publishChain = Future<void>.value();
 
   StreamSubscription? _joinSub;
   StreamSubscription? _actionSub;
@@ -94,11 +95,11 @@ class CloudHostBridge {
     String? message,
   }) {
     _ref.read(cloudLinkStateProvider.notifier).update(
-      CloudLinkState(
-        phase: phase,
-        message: message,
-      ),
-    );
+          CloudLinkState(
+            phase: phase,
+            message: message,
+          ),
+        );
   }
 
   String get joinCode => _ref.read(sessionProvider).joinCode;
@@ -184,7 +185,8 @@ class CloudHostBridge {
           final persistenceKey = 'join:$docId';
           if (_processedJoins.contains(docId)) continue;
           try {
-            if (PersistenceService.instance.isBridgeIdProcessed(persistenceKey)) {
+            if (PersistenceService.instance
+                .isBridgeIdProcessed(persistenceKey)) {
               _processedJoins.add(docId);
               continue;
             }
@@ -241,7 +243,8 @@ class CloudHostBridge {
           final persistenceKey = 'action:$docId';
           if (_processedActions.contains(docId)) continue;
           try {
-            if (PersistenceService.instance.isBridgeIdProcessed(persistenceKey)) {
+            if (PersistenceService.instance
+                .isBridgeIdProcessed(persistenceKey)) {
               _processedActions.add(docId);
               continue;
             }
@@ -256,21 +259,34 @@ class CloudHostBridge {
             // Non-critical: persistence dedup unavailable; in-memory set suffices.
           }
 
+          // Enhanced Deduplication & Validation
           final data = change.doc.data();
           if (data == null) continue;
 
           final type = data['type'] as String?;
+          final senderPlayerId = (data['playerId'] as String? ?? '').trim();
           final payload = (data['payload'] as Map?)
                   ?.map((key, value) => MapEntry(key.toString(), value)) ??
               const <String, dynamic>{};
 
+          if (senderPlayerId.isNotEmpty &&
+              senderPlayerId != 'unknown' &&
+              type != 'chat') {
+            final isKnown = _ref.read(gameProvider).players.any(
+                (p) => p.id == senderPlayerId || p.authUid == senderPlayerId);
+            if (!isKnown && type != 'join') {
+              debugPrint(
+                  '[CloudHostBridge] Action from unknown player $senderPlayerId ignored.');
+              continue;
+            }
+          }
+
           if (type == 'dead_pool_bet') {
             final playerId = data['playerId'] as String? ?? '';
-            final targetPlayerId =
-                (data['targetId'] as String?) ??
-                    (data['targetPlayerId'] as String?) ??
-                    (payload['targetPlayerId'] as String?) ??
-                    '';
+            final targetPlayerId = (data['targetId'] as String?) ??
+                (data['targetPlayerId'] as String?) ??
+                (payload['targetPlayerId'] as String?) ??
+                '';
             if (playerId.isNotEmpty && targetPlayerId.isNotEmpty) {
               _ref.read(gameProvider.notifier).placeDeadPoolBet(
                     playerId: playerId,
@@ -399,18 +415,15 @@ class CloudHostBridge {
     _resolvedHostUid = hostUid;
 
     try {
-      await _firebase!
-          .subscribeToGame()
-          .firstWhere((snapshot) {
-            final data = snapshot.data();
-            if (data == null) {
-              return false;
-            }
-            final hostId = data['hostId'] as String?;
-            final updatedAt = data['updatedAt'];
-            return hostId == hostUid && updatedAt != null;
-          })
-          .timeout(const Duration(seconds: 8));
+      await _firebase!.subscribeToGame().firstWhere((snapshot) {
+        final data = snapshot.data();
+        if (data == null) {
+          return false;
+        }
+        final hostId = data['hostId'] as String?;
+        final updatedAt = data['updatedAt'];
+        return hostId == hostUid && updatedAt != null;
+      }).timeout(const Duration(seconds: 8));
       return true;
     } catch (_) {
       return false;
@@ -443,6 +456,17 @@ class CloudHostBridge {
   Future<void> publishState() async {
     if (_firebase == null || !_running) return;
 
+    _publishChain = _publishChain
+        .catchError((_) {})
+        .then((_) => _publishStateInternal());
+    await _publishChain;
+  }
+
+  Future<void> _publishStateInternal() async {
+    if (_firebase == null || !_running) {
+      return;
+    }
+
     final game = _ref.read(gameProvider);
     final session = _ref.read(sessionProvider);
     final currentPlayerIds = game.players.map((p) => p.id).toSet();
@@ -469,6 +493,7 @@ class CloudHostBridge {
 
     final step = game.currentStep;
     final isEndGame = game.phase == GamePhase.endGame;
+    final stateRevision = DateTime.now().microsecondsSinceEpoch;
 
     // Build public player list (filtered — no secret role data)
     final publicPlayers = game.players
@@ -529,6 +554,7 @@ class CloudHostBridge {
               .toList()
           : null,
       'rematchOffered': game.rematchOffered ? true : null,
+      'stateRevision': stateRevision,
       'updatedAt': DateTime.now().millisecondsSinceEpoch,
     };
 
@@ -536,20 +562,21 @@ class CloudHostBridge {
     final playerPrivateData = <String, Map<String, dynamic>>{};
     for (final p in game.players) {
       final rawPrivateMessages = game.privateMessages[p.id] ?? const <String>[];
-      final ghostMessages = rawPrivateMessages
-          .where((m) => m.startsWith('[GHOST] '))
-          .map((m) {
-            final withoutPrefix = m.replaceFirst('[GHOST] ', '');
-            final colonIdx = withoutPrefix.indexOf(': ');
-            if (colonIdx == -1) {
-              return <String, dynamic>{'sender': _unknownGhostSenderName, 'message': withoutPrefix};
-            }
-            return <String, dynamic>{
-              'sender': withoutPrefix.substring(0, colonIdx),
-              'message': withoutPrefix.substring(colonIdx + 2),
-            };
-          })
-          .toList();
+      final ghostMessages =
+          rawPrivateMessages.where((m) => m.startsWith('[GHOST] ')).map((m) {
+        final withoutPrefix = m.replaceFirst('[GHOST] ', '');
+        final colonIdx = withoutPrefix.indexOf(': ');
+        if (colonIdx == -1) {
+          return <String, dynamic>{
+            'sender': _unknownGhostSenderName,
+            'message': withoutPrefix
+          };
+        }
+        return <String, dynamic>{
+          'sender': withoutPrefix.substring(0, colonIdx),
+          'message': withoutPrefix.substring(colonIdx + 2),
+        };
+      }).toList();
       playerPrivateData[p.id] = {
         'uid': p.authUid,
         'roleId': p.role.id,
@@ -578,17 +605,25 @@ class CloudHostBridge {
         await _firebase!.publishState(
           publicState: publicState,
           playerPrivateData: playerPrivateData,
+          stateRevision: stateRevision,
         );
         _lastPublishedHash = currentHash;
+        return;
+      } on StaleStateRevisionException {
+        debugPrint(
+          '[CloudHostBridge] Stale publish dropped (revision $stateRevision).',
+        );
         return;
       } catch (e) {
         attempt++;
         if (attempt >= maxRetries) {
           rethrow;
         }
-        final delay = Duration(milliseconds: _baseRetryDelayMs * (1 << attempt));
+        final delay =
+            Duration(milliseconds: _baseRetryDelayMs * (1 << attempt));
         await Future.delayed(delay);
-        debugPrint('[CloudHostBridge] publishState retry $attempt after error: $e');
+        debugPrint(
+            '[CloudHostBridge] publishState retry $attempt after error: $e');
       }
     }
   }

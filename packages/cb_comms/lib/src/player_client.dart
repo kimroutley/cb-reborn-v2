@@ -2,6 +2,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'game_message.dart';
+import 'firebase_bridge.dart'; // Import BridgeError if defined there, or move to common
+
+/// Represents a WebSocket specific error.
+class SocketError extends BridgeError {
+  SocketError({required super.message, super.code, super.originalError});
+}
 
 /// WebSocket client running on the Player device.
 ///
@@ -16,6 +22,10 @@ class PlayerClient {
   String? _url;
   bool _intentionalClose = false;
 
+  // Stream for broadcasting errors to the UI
+  final _errorController = StreamController<BridgeError>.broadcast();
+  Stream<BridgeError> get errors => _errorController.stream;
+
   /// Called when a message arrives from the host.
   final void Function(GameMessage message)? onMessage;
 
@@ -23,6 +33,11 @@ class PlayerClient {
   final void Function(PlayerConnectionState state)? onConnectionChanged;
 
   PlayerClient({this.onMessage, this.onConnectionChanged});
+
+  void dispose() {
+    _errorController.close();
+    disconnect();
+  }
 
   /// Current connection state.
   PlayerConnectionState _state = PlayerConnectionState.disconnected;
@@ -62,8 +77,13 @@ class PlayerClient {
           }
         },
         onDone: () {
+          debugPrint('[PlayerClient] Disconnected (onDone)');
           _setState(PlayerConnectionState.disconnected);
           if (!_intentionalClose) {
+            _errorController.add(SocketError(
+              message: 'Connection lost. Reconnecting...',
+              code: 'socket_closed',
+            ));
             _scheduleReconnect();
           }
         },
@@ -71,6 +91,11 @@ class PlayerClient {
           debugPrint('[PlayerClient] Error: $error');
           _setState(PlayerConnectionState.disconnected);
           if (!_intentionalClose) {
+            _errorController.add(SocketError(
+              message: 'Connection error.',
+              code: 'socket_error',
+              originalError: error,
+            ));
             _scheduleReconnect();
           }
         },

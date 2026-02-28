@@ -94,6 +94,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.startInEditMode) {
+      _editingField = 'username';
+    }
     _usernameController.addListener(_onInputChanged);
     _publicIdController.addListener(_onInputChanged);
     _startAuthListener();
@@ -653,7 +656,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool get _hasEmailPasswordProvider {
     final user = _user;
     if (user == null) return false;
-    return user.providerData.any((p) => p.providerId == 'password');
+    try {
+      return user.providerData.any((p) => p.providerId == 'password');
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _showChangePassword() async {

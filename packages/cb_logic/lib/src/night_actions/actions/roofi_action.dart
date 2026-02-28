@@ -25,6 +25,19 @@ class RoofiAction implements NightActionStrategy {
         final target = context.getPlayer(targetId);
         context.silencedPlayerIds.add(targetId);
 
+        if (target.role.id == RoleIds.dealer) {
+          context.updatePlayer(
+            target.copyWith(blockedKillNight: context.dayCount + 1),
+          );
+          context.addPrivateMessage(
+            target.id,
+            'You were paralysed by Roofi. You cannot perform the kill next night.',
+          );
+          context.addReport(
+            'Roofi paralysed ${target.name}; their next-night kill has been blocked.',
+          );
+        }
+
         // Special rule: if Roofi targets the only living Dealer,
         // the Dealer kill is blocked for this night.
         final livingDealers = context.players
@@ -46,7 +59,9 @@ class RoofiAction implements NightActionStrategy {
         }
 
         context.addPrivateMessage(
-            roofi.id, 'You silenced ${target.name}. Their night action has been cancelled.');
+          roofi.id,
+          'You silenced ${target.name}. Their action was blocked tonight, and Dealer kills are blocked next night if they are a Dealer.',
+        );
         context.addReport('Roofi chose to silence ${target.name}.');
       }
     }

@@ -56,7 +56,8 @@ void main() {
       );
 
       expect(lines.length, 1);
-      expect(lines.single, 'Tea Spiller exposed Dealer: dealer.');
+      expect(lines.single,
+          'THE TEA HAS BEEN SPILLED! TEA DRAGS DEALER DOWN WITH THEM: THEY ARE THE DEALER!');
     });
 
     test('returns empty when no voters targeted Tea Spiller', () {
@@ -99,7 +100,8 @@ void main() {
       );
 
       expect(lines.length, 1);
-      expect(lines.single, 'Tea Spiller exposed Buddy: party_animal.');
+      expect(lines.single,
+          'THE TEA HAS BEEN SPILLED! TEA DRAGS BUDDY DOWN WITH THEM: THEY ARE THE PARTY_ANIMAL!');
     });
   });
 }

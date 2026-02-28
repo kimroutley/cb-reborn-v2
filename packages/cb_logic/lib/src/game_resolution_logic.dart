@@ -8,7 +8,6 @@ class NightResolution {
   final List<String> teasers;
   final Map<String, List<String>> privateMessages;
   final List<GameEvent> events;
-  /// Creeps who inherited a role requiring setup: (playerId, roleId).
   final List<({String playerId, String roleId})> pendingCreepSetups;
 
   const NightResolution({
@@ -25,11 +24,13 @@ class DayResolution {
   final List<Player> players;
   final List<String> report;
   final List<GameEvent> events;
+  final Map<String, List<String>> privateMessages;
 
   const DayResolution({
     required this.players,
     required this.report,
     this.events = const [],
+    this.privateMessages = const {},
   });
 }
 
@@ -177,6 +178,20 @@ class GameResolutionLogic {
     // 5. Apply Deaths
     DeathResolutionStrategy().execute(context);
 
+    // 6. Handle Second Wind Conversion
+    for (final p in context.players) {
+      if (p.secondWindPendingConversion && !p.secondWindConverted) {
+        final dealerRole = roleCatalogMap[RoleIds.dealer]!;
+        context.updatePlayer(p.copyWith(
+          role: dealerRole,
+          alliance: Team.clubStaff,
+          secondWindConverted: true,
+          secondWindPendingConversion: false,
+          secondWindConversionNight: gameState.dayCount,
+        ));
+      }
+    }
+
     // Apply silencing
     for (final id in context.silencedPlayerIds) {
       final p = context.getPlayer(id);
@@ -199,20 +214,33 @@ class GameResolutionLogic {
     Map<String, int> tally,
     Map<String, String> votesByVoter,
     TieBreakStrategy tieBreakStrategy,
-    int dayCount,
-  ) {
+    int dayCount, {
+    Map<String, List<String>>? privateMessages,
+  }) {
     if (tally.isEmpty) {
       return DayResolution(players: players, report: ['No votes were cast.']);
     }
 
     final events = <GameEvent>[];
     final report = <String>[];
+    final updatedPrivateMessages =
+        privateMessages != null ? Map<String, List<String>>.from(privateMessages) : <String, List<String>>{};
+
+    void addPrivateMessage(String playerId, String message) {
+      updatedPrivateMessages.putIfAbsent(playerId, () => []).add(message);
+    }
 
     // Log individual votes
     for (final entry in votesByVoter.entries) {
       final voterId = entry.key;
       final targetId = entry.value;
-      final voter = players.firstWhere((p) => p.id == voterId);
+      final voter = players.firstWhere((p) => p.id == voterId,
+          orElse: () => Player(
+                id: voterId,
+                name: 'Unknown Voter',
+                role: roleCatalog.first,
+                alliance: Team.unknown,
+              ));
       final target = players.firstWhere(
         (p) => p.id == targetId,
         orElse: () => Player(
@@ -478,7 +506,11 @@ class GameResolutionLogic {
 
         if (scapegoat != null) {
           reportMsg =
-              'SCANDAL: The vote was deflected! ${scapegoat.name} was framed and exiled in ${victim.name}\'s place.';
+              "ABSOLUTE CHAOS: ${victim.name} (The Dealer) was about to be exiled, but a scandalous photo surfaced! ${scapegoat.name} has been framed and kicked out in their place!";
+          addPrivateMessage(scapegoat.id,
+              "You've been framed! Your 'friend' just pinned their crimes on you. You're out of the club.");
+          addPrivateMessage(activeWhore.id,
+              "Your scapegoat worked perfectly. ${scapegoat.name} took the fall for you. You're safe... for now.");
           victimId = scapegoat.id;
           victim = scapegoat;
           whoreWhoUsedDeflectionId = activeWhore.id;
@@ -491,7 +523,7 @@ class GameResolutionLogic {
         return p.copyWith(
           isAlive: false,
           deathDay: dayCount,
-          deathReason: 'exile',
+          deathReason: "exile",
         );
       }
       if (p.id == whoreWhoUsedDeflectionId) {
@@ -510,6 +542,7 @@ class GameResolutionLogic {
       players: updatedPlayers,
       report: [...report, reportMsg],
       events: events,
+      privateMessages: updatedPrivateMessages,
     );
   }
 

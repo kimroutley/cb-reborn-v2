@@ -45,11 +45,11 @@ class BouncerAction implements NightActionStrategy {
       for (final allyCat in allyCats) {
         context.addPrivateMessage(
           allyCat.id,
-          'Bouncer intel intercepted: ${target.name} is $allegiance.',
+          'Ally Cat witnessed Bouncer check ${target.name}: $allegiance.',
         );
       }
 
-      context.addReport('Bouncer chose to check ${target.name}.');
+      context.addReport('Bouncer checked ${target.name}.');
     }
   }
 }

@@ -63,7 +63,7 @@ void main() {
             variationPrompt: any(named: 'variationPrompt'),
             model: any(named: 'model'),
             isMature: any(named: 'isMature'),
-          )).called(1);
+          )).called(2);
 
       verify(() => mockGeminiService.generateNightNarration(
             lastNightReport: any(named: 'lastNightReport'),
@@ -74,7 +74,7 @@ void main() {
             variationPrompt: any(named: 'variationPrompt'),
             model: any(named: 'model'),
             isMature: any(named: 'isMature'),
-          )).called(1);
+          )).called(2);
     });
 
     test('dispatches only mechanical host recap when AI is disabled', () {

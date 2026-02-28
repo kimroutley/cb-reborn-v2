@@ -22,11 +22,22 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   FirebaseBridge? _firebase;
   StreamSubscription? _gameSub;
   StreamSubscription? _privateSub;
+  StreamSubscription? _errorSub;
   String? _cachedJoinCode;
   String? _cachedPlayerName;
 
+  /// Global error stream that the UI can listen to.
+  final _bridgeErrorController = StreamController<BridgeError>.broadcast();
+  Stream<BridgeError> get bridgeErrors => _bridgeErrorController.stream;
+
   @override
   PlayerGameState build() {
+    ref.onDispose(() {
+      _errorSub?.cancel();
+      _gameSub?.cancel();
+      _privateSub?.cancel();
+      _bridgeErrorController.close();
+    });
     // Return initial state
     return const PlayerGameState();
   }
@@ -68,6 +79,16 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
       _firebase = FirebaseBridge(joinCode: code);
 
+      // Listen for errors from the bridge
+      await _errorSub?.cancel();
+      _errorSub = _firebase!.errors.listen((err) {
+        _bridgeErrorController.add(err);
+        // Also update the state for join errors specifically if not joined yet
+        if (!state.joinAccepted) {
+          state = state.copyWith(joinError: err.message);
+        }
+      });
+
       // Subscribe to public game state
       _gameSub = _firebase!.subscribeToGame().listen((snapshot) {
         final data = snapshot.data();
@@ -98,7 +119,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       debugPrint('[CloudPlayerBridge] Subscribed to game $code');
     } on TimeoutException catch (e) {
       await disconnect();
-      final message = e.message ?? 'Cloud join timed out. Confirm host lobby is live and retry.';
+      final message = e.message ??
+          'Cloud join timed out. Confirm host lobby is live and retry.';
       state = state.copyWith(
         joinError: message,
         isConnected: false,
@@ -398,9 +420,9 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       final uidMatch = gameState.players.cast<PlayerSnapshot?>().firstWhere(
-        (p) => p?.authUid == uid,
-        orElse: () => null,
-      );
+            (p) => p?.authUid == uid,
+            orElse: () => null,
+          );
       if (uidMatch != null) {
         claimPlayer(uidMatch.id);
         return;
@@ -413,12 +435,12 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
     final claimed = gameState.claimedPlayerIds.toSet();
     final nameMatch = gameState.players.cast<PlayerSnapshot?>().firstWhere(
-      (p) =>
-          p != null &&
-          !claimed.contains(p.id) &&
-          p.name.trim().toLowerCase() == pendingName.toLowerCase(),
-      orElse: () => null,
-    );
+          (p) =>
+              p != null &&
+              !claimed.contains(p.id) &&
+              p.name.trim().toLowerCase() == pendingName.toLowerCase(),
+          orElse: () => null,
+        );
 
     if (nameMatch != null) {
       claimPlayer(nameMatch.id);

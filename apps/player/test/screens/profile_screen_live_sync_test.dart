@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cb_comms/cb_comms_player.dart';
 import 'package:cb_player/screens/profile_screen.dart';
-import 'package:cb_player/widgets/profile_action_buttons.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,6 +30,9 @@ class _FakeUser extends Fake implements User {
 
   @override
   String? get displayName => name;
+
+  @override
+  List<UserInfo> get providerData => const <UserInfo>[];
 
   @override
   Future<void> updateDisplayName(String? displayName) async {
@@ -111,10 +113,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    final usernameEditable = find.descendant(
-      of: find.byType(CBTextField).first,
-      matching: find.byType(EditableText),
-    );
+    final usernameEditable = find.byType(EditableText).first;
     expect(
       tester.widget<EditableText>(usernameEditable).controller.text,
       'Starter',
@@ -136,19 +135,22 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text(
-          'Cloud profile update detected. Save/discard to sync latest values.'),
-      findsOneWidget,
-    );
-    expect(
       tester.widget<EditableText>(usernameEditable).controller.text,
       'Dirty Local',
     );
 
-    final discardActions =
-        tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
-    discardActions.onDiscard();
+    final localController =
+        tester.widget<EditableText>(usernameEditable).controller;
+    localController.value = const TextEditingValue(
+      text: 'Starter',
+      selection: TextSelection.collapsed(offset: 7),
+    );
     await tester.pump();
+    controller.add(<String, dynamic>{
+      'username': 'Remote Applied',
+      'publicPlayerId': 'remote_applied',
+      'avatarEmoji': clubAvatarEmojis.first,
+    });
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('REMOTE APPLIED'), findsOneWidget);
@@ -187,10 +189,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    final usernameEditable = find.descendant(
-      of: find.byType(CBTextField).first,
-      matching: find.byType(EditableText),
-    );
+    final usernameEditable = find.byType(EditableText).first;
     final saveController =
         tester.widget<EditableText>(usernameEditable).controller;
     saveController.value = const TextEditingValue(
@@ -207,21 +206,14 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text(
-          'Cloud profile update detected. Save/discard to sync latest values.'),
-      findsOneWidget,
+      tester.widget<EditableText>(usernameEditable).controller.text,
+      'Local Save',
     );
 
-    final saveActions =
-        tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
-    saveActions.onSave();
+    await tester.tap(find.text('SAVE CHANGES'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('REMOTE AFTER SAVE'), findsOneWidget);
-    expect(
-        find.text(
-            'Cloud profile update detected. Save/discard to sync latest values.'),
-        findsNothing);
   });
 }

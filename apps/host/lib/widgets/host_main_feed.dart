@@ -259,33 +259,16 @@ class _HostMainFeedState extends ConsumerState<HostMainFeed> {
                 );
               }
 
-              // Day Recap cards (host prefers spicy host version)
-              if (entry.type == 'dayRecapHost' || entry.type == 'dayRecap') {
-                // For host-only entries, parse host payload
-                if (entry.type == 'dayRecapHost') {
-                  final payload =
-                      DayRecapHostPayload.tryParse(entry.content);
-                  if (payload != null) {
-                    return CBDayRecapCard(
-                      title: payload.title.isNotEmpty
-                          ? payload.title
-                          : 'DAY ${payload.day} RECAP (HOST)',
-                      bullets: payload.bullets,
-                      accentColor: CBColors.alertOrange,
-                      tagText: 'HOST ONLY',
-                      tagColor: CBColors.alertOrange,
-                    );
-                  }
-                }
-                // Public recap fallback (or if host parse failed)
+              // Day Recap cards
+              if (entry.type == 'dayRecap') {
                 final payload =
                     DayRecapCardPayload.tryParse(entry.content);
                 if (payload != null) {
                   return CBDayRecapCard(
-                    title: payload.title.isNotEmpty
-                        ? payload.title
-                        : 'DAY ${payload.day} RECAP',
-                    bullets: payload.bullets,
+                    title: payload.hostTitle.isNotEmpty
+                        ? payload.hostTitle
+                        : 'DAY ${payload.day} RECAP (HOST)',
+                    bullets: payload.hostBullets,
                   );
                 }
                 // Final fallback

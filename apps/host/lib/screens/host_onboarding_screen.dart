@@ -99,17 +99,18 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
               child: Column(
                 children: [
                   Text(
-                    'YOU ARE THE HOST. THE DIRECTOR. THE GOD OF THIS CLUB.',
+                    'SECURITY CLEARANCE REQUIRED',
                     textAlign: TextAlign.center,
                     style: textTheme.bodyLarge!.copyWith(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.bold,
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
                       height: 1.5,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Manage roles, trigger narrative events, and control the chaos from your dashboard. Keep the party alive... or watch it burn.',
+                    'Manage roles, resolve night actions, and orchestrate the ultimate social deduction experience.',
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium!.copyWith(
                       color: scheme.onSurface.withValues(alpha: 0.7),
@@ -123,8 +124,7 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
           CBFadeSlide(
             delay: const Duration(milliseconds: 400),
             child: CBPrimaryButton(
-              label: 'INITIALIZE SYSTEM',
-              backgroundColor: scheme.primary,
+              label: 'INITIALIZE HOST PROTOCOL',
               onPressed: () {
                 _pageController.nextPage(
                   duration: const Duration(milliseconds: 300),

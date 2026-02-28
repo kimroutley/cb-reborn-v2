@@ -29,12 +29,32 @@ service cloud.firestore {
         && (!request.resource.data.keys().hasAny(['targetId']) || request.resource.data.targetId is string)
         && (!request.resource.data.keys().hasAny(['payload']) || request.resource.data.payload is map);
     }
+
+    function isGameHost(joinCode) {
+      return get(/databases/$(database)/documents/games/$(joinCode)).data.hostId == request.auth.uid;
+    }
+
+    function ownsPlayer(joinCode, playerId) {
+      return playerId == request.auth.uid
+        || get(/databases/$(database)/documents/games/$(joinCode)/private_state/$(playerId)).data.uid == request.auth.uid;
+    }
     
+    // ── Joins/Actions Verification ──
+    function isPlayerOfGame(joinCode) {
+      return exists(/databases/$(database)/documents/games/$(joinCode)/private_state/$(request.auth.uid)) 
+        || isGameHost(joinCode);
+    }
+
     // ── Games Collection ──
     match /games/{joinCode} {
       
-      // Anyone can read the public game state (needed for players to join and see updates)
-      allow read: if isAuthenticated();
+      // Anyone can read the public game state
+      // POTENTIAL GAP FIX: Ensure they are either the host or a registered player
+      allow read: if isAuthenticated() && (
+        resource.data.hostId == request.auth.uid ||
+        exists(/databases/$(database)/documents/games/$(joinCode)/private_state/$(request.auth.uid)) ||
+        resource.data.phase == 'lobby'
+      );
       
       // Host can create/update/delete games
       // Split by operation to avoid ambiguous type checks on `resource`/`request.resource`.
@@ -54,10 +74,12 @@ service cloud.firestore {
       match /joins/{joinId} {
         // Anyone can create a join request with valid data
         allow create: if isValidJoinRequest() && isAuthenticated()
-          && get(/databases/$(database)/documents/games/$(joinCode)).data.phase == 'lobby';
+          && get(/databases/$(database)/documents/games/$(joinCode)).data.phase == 'lobby'
+          && request.resource.data.uid == request.auth.uid;
         
         // Host can read and delete join requests
-        allow read, delete: if isAuthenticated();
+        allow read, delete: if isAuthenticated() &&
+           get(/databases/$(database)/documents/games/$(joinCode)).data.hostId == request.auth.uid;
         
         // No updates allowed (join requests are immutable)
         allow update: if false;
@@ -66,10 +88,13 @@ service cloud.firestore {
       // ── Player Actions Subcollection ──
       match /actions/{actionId} {
         // Players can submit actions with valid data
-        allow create: if isValidAction() && isAuthenticated() && exists(/databases/$(database)/documents/games/$(joinCode)/private_state/$(request.resource.data.playerId)) && get(/databases/$(database)/documents/games/$(joinCode)/private_state/$(request.resource.data.playerId)).data.uid == request.auth.uid;
+        // Check that the sender is the player referenced and is currently in the game
+        allow create: if isValidAction() && isAuthenticated() 
+          && ownsPlayer(joinCode, request.resource.data.playerId)
+          && isPlayerOfGame(joinCode);
         
         // Host can read actions
-        allow read: if isAuthenticated();
+        allow read: if isAuthenticated() && isGameHost(joinCode);
         
         // No updates or deletes (actions are immutable history)
         allow update, delete: if false;
@@ -77,26 +102,30 @@ service cloud.firestore {
       
       // ── Push Subscriptions (Web Push targeting) ──
       match /push_subscriptions/{playerId} {
-        // Authenticated users can register/update their own push subscription (doc id = playerId from game roster)
+        // Authenticated users can register/update their own push subscription
         allow create, update: if isAuthenticated()
-          && request.resource.data.keys().hasAll(['endpoint', 'keys'])
-          && request.resource.data.endpoint is string
-          && request.resource.data.keys is map
-          && request.resource.data.keys.keys().hasAll(['p256dh', 'auth']);
-        allow read, delete: if isAuthenticated();
+          && (playerId == request.auth.uid || get(/databases/$(database)/documents/games/$(joinCode)).data.hostId == request.auth.uid)
+          && request.resource.data.keys().hasAll(['endpoint', 'keys']);
+        
+        allow read: if isAuthenticated() && (
+          playerId == request.auth.uid ||
+          get(/databases/$(database)/documents/games/$(joinCode)).data.hostId == request.auth.uid
+        );
+        allow delete: if isAuthenticated() && (playerId == request.auth.uid);
       }
       
       // ── Private Player State Subcollection ──
       match /private_state/{playerId} {
         // Only authenticated host or the owning player can read private state
         allow read: if isAuthenticated() && (
-          request.auth.uid == resource.data.uid ||
-          request.auth.uid == get(/databases/$(database)/documents/games/$(joinCode)).data.hostId
+          request.auth.uid == playerId ||
+          resource.data.uid == request.auth.uid ||
+          isGameHost(joinCode)
         );
 
         // Only authenticated host can write private state
         allow write: if isAuthenticated() &&
-          request.auth.uid == get(/databases/$(database)/documents/games/$(joinCode)).data.hostId;
+          isGameHost(joinCode);
       }
       
       // ── Chat Messages Subcollection ──
@@ -107,6 +136,11 @@ service cloud.firestore {
         // Anyone can create chat messages (players chatting)
         allow create: if isAuthenticated()
           && request.resource.data.keys().hasAll(['playerId', 'message', 'timestamp'])
+          && request.resource.data.playerId is string
+          && request.resource.data.playerId.size() > 0
+          && request.resource.data.playerId != 'unknown'
+          && ownsPlayer(joinCode, request.resource.data.playerId)
+          && isPlayerOfGame(joinCode)
           && request.resource.data.message is string
           && request.resource.data.message.size() > 0
           && request.resource.data.message.size() <= 500;

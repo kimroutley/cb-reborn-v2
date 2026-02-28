@@ -387,15 +387,12 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
               // Scan Button (Prominent)
               CBFadeSlide(
-                child: Semantics(
-                  button: true,
-                  label: 'Scan QR code to join game',
-                  child: GestureDetector(
-                    onTap: () {
-                      HapticService.medium();
-                      setState(() => _isScanning = true);
-                    },
-                    child: Container(
+                child: GestureDetector(
+                  onTap: () {
+                    HapticService.medium();
+                    setState(() => _isScanning = true);
+                  },
+                  child: Container(
                     height: 180,
                     decoration: BoxDecoration(
                       color: scheme.primaryContainer.withValues(alpha: 0.1),
@@ -422,7 +419,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                       ],
                     ),
                   ),
-                ),
                 ),
               ),
 
@@ -454,12 +450,9 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
               // Manual Entry Field
               CBFadeSlide(
                 delay: const Duration(milliseconds: 200),
-                child: Semantics(
-                  label: 'Join code',
-                  hint: 'Enter the game code shown by the host, for example NEON-123456',
-                  child: CBTextField(
-                    controller: joinCodeController,
-                    hintText: 'NEON-123456',
+                child: CBTextField(
+                  controller: joinCodeController,
+                  hintText: 'NEON-123456',
                   textAlign: TextAlign.center,
                   textStyle: textTheme.headlineSmall?.copyWith(
                     fontFamily: 'RobotoMono',
@@ -469,7 +462,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                     FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9-]')),
                     _JoinCodeFormatter(),
                   ],
-                ),
                 ),
               ),
 

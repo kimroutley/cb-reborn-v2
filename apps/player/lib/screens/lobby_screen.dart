@@ -417,7 +417,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                                       : null,
                                 ),
                               ),
-                              if (isRoleConfirmed)
+                              if (isRoleConfirmed && myPlayer != null)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: CBMiniTag(

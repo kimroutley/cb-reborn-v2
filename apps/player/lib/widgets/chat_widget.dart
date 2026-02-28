@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_theme/cb_theme.dart';
-
-import '../active_bridge.dart';
+import 'package:cb_logic/cb_logic.dart';
 
 /// In-game chat widget for player communication.
-/// Uses the active bridge (cloud/local) for bulletin board and sending messages.
+/// Connected to the shared GameState bulletin board.
 class ChatWidget extends ConsumerStatefulWidget {
   final String playerId;
   final String playerName;
@@ -36,14 +35,23 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    final bridgeState = ref.read(activeBridgeProvider).state;
-    final player = bridgeState.myPlayerSnapshot;
-    if (player == null) return;
+    final gameState = ref.read(gameProvider);
+    String? roleId;
 
-    ref.read(activeBridgeProvider).actions.sendBulletin(
-          title: player.roleName.isNotEmpty ? player.roleName : widget.playerName,
-          floatContent: text,
-          roleId: player.roleId.isNotEmpty ? player.roleId : null,
+    // Attempt to find the player's role ID for proper avatar display
+    try {
+      final player =
+          gameState.players.firstWhere((p) => p.id == widget.playerId);
+      roleId = player.role.id;
+    } catch (_) {
+      // Player might not be fully initialized or in lobby without role
+    }
+
+    ref.read(gameProvider.notifier).postBulletin(
+          title: widget.playerName,
+          content: text,
+          roleId: roleId, // Important: Host Feed uses this to show avatar
+          type: 'chat',
         );
 
     _controller.clear();
@@ -65,11 +73,12 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
 
-    final bridgeState = ref.watch(activeBridgeProvider).state;
-    final messages = bridgeState.bulletinBoard;
-    final players = bridgeState.players;
+    // Watch shared game state instead of local chat provider
+    final gameState = ref.watch(gameProvider);
+    final messages = gameState.bulletinBoard;
 
-    ref.listen(activeBridgeProvider.select((b) => b.state.bulletinBoard.length),
+    // Listen for new messages to auto-scroll
+    ref.listen(gameProvider.select((s) => s.bulletinBoard.length),
         (prev, next) {
       if (next > (prev ?? 0) && _autoScroll) {
         Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
@@ -116,26 +125,43 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
                     );
                   }
 
-                  // Resolve sender details from bridge state (PlayerSnapshot)
+                  // Resolve sender details
                   bool isMe = entry.title == widget.playerName;
                   Color bubbleColor = scheme.primary;
                   String? avatarAsset;
                   CBMessageStyle style = CBMessageStyle.standard;
 
                   if (entry.roleId == null) {
+                    // Host message
                     avatarAsset = 'assets/roles/host_avatar.png';
                     style = CBMessageStyle.narrative;
-                    bubbleColor = scheme.secondary;
+
+                    // Resolve color based on personality in GameState
+                    final pid = gameState.hostPersonalityId;
+                    if (pid == 'the_ice_queen') {
+                      bubbleColor = scheme.tertiary;
+                    } else if (pid == 'protocol_9') {
+                      bubbleColor = scheme.error;
+                    } else if (pid == 'blood_sport_promoter') {
+                      bubbleColor = scheme.secondary;
+                    } else {
+                      bubbleColor = scheme.secondary;
+                    }
                   } else {
+                    // Player message
                     try {
-                      final senderPlayer = players
-                          .firstWhere((p) => p.roleId == entry.roleId);
+                      // We need to find the player by roleId to match Host logic
+                      final senderPlayer = gameState.players
+                          .firstWhere((p) => p.role.id == entry.roleId);
+
+                      // Check if it's actually me (by player ID)
                       if (senderPlayer.id == widget.playerId) {
                         isMe = true;
                       }
+
                       bubbleColor =
-                          CBColors.fromHex(senderPlayer.roleColorHex);
-                      avatarAsset = 'assets/roles/${senderPlayer.roleId}.png';
+                          CBColors.fromHex(senderPlayer.role.colorHex);
+                      avatarAsset = 'assets/roles/${senderPlayer.role.id}.png';
                     } catch (_) {
                       // Fallback if role lookup fails
                     }

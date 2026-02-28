@@ -13,6 +13,17 @@ class DealerAction implements NightActionStrategy {
         context.players.where((p) => p.isAlive && p.role.id == roleId);
 
     for (final dealer in dealers) {
+      if (dealer.blockedKillNight == context.dayCount) {
+        context.addPrivateMessage(
+          dealer.id,
+          'You were paralysed by Roofi. Your kill is blocked tonight.',
+        );
+        context.addReport(
+          'Dealer ${dealer.name} was paralysed and could not perform a kill.',
+        );
+        continue;
+      }
+
       if (context.redirectedActions.containsKey(dealer.id) ||
           context.silencedPlayerIds.contains(dealer.id)) {
         continue;

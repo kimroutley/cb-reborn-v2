@@ -61,70 +61,80 @@ class _PlayerOnboardingScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-            Hero(
-              tag: 'auth_icon',
-              child: CBRoleAvatar(
-                color: scheme.secondary,
-                size: 100,
-                pulsing: true,
-                icon: Icons.nightlife_rounded,
+            CBFadeSlide(
+              child: Hero(
+                tag: 'auth_icon',
+                child: CBRoleAvatar(
+                  color: scheme.secondary,
+                  size: 100,
+                  pulsing: true,
+                  icon: Icons.nightlife_rounded,
+                ),
               ),
             ),
             const SizedBox(height: 32),
-            Text(
-              'CLUB BLACKOUT',
-              textAlign: TextAlign.center,
-              style: textTheme.displayMedium?.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: 6,
-                height: 0.9,
-                color: scheme.secondary,
-                shadows: [
-                  BoxShadow(
-                    color: scheme.secondary.withAlpha(128),
-                    blurRadius: 12,
-                  ),
-                ],
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 100),
+              child: Text(
+                'CLUB BLACKOUT',
+                textAlign: TextAlign.center,
+                style: textTheme.displayMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 6,
+                  height: 0.9,
+                  color: scheme.secondary,
+                  shadows: CBColors.textGlow(scheme.secondary, intensity: 0.8),
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            CBBadge(
-              text: 'REBORN',
-              color: scheme.secondary,
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 200),
+              child: CBBadge(
+                text: 'REBORN',
+                color: scheme.secondary,
+              ),
             ),
             const SizedBox(height: 48),
-            CBPanel(
-              child: Column(
-                children: [
-                  Text(
-                    'TRUST NO ONE. DECEIVE EVERYONE. FIND THE DEALER.',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyLarge!.copyWith(
-                      color: scheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                      height: 1.5,
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 300),
+              child: CBPanel(
+                child: Column(
+                  children: [
+                    Text(
+                      'TRUST NO ONE.\nDECEIVE EVERYONE.\nFIND THE DEALER.',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyLarge!.copyWith(
+                        color: scheme.onSurface,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                        height: 1.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Join the lobby, receive your secret role, and use your abilities to outwit the competition.',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyMedium!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.7),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Join the lobby, receive your secret role, and use your abilities to outsmart the competition.',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium!.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.7),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const Spacer(),
-            CBPrimaryButton(
-              label: 'ENTER THE CLUB',
-              onPressed: () {
-                _pageController.nextPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 400),
+              child: CBPrimaryButton(
+                label: 'ENTER THE CLUB',
+                onPressed: () {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 24),
           ],

@@ -1603,11 +1603,21 @@ class Game extends _$Game {
 
     final allAssigned = state.players
         .every((p) => p.role.id != 'unassigned' && p.alliance != Team.unknown);
-    if (!allAssigned) return false;
+    final resolvedPlayers = !allAssigned
+      ? (state.gameStyle == GameStyle.manual
+        ? null
+        : GameResolutionLogic.assignRoles(
+          state.players,
+          gameStyle: state.gameStyle,
+          ))
+      : state.players;
+
+    if (resolvedPlayers == null) return false;
 
     state = state.copyWith(
+      players: resolvedPlayers,
       phase: GamePhase.setup,
-      scriptQueue: ScriptBuilder.buildSetupScript(state.players,
+      scriptQueue: ScriptBuilder.buildSetupScript(resolvedPlayers,
           dayCount: state.dayCount),
       scriptIndex: 0,
       actionLog: const {},
@@ -1655,6 +1665,29 @@ class Game extends _$Game {
     }
   }
 
+  bool handleTimerExpiry() {
+    if (state.phase != GamePhase.day) return false;
+
+    final hasResolvableTarget = state.dayVoteTally.entries.any(
+      (entry) => entry.key != 'abstain' && entry.value >= 2,
+    );
+
+    if (hasResolvableTarget) {
+      return false;
+    }
+
+    state = state.copyWith(
+      gameHistory: [
+        ...state.gameHistory,
+        '── VOTE TIMER EXPIRED ──',
+        'no votes resolved',
+      ],
+    );
+
+    advancePhase();
+    return true;
+  }
+
   void advancePhase() {
     switch (state.phase) {
       case GamePhase.lobby:
@@ -1676,16 +1709,6 @@ class Game extends _$Game {
         break;
       case GamePhase.night:
         final res = GameResolutionLogic.resolveNightActions(state);
-        final dayScript = ScriptBuilder.buildDayScript(
-          state.dayCount,
-          res.players,
-        );
-        final creepSetupSteps = res.pendingCreepSetups.isEmpty
-            ? <ScriptStep>[]
-            : ScriptBuilder.buildCreepInheritedSetupSteps(
-                state.dayCount,
-                res.pendingCreepSetups,
-              );
         state = state.copyWith(
           players: res.players,
           lastNightReport: res.report,
@@ -1699,7 +1722,10 @@ class Game extends _$Game {
           ],
           eventLog: [...state.eventLog, ...res.events],
           phase: GamePhase.day,
-          scriptQueue: [...creepSetupSteps, ...dayScript],
+          scriptQueue: ScriptBuilder.buildDayScript(
+            state.dayCount,
+            state.players,
+          ),
           scriptIndex: 0,
           actionLog: const {},
         );
@@ -1755,10 +1781,14 @@ class Game extends _$Game {
           dayVotesSnapshot,
           state.tieBreakStrategy,
           state.dayCount,
+          privateMessages: state.privateMessages,
         );
 
         // Apply resolution results to state first
-        state = state.copyWith(players: res.players);
+        state = state.copyWith(
+          players: res.players,
+          privateMessages: res.privateMessages,
+        );
 
         // ── RESOLVE DEAD POOL BETS ──
         final exiledPlayerId = res.players
@@ -1895,51 +1925,35 @@ class Game extends _$Game {
     required List<String> dayReportLines,
     required Map<String, String> dayVotesSnapshot,
   }) {
-    final recapId = 'day-$resolvedDay-recap-v1';
-    final hostRecapId = 'day-$resolvedDay-recap-host-v1';
-
-    // Dedupe: skip if already dispatched for this day
-    final existing = state.bulletinBoard.any(
-      (e) => e.type == 'dayRecap' && e.id == recapId,
-    );
+    // Dedupe: skip if a dayRecap already exists for this day.
+    final existing = state.bulletinBoard.any((entry) {
+      if (entry.type != 'dayRecap') return false;
+      final payload = DayRecapCardPayload.tryParse(entry.content);
+      return payload?.day == resolvedDay;
+    });
     if (existing) return;
 
-    final now = DateTime.now().millisecondsSinceEpoch;
-
-    // ── Public (player-safe) recap ──
     final playerBullets = _buildSanitizedBullets(dayReportLines);
-    final playerPayload = DayRecapCardPayload(
-      v: 1,
-      recapId: recapId,
-      day: resolvedDay,
-      title: 'DAY $resolvedDay RECAP',
-      bullets: playerBullets,
-      generatedAtMs: now,
-    );
-    dispatchBulletin(
-      title: 'DAY $resolvedDay RECAP',
-      content: playerPayload.toJsonString(),
-      type: 'dayRecap',
-    );
-
-    // ── Host-only (spicy) recap ──
     final hostBullets = _buildHostBullets(
       dayReportLines: dayReportLines,
       dayVotesSnapshot: dayVotesSnapshot,
     );
-    final hostPayload = DayRecapHostPayload(
+
+    final payload = DayRecapCardPayload(
       v: 1,
-      recapId: hostRecapId,
       day: resolvedDay,
-      title: 'DAY $resolvedDay RECAP (HOST)',
-      bullets: hostBullets,
-      generatedAtMs: now,
+      playerTitle: 'DAY $resolvedDay RECAP',
+      playerBullets: playerBullets,
+      hostTitle: 'DAY $resolvedDay RECAP (HOST)',
+      hostBullets: hostBullets,
     );
+
     dispatchBulletin(
-      title: 'DAY $resolvedDay RECAP (HOST)',
-      content: hostPayload.toJsonString(),
-      type: 'dayRecapHost',
-      isHostOnly: true,
+      title: 'DAY $resolvedDay RECAP',
+      content: payload.toJsonString(),
+      type: 'dayRecap',
+      roleId: null,
+      isHostOnly: false,
     );
   }
 

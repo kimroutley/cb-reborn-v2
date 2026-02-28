@@ -105,6 +105,11 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
     privateMessages.putIfAbsent(targetB.id, () => []).add(
           'Drama Queen trigger: You were swapped with ${targetA.name}. Your new role is ${targetA.role.name}.',
         );
+
+    // Host Intel: Reveal the swap in the report
+    lines.add(
+      'Drama Queen reveal: ${targetA.name} is now ${targetB.role.name}, ${targetB.name} is now ${targetA.role.name}.',
+    );
   }
 
   return (

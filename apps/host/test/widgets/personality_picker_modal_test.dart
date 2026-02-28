@@ -54,7 +54,7 @@ void main() {
     // Verify check icon is present in the selected tile
     final iconFinder = find.descendant(
       of: tileFinder,
-      matching: find.byIcon(Icons.check_circle),
+      matching: find.byIcon(Icons.check_circle_rounded),
     );
     expect(iconFinder, findsOneWidget);
 
@@ -64,7 +64,7 @@ void main() {
 
     final otherIconFinder = find.descendant(
       of: otherTileFinder,
-      matching: find.byIcon(Icons.check_circle),
+      matching: find.byIcon(Icons.check_circle_rounded),
     );
     expect(otherIconFinder, findsNothing);
   });

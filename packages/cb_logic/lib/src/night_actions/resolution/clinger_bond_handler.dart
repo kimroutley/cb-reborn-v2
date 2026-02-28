@@ -17,7 +17,14 @@ class ClingerBondHandler implements DeathHandler {
 
       if (isDealerMurder) {
         // Freed as Attack Dog!
-        context.updatePlayer(clinger.copyWith(clingerFreedAsAttackDog: true));
+        final attackDogRole = roleCatalogMap[RoleIds.attackDog];
+        context.updatePlayer(clinger.copyWith(
+          role: attackDogRole ?? clinger.role,
+          alliance: Team.neutral,
+          clingerFreedAsAttackDog: true,
+        ));
+        context.addPrivateMessage(clinger.id,
+            'Your partner has been taken. The leash is off. You are now the Attack Dog.');
         context.report.add(
             '${clinger.name} witnessed the murder of their partner and has snapped! They are now an Attack Dog.');
         context.teasers.add(

@@ -78,7 +78,6 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
   void _onBridgeChanged(ActiveBridge? previous, ActiveBridge next) {
     final nav = ref.read(playerNavigationProvider.notifier);
     final onboarding = ref.read(playerOnboardingProvider.notifier);
-    final onboardingState = ref.read(playerOnboardingProvider);
 
     final prevState = previous?.state;
     final prevPhase = prevState?.phase;
@@ -143,7 +142,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
 
     // Safety net: if the player has already confirmed role during setup,
     // auto-progress without requiring an extra tap.
-    if (nextPhase == 'setup' && onboardingState.awaitingStartConfirmation) {
+    if (nextPhase == 'setup') {
       final myId = nextState.myPlayerId;
       final isRoleConfirmed =
           myId != null && nextState.roleConfirmedPlayerIds.contains(myId);

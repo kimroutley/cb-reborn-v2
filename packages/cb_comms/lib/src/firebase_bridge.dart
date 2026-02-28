@@ -2,6 +2,33 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:async';
+
+/// Represents a communication error that occurred within the bridge.
+class BridgeError {
+  final String message;
+  final String? code;
+  final dynamic originalError;
+
+  BridgeError({required this.message, this.code, this.originalError});
+
+  @override
+  String toString() => 'BridgeError: $message (${code ?? "no code"})';
+}
+
+class StaleStateRevisionException implements Exception {
+  final int incomingRevision;
+  final int existingRevision;
+
+  StaleStateRevisionException({
+    required this.incomingRevision,
+    required this.existingRevision,
+  });
+
+  @override
+  String toString() =>
+      'StaleStateRevisionException(incoming: $incomingRevision, existing: $existingRevision)';
+}
 
 /// Firebase Firestore-based sync for Cloud mode.
 ///
@@ -11,10 +38,18 @@ class FirebaseBridge {
   final FirebaseFirestore _firestore;
   final String joinCode;
 
+  // Stream for broadcasting errors to the UI
+  final _errorController = StreamController<BridgeError>.broadcast();
+  Stream<BridgeError> get errors => _errorController.stream;
+
   FirebaseBridge({
     required this.joinCode,
     FirebaseFirestore? firestore,
   }) : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  void dispose() {
+    _errorController.close();
+  }
 
   static bool _isInitialized = false;
 
@@ -56,25 +91,43 @@ class FirebaseBridge {
   Future<void> publishState({
     required Map<String, dynamic> publicState,
     required Map<String, Map<String, dynamic>> playerPrivateData,
+    required int stateRevision,
   }) async {
     try {
-      final batch = _firestore.batch();
+      await _firestore.runTransaction((transaction) async {
+        final gameSnapshot = await transaction.get(gameDoc);
+        final currentRevision =
+            (gameSnapshot.data()?['stateRevision'] as num?)?.toInt() ?? -1;
 
-      // Write public game state
-      batch.set(gameDoc, publicState, SetOptions(merge: true));
+        if (stateRevision <= currentRevision) {
+          throw StaleStateRevisionException(
+            incomingRevision: stateRevision,
+            existingRevision: currentRevision,
+          );
+        }
 
-      // Write each player's private state
-      for (final entry in playerPrivateData.entries) {
-        final playerId = entry.key;
-        final privateData = entry.value;
-        batch.set(
-          playerPrivateDoc(playerId),
-          privateData,
+        transaction.set(
+          gameDoc,
+          <String, dynamic>{
+            ...publicState,
+            'stateRevision': stateRevision,
+          },
           SetOptions(merge: true),
         );
-      }
-      await batch.commit();
+
+        for (final entry in playerPrivateData.entries) {
+          final playerId = entry.key;
+          final privateData = entry.value;
+          transaction.set(
+            playerPrivateDoc(playerId),
+            privateData,
+            SetOptions(merge: true),
+          );
+        }
+      });
       debugPrint('[FirebaseBridge] Published state for $joinCode');
+    } on StaleStateRevisionException {
+      rethrow;
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to publish: $e');
       rethrow;
@@ -94,7 +147,8 @@ class FirebaseBridge {
   }
 
   /// Reference to a player's push subscription doc (for Web Push targeting).
-  DocumentReference<Map<String, dynamic>> pushSubscriptionDoc(String playerId) =>
+  DocumentReference<Map<String, dynamic>> pushSubscriptionDoc(
+          String playerId) =>
       gameDoc.collection('push_subscriptions').doc(playerId);
 
   /// Player: Store Web Push subscription so the backend can send notifications.
@@ -114,7 +168,11 @@ class FirebaseBridge {
   /// Player: Send a join request (creates a claim in `joins` subcollection).
   Future<void> sendJoinRequest(String playerName) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
+      final auth = FirebaseAuth.instance;
+      if (auth.currentUser == null) {
+        await auth.signInAnonymously().timeout(const Duration(seconds: 8));
+      }
+      final uid = auth.currentUser?.uid;
       await gameDoc.collection('joins').add({
         'name': playerName,
         'uid': uid,
@@ -122,6 +180,11 @@ class FirebaseBridge {
       });
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to send join request: $e');
+      _errorController.add(BridgeError(
+        message: 'Could not join game. Please check your connection.',
+        code: 'join_failed',
+        originalError: e,
+      ));
       rethrow;
     }
   }
@@ -133,14 +196,24 @@ class FirebaseBridge {
     String? targetId,
     Map<String, dynamic>? payload,
   }) async {
-    await gameDoc.collection('actions').add({
-      'type': type,
-      'stepId': stepId,
-      'playerId': playerId,
-      'targetId': targetId,
-      'payload': payload ?? <String, dynamic>{},
-      'timestamp': FieldValue.serverTimestamp(),
-    });
+    try {
+      await gameDoc.collection('actions').add({
+        'type': type,
+        'stepId': stepId,
+        'playerId': playerId,
+        'targetId': targetId,
+        'payload': payload ?? <String, dynamic>{},
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('[FirebaseBridge] Failed to send $type: $e');
+      _errorController.add(BridgeError(
+        message: 'Action failed to reach host. Retrying may help.',
+        code: 'action_failed',
+        originalError: e,
+      ));
+      rethrow;
+    }
   }
 
   /// Player: Send an action (vote/night action).
@@ -221,24 +294,33 @@ class FirebaseBridge {
 
   /// Player: Send a public chat message.
   Future<void> sendChat({
+    required String playerId,
     required String title,
     required String message,
     String? roleId,
   }) async {
     try {
+      if (playerId.trim().isEmpty) {
+        throw ArgumentError('playerId must not be empty for chat actions');
+      }
       await gameDoc.collection('actions').add({
         'type': 'chat',
-        'stepId': 'chat', 
-        'playerId': roleId ?? 'unknown', // using roleId or placeholder
+        'stepId': 'chat',
+        'playerId': playerId,
         'payload': {
-           'title': title,
-           'content': message,
-           'roleId': roleId,
+          'title': title,
+          'content': message,
+          'roleId': roleId,
         },
         'timestamp': FieldValue.serverTimestamp(),
       });
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to send chat: $e');
+      _errorController.add(BridgeError(
+        message: 'Chat message failed to send.',
+        code: 'chat_failed',
+        originalError: e,
+      ));
       rethrow;
     }
   }
@@ -262,11 +344,13 @@ class FirebaseBridge {
   /// Host: Delete the game from Firestore (cleanup on end).
   Future<void> deleteGame() async {
     try {
-      // Fetch all subcollections concurrently to reduce latency
+      // Fetch all subcollections concurrently to reduce latency.
+      // We also include push_subscriptions which was missing before.
       final snapshots = await Future.wait([
         gameDoc.collection('joins').get(),
         gameDoc.collection('actions').get(),
         gameDoc.collection('private_state').get(),
+        gameDoc.collection('push_subscriptions').get(),
       ]);
 
       // Flatten all docs to delete
@@ -281,13 +365,24 @@ class FirebaseBridge {
         for (final doc in chunk) {
           batch.delete(doc.reference);
         }
-        await batch.commit();
+        try {
+          await batch.commit();
+        } catch (batchError) {
+          debugPrint(
+              '[FirebaseBridge] Warning: Batch deletion partial failure: $batchError');
+          // We continue to next batch even if one fails
+        }
       }
 
       await gameDoc.delete();
       debugPrint('[FirebaseBridge] Deleted game $joinCode');
     } catch (e) {
       debugPrint('[FirebaseBridge] Failed to delete game: $e');
+      _errorController.add(BridgeError(
+        message: 'Cleanup failed. Game data may persist in cloud.',
+        code: 'cleanup_failed',
+        originalError: e,
+      ));
     }
   }
 }

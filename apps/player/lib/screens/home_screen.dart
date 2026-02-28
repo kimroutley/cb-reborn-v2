@@ -146,25 +146,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final mode = uri.queryParameters['mode']; // Added for sync mode
     final host = uri.queryParameters['host']; // Added for local host
     final autoConnect = uri.queryParameters['autoconnect'] == '1';
-    final legacyLocalAutoconnect = mode == 'local' && autoConnect;
+    final hasHost = host != null && host.trim().isNotEmpty;
+    final legacyLocalAutoconnect = mode == 'local' && autoConnect && !hasHost;
 
     if (code != null) {
       _joinCodeController.text = _normalizeJoinCode(code);
     }
 
-    // Legacy: old local autoconnect links without host are coerced to cloud.
-    // New local restore (with host) keeps local mode and pre-fills host.
-    if (mode == 'local') {
-      if (host != null && host.trim().isNotEmpty) {
-        setState(() {
-          _mode = PlayerSyncMode.local;
-          _hostIpController.text = host.trim();
-        });
-      } else if (legacyLocalAutoconnect) {
-        setState(() => _mode = PlayerSyncMode.cloud);
-      } else {
-        setState(() => _mode = PlayerSyncMode.local);
-      }
+    // Legacy compatibility: old local autoconnect links are coerced to cloud.
+    // Player is cloud-first and these links should reconnect through Firestore.
+    if (legacyLocalAutoconnect) {
+      setState(() => _mode = PlayerSyncMode.cloud);
+    } else if (mode == 'local') {
+      setState(() {
+        _mode = PlayerSyncMode.local;
+        if (host != null) {
+          _hostIpController.text = host;
+        }
+      });
     } else {
       setState(() => _mode = PlayerSyncMode.cloud);
     }

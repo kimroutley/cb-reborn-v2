@@ -1,6 +1,7 @@
 import 'package:cb_player/cloud_player_bridge.dart';
 import 'package:cb_player/player_bridge.dart';
-import 'package:cb_player/screens/claim_screen.dart';
+import 'package:cb_player/player_destinations.dart';
+import 'package:cb_player/player_navigation.dart';
 import 'package:cb_player/screens/connect_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +35,11 @@ class _TestCloudPlayerBridge extends CloudPlayerBridge {
   }
 }
 
+class _TestNavigationNotifier extends PlayerNavigationNotifier {
+  @override
+  PlayerDestination build() => PlayerDestination.connect;
+}
+
 void main() {
   testWidgets(
     'ConnectScreen only pushes ClaimScreen once when both bridges accept rapidly',
@@ -47,6 +53,8 @@ void main() {
             cloudPlayerBridgeProvider.overrideWith(
               () => _TestCloudPlayerBridge(),
             ),
+            playerNavigationProvider
+                .overrideWith(() => _TestNavigationNotifier()),
           ],
           child: MaterialApp(
             navigatorObservers: [observer],
@@ -74,9 +82,13 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 350));
 
-      // Claim screen should only be pushed once due to navigation guard.
-      expect(find.byType(ClaimScreen), findsOneWidget);
-      expect(observer.didPushCount, 2);
+      // Routing is destination-based now; ensure a single app route push and
+      // destination advanced to lobby.
+      expect(observer.didPushCount, 1);
+      expect(
+        container.read(playerNavigationProvider),
+        PlayerDestination.lobby,
+      );
     },
   );
 }

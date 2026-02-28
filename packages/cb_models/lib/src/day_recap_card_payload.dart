@@ -1,68 +1,58 @@
 import 'dart:convert';
 
-/// Player-safe day recap payload (public, synced to players).
-///
-/// Contains only redacted/anonymous content — no real player names or roles.
 class DayRecapCardPayload {
-  /// Schema version — start at 1.
   final int v;
-
-  /// Stable dedup key, e.g. `day-2-recap-v1`.
-  final String recapId;
-
-  /// The day number that was resolved.
   final int day;
-
-  /// Headline shown above bullets (e.g. "DAY 2 RECAP").
-  final String title;
-
-  /// Redacted bullet-point strings safe for players.
-  final List<String> bullets;
-
-  /// Epoch millis when generated.
-  final int generatedAtMs;
+  final String playerTitle;
+  final List<String> playerBullets;
+  final String hostTitle;
+  final List<String> hostBullets;
 
   const DayRecapCardPayload({
     required this.v,
-    required this.recapId,
     required this.day,
-    required this.title,
-    required this.bullets,
-    required this.generatedAtMs,
+    required this.playerTitle,
+    required this.playerBullets,
+    required this.hostTitle,
+    required this.hostBullets,
   });
 
   Map<String, dynamic> toJson() => {
         'v': v,
-        'recapId': recapId,
         'day': day,
-        'title': title,
-        'bullets': bullets,
-        'generatedAtMs': generatedAtMs,
+        'playerTitle': playerTitle,
+        'playerBullets': playerBullets,
+        'hostTitle': hostTitle,
+        'hostBullets': hostBullets,
       };
 
   factory DayRecapCardPayload.fromJson(Map<String, dynamic> json) {
     return DayRecapCardPayload(
       v: json['v'] as int? ?? 1,
-      recapId: json['recapId'] as String? ?? '',
       day: json['day'] as int? ?? 0,
-      title: json['title'] as String? ?? '',
-      bullets: (json['bullets'] as List<dynamic>?)
+      playerTitle: json['playerTitle'] as String? ?? '',
+      playerBullets: (json['playerBullets'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      generatedAtMs: json['generatedAtMs'] as int? ?? 0,
+      hostTitle: json['hostTitle'] as String? ?? '',
+      hostBullets: (json['hostBullets'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
     );
   }
 
   String toJsonString() => jsonEncode(toJson());
 
-  /// Safe parser — returns null on any failure or unsupported version.
   static DayRecapCardPayload? tryParse(String raw) {
     try {
-      final map = jsonDecode(raw);
-      if (map is! Map<String, dynamic>) return null;
-      final payload = DayRecapCardPayload.fromJson(map);
-      if (payload.v < 1 || payload.v > 1) return null; // reject unknown version
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) return null;
+      final payload = DayRecapCardPayload.fromJson(
+        Map<String, dynamic>.from(decoded),
+      );
+      if (payload.v != 1) return null;
       return payload;
     } catch (_) {
       return null;

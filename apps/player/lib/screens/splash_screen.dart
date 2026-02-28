@@ -17,37 +17,37 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo placeholder - replace with actual asset when available
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(CBRadius.lg),
-                border: Border.all(color: scheme.primary, width: 1.5),
-                boxShadow:
-                    CBColors.boxGlow(scheme.primary, intensity: 0.25),
-              ),
-              child: Icon(
-                Icons.nightlife,
-                size: 60,
-                color: scheme.primary,
+            // Logo placeholder - replaced with Radiant Neon branding
+            CBFadeSlide(
+              child: Hero(
+                tag: 'auth_icon',
+                child: CBRoleAvatar(
+                  color: scheme.secondary,
+                  size: 100,
+                  pulsing: true,
+                  icon: Icons.nightlife_rounded,
+                ),
               ),
             ),
             const SizedBox(height: CBSpace.x8),
-            Text(
-              'CLUB BLACKOUT',
-              style: textTheme.displayLarge!.copyWith(
-                shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 100),
+              child: Text(
+                'CLUB BLACKOUT',
+                style: textTheme.displayLarge!.copyWith(
+                  shadows: CBColors.textGlow(scheme.secondary, intensity: 0.8),
+                  color: scheme.secondary,
+                  letterSpacing: 4.0,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
             const SizedBox(height: CBSpace.x2),
-            Text(
-              'REBORN',
-              style: textTheme.labelLarge!.copyWith(
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 200),
+              child: CBBadge(
+                text: 'REBORN',
                 color: scheme.secondary,
-                shadows:
-                    CBColors.textGlow(scheme.secondary, intensity: 0.4),
               ),
             ),
             const SizedBox(height: CBSpace.x12),
