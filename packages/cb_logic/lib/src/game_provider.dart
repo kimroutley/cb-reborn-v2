@@ -1368,6 +1368,15 @@ class Game extends _$Game {
     if (state.players.length < minPlayers) return false;
     if (state.phase != GamePhase.lobby) return false;
 
+    final now = DateTime.now();
+    final gameStartedMarker = BulletinEntry(
+      id: 'game_started_${now.millisecondsSinceEpoch}',
+      title: 'GAME STARTED',
+      content: 'THE GAME HAS BEGUN',
+      type: 'game_started',
+      timestamp: now,
+    );
+
     if (state.gameStyle == GameStyle.manual) {
       final allAssigned = state.players.every(
           (p) => p.role.id != 'unassigned' && p.alliance != Team.unknown);
@@ -1382,6 +1391,7 @@ class Game extends _$Game {
         scriptIndex: 0,
         actionLog: const {},
         dayCount: 1,
+        bulletinBoard: [...state.bulletinBoard, gameStartedMarker],
       );
       final sessionController = ref.read(sessionProvider.notifier);
       sessionController.clearRoleConfirmations();
@@ -1403,12 +1413,13 @@ class Game extends _$Game {
       scriptIndex: 0,
       actionLog: const {},
       dayCount: 1,
+      bulletinBoard: [...state.bulletinBoard, gameStartedMarker],
     );
     final sessionController = ref.read(sessionProvider.notifier);
     sessionController.clearRoleConfirmations();
     sessionController.setForceStartOverride(false);
     _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+    AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
     _persist();
     return true;
   }

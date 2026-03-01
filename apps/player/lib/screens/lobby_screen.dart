@@ -221,6 +221,10 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         (Icons.hourglass_top_rounded, scheme.onSurfaceVariant),
     };
 
+    final otherPlayers = gameState.players
+        .where((p) => p.id != gameState.myPlayerId)
+        .toList();
+
     return CBPrismScaffold(
       title: 'THE LOUNGE',
       drawer: const CustomDrawer(),
@@ -252,6 +256,27 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                               ),
                             ),
                           ),
+                          if (gameState.players.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: statusColor.withValues(alpha: 0.3)),
+                              ),
+                              child: Text(
+                                '${gameState.players.length} IN',
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: statusColor,
+                                  fontFamily: 'RobotoMono',
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 9,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -262,6 +287,26 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           height: 1.5,
                         ),
                       ),
+                      if (gameState.hostName != null &&
+                          gameState.hostName!.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.mic_rounded,
+                                color: scheme.onSurfaceVariant, size: 12),
+                            const SizedBox(width: 6),
+                            Text(
+                              'HOST: ${gameState.hostName!.toUpperCase()}',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                                fontSize: 9,
+                                letterSpacing: 1.5,
+                                fontFamily: 'RobotoMono',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -341,6 +386,66 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
+                // ── WHO'S IN THE LOUNGE ──
+                if (otherPlayers.isNotEmpty &&
+                    !onboarding.awaitingStartConfirmation) ...[
+                  Text(
+                    'WHO\'S IN THE LOUNGE',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: scheme.secondary,
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CBGlassTile(
+                    borderColor: scheme.secondary.withValues(alpha: 0.25),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: otherPlayers.map((player) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: scheme.secondary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: scheme.secondary.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: scheme.tertiary,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                player.name.toUpperCase(),
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: scheme.onSurface
+                                      .withValues(alpha: 0.8),
+                                  letterSpacing: 1.0,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -436,6 +541,15 @@ List<Widget> _buildBulletinList(
     final prevEntry = i > 0 ? entries[i - 1] : null;
     final nextEntry = i < entries.length - 1 ? entries[i + 1] : null;
 
+    // Render 'game_started' entries as a feed separator divider.
+    if (entry.type == 'game_started') {
+      widgets.add(Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: CBFeedSeparator(label: 'GAME STARTED', color: scheme.tertiary),
+      ));
+      continue;
+    }
+
     final role = roleCatalogMap[entry.roleId] ?? roleCatalog.first;
     final color = entry.roleId != null
         ? CBColors.fromHex(role.colorHex)
@@ -455,8 +569,14 @@ List<Widget> _buildBulletinList(
       }
     }
 
-    final isPrevSameSender = prevEntry != null && prevEntry.title == entry.title;
-    final isNextSameSender = nextEntry != null && nextEntry.title == entry.title;
+    // 'game_started' entries are rendered as separators above (continue);
+    // exclude them from grouping so messages on either side are not merged.
+    final isPrevSameSender = prevEntry != null &&
+        prevEntry.title == entry.title &&
+        prevEntry.type != 'game_started';
+    final isNextSameSender = nextEntry != null &&
+        nextEntry.title == entry.title &&
+        nextEntry.type != 'game_started';
 
     CBMessageGroupPosition groupPos = CBMessageGroupPosition.single;
     if (isPrevSameSender && isNextSameSender) {
