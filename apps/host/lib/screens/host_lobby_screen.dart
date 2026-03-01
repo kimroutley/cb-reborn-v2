@@ -280,6 +280,28 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                       ),
                     ),
                     const Spacer(),
+                    if (playerCount > 0)
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: statusColor.withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          '$playerCount ONLINE',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: statusColor,
+                            fontFamily: 'RobotoMono',
+                            fontWeight: FontWeight.w900,
+                            fontSize: 9,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
                     Transform.scale(
                       scale: 0.75,
                       child: Switch.adaptive(
@@ -343,15 +365,23 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                                       ],
                                     ),
                                     const SizedBox(height: 24),
-                                    Text(
-                                      session.joinCode,
-                                      style: textTheme.displayLarge?.copyWith(
-                                        fontFamily: 'RobotoMono',
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 10,
-                                        color: scheme.primary,
-                                        fontSize: 54,
-                                        shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+                                    GestureDetector(
+                                      onLongPress: () => _copyToClipboard(
+                                        context,
+                                        value: session.joinCode,
+                                        successMessage:
+                                            'ACCESS KEY COPIED TO CLIPBOARD.',
+                                      ),
+                                      child: Text(
+                                        session.joinCode,
+                                        style: textTheme.displayLarge?.copyWith(
+                                          fontFamily: 'RobotoMono',
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 10,
+                                          color: scheme.primary,
+                                          fontSize: 54,
+                                          shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 24),
@@ -419,7 +449,10 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: CBGlassTile(
-                isPrismatic: true,
+                isPrismatic: canStart,
+                borderColor: canStart
+                    ? scheme.tertiary.withValues(alpha: 0.5)
+                    : null,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 child: SafeArea(
                   top: false,
@@ -428,7 +461,9 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                     children: [
                       CBPrimaryButton(
                         label: canStart ? 'INITIATE SEQUENCE' : 'WAITING FOR PLAYERS ($playerCount/${Game.minPlayers})',
-                        icon: Icons.play_arrow_rounded,
+                        icon: canStart
+                            ? Icons.play_arrow_rounded
+                            : Icons.hourglass_top_rounded,
                         onPressed: canStart
                             ? () {
                                 controller.startGame();
