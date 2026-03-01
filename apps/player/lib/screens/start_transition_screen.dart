@@ -15,50 +15,63 @@ class StartTransitionScreen extends StatelessWidget {
       showAppBar: false,
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(CBSpace.x8),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
+            constraints: const BoxConstraints(maxWidth: 450),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CBBreathingLoader(size: 80),
-                const SizedBox(height: 48),
-                Text(
-                  'INITIALIZING NEURAL LINK...',
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall?.copyWith(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2.0,
-                    shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
+                const CBBreathingSpinner(size: 80), // Keep as is, looks good
+                const SizedBox(height: CBSpace.x10),
+                CBFadeSlide(
+                  child: Text(
+                    'INITIALIZING NEURAL LINK...',
+                    textAlign: TextAlign.center,
+                    style: textTheme.headlineSmall?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.5,
+                      shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Establishing secure connection to the host terminal. Prepare for assignment.',
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyLarge!.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.8),
-                    height: 1.4,
+                const SizedBox(height: CBSpace.x4),
+                CBFadeSlide(
+                  delay: const Duration(milliseconds: 100),
+                  child: Text(
+                    'ESTABLISHING SECURE CONNECTION TO THE HOST TERMINAL. PREPARE FOR ASSIGNMENT.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyLarge!.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.8),
+                      height: 1.6,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 48),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    minHeight: 4,
-                    backgroundColor: scheme.primary.withValues(alpha: 0.2),
-                    valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
+                const SizedBox(height: CBSpace.x10),
+                CBFadeSlide(
+                  delay: const Duration(milliseconds: 200),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(CBRadius.xs),
+                    child: LinearProgressIndicator(
+                      minHeight: 6,
+                      backgroundColor: scheme.primary.withValues(alpha: 0.2),
+                      valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'ENCRYPTING DATA PACKETS...',
-                  textAlign: TextAlign.center,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: scheme.primary.withValues(alpha: 0.6),
-                    letterSpacing: 1.5,
-                    fontWeight: FontWeight.w800,
+                const SizedBox(height: CBSpace.x3),
+                CBFadeSlide(
+                  delay: const Duration(milliseconds: 300),
+                  child: Text(
+                    'ENCRYPTING DATA PACKETS...',
+                    textAlign: TextAlign.center,
+                    style: textTheme.labelSmall?.copyWith(
+                      color: scheme.primary.withValues(alpha: 0.6),
+                      letterSpacing: 1.5,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 10,
+                    ),
                   ),
                 ),
               ],

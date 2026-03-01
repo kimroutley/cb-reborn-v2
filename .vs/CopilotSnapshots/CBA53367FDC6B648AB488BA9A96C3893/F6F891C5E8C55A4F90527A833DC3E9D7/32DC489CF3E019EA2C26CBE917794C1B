@@ -1,0 +1,328 @@
+﻿import 'package:cb_theme/cb_theme.dart';
+import 'package:flutter/material.dart';
+
+enum CBMessageStyle {
+  standard,
+  system,
+  narrative,
+  whisper,
+}
+
+enum CBMessageGroupPosition {
+  single,
+  top,
+  middle,
+  bottom,
+}
+
+class CBMessageBubble extends StatelessWidget {
+  final String sender;
+  final String message;
+  final DateTime? timestamp;
+  final CBMessageStyle style;
+  final Color? color;
+  final String? avatarAsset;
+  final bool isSender;
+  final CBMessageGroupPosition groupPosition;
+  final bool isCompact;
+  final List<Widget>? tags;
+  final bool isPrismatic;
+  final VoidCallback? onTap;
+  final VoidCallback? onAvatarTap;
+
+  /// Deprecated: Use style instead.
+  final bool? isSystemMessage;
+
+  const CBMessageBubble({
+    super.key,
+    required this.sender,
+    required this.message,
+    this.timestamp,
+    this.style = CBMessageStyle.standard,
+    this.color,
+    this.avatarAsset,
+    this.isSender = false,
+    this.groupPosition = CBMessageGroupPosition.single,
+    this.isCompact = false,
+    this.tags,
+    this.isPrismatic = false,
+    this.onTap,
+    this.onAvatarTap,
+    @Deprecated('Use style: CBMessageStyle.system instead')
+    this.isSystemMessage,
+  });
+
+  CBMessageStyle get _effectiveStyle =>
+      (isSystemMessage ?? false) ? CBMessageStyle.system : style;
+
+  @override
+  Widget build(BuildContext context) {
+
+    final bool isSystem = _effectiveStyle == CBMessageStyle.system;
+    final bool isNarrative = _effectiveStyle == CBMessageStyle.narrative;
+
+    if (isSystem || isNarrative) {
+      return _buildCenteredMessage(context);
+    }
+    return _buildBubbleMessage(context);
+  }
+
+  Widget _buildCenteredMessage(BuildContext context) {
+    final effectiveStyle = _effectiveStyle == CBMessageStyle.system
+        ? CBMessageStyle.system
+        : style;
+    final isNarrative = effectiveStyle == CBMessageStyle.narrative;
+    final accentColor =
+        color ?? (isNarrative ? Theme.of(context).colorScheme.secondary : Theme.of(context).colorScheme.outline);
+
+    Widget content = Container(
+      margin: EdgeInsets.symmetric(vertical: isCompact ? 4 : 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: isCompact ? 3 : 6),
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(100),
+        border: isNarrative
+            ? Border.all(color: accentColor.withValues(alpha: 0.3))
+            : null,
+      ),
+      child: Text(
+        message.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: accentColor,
+          letterSpacing: 1.0,
+          fontSize: isCompact ? 9 : 10,
+          fontWeight: isNarrative ? FontWeight.w700 : FontWeight.w500,
+          shadows: isNarrative ? CBColors.textGlow(accentColor, intensity: 0.4) : null,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+
+    if (isPrismatic) {
+      return Center(
+        child: CBGlassTile(
+          isPrismatic: true,
+          padding: EdgeInsets.zero,
+          margin: EdgeInsets.symmetric(vertical: isCompact ? 4 : 8, horizontal: 24),
+          borderRadius: BorderRadius.circular(100),
+          child: content,
+        ),
+      );
+    }
+
+    return Center(child: content);
+  }
+
+  Widget _buildBubbleMessage(BuildContext context) {
+    final accentColor = color ?? Theme.of(context).colorScheme.primary;
+
+    // Bubble shape: Style Guide 20px corners, 4px grouped edge (M3-friendly)
+    const radius = Radius.circular(20);
+    const smallRadius = Radius.circular(4);
+
+    BorderRadius borderRadius;
+
+    if (isSender) {
+      if (groupPosition == CBMessageGroupPosition.top) {
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: radius,
+            bottomLeft: radius,
+            bottomRight: smallRadius);
+      } else if (groupPosition == CBMessageGroupPosition.middle) {
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: smallRadius,
+            bottomLeft: radius,
+            bottomRight: smallRadius);
+      } else if (groupPosition == CBMessageGroupPosition.bottom) {
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: smallRadius,
+            bottomLeft: radius,
+            bottomRight: radius);
+      } else {
+        // single
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: radius,
+            bottomLeft: radius,
+            bottomRight: radius);
+      }
+    } else {
+      // Received message (Avatar on left)
+      if (groupPosition == CBMessageGroupPosition.top) {
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: radius,
+            bottomLeft: smallRadius,
+            bottomRight: radius);
+      } else if (groupPosition == CBMessageGroupPosition.middle) {
+        borderRadius = const BorderRadius.only(
+            topLeft: smallRadius,
+            topRight: radius,
+            bottomLeft: smallRadius,
+            bottomRight: radius);
+      } else if (groupPosition == CBMessageGroupPosition.bottom) {
+        borderRadius = const BorderRadius.only(
+            topLeft: smallRadius,
+            topRight: radius,
+            bottomLeft: radius,
+            bottomRight: radius);
+      } else {
+        // single
+        borderRadius = const BorderRadius.only(
+            topLeft: radius,
+            topRight: radius,
+            bottomLeft: radius,
+            bottomRight: radius);
+      }
+    }
+
+    final showAvatar = !isSender &&
+        (groupPosition == CBMessageGroupPosition.bottom ||
+            groupPosition == CBMessageGroupPosition.single);
+    final showSenderName = !isSender &&
+        sender.isNotEmpty &&
+        (groupPosition == CBMessageGroupPosition.top ||
+            groupPosition == CBMessageGroupPosition.single);
+
+    return Padding(
+      padding: EdgeInsets.only(
+          top: (groupPosition == CBMessageGroupPosition.top ||
+                  groupPosition == CBMessageGroupPosition.single)
+              ? (isCompact ? 2 : 4)
+              : 1,
+          bottom: (groupPosition == CBMessageGroupPosition.bottom ||
+                  groupPosition == CBMessageGroupPosition.single)
+              ? (isCompact ? 2 : 4)
+              : 1,
+          left: isCompact ? 4 : 8,
+          right: isCompact ? 4 : 8),
+      child: Row(
+        mainAxisAlignment:
+            isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isSender) ...[
+            if (showAvatar)
+              _buildAvatar(accentColor)
+            else
+              SizedBox(width: isCompact ? 24 : 32), // Preserve space for alignment
+            SizedBox(width: isCompact ? 4 : 8),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment:
+                  isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                if (showSenderName)
+                  Padding(
+                    padding: EdgeInsets.only(left: isCompact ? 8 : 12, bottom: isCompact ? 2 : 4),
+                    child: Text(
+                      sender.toUpperCase(),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: accentColor,
+                        fontSize: isCompact ? 8 : 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                Semantics(
+                  button: onTap != null,
+                  label: sender.isNotEmpty ? '$sender: $message' : message,
+                  child: GestureDetector(
+                    onTap: onTap,
+                    child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isCompact ? 12 : 16,
+                          vertical: isCompact ? 6 : 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSender
+                              ? accentColor.withValues(alpha: 0.2)
+                              : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
+                          borderRadius: borderRadius,
+                          border: isSender
+                              ? Border.all(color: accentColor.withValues(alpha: 0.5))
+                              : null,
+                        ),
+                        child: Text(
+                          message,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            height: 1.4,
+                            fontSize: isCompact ? 13 : null,
+                          ),
+                        ),
+                      ),
+                      if (tags != null && tags!.isNotEmpty)
+                        Positioned(
+                          top: -6,
+                          right: isSender ? null : -4,
+                          left: isSender ? -4 : null,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: tags!,
+                          ),
+                        ),
+                    ],
+                    ),
+                  ),
+                ),
+                if (groupPosition == CBMessageGroupPosition.bottom ||
+                    groupPosition == CBMessageGroupPosition.single)
+                  if (timestamp != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
+                      child: Text(
+                        _formatTime(timestamp!),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                          fontSize: isCompact ? 8 : 9,
+                        ),
+                      ),
+                    ),
+              ],
+            ),
+          ),
+          if (isSender) ...[
+            SizedBox(width: isCompact ? 4 : 8),
+            SizedBox(width: isCompact ? 24 : 32),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAvatar(Color color) {
+    final size = isCompact ? 24.0 : 32.0;
+    final avatar = avatarAsset == null
+        ? CircleAvatar(
+            radius: size / 2,
+            backgroundColor: color.withValues(alpha: 0.2),
+            child: Icon(
+              Icons.person_outline_rounded,
+              size: size * 0.6,
+              color: color,
+            ),
+          )
+        : CBRoleAvatar(
+            assetPath: avatarAsset!,
+            color: color,
+            size: size,
+          );
+
+    return GestureDetector(
+      onTap: onAvatarTap,
+      child: avatar,
+    );
+  }
+
+  String _formatTime(DateTime time) {
+    return "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+  }
+}

@@ -64,6 +64,28 @@ class GamePlayerController {
               .toList(),
         );
       }
+
+      final normalizedIncomingName = _normalizeName(trimmedName);
+      final existingByName = state.players.where(
+        (p) => _normalizeName(p.name) == normalizedIncomingName,
+      );
+      if (existingByName.isNotEmpty) {
+        final existing = existingByName.first;
+        final nextName = _buildUniqueName(
+          trimmedName,
+          state.players,
+          excludePlayerId: existing.id,
+        );
+        return state.copyWith(
+          players: state.players
+              .map(
+                (p) => p.id == existing.id
+                    ? p.copyWith(name: nextName, authUid: authUid)
+                    : p,
+              )
+              .toList(),
+        );
+      }
     }
 
     if (state.players.length >= maxPlayers) {

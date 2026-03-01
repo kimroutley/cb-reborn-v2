@@ -64,8 +64,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   DateTime? _updatedAt;
   _WalletAwardSnapshot _awardSnapshot = const _WalletAwardSnapshot.empty();
 
-  // Inline edit state (mirrors player profile pattern)
-  String? _editingField; // 'username', 'publicId', or null
+  String? _editingField;
 
   ProfileRepository get _profileRepository {
     return _repository ??= widget.repository ??
@@ -325,10 +324,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       });
       if (!mounted) return;
       _captureInitialSnapshot();
-      _showFeedback('Profile saved!');
+      _showFeedback('PROFILE UPDATED!');
+      HapticService.medium();
     } catch (_) {
       if (!mounted) return;
-      _showFeedback('Save failed.', isError: true);
+      _showFeedback('UPDATE FAILED.', isError: true);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -343,10 +343,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final url = await service.pickAndUpload(uid: user.uid, source: source);
       if (url != null && mounted) {
         setState(() => _photoUrl = url);
-        _showFeedback('Photo updated!');
+        _showFeedback('PROFILE PHOTO UPDATED!');
+        HapticService.medium();
       }
     } catch (_) {
-      if (mounted) _showFeedback('Photo upload failed.', isError: true);
+      if (mounted) _showFeedback('PHOTO UPLOAD FAILED.', isError: true);
     } finally {
       if (mounted) setState(() => _uploadingPhoto = false);
     }
@@ -365,6 +366,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             leading: Icon(Icons.camera_alt_rounded, color: scheme.primary),
             title: const Text('TAKE PHOTO'),
             onTap: () {
+              HapticService.selection();
               Navigator.pop(ctx);
               _pickPhoto(ImageSource.camera);
             },
@@ -373,6 +375,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             leading: Icon(Icons.photo_library_rounded, color: scheme.secondary),
             title: const Text('CHOOSE FROM GALLERY'),
             onTap: () {
+              HapticService.selection();
               Navigator.pop(ctx);
               _pickPhoto(ImageSource.gallery);
             },
@@ -382,6 +385,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               leading: Icon(Icons.delete_outline_rounded, color: scheme.error),
               title: const Text('REMOVE PHOTO'),
               onTap: () async {
+                HapticService.selection();
                 Navigator.pop(ctx);
                 final user = _user;
                 if (user == null) return;
@@ -389,8 +393,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 try {
                   await ProfilePhotoService().removePhoto(uid: user.uid);
                   if (mounted) setState(() => _photoUrl = null);
+                  _showFeedback('PHOTO REMOVED.');
                 } catch (e) {
                   debugPrint('removePhoto failed: $e');
+                  _showFeedback('PHOTO REMOVAL FAILED.', isError: true);
                 }
                 if (mounted) setState(() => _uploadingPhoto = false);
               },
@@ -399,11 +405,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             leading: Icon(Icons.emoji_emotions_rounded, color: scheme.tertiary),
             title: const Text('CHANGE AVATAR EMOJI'),
             onTap: () {
+              HapticService.selection();
               Navigator.pop(ctx);
               _showAvatarPicker();
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
         ],
       ),
     );
@@ -419,31 +426,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           const CBBottomSheetHandle(),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(CBSpace.x6),
             child: Wrap(
-              spacing: 12,
-              runSpacing: 12,
+              spacing: CBSpace.x4,
+              runSpacing: CBSpace.x4,
+              alignment: WrapAlignment.center,
               children: clubAvatarEmojis.map((emoji) {
                 return CBProfileAvatarChip(
                   emoji: emoji,
                   selected: _selectedAvatar == emoji,
                   enabled: !_saving,
                   onTap: () {
+                    HapticService.selection();
                     setState(() => _selectedAvatar = emoji);
+                    _syncDirtyFlag();
                     Navigator.pop(ctx);
                   },
                 );
               }).toList(),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
         ],
       ),
     );
   }
 
   void _startEditing(String field) {
-    HapticFeedback.selectionClick();
+    HapticService.selection();
     setState(() => _editingField = field);
   }
 
@@ -477,11 +487,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (didPop || !_hasChanges) return;
         final discard = await showCBDiscardChangesDialog(
           context,
-          message: 'Unsaved profile edits. Leave without saving?',
+          message: 'UNSAVED PROFILE EDITS. DISCARD CHANGES AND LEAVE?',
         );
         if (!mounted || !discard) return;
 
-        // Discard changes
         if (mounted) {
           setState(() {
             _usernameController.text = _initialUsername;
@@ -491,7 +500,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           });
         }
 
-        // Wait for frame to update canPop property
         if (context.mounted) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) Navigator.of(context).pop();
@@ -502,11 +510,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         title: 'HOST I.D.',
         drawer: const CustomDrawer(currentDestination: HostDestination.profile),
         body: _loadingProfile
-            ? const Center(child: CBBreathingLoader())
+            ? const Center(child: CBBreathingSpinner())
             : GestureDetector(
                 onTap: _editingField != null ? _stopEditing : null,
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
+                  padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x4, CBSpace.x4, CBSpace.x12),
+                  physics: const BouncingScrollPhysics(),
                   child: Column(
                     children: [
                       // ─── HOST ID CARD ───
@@ -528,35 +537,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           onFieldSubmit: _stopEditing,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: CBSpace.x6),
 
                       // ─── ACCOLADES ───
                       if (_awardSnapshot.unlockedCount > 0 || _loadingAwards)
                         CBFadeSlide(
-                          delay: const Duration(milliseconds: 80),
+                          delay: const Duration(milliseconds: 100),
                           child: _buildAccolades(scheme, textTheme),
                         ),
                       if (_awardSnapshot.unlockedCount > 0 || _loadingAwards)
-                        const SizedBox(height: 24),
+                        const SizedBox(height: CBSpace.x6),
 
                       // ─── PREFERRED STYLE ───
                       CBFadeSlide(
-                        delay: const Duration(milliseconds: 160),
+                        delay: const Duration(milliseconds: 200),
                         child: _buildStyleSelector(scheme, textTheme),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: CBSpace.x6),
 
                       // ─── TERMINAL PANEL ───
                       CBFadeSlide(
-                        delay: const Duration(milliseconds: 240),
+                        delay: const Duration(milliseconds: 300),
                         child: _buildTerminal(scheme, textTheme, user),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: CBSpace.x6),
 
                       // ─── ACTIONS ───
                       if (_hasChanges)
                         CBFadeSlide(
-                          delay: const Duration(milliseconds: 320),
+                          delay: const Duration(milliseconds: 400),
                           child: CBPrimaryButton(
                             label: _saving ? 'SAVING...' : 'SAVE CHANGES',
                             icon: Icons.save_rounded,
@@ -573,7 +582,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildAccolades(ColorScheme scheme, TextTheme textTheme) {
     return CBGlassTile(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(CBSpace.x4),
       borderColor: scheme.secondary.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -581,15 +590,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Row(
             children: [
               Icon(Icons.military_tech_rounded,
-                  size: 16, color: scheme.secondary),
-              const SizedBox(width: 8),
+                  size: 18, color: scheme.secondary),
+              const SizedBox(width: CBSpace.x2),
               Text(
                 'ACCOLADES',
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.secondary,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2.0,
-                  fontSize: 9,
+                  fontSize: 10,
                 ),
               ),
               const Spacer(),
@@ -597,23 +606,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 CBBadge(
                   text: '${_awardSnapshot.unlockedCount} UNLOCKED',
                   color: scheme.primary,
+                  icon: Icons.emoji_events_rounded,
                 ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x3),
           if (_loadingAwards)
             const LinearProgressIndicator(minHeight: 2)
+          else if (_awardSnapshot.unlocked.isEmpty && _awardSnapshot.inProgress.isEmpty)
+            Text(
+              'NO ACCOLADES EARNED YET.',
+              style: textTheme.bodySmall?.copyWith(
+                color: scheme.onSurface.withValues(alpha: 0.4),
+                letterSpacing: 1.0,
+                fontStyle: FontStyle.italic,
+              ),
+            )
           else
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: CBSpace.x2,
+              runSpacing: CBSpace.x2,
               children: [
-                ..._awardSnapshot.unlocked.map((a) => CBBadge(
+                ..._awardSnapshot.unlocked.map((a) => CBMiniTag(
                       text: a.title.toUpperCase(),
                       color: scheme.primary,
                     )),
-                ..._awardSnapshot.inProgress.map((a) => CBBadge(
-                      text: '${a.title.toUpperCase()} • INKING',
+                ..._awardSnapshot.inProgress.map((a) => CBMiniTag(
+                      text: '${a.title.toUpperCase()} // PENDING',
                       color: scheme.tertiary,
                     )),
               ],
@@ -625,40 +644,45 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildStyleSelector(ColorScheme scheme, TextTheme textTheme) {
     return CBGlassTile(
-      padding: const EdgeInsets.all(14),
-      borderColor: scheme.secondary.withValues(alpha: 0.2),
+      padding: const EdgeInsets.all(CBSpace.x4),
+      borderColor: scheme.secondary.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.palette_rounded, size: 14, color: scheme.secondary),
-              const SizedBox(width: 8),
+              Icon(Icons.palette_rounded, size: 18, color: scheme.secondary),
+              const SizedBox(width: CBSpace.x2),
               Text(
-                'VISUAL STYLE',
+                'VISUAL PROTOCOL',
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.secondary,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2.0,
-                  fontSize: 9,
+                  fontSize: 10,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x3),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             child: Row(
               children: _preferredStyles.map((style) {
                 final selected = _selectedPreferredStyle == style;
                 return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: CBProfilePreferenceChip(
-                    label: style,
+                  padding: const EdgeInsets.only(right: CBSpace.x2),
+                  child: CBFilterChip(
+                    label: style.toUpperCase(),
                     selected: selected,
-                    enabled: !_saving,
-                    onTap: () =>
-                        setState(() => _selectedPreferredStyle = style),
+                    onSelected: () {
+                      HapticService.selection();
+                      setState(() => _selectedPreferredStyle = style);
+                      _syncDirtyFlag();
+                    },
+                    color: scheme.secondary,
+                    dense: true,
                   ),
                 );
               }).toList(),
@@ -695,7 +719,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       },
     );
     if (result == true && mounted) {
-      _showFeedback('Password changed successfully!');
+      _showFeedback('PASSWORD UPDATED!');
+      HapticService.medium();
     }
   }
 
@@ -703,29 +728,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final email = user?.email ?? '---';
 
     return CBGlassTile(
-      padding: const EdgeInsets.all(16),
-      borderColor: scheme.outlineVariant.withValues(alpha: 0.15),
+      padding: const EdgeInsets.all(CBSpace.x4),
+      borderColor: scheme.outlineVariant.withValues(alpha: 0.2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.terminal_rounded, size: 14, color: scheme.primary),
-              const SizedBox(width: 8),
+              Icon(Icons.terminal_rounded, size: 18, color: scheme.primary),
+              const SizedBox(width: CBSpace.x2),
               Text(
-                'SYSTEM TERMINAL',
+                'SYSTEM LOGS',
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.primary,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2.0,
-                  fontSize: 9,
+                  fontSize: 10,
                 ),
               ),
             ],
           ),
           Divider(
             color: scheme.outlineVariant.withValues(alpha: 0.1),
-            height: 24,
+            height: CBSpace.x6,
           ),
           _TerminalRow(label: 'EMAIL', value: email),
           _TerminalRow(label: 'UID', value: user?.uid ?? '---'),
@@ -735,22 +760,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _TerminalRow(
                 label: 'AWARDS',
                 value: '${_awardSnapshot.unlockedCount} UNLOCKED'),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x3),
           Row(
             children: [
               Expanded(
                 child: CBGhostButton(
                   label: 'REFRESH',
                   icon: Icons.sync_rounded,
-                  onPressed: _refreshAwards,
+                  onPressed: () {
+                    HapticService.light();
+                    _refreshAwards();
+                  },
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               Expanded(
                 child: CBGhostButton(
                   label: 'RELOAD',
                   icon: Icons.cloud_sync_rounded,
                   onPressed: () {
+                    HapticService.medium();
                     setState(() => _loadingProfile = true);
                     _loadProfile();
                   },
@@ -759,12 +788,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
           if (_hasEmailPasswordProvider) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: CBSpace.x3),
             CBGhostButton(
               label: 'CHANGE PASSWORD',
               icon: Icons.key_rounded,
               color: scheme.secondary,
-              onPressed: _showChangePassword,
+              onPressed: () {
+                HapticService.selection();
+                _showChangePassword();
+              },
             ),
           ],
         ],
@@ -772,8 +804,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 }
-
-// ─── SMALL HELPER WIDGETS ──────────────────────────────────
 
 class _TerminalRow extends StatelessWidget {
   final String label;
@@ -785,28 +815,31 @@ class _TerminalRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: CBSpace.x2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 72,
+            width: 80,
             child: Text(
-              label,
+              label.toUpperCase(),
               style: TextStyle(
                 fontFamily: 'RobotoMono',
-                fontSize: 10,
-                color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                color: scheme.onSurface.withValues(alpha: 0.4),
+                letterSpacing: 0.5,
               ),
             ),
           ),
           Expanded(
             child: Text(
-              value,
+              value.toUpperCase(),
               style: TextStyle(
                 fontFamily: 'RobotoMono',
-                fontSize: 10,
+                fontSize: 11,
                 color: scheme.onSurface.withValues(alpha: 0.8),
+                letterSpacing: 0.5,
               ),
             ),
           ),

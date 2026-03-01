@@ -427,6 +427,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               controller: _joinCodeController,
                               hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
                               textCapitalization: TextCapitalization.characters,
+                              monospace: true,
                             ),
                             if (_mode == PlayerSyncMode.local) ...[
                               const SizedBox(height: 16),
@@ -435,6 +436,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 hintText:
                                     'HOST IP ADDRESS (E.G. WS://192.168.1.100)',
                                 keyboardType: TextInputType.url,
+                                monospace: true,
                               ),
                               const SizedBox(height: 12),
                               Text(
@@ -536,32 +538,37 @@ class _LoadingDialogOverlay extends StatelessWidget {
     return AbsorbPointer(
       absorbing: true,
       child: Container(
-        color: scheme.scrim.withValues(alpha: 0.55),
+        color: scheme.scrim.withValues(alpha: 0.75), // Darker scrim for more focus
         alignment: Alignment.center,
         padding: const EdgeInsets.all(24),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 360),
-          child: CBPanel(
+          child: CBGlassTile( // Swapped CBPanel for CBGlassTile for more "Modern/M3" look
+            isPrismatic: true,
             borderColor: scheme.primary.withValues(alpha: 0.5),
+            padding: const EdgeInsets.all(32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const CBBreathingLoader(size: 54),
-                const SizedBox(height: 20),
+                const CBBreathingSpinner(size: 64), // Used larger spinner
+                const SizedBox(height: 32),
                 Text(
                   title,
                   textAlign: TextAlign.center,
                   style: textTheme.labelLarge!.copyWith(
                     color: scheme.primary,
-                    letterSpacing: 1.3,
-                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2.0,
+                    fontWeight: FontWeight.w900,
+                    shadows: CBColors.textGlow(scheme.primary),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
                   subtitle,
                   textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium,
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.7),
+                  ),
                 ),
               ],
             ),

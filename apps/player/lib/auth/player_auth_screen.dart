@@ -226,17 +226,19 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
     final scheme = Theme.of(context).colorScheme;
     final notifier = ref.read(authProvider.notifier);
 
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // ── CINEMATIC LOGO ──
-            CBFadeSlide(
-              key: const ValueKey('auth_logo'),
-              beginOffset: const Offset(0, -0.1),
-              child: Container(
+    return Semantics(
+      label: 'Sign in to Club Blackout. Use Google or email.',
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // ── CINEMATIC LOGO ──
+              CBFadeSlide(
+                key: const ValueKey('auth_logo'),
+                beginOffset: const Offset(0, -0.1),
+                child: Container(
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -518,6 +520,7 @@ class _AuthSplashState extends ConsumerState<_AuthSplash> {
           ],
         ),
       ),
+    ),
     );
   }
 }

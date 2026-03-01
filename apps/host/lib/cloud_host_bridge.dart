@@ -82,6 +82,7 @@ class CloudHostBridge {
 
   StreamSubscription? _joinSub;
   StreamSubscription? _actionSub;
+  StreamSubscription? _bridgeErrorSub;
   final Set<String> _processedJoins = {};
   final Set<String> _processedActions = {};
 
@@ -169,6 +170,13 @@ class CloudHostBridge {
     }
 
     _firebase = debugFirebase ?? FirebaseBridge(joinCode: joinCode);
+    _bridgeErrorSub = _firebase!.errors.listen((error) {
+      debugPrint('[CloudHostBridge] Bridge error: ${error.message}');
+      _setLinkState(
+        CloudLinkPhase.degraded,
+        message: error.message,
+      );
+    });
     _running = true;
     _setLinkState(
       CloudLinkPhase.publishing,
@@ -207,19 +215,11 @@ class CloudHostBridge {
           final name = (data['name'] as String?)?.trim();
           final uid = (data['uid'] as String?)?.trim();
           if (name != null && name.isNotEmpty) {
-            final players = _ref.read(gameProvider).players;
-            final hasExisting = (uid != null && uid.isNotEmpty)
-                ? players.any((p) => (p.authUid ?? '').trim() == uid)
-                : players.any(
-                    (p) => p.name.trim().toLowerCase() == name.toLowerCase(),
-                  );
-            if (!hasExisting) {
-              _ref.read(gameProvider.notifier).addPlayer(
-                    name,
-                    authUid: uid?.isNotEmpty == true ? uid : null,
-                  );
-              debugPrint('[CloudHostBridge] Player joined: $name ($uid)');
-            }
+            _ref.read(gameProvider.notifier).addPlayer(
+                  name,
+                  authUid: uid?.isNotEmpty == true ? uid : null,
+                );
+            debugPrint('[CloudHostBridge] Player joined: $name ($uid)');
           }
         }
       },
@@ -271,7 +271,8 @@ class CloudHostBridge {
 
           if (senderPlayerId.isNotEmpty &&
               senderPlayerId != 'unknown' &&
-              type != 'chat') {
+              type != 'chat' &&
+              type != 'role_confirm') {
             final isKnown = _ref.read(gameProvider).players.any(
                 (p) => p.id == senderPlayerId || p.authUid == senderPlayerId);
             if (!isKnown && type != 'join') {
@@ -318,7 +319,20 @@ class CloudHostBridge {
 
           if (type == 'chat') {
             final payload = data['payload'] as Map<String, dynamic>? ?? {};
-            final title = payload['title'] as String? ?? 'Unknown';
+            final senderPlayerId = (data['playerId'] as String? ?? '').trim();
+            String? senderName;
+            if (senderPlayerId.isNotEmpty) {
+              for (final player in _ref.read(gameProvider).players) {
+                if (player.id == senderPlayerId) {
+                  senderName = player.name;
+                  break;
+                }
+              }
+            }
+            final payloadTitle = (payload['title'] as String?)?.trim();
+            final title = (payloadTitle != null && payloadTitle.isNotEmpty)
+              ? payloadTitle
+              : (senderName?.isNotEmpty == true ? senderName! : 'Unknown');
             final content = payload['content'] as String? ?? '';
             final roleId = payload['roleId'] as String?;
 
@@ -335,10 +349,12 @@ class CloudHostBridge {
           }
 
           if (type == 'role_confirm') {
-            final playerId = data['playerId'] as String? ?? '';
+            final playerId = (data['playerId'] as String? ?? '').trim();
             if (playerId.isNotEmpty) {
               _ref.read(sessionProvider.notifier).confirmRole(playerId);
               debugPrint('[CloudHostBridge] Role confirmed: $playerId');
+              // Post a tally to group chat so all players see confirmation progress
+              _postRoleConfirmationTally(playerId);
             }
             continue;
           }
@@ -434,8 +450,10 @@ class CloudHostBridge {
   Future<void> stop({bool updateLinkState = true}) async {
     await _joinSub?.cancel();
     await _actionSub?.cancel();
+    await _bridgeErrorSub?.cancel();
     _joinSub = null;
     _actionSub = null;
+    _bridgeErrorSub = null;
     _processedJoins.clear();
     _processedActions.clear();
     _resolvedHostUid = null;
@@ -447,6 +465,34 @@ class CloudHostBridge {
       );
     }
     debugPrint('[CloudHostBridge] Stopped');
+  }
+
+  /// Post a role-confirmation tally to the group chat when a player confirms.
+  void _postRoleConfirmationTally(String playerId) {
+    final game = _ref.read(gameProvider);
+    if (game.phase != GamePhase.setup) return;
+    final session = _ref.read(sessionProvider);
+    final currentPlayerIds = game.players.map((p) => p.id).toSet();
+    final totalWithRole = game.players
+        .where((p) => p.role.id != 'unassigned')
+        .length;
+    if (totalWithRole == 0) return;
+    final confirmedCount = session.roleConfirmedPlayerIds
+        .where(currentPlayerIds.contains)
+        .length;
+    String playerName;
+    try {
+      playerName =
+          game.players.firstWhere((p) => p.id == playerId).name;
+    } catch (_) {
+      playerName = 'A player';
+    }
+    _ref.read(gameProvider.notifier).postBulletin(
+      title: 'ROLE CONFIRMATION',
+      content:
+          '$playerName has confirmed their role. ($confirmedCount/$totalWithRole confirmed)',
+      type: 'info',
+    );
   }
 
   /// Publish current game state to Firestore.
@@ -547,6 +593,7 @@ class CloudHostBridge {
       'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
       'gameHistory': game.gameHistory.isNotEmpty ? game.gameHistory : null,
       'deadPoolBets': game.deadPoolBets.isNotEmpty ? game.deadPoolBets : null,
+      // Public bulletin only (mirrored to player app group chat); see docs/operations/group-chat-sync-and-visibility.md
       'bulletinBoard': game.bulletinBoard.isNotEmpty
           ? game.bulletinBoard
               .where((e) => !e.isHostOnly)
@@ -617,6 +664,10 @@ class CloudHostBridge {
       } catch (e) {
         attempt++;
         if (attempt >= maxRetries) {
+          _setLinkState(
+            CloudLinkPhase.degraded,
+            message: 'Publish failed after retries. Check cloud connectivity.',
+          );
           rethrow;
         }
         final delay =
@@ -662,14 +713,22 @@ final cloudHostBridgeProvider = Provider<CloudHostBridge>((ref) {
   // Auto-publish on game state changes
   ref.listen(gameProvider, (prev, next) {
     if (bridge.isRunning) {
-      bridge.publishState();
+      unawaited(
+        bridge.publishState().catchError((error) {
+          debugPrint('[CloudHostBridge] publishState failed: $error');
+        }),
+      );
     }
   });
 
   // Auto-publish on session state changes
   ref.listen(sessionProvider, (prev, next) {
     if (bridge.isRunning) {
-      bridge.publishState();
+      unawaited(
+        bridge.publishState().catchError((error) {
+          debugPrint('[CloudHostBridge] publishState failed: $error');
+        }),
+      );
     }
   });
 

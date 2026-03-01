@@ -175,7 +175,7 @@ class PlayerGameState {
       dayCount: map['dayCount'] as int? ?? 0,
       players: players,
       currentStep: currentStep,
-      bulletinBoard: bulletin,
+      bulletinBoard: sanitizePublicBulletinEntries(bulletin),
       eyesOpen: map['eyesOpen'] as bool? ?? true,
       winner: map['winner'] as String?,
       endGameReport: _toStringList(map['endGameReport']),
@@ -344,6 +344,17 @@ class PlayerGameState {
       hostName: hostName ?? this.hostName,
       rematchOffered: rematchOffered ?? this.rematchOffered,
     );
+  }
+
+  static List<BulletinEntry> sanitizePublicBulletinEntries(
+    List<BulletinEntry> entries,
+  ) {
+    return entries
+        .where((entry) =>
+            !entry.isHostOnly &&
+            entry.type != 'hostIntel' &&
+            entry.type != 'ghostChat')
+        .toList(growable: false);
   }
 }
 
@@ -776,7 +787,7 @@ class PlayerBridge extends Notifier<PlayerGameState>
       dayCount: payload['dayCount'] as int? ?? 0,
       players: players,
       currentStep: step,
-      bulletinBoard: bulletin,
+      bulletinBoard: PlayerGameState.sanitizePublicBulletinEntries(bulletin),
       eyesOpen: eyesOpen,
       winner: payload['winner'] as String?,
       endGameReport: _toStringList(payload['endGameReport']),

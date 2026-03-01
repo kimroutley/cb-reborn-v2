@@ -267,6 +267,52 @@ void main() {
     expect(state.eyesOpen, isFalse);
   });
 
+  test('state_sync strips host-only and internal bulletin entries', () async {
+    final notifier = container.read(playerBridgeProvider.notifier);
+    await notifier.connect('ws://test');
+
+    mockClient.simulateMessage(
+      GameMessage.stateSync(
+        phase: 'day',
+        dayCount: 2,
+        players: [
+          {'id': 'p1', 'name': 'Alice', 'roleId': 'hidden'}
+        ],
+        bulletinBoard: [
+          {
+            'id': 'pub1',
+            'title': 'NIGHT RECAP',
+            'content': 'Public teaser',
+            'type': 'result',
+            'timestamp': DateTime(2026, 2, 28, 1, 0).toIso8601String(),
+            'isHostOnly': false,
+          },
+          {
+            'id': 'host1',
+            'title': 'AI NARRATOR (SPICY)',
+            'content': 'Host-only spicy text',
+            'type': 'result',
+            'timestamp': DateTime(2026, 2, 28, 1, 1).toIso8601String(),
+            'isHostOnly': true,
+          },
+          {
+            'id': 'intel1',
+            'title': 'PHASE CHANGE',
+            'content': 'Host intel only',
+            'type': 'hostIntel',
+            'timestamp': DateTime(2026, 2, 28, 1, 2).toIso8601String(),
+            'isHostOnly': false,
+          },
+        ],
+      ),
+    );
+
+    final state = container.read(playerBridgeProvider);
+    expect(state.bulletinBoard.length, 1);
+    expect(state.bulletinBoard.first.id, 'pub1');
+    expect(state.bulletinBoard.first.content, 'Public teaser');
+  });
+
   test('Handles join_response accepted', () async {
     final notifier = container.read(playerBridgeProvider.notifier);
     await notifier.connect('ws://test');

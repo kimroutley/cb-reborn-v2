@@ -18,12 +18,13 @@ class SettingsScreen extends ConsumerWidget {
       title: 'SETTINGS',
       drawer: const CustomDrawer(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 48),
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
             CBFadeSlide(
               child: CBPanel(
-                borderColor: scheme.primary.withValues(alpha: 0.35),
+                borderColor: scheme.primary.withValues(alpha: 0.4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -32,7 +33,7 @@ class SettingsScreen extends ConsumerWidget {
                       icon: Icons.graphic_eq_rounded,
                       color: scheme.primary,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     _buildSettingRow(
                       context,
                       title: 'SOUND EFFECTS',
@@ -42,7 +43,7 @@ class SettingsScreen extends ConsumerWidget {
                       icon: Icons.volume_up_rounded,
                       color: scheme.primary,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                     _buildSettingRow(
                       context,
                       title: 'MUSIC',
@@ -52,7 +53,7 @@ class SettingsScreen extends ConsumerWidget {
                       icon: Icons.music_note_rounded,
                       color: scheme.secondary,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                     _buildSettingRow(
                       context,
                       title: 'HAPTIC FEEDBACK',
@@ -79,12 +80,20 @@ class SettingsScreen extends ConsumerWidget {
                       icon: Icons.monitor_rounded,
                       color: scheme.onSurface,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     Row(
                       children: [
-                        Icon(Icons.contrast_rounded,
-                            color: scheme.onSurface.withValues(alpha: 0.7),
-                            size: 20),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: scheme.onSurface.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: scheme.onSurface.withValues(alpha: 0.1)),
+                          ),
+                          child: Icon(Icons.contrast_rounded,
+                              color: scheme.onSurface.withValues(alpha: 0.7),
+                              size: 20),
+                        ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
@@ -97,9 +106,11 @@ class SettingsScreen extends ConsumerWidget {
                                     .labelLarge!
                                     .copyWith(
                                       color: scheme.onSurface,
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.0,
                                     ),
                               ),
+                              const SizedBox(height: 4),
                               Text(
                                 'COMING SOON',
                                 style: Theme.of(context)
@@ -107,8 +118,10 @@ class SettingsScreen extends ConsumerWidget {
                                     .bodySmall!
                                     .copyWith(
                                       color: scheme.onSurface
-                                          .withValues(alpha: 0.4),
+                                          .withValues(alpha: 0.3),
                                       fontStyle: FontStyle.italic,
+                                      fontSize: 10,
+                                      letterSpacing: 1.0,
                                     ),
                               ),
                             ],
@@ -116,13 +129,27 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                         CBSwitch(
                           value: false,
-                          onChanged: (val) {}, // Placeholder
-                          color: scheme.onSurface,
+                          onChanged: (_) {
+                            HapticService.light();
+                          },
+                          color: scheme.onSurface.withValues(alpha: 0.5),
                         ),
                       ],
                     ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 200),
+              child: CBGhostButton(
+                label: 'RESET TO DEFAULT',
+                icon: Icons.restore_rounded,
+                onPressed: () {
+                   HapticService.medium();
+                   // reset logic if available
+                },
               ),
             ),
           ],
@@ -172,7 +199,8 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle,
                 style: textTheme.bodySmall!.copyWith(
                   color: scheme.onSurface.withValues(alpha: 0.5),
-                  fontSize: 9,
+                  fontSize: 10,
+                  letterSpacing: 0.5,
                 ),
               ),
             ],
@@ -180,7 +208,10 @@ class SettingsScreen extends ConsumerWidget {
         ),
         CBSwitch(
           value: value,
-          onChanged: onChanged,
+          onChanged: (val) {
+             HapticService.selection();
+             onChanged(val);
+          },
           color: color,
         ),
       ],

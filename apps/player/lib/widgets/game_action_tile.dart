@@ -1,9 +1,12 @@
 import 'package:cb_models/cb_models.dart' hide PlayerSnapshot;
+import 'package:cb_player/active_bridge.dart';
 import 'package:cb_player/player_bridge.dart';
 import 'package:cb_player/player_bridge_actions.dart';
 import 'package:cb_player/screens/player_selection_screen.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GameActionTile extends StatefulWidget {
   final StepSnapshot step;
@@ -39,30 +42,48 @@ class _GameActionTileState extends State<GameActionTile> {
           ? widget.player.blockedVoteTargets
           : const <String>[];
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PlayerSelectionScreen(
-            players: widget.gameState.players.where((p) => p.isAlive).toList(),
-            step: widget.step,
-            disabledPlayerIds: disabledIds,
-            onPlayerSelected: (targetId) {
-              if (widget.step.isVote) {
-                widget.bridge
-                    .vote(voterId: widget.playerId, targetId: targetId);
-              } else {
+      if (widget.step.isVote) {
+        // Voting: push a live-updating screen so tally and "who voted" update as others vote
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => _LiveVoteScreen(
+              step: widget.step,
+              disabledPlayerIds: disabledIds,
+              currentPlayerId: widget.playerId,
+              bridge: widget.bridge,
+              onVote: (targetId) {
+                widget.bridge.vote(voterId: widget.playerId, targetId: targetId);
+                HapticService.voteCast();
+                Navigator.pop(context);
+              },
+            ),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PlayerSelectionScreen(
+              players:
+                  widget.gameState.players.where((p) => p.isAlive).toList(),
+              step: widget.step,
+              disabledPlayerIds: disabledIds,
+              voteTally: widget.gameState.voteTally,
+              votesByVoter: widget.gameState.votesByVoter,
+              currentPlayerId: widget.playerId,
+              onPlayerSelected: (targetId) {
                 widget.bridge
                     .sendAction(stepId: widget.step.id, targetId: targetId);
-              }
-
-              if (!isMultiSelect || targetId.contains(',')) {
-                HapticService.eyesClosed();
-                Navigator.pop(context);
-              }
-            },
+                if (!isMultiSelect || targetId.contains(',')) {
+                  HapticService.eyesClosed();
+                  Navigator.pop(context);
+                }
+              },
+            ),
           ),
-        ),
-      );
+        );
+      }
     } else if (widget.step.actionType == ScriptActionType.binaryChoice.name) {
       showThemedBottomSheet<void>(
         context: context,
@@ -136,11 +157,21 @@ class _GameActionTileState extends State<GameActionTile> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return CBGlassTile(
-      borderColor: widget.roleColor.withValues(alpha: 0.6),
-      onTap: _handleActionTap,
-      isPrismatic: true,
-      child: Column(
+    final semanticLabel = widget.step.isVote
+        ? 'Cast your vote. Tap to open vote screen.'
+        : widget.step.actionType == ScriptActionType.selectPlayer.name ||
+                widget.step.actionType == ScriptActionType.selectTwoPlayers.name
+            ? 'Select target. Tap to choose.'
+            : 'Action required. Tap to continue.';
+
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: CBGlassTile(
+        borderColor: widget.roleColor.withValues(alpha: 0.6),
+        onTap: _handleActionTap,
+        isPrismatic: true,
+        child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -217,7 +248,7 @@ class _GameActionTileState extends State<GameActionTile> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: CBSpace.x2),
           Text(
             "WAKE UP, ${widget.player.name.toUpperCase()}. THE CLUB IS WAITING.",
             textAlign: TextAlign.center,
@@ -227,7 +258,44 @@ class _GameActionTileState extends State<GameActionTile> {
             ),
           ),
         ],
+        ),
       ),
+    );
+  }
+}
+
+/// Wraps [PlayerSelectionScreen] with live bridge state so vote tally and
+/// "who voted" update in real time as others cast votes.
+class _LiveVoteScreen extends ConsumerWidget {
+  final StepSnapshot step;
+  final List<String> disabledPlayerIds;
+  final String currentPlayerId;
+  final PlayerBridgeActions bridge;
+  final void Function(String targetId) onVote;
+
+  const _LiveVoteScreen({
+    required this.step,
+    required this.disabledPlayerIds,
+    required this.currentPlayerId,
+    required this.bridge,
+    required this.onVote,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(activeBridgeProvider).state;
+    final alivePlayers = state.players.where((p) => p.isAlive).toList();
+
+    return PlayerSelectionScreen(
+      players: alivePlayers,
+      step: step,
+      disabledPlayerIds: disabledPlayerIds,
+      voteTally: state.voteTally,
+      votesByVoter: state.votesByVoter,
+      currentPlayerId: currentPlayerId,
+      onPlayerSelected: (targetId) {
+        onVote(targetId);
+      },
     );
   }
 }

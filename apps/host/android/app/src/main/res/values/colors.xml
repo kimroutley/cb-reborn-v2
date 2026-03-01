@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Radiant Neon void black (#0E1112) - window background behind Flutter -->
+    <color name="cb_void_black">#0E1112</color>
+</resources>

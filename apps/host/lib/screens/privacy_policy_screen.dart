@@ -9,103 +9,142 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return CBPrismScaffold(
-      title: 'PRIVACY POLICY',
+      title: 'DATA PROTOCOLS',
       actions: const [SimulationModeBadgeAction()],
       drawer: const CustomDrawer(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x6, CBSpace.x6, CBSpace.x12),
+        physics: const BouncingScrollPhysics(),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             CBFadeSlide(
               child: _buildSection(
                 context,
+                Icons.shield_rounded,
                 'DATA COLLECTION',
-                'Club Blackout Reborn collects minimal data necessary for gameplay. '
-                    'In local mode, all data is stored on your device. In cloud mode, '
-                    'game state is synchronized via Firebase Firestore.',
+                'CLUB BLACKOUT REBORN COLLECTS MINIMAL DATA NECESSARY FOR GAMEPLAY. '
+                    'IN LOCAL MODE, ALL DATA IS STORED ON YOUR DEVICE. IN CLOUD MODE, '
+                    'GAME STATE IS SYNCHRONIZED VIA FIREBASE FIRESTORE.',
+                scheme.primary,
               ),
             ),
+            const SizedBox(height: CBSpace.x4),
             CBFadeSlide(
-              delay: const Duration(milliseconds: 60),
+              delay: const Duration(milliseconds: 100),
               child: _buildSection(
                 context,
+                Icons.gamepad_rounded,
                 'GAME DATA',
-                'Player names, role assignments, game actions, and chat messages '
-                    'are stored temporarily during active games. This data is deleted '
-                    'when you delete a game or clear app data.',
+                'OPERATIVE NAMES, ROLE ASSIGNMENTS, GAME ACTIONS, AND CHAT MESSAGES '
+                    'ARE STORED TEMPORARILY DURING ACTIVE SESSIONS. THIS DATA IS DELETED '
+                    'WHEN YOU TERMINATE A SESSION OR CLEAR ARCHIVES.',
+                scheme.secondary,
               ),
             ),
+            const SizedBox(height: CBSpace.x4),
             CBFadeSlide(
-              delay: const Duration(milliseconds: 120),
+              delay: const Duration(milliseconds: 200),
               child: _buildSection(
                 context,
-                'ANALYTICS',
-                'We may collect anonymous usage statistics to improve the game. '
-                    'This includes screen views, button clicks, and crash reports. '
-                    'No personally identifiable information is collected.',
+                Icons.analytics_rounded,
+                'ANALYTICS & TELEMETRY',
+                'WE MAY COLLECT ANONYMOUS USAGE STATISTICS TO IMPROVE SYSTEM STABILITY. '
+                    'THIS INCLUDES SCREEN VIEWS, INTERACTION LOGS, AND CRASH REPORTS. '
+                    'NO PERSONALLY IDENTIFIABLE INFORMATION IS COLLECTED.',
+                scheme.tertiary,
               ),
             ),
-            CBFadeSlide(
-              delay: const Duration(milliseconds: 180),
-              child: _buildSection(
-                context,
-                'THIRD-PARTY SERVICES',
-                'This app uses Firebase (Google) for cloud synchronization and '
-                    'analytics. Please review Google\'s Privacy Policy for details on '
-                    'how they handle data.',
-              ),
-            ),
-            CBFadeSlide(
-              delay: const Duration(milliseconds: 240),
-              child: _buildSection(
-                context,
-                'YOUR RIGHTS',
-                'You can delete your game data at any time by clearing the app\'s '
-                    'storage in your device settings. For cloud games, deleting the '
-                    'game will remove it from Firebase.',
-              ),
-            ),
+            const SizedBox(height: CBSpace.x4),
             CBFadeSlide(
               delay: const Duration(milliseconds: 300),
               child: _buildSection(
                 context,
-                'CONTACT',
-                'For privacy concerns or data deletion requests, please contact '
-                    'the developer through the app store page.',
+                Icons.cloud_rounded,
+                'THIRD-PARTY PROTOCOLS',
+                'THIS APPLICATION UTILIZES GOOGLE FIREBASE FOR CLOUD SYNCHRONIZATION AND '
+                    'ANALYTICS. PLEASE REVIEW GOOGLE\'S PRIVACY POLICY FOR DATA HANDLING DETAILS.',
+                scheme.primary,
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: CBSpace.x4),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 400),
+              child: _buildSection(
+                context,
+                Icons.security_rounded,
+                'OPERATIVE RIGHTS',
+                'YOU RETAIN THE RIGHT TO PURGE YOUR GAME DATA AT ANY TIME VIA THE SETTINGS MENU. '
+                    'CLOUD-SYNCHRONIZED DATA CAN BE REMOVED BY TERMINATING SESSIONS.',
+                scheme.error,
+              ),
+            ),
+            const SizedBox(height: CBSpace.x4),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 500),
+              child: _buildSection(
+                context,
+                Icons.contact_support_rounded,
+                'SUPPORT & CONTACT',
+                'FOR PROTOCOL CONCERNS OR DATA ERASURE REQUESTS, CONTACT '
+                    'KYRIAN CO. SUPPORT VIA THE APPLICATION STORE PAGE.',
+                scheme.secondary,
+              ),
+            ),
+            const SizedBox(height: CBSpace.x12),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSection(BuildContext context, String title, String content) {
+  Widget _buildSection(
+      BuildContext context, IconData icon, String title, String content, Color accentColor) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return CBPanel(
-      margin: const EdgeInsets.only(bottom: 16),
-      borderColor: scheme.primary.withValues(alpha: 0.5),
+      margin: const EdgeInsets.only(bottom: CBSpace.x4),
+      borderColor: accentColor.withValues(alpha: 0.4),
+      padding: const EdgeInsets.all(CBSpace.x5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: textTheme.labelLarge!.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
-              shadows: CBColors.textGlow(scheme.primary, intensity: 0.4),
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(CBSpace.x2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: accentColor.withValues(alpha: 0.1),
+                ),
+                child: Icon(icon, color: accentColor, size: 20),
+              ),
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: Text(
+                  title.toUpperCase(),
+                  style: textTheme.labelLarge!.copyWith(
+                    color: accentColor,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    shadows: CBColors.textGlow(accentColor, intensity: 0.3),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x4),
           Text(
-            content,
+            content.toUpperCase(),
             style: textTheme.bodyMedium!.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.85),
-              height: 1.4,
+              color: scheme.onSurface.withValues(alpha: 0.8),
+              height: 1.6,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
             ),
           ),
         ],

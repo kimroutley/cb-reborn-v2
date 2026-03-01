@@ -21,61 +21,71 @@ class HostSaveLoadScreen extends ConsumerWidget {
     final hasActiveGame = service.hasActiveGame;
     final savedAt = service.activeGameSavedAt;
     final savedAtLabel = savedAt == null
-        ? 'N/A'
-        : DateFormat('yyyy-MM-dd HH:mm').format(savedAt.toLocal());
+        ? 'NO DATA'
+        : DateFormat('MMM dd, yyyy – HH:mm').format(savedAt.toLocal()).toUpperCase();
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return CBPrismScaffold(
-      title: 'SAVE / LOAD',
+      title: 'DATA PROTOCOL',
       drawer: const CustomDrawer(currentDestination: HostDestination.saveLoad),
       actions: const [SimulationModeBadgeAction()],
       body: ListView(
-        padding: CBInsets.screen,
+        padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x6, CBSpace.x6, CBSpace.x12),
+        physics: const BouncingScrollPhysics(),
         children: [
           CBFadeSlide(
             child: CBPanel(
               borderColor: hasActiveGame
                   ? scheme.tertiary.withValues(alpha: 0.5)
-                  : scheme.outline.withValues(alpha: 0.4),
+                  : scheme.outlineVariant.withValues(alpha: 0.3),
+              padding: const EdgeInsets.all(CBSpace.x6),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   CBSectionHeader(
-                    title: 'ACTIVE SLOT STATUS',
+                    title: 'ACTIVE SNAPSHOT STATUS',
                     icon: Icons.save_rounded,
                     color: hasActiveGame ? scheme.tertiary : scheme.onSurface,
                   ),
-                  const SizedBox(height: CBSpace.x3),
+                  const SizedBox(height: CBSpace.x4),
                   Text(
                     hasActiveGame ? 'SNAPSHOT AVAILABLE' : 'NO ACTIVE SNAPSHOT',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    style: textTheme.labelLarge?.copyWith(
                           color: hasActiveGame
                               ? scheme.tertiary
-                              : scheme.onSurface,
-                          fontWeight: FontWeight.w700,
+                              : scheme.onSurface.withValues(alpha: 0.6),
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                          shadows: hasActiveGame ? CBColors.textGlow(scheme.tertiary, intensity: 0.3) : null,
                         ),
                   ),
                   const SizedBox(height: CBSpace.x2),
                   Text(
-                    'LAST SAVED: $savedAtLabel',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.75),
+                    'LAST SYNC: $savedAtLabel',
+                    style: textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.5),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
                         ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: CBSpace.x6),
+          const SizedBox(height: CBSpace.x8),
           CBFadeSlide(
-            delay: const Duration(milliseconds: 80),
+            delay: const Duration(milliseconds: 100),
             child: CBPrimaryButton(
-              label: 'SAVE CURRENT SESSION',
+              label: 'SAVE CURRENT STATE',
+              icon: Icons.upload_file_rounded,
               onPressed: () {
+                HapticService.medium();
                 final ok = controller.manualSave();
                 showThemedSnackBar(
                   context,
-                  ok ? 'Session saved.' : 'Failed to save session.',
+                  ok ? 'SESSION STATE ARCHIVED.' : 'ARCHIVE FAILED.',
                   accentColor: ok ? scheme.tertiary : scheme.error,
                 );
               },
@@ -83,15 +93,17 @@ class HostSaveLoadScreen extends ConsumerWidget {
           ),
           const SizedBox(height: CBSpace.x3),
           CBFadeSlide(
-            delay: const Duration(milliseconds: 160),
+            delay: const Duration(milliseconds: 200),
             child: CBPrimaryButton(
-              label: 'LOAD SAVED SESSION',
+              label: 'LOAD ARCHIVED STATE',
+              icon: Icons.download_rounded,
               onPressed: () {
+                HapticService.medium();
                 final ok = controller.manualLoad();
                 if (!ok) {
                   showThemedSnackBar(
                     context,
-                    'No valid saved session found.',
+                    'NO VALID ARCHIVED STATE FOUND.',
                     accentColor: scheme.error,
                   );
                   return;
@@ -105,23 +117,25 @@ class HostSaveLoadScreen extends ConsumerWidget {
                 );
                 showThemedSnackBar(
                   context,
-                  'Saved session loaded.',
+                  'ARCHIVED STATE RESTORED.',
                   accentColor: scheme.tertiary,
                 );
               },
             ),
           ),
-          const SizedBox(height: CBSpace.x3),
+          const SizedBox(height: CBSpace.x6),
           CBFadeSlide(
-            delay: const Duration(milliseconds: 240),
+            delay: const Duration(milliseconds: 300),
             child: CBGhostButton(
-              label: 'CLEAR SAVED SNAPSHOT',
+              label: 'CLEAR SAVED STATE',
+              icon: Icons.delete_sweep_rounded,
               color: scheme.error,
               onPressed: () {
+                HapticService.heavy();
                 service.clearActiveGame();
                 showThemedSnackBar(
                   context,
-                  'Saved snapshot cleared.',
+                  'ARCHIVED STATE PURGED.',
                   accentColor: scheme.error,
                 );
               },
@@ -129,16 +143,18 @@ class HostSaveLoadScreen extends ConsumerWidget {
           ),
           const SizedBox(height: CBSpace.x3),
           CBFadeSlide(
-            delay: const Duration(milliseconds: 320),
+            delay: const Duration(milliseconds: 400),
             child: CBGhostButton(
               label: 'LOAD TEST SANDBOX',
+              icon: Icons.science_rounded,
               color: scheme.secondary,
               onPressed: () {
+                HapticService.medium();
                 final ok = controller.loadTestGameSandbox();
                 if (!ok) {
                   showThemedSnackBar(
                     context,
-                    'Failed to load test sandbox.',
+                    'FAILED TO LOAD TEST SANDBOX.',
                     accentColor: scheme.error,
                   );
                   return;
@@ -146,7 +162,7 @@ class HostSaveLoadScreen extends ConsumerWidget {
                 nav.setDestination(HostDestination.game);
                 showThemedSnackBar(
                   context,
-                  'Test sandbox loaded.',
+                  'TEST SANDBOX DEPLOYED.',
                   accentColor: scheme.secondary,
                 );
               },

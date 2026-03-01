@@ -407,28 +407,34 @@ class _PlayerTile extends StatelessWidget {
               tooltip: 'Assign Role',
               onTap: onAssignRole,
             ),
-            const SizedBox(width: 4),
-            _TileAction(
-              icon: Icons.edit_rounded,
-              color: scheme.primary,
-              tooltip: 'Rename',
-              onTap: onRename,
-            ),
-            if (onMerge != null) ...[
-              const SizedBox(width: 4),
-              _TileAction(
-                icon: Icons.merge_rounded,
-                color: scheme.secondary,
-                tooltip: 'Merge',
-                onTap: onMerge!,
-              ),
-            ],
-            const SizedBox(width: 4),
-            _TileAction(
-              icon: Icons.close_rounded,
-              color: scheme.error,
-              tooltip: 'Remove',
-              onTap: onRemove,
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                HapticService.selection();
+                switch (value) {
+                  case 'rename':
+                    onRename();
+                    break;
+                  case 'merge':
+                    onMerge?.call();
+                    break;
+                  case 'remove':
+                    onRemove();
+                    break;
+                }
+              },
+              itemBuilder: (context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem(value: 'rename', child: Text('Rename')),
+                if (onMerge != null)
+                  const PopupMenuItem(value: 'merge', child: Text('Merge')),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'remove',
+                  child: Text('Remove', style: TextStyle(color: scheme.error)),
+                ),
+              ],
+              icon: Icon(Icons.more_vert,
+                  color: scheme.onSurface.withOpacity(0.6)),
+              tooltip: 'More options',
             ),
           ],
         ),
@@ -459,10 +465,10 @@ class _TileAction extends StatelessWidget {
           HapticService.selection();
           onTap();
         },
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: Icon(icon, size: 16, color: color.withValues(alpha: 0.7)),
+          padding: const EdgeInsets.all(10),
+          child: Icon(icon, size: 18, color: color.withValues(alpha: 0.8)),
         ),
       ),
     );

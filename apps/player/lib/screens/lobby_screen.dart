@@ -8,7 +8,9 @@ import '../active_bridge.dart';
 import '../player_bridge.dart';
 import '../player_onboarding_provider.dart';
 import '../widgets/custom_drawer.dart';
+import '../widgets/full_role_reveal_content.dart';
 import '../widgets/notifications_prompt_banner.dart';
+import '../widgets/player_profile_panel_content.dart';
 import 'player_home_shell.dart';
 import 'role_reveal_screen.dart';
 
@@ -23,6 +25,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
   static const int _minimumPlayersHintThreshold = 4;
   final TextEditingController _chatController = TextEditingController();
   String? _lastRevealedRoleId;
+  PlayerSnapshot? _selectedPlayerForPanel;
+  bool _isPlayerPanelOpen = false;
 
   @override
   void initState() {
@@ -90,8 +94,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
           player: player,
           onConfirm: () {
             bridge.confirmRole(playerId: player.id);
-            // If setup is waiting on manual start confirmation, progress
-            // immediately after identity acknowledgement.
             ref.read(confirmGameStartProvider.notifier).trigger();
           },
         ),
@@ -114,32 +116,32 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             style: textTheme.headlineSmall!.copyWith(
               color: scheme.secondary,
               fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
+              letterSpacing: 2.0,
               shadows: CBColors.textGlow(scheme.secondary),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           _buildGuideRow(
             context,
             Icons.chat_bubble_outline_rounded,
             'STAY INFORMED',
             'Watch the feed for game events, narrative clues, and voting results.',
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           _buildGuideRow(
             context,
             Icons.fingerprint_rounded,
             'YOUR IDENTITY',
             'When the game starts, hold your identity card to reveal your secret role.',
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           _buildGuideRow(
             context,
             Icons.menu_rounded,
             'THE BLACKBOOK',
             'Check the side menu for role guides and game rules at any time.',
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 40),
           CBPrimaryButton(
             label: 'ACKNOWLEDGED',
             backgroundColor: scheme.secondary.withValues(alpha: 0.2),
@@ -157,7 +159,14 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: scheme.secondary, size: 24),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: scheme.secondary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: scheme.secondary, size: 20),
+        ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -167,14 +176,16 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                 title,
                 style: Theme.of(context).textTheme.labelMedium!.copyWith(
                       color: scheme.onSurface,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
                     ),
               ),
               const SizedBox(height: 4),
               Text(
                 description,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.7),
+                      color: scheme.onSurface.withValues(alpha: 0.6),
+                      height: 1.4,
                     ),
               ),
             ],
@@ -184,7 +195,43 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     );
   }
 
-  // _saveUsername logic removed
+  /// Phase-aware helper text so players know what to expect.
+  String _buildLobbyHelperCopy({
+    required String phase,
+    required bool hasRole,
+    required bool isRoleConfirmed,
+  }) {
+    if (isRoleConfirmed) {
+      return 'Identity acknowledged. Wait for the host to start the game.';
+    }
+    if (hasRole && phase != 'lobby') {
+      return 'Your character is below. Read it and tap ACKNOWLEDGE IDENTITY. '
+          'Others are waiting once everyone has acknowledged.';
+    }
+    if (phase != 'lobby' && phase.isNotEmpty) {
+      return 'Roles are being assigned. Stay here; your role will appear below '
+          'when the host assigns it.';
+    }
+    return 'You\'re in the room. Chat with others and wait for the host. '
+        'Your role will arrive shortly — be ready to read and accept.';
+  }
+
+  /// Players with a role but not yet in roleConfirmedPlayerIds.
+  ({int total, int confirmed, List<String> pendingNames}) _roleAcknowledgementTally(
+      PlayerGameState gameState) {
+    final withRole = gameState.players
+        .where((p) => p.roleId.isNotEmpty && p.roleId != 'unassigned')
+        .toList();
+    final total = withRole.length;
+    final confirmed = withRole
+        .where((p) => gameState.roleConfirmedPlayerIds.contains(p.id))
+        .length;
+    final pendingNames = withRole
+        .where((p) => !gameState.roleConfirmedPlayerIds.contains(p.id))
+        .map((p) => p.name)
+        .toList();
+    return (total: total, confirmed: confirmed, pendingNames: pendingNames);
+  }
 
   ({String title, String detail, _LobbyStatusTone tone}) _buildLobbyStatus({
     required int playerCount,
@@ -210,16 +257,81 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
     if (phase == 'setup') {
       return (
-        title: 'WAITING FOR HOST TO ASSIGN YOU A ROLE',
-        detail: 'Role cards are being assigned. Stay ready.',
+        title: 'ASSIGNING ROLES',
+        detail: 'The host is assigning roles. Prepare for entry.',
         tone: _LobbyStatusTone.setup,
       );
     }
 
     return (
-      title: 'WAITING FOR HOST TO START',
+      title: 'LOBBY OPEN',
       detail: 'Review the Game Bible in the side drawer while you wait.',
       tone: _LobbyStatusTone.waitingHost,
+    );
+  }
+
+  Widget _buildInThisGameRow(
+    BuildContext context,
+    List<PlayerSnapshot> players,
+    List<String> roleConfirmedPlayerIds,
+    ColorScheme scheme,
+    TextTheme textTheme,
+  ) {
+    if (players.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(
+            'IN THIS GAME',
+            style: textTheme.labelSmall?.copyWith(
+              color: scheme.primary,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: players.map((p) {
+              final isMe = ref.read(activeBridgeProvider).state.myPlayerId == p.id;
+              final hasRole =
+                  p.roleId.isNotEmpty && p.roleId != 'unassigned';
+              final isConfirmed = roleConfirmedPlayerIds.contains(p.id);
+              final roleColor = hasRole
+                  ? (roleCatalogMap[p.roleId] != null
+                      ? CBColors.fromHex(
+                          roleCatalogMap[p.roleId]!.colorHex)
+                      : scheme.primary)
+                  : scheme.primary;
+              return Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: CBFilterChip(
+                  label: p.name,
+                  selected: isMe,
+                  onSelected: () {
+                    HapticService.selection();
+                    setState(() {
+                      _selectedPlayerForPanel = p;
+                      _isPlayerPanelOpen = true;
+                    });
+                  },
+                  color: roleColor,
+                  dense: true,
+                  icon: hasRole && isConfirmed
+                      ? Icons.check_circle_rounded
+                      : null,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
     );
   }
 
@@ -231,9 +343,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     final authState = ref.watch(authProvider);
     final onboarding = ref.watch(playerOnboardingProvider);
 
-    // ── Role assignment detection ──
-    // Only reveal roles once the game has moved past lobby (setup or later).
-    // During lobby the host may be configuring roles on the setup screen.
     final myPlayer = gameState.myPlayerSnapshot;
     final myId = gameState.myPlayerId;
     final hasRole = myPlayer != null && myPlayer.roleId != 'unassigned';
@@ -292,29 +401,37 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         children: [
           Positioned.fill(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
               children: [
                 const NotificationsPromptBanner(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+
                 // ── STATUS CARD ──
                 CBFadeSlide(
                   child: CBGlassTile(
                     isPrismatic: status.tone == _LobbyStatusTone.readyToJoin,
-                    borderColor: statusColor.withValues(alpha: 0.5),
+                    borderColor: statusColor.withValues(alpha: 0.4),
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(statusIcon, color: statusColor, size: 20),
-                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Icon(statusIcon, color: statusColor, size: 18),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'PROTOCOL: ${status.title}',
+                                status.title,
                                 style: textTheme.labelLarge?.copyWith(
                                   color: statusColor,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w900,
                                   letterSpacing: 1.5,
                                 ),
                               ),
@@ -325,7 +442,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                         Text(
                           status.detail,
                           style: textTheme.bodyMedium?.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.8),
+                            color: scheme.onSurface.withValues(alpha: 0.7),
                             height: 1.5,
                           ),
                         ),
@@ -334,10 +451,123 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-                // ── WELCOME / IDENTITY ──
-                if (!onboarding.awaitingStartConfirmation) ...[
+                // ── ACKNOWLEDGEMENT TALLY (prominent when roles are assigned) ──
+                if (!onboarding.awaitingStartConfirmation)
+                  Builder(
+                    builder: (context) {
+                      final tally = _roleAcknowledgementTally(gameState);
+                      if (tally.total == 0) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: CBGlassTile(
+                          borderColor: (tally.confirmed >= tally.total
+                                  ? scheme.tertiary
+                                  : scheme.primary)
+                              .withValues(alpha: 0.35),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    tally.confirmed >= tally.total
+                                        ? Icons.check_circle_rounded
+                                        : Icons.pending_rounded,
+                                    size: 16,
+                                    color: tally.confirmed >= tally.total
+                                        ? scheme.tertiary
+                                        : scheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'ACKNOWLEDGED: ${tally.confirmed}/${tally.total}',
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: scheme.onSurface.withValues(alpha: 0.9),
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (tally.pendingNames.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Waiting: ${tally.pendingNames.join(', ')}',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: scheme.onSurface.withValues(alpha: 0.6),
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                // ── HELPER: what to expect ──
+                if (!onboarding.awaitingStartConfirmation)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: CBGlassTile(
+                      borderColor: scheme.primary.withValues(alpha: 0.2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.info_outline_rounded,
+                              size: 18, color: scheme.primary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _buildLobbyHelperCopy(
+                                phase: gameState.phase,
+                                hasRole: hasRole,
+                                isRoleConfirmed: isRoleConfirmed,
+                              ),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurface.withValues(alpha: 0.85),
+                                height: 1.45,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                // ── FULL CHARACTER CARD (when role assigned, not yet confirmed) ──
+                if (!onboarding.awaitingStartConfirmation &&
+                    hasRole &&
+                    myPlayer != null &&
+                    !isRoleConfirmed) ...[
+                  const SizedBox(height: 8),
+                  CBGlassTile(
+                    borderColor: (roleColor ?? scheme.primary)
+                        .withValues(alpha: 0.4),
+                    padding: const EdgeInsets.all(20),
+                    child: FullRoleRevealContent(
+                      player: myPlayer,
+                      onConfirm: () {
+                        ref.read(activeBridgeProvider).actions.confirmRole(
+                            playerId: myPlayer.id);
+                        ref.read(confirmGameStartProvider.notifier).trigger();
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
+                // ── COMPACT IDENTITY (when no role yet or already confirmed) ──
+                if (!onboarding.awaitingStartConfirmation &&
+                    !(hasRole && !isRoleConfirmed)) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -351,17 +581,20 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                      InkWell(
-                        onTap: () => Scaffold.of(context).openDrawer(),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Text(
-                            'EDIT PROFILE',
-                            style: textTheme.labelSmall?.copyWith(
-                              color: scheme.secondary,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                            ),
+                      TextButton(
+                        onPressed: () => Scaffold.of(context).openDrawer(),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          'EDIT PROFILE',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: scheme.secondary,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
@@ -371,22 +604,22 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                   CBGlassTile(
                     isPrismatic: isRoleConfirmed,
                     borderColor: isRoleConfirmed && roleColor != null
-                        ? roleColor.withValues(alpha: 0.5)
+                        ? roleColor!.withValues(alpha: 0.4)
                         : null,
                     padding: const EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        if (isRoleConfirmed && roleColor != null)
+                        if (isRoleConfirmed && roleColor != null && myPlayer != null)
                           CBRoleAvatar(
-                            assetPath: 'assets/roles/${myPlayer!.roleId}.png',
-                            color: roleColor,
-                            size: 44,
+                            assetPath: 'assets/roles/${myPlayer.roleId}.png',
+                            color: roleColor!,
+                            size: 48,
                             breathing: true,
                           )
                         else
                           Container(
-                            width: 44,
-                            height: 44,
+                            width: 48,
+                            height: 48,
                             decoration: BoxDecoration(
                               color: scheme.primary.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
@@ -395,7 +628,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                               ),
                             ),
                             child: Icon(Icons.person_rounded,
-                                color: scheme.primary, size: 22),
+                                color: scheme.primary, size: 24),
                           ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -408,20 +641,20 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1.2,
                                   fontFamily: 'RobotoMono',
-                                  color: isRoleConfirmed
+                                  color: isRoleConfirmed && roleColor != null
                                       ? roleColor
                                       : scheme.onSurface,
                                   shadows: isRoleConfirmed && roleColor != null
-                                      ? CBColors.textGlow(roleColor,
+                                      ? CBColors.textGlow(roleColor!,
                                           intensity: 0.3)
                                       : null,
                                 ),
                               ),
                               if (isRoleConfirmed && myPlayer != null)
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 4),
+                                  padding: const EdgeInsets.only(top: 6),
                                   child: CBMiniTag(
-                                    text: myPlayer!.roleName.toUpperCase(),
+                                    text: myPlayer.roleName.toUpperCase(),
                                     color: roleColor ?? scheme.primary,
                                   ),
                                 )
@@ -429,9 +662,10 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                                 Text(
                                   'SESSION ACCESS GRANTED',
                                   style: textTheme.labelSmall?.copyWith(
-                                    color: scheme.onSurfaceVariant,
+                                    color: scheme.onSurface.withValues(alpha: 0.4),
                                     fontSize: 9,
-                                    letterSpacing: 1.0,
+                                    letterSpacing: 1.2,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                             ],
@@ -443,11 +677,55 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                   const SizedBox(height: 24),
                 ],
 
-                // ── LIVE FEED ──
-                ..._buildBulletinList(
-                    gameState, gameState.myPlayerSnapshot, scheme),
+                // ── THE LOUNGE (group chat; continues into game) ──
+                _buildInThisGameRow(
+                  context,
+                  gameState.players,
+                  gameState.roleConfirmedPlayerIds,
+                  scheme,
+                  textTheme,
+                ),
+                const SizedBox(height: 24),
+                const CBFeedSeparator(label: 'THE LOUNGE'),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                  child: Text(
+                    'Chat and intel here. This channel continues after the game starts.',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.5),
+                      fontSize: 11,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ...buildBulletinList(
+                    gameState, gameState.myPlayerSnapshot, scheme,
+                    includeSeparator: false),
+                const SizedBox(height: 32),
               ],
             ),
+          ),
+
+          CBSlidingPanel(
+            isOpen: _isPlayerPanelOpen,
+            onClose: () => setState(() {
+              _isPlayerPanelOpen = false;
+              _selectedPlayerForPanel = null;
+            }),
+            title: _selectedPlayerForPanel?.name.toUpperCase() ?? 'PROFILE',
+            width: 380,
+            accentColor: _selectedPlayerForPanel != null &&
+                    _selectedPlayerForPanel!.roleId.isNotEmpty &&
+                    _selectedPlayerForPanel!.roleId != 'unassigned'
+                ? (roleCatalogMap[_selectedPlayerForPanel!.roleId] != null
+                    ? CBColors.fromHex(
+                        roleCatalogMap[_selectedPlayerForPanel!.roleId]!.colorHex)
+                    : null)
+                : null,
+            child: _selectedPlayerForPanel != null
+                ? PlayerProfilePanelContent(player: _selectedPlayerForPanel!)
+                : const SizedBox(),
           ),
 
           // ── CHAT INPUT ──
@@ -459,11 +737,11 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
               child: _ChatInputBar(
                 controller: _chatController,
                 onSend: _sendMessage,
-                roleColor: scheme.primary, // Use primary color in lobby
+                roleColor: scheme.primary,
               ),
             ),
 
-          // ── ACTION BUTTON (FLOATING) ──
+          // ── ACTION BUTTON ──
           if (onboarding.awaitingStartConfirmation)
             Positioned(
               bottom: 32,
@@ -491,9 +769,15 @@ enum _LobbyStatusTone {
   readyToJoin,
 }
 
-List<Widget> _buildBulletinList(
-    PlayerGameState gameState, PlayerSnapshot? myPlayer, ColorScheme scheme) {
-  final entries = gameState.bulletinBoard;
+List<Widget> buildBulletinList(
+    PlayerGameState gameState, PlayerSnapshot? myPlayer, ColorScheme scheme,
+    {bool includeSeparator = true}) {
+  var entries =
+      PlayerGameState.sanitizePublicBulletinEntries(gameState.bulletinBoard);
+  entries = entries
+      .where((e) =>
+          e.targetRoleId == null || e.targetRoleId == myPlayer?.roleId)
+      .toList();
   if (entries.isEmpty) {
     return [
       Padding(
@@ -503,14 +787,15 @@ List<Widget> _buildBulletinList(
             children: [
               Icon(Icons.speaker_notes_off_rounded,
                   color: scheme.onSurface.withValues(alpha: 0.1), size: 32),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               Text(
-                'ENCRYPTED CHANNEL OPEN',
+                'CHANNEL SECURE. NO ACTIVE INTEL.',
                 style: TextStyle(
                   fontFamily: 'RobotoMono',
                   color: scheme.onSurface.withValues(alpha: 0.3),
-                  fontSize: 11,
-                  letterSpacing: 2,
+                  fontSize: 10,
+                  letterSpacing: 2.5,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -520,13 +805,13 @@ List<Widget> _buildBulletinList(
     ];
   }
 
-  final isClubManager = myPlayer?.roleId == RoleIds.clubManager;
-
   final widgets = <Widget>[];
-  widgets.add(const Padding(
-    padding: EdgeInsets.only(bottom: 12),
-    child: CBFeedSeparator(label: 'LOUNGE FEED'),
-  ));
+  if (includeSeparator) {
+    widgets.add(const Padding(
+      padding: EdgeInsets.only(bottom: 16),
+      child: CBFeedSeparator(label: 'GROUP CHAT'),
+    ));
+  }
 
   for (int i = 0; i < entries.length; i++) {
     final entry = entries[i];
@@ -538,24 +823,21 @@ List<Widget> _buildBulletinList(
         ? CBColors.fromHex(role.colorHex)
         : (entry.type == 'system' ? scheme.secondary : scheme.primary);
 
-    String senderName = role.id == 'unassigned' ? entry.title : role.name;
-
-    if (isClubManager &&
-        entry.roleId != null &&
-        entry.roleId != myPlayer?.roleId) {
+    String senderName = entry.title;
+    if (entry.roleId != null) {
       try {
         final senderPlayer =
             gameState.players.firstWhere((p) => p.roleId == entry.roleId);
-        senderName = '${role.name} (${senderPlayer.name})';
+        senderName = senderPlayer.name;
       } catch (_) {
-        // Player not found
+        senderName = role.id == 'unassigned' ? entry.title : role.name;
       }
     }
 
     final isPrevSameSender =
-        prevEntry != null && prevEntry.title == entry.title;
+        prevEntry != null && prevEntry.roleId == entry.roleId;
     final isNextSameSender =
-        nextEntry != null && nextEntry.title == entry.title;
+        nextEntry != null && nextEntry.roleId == entry.roleId;
 
     CBMessageGroupPosition groupPos = CBMessageGroupPosition.single;
     if (isPrevSameSender && isNextSameSender) {
@@ -594,14 +876,25 @@ class _ChatInputBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
-    return Material(
-      color: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            scheme.scrim.withValues(alpha: 0.5),
+          ],
+        ),
+      ),
+      child: SafeArea(
+        top: false,
         child: CBGlassTile(
-          borderColor: roleColor.withValues(alpha: 0.5),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          borderColor: roleColor.withValues(alpha: 0.3),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Row(
             children: [
               Expanded(
@@ -612,14 +905,21 @@ class _ChatInputBar extends StatelessWidget {
                   onSubmitted: (_) => onSend(),
                   decoration: InputDecoration(
                     hintText: 'Send message...',
+                    hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.4),
+                    ),
                     border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
               IconButton(
                 tooltip: 'Send message',
-                icon: Icon(Icons.send_rounded, color: roleColor),
+                icon: Icon(Icons.send_rounded, color: roleColor, size: 20),
                 onPressed: onSend,
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),

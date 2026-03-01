@@ -33,13 +33,19 @@ class CBSlidingPanel extends StatelessWidget {
       children: [
         if (isOpen)
           Positioned.fill(
-            child: GestureDetector(
+            child: Semantics(
+              button: true,
+              label: 'Dismiss',
               onTap: onClose,
-              child: AnimatedOpacity(
-                duration: duration,
-                curve: curve,
-                opacity: isOpen ? 1 : 0,
-                child: Container(color: Colors.black.withValues(alpha: 0.6)),
+              child: GestureDetector(
+                onTap: onClose,
+                behavior: HitTestBehavior.opaque,
+                child: AnimatedOpacity(
+                  duration: duration,
+                  curve: curve,
+                  opacity: isOpen ? 1 : 0,
+                  child: Container(color: Colors.black.withValues(alpha: 0.6)),
+                ),
               ),
             ),
           ),
@@ -84,11 +90,15 @@ class CBSlidingPanel extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 20),
-                        onPressed: onClose,
-                        color: scheme.onSurface.withValues(alpha: 0.5),
-                        visualDensity: VisualDensity.compact,
+                      Semantics(
+                        button: true,
+                        label: 'Close panel',
+                        child: IconButton(
+                          icon: const Icon(Icons.close_rounded, size: 20),
+                          onPressed: onClose,
+                          color: scheme.onSurface.withValues(alpha: 0.5),
+                          visualDensity: VisualDensity.compact,
+                        ),
                       ),
                     ],
                   ),

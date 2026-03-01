@@ -12,10 +12,10 @@ class GuidesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final gameState = ref.watch(gameProvider);
+    final scheme = Theme.of(context).colorScheme;
 
     return CBGuideScreen(
-      gameState: gameState,
+      gameState: ref.watch(gameProvider),
       localPlayer: null,
       drawer: const CustomDrawer(currentDestination: HostDestination.guides),
     );

@@ -38,6 +38,10 @@ service cloud.firestore {
       return playerId == request.auth.uid
         || get(/databases/$(database)/documents/games/$(joinCode)/private_state/$(playerId)).data.uid == request.auth.uid;
     }
+
+    function isRegisteredPlayer(joinCode, playerId) {
+      return exists(/databases/$(database)/documents/games/$(joinCode)/private_state/$(playerId));
+    }
     
     // ── Joins/Actions Verification ──
     function isPlayerOfGame(joinCode) {
@@ -48,13 +52,9 @@ service cloud.firestore {
     // ── Games Collection ──
     match /games/{joinCode} {
       
-      // Anyone can read the public game state
-      // POTENTIAL GAP FIX: Ensure they are either the host or a registered player
-      allow read: if isAuthenticated() && (
-        resource.data.hostId == request.auth.uid ||
-        exists(/databases/$(database)/documents/games/$(joinCode)/private_state/$(request.auth.uid)) ||
-        resource.data.phase == 'lobby'
-      );
+      // Authenticated users can read the public game state.
+      // Private role/alliance data remains protected under /private_state rules.
+      allow read: if isAuthenticated();
       
       // Host can create/update/delete games
       // Split by operation to avoid ambiguous type checks on `resource`/`request.resource`.
@@ -91,7 +91,7 @@ service cloud.firestore {
         // Check that the sender is the player referenced and is currently in the game
         allow create: if isValidAction() && isAuthenticated() 
           && ownsPlayer(joinCode, request.resource.data.playerId)
-          && isPlayerOfGame(joinCode);
+          && isRegisteredPlayer(joinCode, request.resource.data.playerId);
         
         // Host can read actions
         allow read: if isAuthenticated() && isGameHost(joinCode);
@@ -140,7 +140,7 @@ service cloud.firestore {
           && request.resource.data.playerId.size() > 0
           && request.resource.data.playerId != 'unknown'
           && ownsPlayer(joinCode, request.resource.data.playerId)
-          && isPlayerOfGame(joinCode)
+          && isRegisteredPlayer(joinCode, request.resource.data.playerId)
           && request.resource.data.message is string
           && request.resource.data.message.size() > 0
           && request.resource.data.message.size() <= 500;

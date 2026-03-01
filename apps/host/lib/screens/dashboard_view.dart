@@ -1,6 +1,7 @@
 import 'package:cb_models/cb_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cb_theme/cb_theme.dart'; // Import cb_theme for CBFadeSlide and CBSpace
 
 import '../widgets/dashboard/ai_export_panel.dart';
 import '../widgets/dashboard/bar_tab_panel.dart';
@@ -46,75 +47,104 @@ class DashboardView extends ConsumerWidget {
       children: [
         // ── PRIMARY INTEL (always visible) ──
         if (isInGame) ...[
-          LiveIntelPanel(gameState: gameState),
-          const SizedBox(height: 12),
+          CBFadeSlide(
+            child: LiveIntelPanel(gameState: gameState),
+          ),
+          const SizedBox(height: CBSpace.x3),
         ],
 
         if (isDay) ...[
-          VoteIntelPanel(gameState: gameState),
-          const SizedBox(height: 12),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 50),
+            child: VoteIntelPanel(gameState: gameState),
+          ),
+          const SizedBox(height: CBSpace.x3),
         ],
 
         if (isNight ||
             (isDay && gameState.lastNightReport.isNotEmpty)) ...[
-          NightActionIntelPanel(gameState: gameState),
-          const SizedBox(height: 12),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 100),
+            child: NightActionIntelPanel(gameState: gameState),
+          ),
+          const SizedBox(height: CBSpace.x3),
         ],
 
         // ── GOD MODE (critical, always visible) ──
-        GodModeControls(gameState: gameState),
-        const SizedBox(height: 12),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 150),
+          child: GodModeControls(gameState: gameState),
+        ),
+        const SizedBox(height: CBSpace.x3),
 
         // ── SECONDARY PANELS (collapsible on phone) ──
         if (isInGame) ...[
-          _CollapsibleSection(
-            title: 'DEAD POOL INTEL',
-            icon: Icons.whatshot_rounded,
-            initiallyExpanded: false,
-            child: DeadPoolIntelPanel(gameState: gameState),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 200),
+            child: _CollapsibleSection(
+              title: 'DEAD POOL INTEL',
+              icon: Icons.whatshot_rounded,
+              initiallyExpanded: false,
+              child: DeadPoolIntelPanel(gameState: gameState),
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: CBSpace.x2),
         ],
 
-        _CollapsibleSection(
-          title: 'BAR TAB',
-          icon: Icons.local_bar_rounded,
-          initiallyExpanded: false,
-          child: BarTabPanel(gameState: gameState),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 250),
+          child: _CollapsibleSection(
+            title: 'BAR TAB',
+            icon: Icons.local_bar_rounded,
+            initiallyExpanded: false,
+            child: BarTabPanel(gameState: gameState),
+          ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: CBSpace.x2),
 
-        _CollapsibleSection(
-          title: 'POWER TRIPS',
-          icon: Icons.flash_on_rounded,
-          initiallyExpanded: false,
-          child: DirectorCommands(gameState: gameState),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 300),
+          child: _CollapsibleSection(
+            title: 'POWER TRIPS',
+            icon: Icons.flash_on_rounded,
+            initiallyExpanded: false,
+            child: DirectorCommands(gameState: gameState),
+          ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: CBSpace.x2),
 
-        _CollapsibleSection(
-          title: 'CONTROL ROOM',
-          icon: Icons.tune_rounded,
-          initiallyExpanded: false,
-          child: QuickSettingsPanel(gameState: gameState),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 350),
+          child: _CollapsibleSection(
+            title: 'CONTROL ROOM',
+            icon: Icons.tune_rounded,
+            initiallyExpanded: false,
+            child: QuickSettingsPanel(gameState: gameState),
+          ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: CBSpace.x2),
 
-        _CollapsibleSection(
-          title: 'SESSION LOGS',
-          icon: Icons.history_edu_rounded,
-          initiallyExpanded: false,
-          child: EnhancedLogsPanel(logs: gameState.gameHistory),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 400),
+          child: _CollapsibleSection(
+            title: 'SESSION LOGS',
+            icon: Icons.history_edu_rounded,
+            initiallyExpanded: false,
+            child: EnhancedLogsPanel(logs: gameState.gameHistory),
+          ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: CBSpace.x2),
 
-        const _CollapsibleSection(
-          title: 'AI EXPORT',
-          icon: Icons.auto_awesome,
-          initiallyExpanded: false,
-          child: AIExportPanel(),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 450),
+          child: const _CollapsibleSection(
+            title: 'AI EXPORT',
+            icon: Icons.auto_awesome,
+            initiallyExpanded: false,
+            child: AIExportPanel(),
+          ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: CBSpace.x6),
       ],
     );
   }
@@ -149,7 +179,7 @@ class _CollapsibleSectionState extends State<_CollapsibleSection>
     _expanded = widget.initiallyExpanded;
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 250),
       value: _expanded ? 1.0 : 0.0,
     );
     _rotationAnim = Tween<double>(begin: 0, end: 0.5).animate(
@@ -164,6 +194,7 @@ class _CollapsibleSectionState extends State<_CollapsibleSection>
   }
 
   void _toggle() {
+    HapticService.selection();
     setState(() {
       _expanded = !_expanded;
       if (_expanded) {
@@ -181,61 +212,52 @@ class _CollapsibleSectionState extends State<_CollapsibleSection>
 
     return Column(
       children: [
-        InkWell(
+        CBGlassTile(
           onTap: _toggle,
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: _expanded
-                    ? scheme.primary.withValues(alpha: 0.3)
-                    : scheme.outlineVariant.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(widget.icon,
-                    size: 16,
+          padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x3),
+          borderColor: _expanded
+              ? scheme.primary.withValues(alpha: 0.4)
+              : scheme.outlineVariant.withValues(alpha: 0.2),
+          child: Row(
+            children: [
+              Icon(widget.icon,
+                  size: 18,
+                  color: _expanded
+                      ? scheme.primary
+                      : scheme.onSurface.withValues(alpha: 0.5)),
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: Text(
+                  widget.title.toUpperCase(),
+                  style: textTheme.labelMedium?.copyWith(
                     color: _expanded
                         ? scheme.primary
-                        : scheme.onSurface.withValues(alpha: 0.5)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    widget.title,
-                    style: textTheme.labelSmall?.copyWith(
-                      color: _expanded
-                          ? scheme.primary
-                          : scheme.onSurface.withValues(alpha: 0.6),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                    ),
+                        : scheme.onSurface.withValues(alpha: 0.6),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
                   ),
                 ),
-                RotationTransition(
-                  turns: _rotationAnim,
-                  child: Icon(
-                    Icons.expand_more_rounded,
-                    size: 20,
-                    color: scheme.onSurface.withValues(alpha: 0.4),
-                  ),
+              ),
+              RotationTransition(
+                turns: _rotationAnim,
+                child: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  size: 24,
+                  color: scheme.onSurface.withValues(alpha: 0.4),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         AnimatedCrossFade(
           firstChild: Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.only(top: CBSpace.x2),
             child: widget.child,
           ),
           secondChild: const SizedBox.shrink(),
           crossFadeState:
               _expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 250),
           sizeCurve: Curves.easeOutCubic,
         ),
       ],

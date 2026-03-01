@@ -24,8 +24,9 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return CBPrismScaffold(
-      title: 'Host Onboarding',
+      title: 'HOST ONBOARDING',
       showAppBar: false,
+      useSafeArea: false, // PageView items handle layout within safely
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(), // Prevent manual swiping
@@ -51,90 +52,108 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Spacer(),
-          CBFadeSlide(
-            child: Hero(
-              tag: 'host_auth_icon',
-              child: CBRoleAvatar(
-                color: scheme.primary,
-                size: 100,
-                pulsing: true,
-                icon: Icons.admin_panel_settings_rounded,
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          CBFadeSlide(
-            delay: const Duration(milliseconds: 100),
-            child: Text(
-              'COMMAND\nTHE NIGHT',
-              textAlign: TextAlign.center,
-              style: textTheme.displayMedium!.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w900,
-                height: 0.9,
-                letterSpacing: 4.0,
-                shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          CBFadeSlide(
-            delay: const Duration(milliseconds: 200),
-            child: CBBadge(
-              text: 'HOST PROTOCOL',
-              color: scheme.primary,
-            ),
-          ),
-          const SizedBox(height: 48),
-          CBFadeSlide(
-            delay: const Duration(milliseconds: 300),
-            child: CBPanel(
-              borderColor: scheme.primary.withValues(alpha: 0.3),
-              child: Column(
-                children: [
-                  Text(
-                    'SECURITY CLEARANCE REQUIRED',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyLarge!.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      height: 1.5,
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(CBSpace.x6),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            CBFadeSlide(
+              child: Hero(
+                tag: 'host_auth_icon',
+                child: Container(
+                  padding: const EdgeInsets.all(CBSpace.x6),
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: scheme.primary.withValues(alpha: 0.3),
+                      width: 2,
                     ),
+                    boxShadow: CBColors.circleGlow(scheme.primary, intensity: 0.4),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Manage roles, resolve night actions, and orchestrate the ultimate social deduction experience.',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodyMedium!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.7),
-                    ),
+                  child: Icon(
+                    Icons.admin_panel_settings_rounded,
+                    size: CBSpace.x16 * 1.25,
+                    color: scheme.primary,
+                    shadows: CBColors.iconGlow(scheme.primary),
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-          const Spacer(),
-          CBFadeSlide(
-            delay: const Duration(milliseconds: 400),
-            child: CBPrimaryButton(
-              label: 'INITIALIZE HOST PROTOCOL',
-              onPressed: () {
-                _pageController.nextPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
+            const SizedBox(height: CBSpace.x10),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 100),
+              child: Text(
+                'COMMAND\nTHE NIGHT',
+                textAlign: TextAlign.center,
+                style: textTheme.displayMedium!.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                  height: 0.9,
+                  letterSpacing: 4.0,
+                  shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
+            const SizedBox(height: CBSpace.x4),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 200),
+              child: CBBadge(
+                text: 'HOST PROTOCOL',
+                color: scheme.primary,
+              ),
+            ),
+            const SizedBox(height: CBSpace.x12),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 300),
+              child: CBPanel(
+                borderColor: scheme.primary.withValues(alpha: 0.3),
+                padding: const EdgeInsets.all(CBSpace.x6),
+                child: Column(
+                  children: [
+                    Text(
+                      'SECURITY CLEARANCE REQUIRED',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyLarge!.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: CBSpace.x4),
+                    Text(
+                      'MANAGE ROLES, RESOLVE NIGHT ACTIONS, AND ORCHESTRATE THE ULTIMATE SOCIAL DEDUCTION EXPERIENCE.',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyMedium!.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.7),
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Spacer(),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 400),
+              child: CBPrimaryButton(
+                label: 'INITIALIZE HOST PROTOCOL',
+                icon: Icons.fingerprint_rounded,
+                onPressed: () {
+                  HapticService.heavy();
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: CBSpace.x6),
+          ],
+        ),
       ),
     );
   }
@@ -144,94 +163,92 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
     final scheme = Theme.of(context).colorScheme;
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x8, CBSpace.x6, CBSpace.x12),
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            Text(
-              'LEGAL & DATA PROTOCOLS',
-              style: textTheme.labelMedium?.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-                shadows: CBColors.textGlow(scheme.primary),
+            CBFadeSlide(
+              child: Text(
+                'LEGAL & DATA PROTOCOLS',
+                textAlign: TextAlign.center,
+                style: textTheme.labelLarge?.copyWith(
+                  color: scheme.primary,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.5,
+                  shadows: CBColors.textGlow(scheme.primary),
+                ),
               ),
             ),
-            const SizedBox(height: 32),
-            CBPanel(
-              margin: const EdgeInsets.only(bottom: 24),
-              borderColor: scheme.primary.withValues(alpha: 0.4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.shield_rounded,
-                          color: scheme.primary, size: 20),
-                      const SizedBox(width: 12),
-                      Text(
-                        'DATA COLLECTION',
-                        style: textTheme.titleSmall!.copyWith(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Club Blackout Reborn collects minimal data necessary for gameplay. '
-                    'In local mode, all data is stored on your device. In cloud mode, '
-                    'game state is synchronized via Firebase Firestore.',
-                    style: textTheme.bodyMedium!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.8),
-                      height: 1.5,
+            const SizedBox(height: CBSpace.x8),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 100),
+              child: CBPanel(
+                margin: const EdgeInsets.only(bottom: CBSpace.x6),
+                borderColor: scheme.primary.withValues(alpha: 0.4),
+                padding: const EdgeInsets.all(CBSpace.x6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    CBSectionHeader(
+                      title: 'DATA COLLECTION',
+                      icon: Icons.shield_rounded,
+                      color: scheme.primary,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            CBPanel(
-              margin: const EdgeInsets.only(bottom: 32),
-              borderColor: scheme.secondary.withValues(alpha: 0.4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.terminal_rounded,
-                          color: scheme.secondary, size: 20),
-                      const SizedBox(width: 12),
-                      Text(
-                        'SYSTEM STABILITY',
-                        style: textTheme.titleSmall!.copyWith(
-                          color: scheme.secondary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    const SizedBox(height: CBSpace.x4),
+                    Text(
+                      'CLUB BLACKOUT REBORN COLLECTS MINIMAL DATA NECESSARY FOR GAMEPLAY. '
+                      'IN LOCAL MODE, ALL DATA IS STORED ON YOUR DEVICE. IN CLOUD MODE, '
+                      'GAME STATE IS SYNCHRONIZED VIA FIREBASE FIRESTORE.',
+                      style: textTheme.bodyMedium!.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.8),
+                        height: 1.6,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'This software is provided as-is. We are not responsible for '
-                    'broken friendships or emotional distress caused by betrayal.',
-                    style: textTheme.bodyMedium!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.8),
-                      height: 1.5,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 24),
-            CBGhostButton(
-              label: 'BACK TO SYSTEM ACCESS',
-              icon: Icons.arrow_back_rounded,
-              onPressed: () {
-                _pageController.previousPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 200),
+              child: CBPanel(
+                margin: const EdgeInsets.only(bottom: CBSpace.x8),
+                borderColor: scheme.secondary.withValues(alpha: 0.4),
+                padding: const EdgeInsets.all(CBSpace.x6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    CBSectionHeader(
+                      title: 'SYSTEM STABILITY',
+                      icon: Icons.terminal_rounded,
+                      color: scheme.secondary,
+                    ),
+                    const SizedBox(height: CBSpace.x4),
+                    Text(
+                      'THIS SOFTWARE IS PROVIDED AS-IS. WE ARE NOT RESPONSIBLE FOR '
+                      'BROKEN FRIENDSHIPS OR EMOTIONAL DISTRESS CAUSED BY BETRAYAL.',
+                      style: textTheme.bodyMedium!.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.8),
+                        height: 1.6,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: CBSpace.x6),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 300),
+              child: CBGhostButton(
+                label: 'BACK TO SYSTEM ACCESS',
+                icon: Icons.arrow_back_rounded,
+                onPressed: () {
+                  HapticService.medium();
+                  _pageController.previousPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              ),
             ),
           ],
         ),

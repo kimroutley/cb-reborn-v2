@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cb_theme/cb_theme.dart'; // Import for CBMotion
 
 import '../host_destinations.dart';
 import '../host_navigation.dart';
@@ -27,7 +28,22 @@ class HostNavigationShell extends ConsumerWidget {
     final destination = ref.watch(hostNavigationProvider);
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 220),
+      duration: CBMotion.transition,
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.05, 0),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: CBMotion.emphasizedCurve,
+            )),
+            child: child,
+          ),
+        );
+      },
       child: KeyedSubtree(
         key: ValueKey<HostDestination>(destination),
         child: _buildDestination(destination),

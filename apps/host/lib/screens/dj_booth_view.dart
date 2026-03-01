@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 
-import 'dashboard_view.dart';
-import '../widgets/dj_booth/turntable_widget.dart';
+import '../widgets/dj_booth/turntable_widget.dart'; // Assuming this is already polished
 import '../widgets/simulation_mode_badge_action.dart';
 import '../widgets/custom_drawer.dart';
 
@@ -20,83 +19,76 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return CBPrismScaffold(
       title: 'DJ BOOTH',
       drawer: const CustomDrawer(),
       actions: const [SimulationModeBadgeAction()],
       body: Stack(
         children: [
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.14,
-                child: Image.asset(
-                  'assets/backgrounds/dj_booth_bg.png',
-                  fit: BoxFit.cover,
-                ),
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.18,
+              child: Image.asset(
+                'assets/backgrounds/dj_booth_bg.png', // Ensure this asset path is correct
+                fit: BoxFit.cover,
+                alignment: Alignment.bottomCenter, // Focus on the booth elements
               ),
             ),
-            Center(
-              child: Padding(
-                padding: CBInsets.panel,
-                child: CBPanel(
-                  borderColor: scheme.secondary,
-                  padding: CBInsets.panel,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const TurntableWidget(),
-                      const SizedBox(height: CBSpace.x10),
-                      Text(
-                        'WELCOME TO THE DJ BOOTH',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                              color: scheme.onSurface,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.6,
-                            ),
-                      ),
-                      const SizedBox(height: CBSpace.x2),
-                      Text(
-                        'Under Construction',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: scheme.onSurfaceVariant
-                                  .withValues(alpha: 0.9),
-                            ),
-                      ),
-                      const SizedBox(height: CBSpace.x10),
-                      CBPrimaryButton(
-                        fullWidth: false,
-                        label: 'ACCESS OLD DASHBOARD',
-                        icon: Icons.dashboard_rounded,
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => CBPrismScaffold(
-                                title: 'OLD DASHBOARD',
-                                drawer: const CustomDrawer(),
-                                actions: const [SimulationModeBadgeAction()],
-                                body: DashboardView(
-                                  gameState: widget.gameState,
-                                  onAction: () {},
-                                  onAddMock: () {},
-                                  eyesOpen: false,
-                                  onToggleEyes: (_) {},
-                                  onBack: () => Navigator.of(context).maybePop(),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(CBSpace.x6),
+                physics: const BouncingScrollPhysics(),
+                child: CBFadeSlide(
+                  child: CBPanel(
+                    borderColor: scheme.secondary.withValues(alpha: 0.4),
+                    padding: const EdgeInsets.all(CBSpace.x8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const TurntableWidget(), // Assuming this widget is already themed correctly
+                        const SizedBox(height: CBSpace.x12),
+                        Text(
+                          'DJ BOOTH // OFFLINE',
+                          textAlign: TextAlign.center,
+                          style: textTheme.headlineSmall?.copyWith(
+                            color: scheme.secondary,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2.0,
+                            shadows: CBColors.textGlow(scheme.secondary),
+                          ),
+                        ),
+                        const SizedBox(height: CBSpace.x4),
+                        Text(
+                          'SOUND SYSTEMS ARE UNDERGOING UPGRADES. ACCESS TEMPORARILY OFFLINE.',
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.6),
+                            height: 1.5,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: CBSpace.x10),
+                        CBGhostButton(
+                          label: 'RETURN TO COMMAND',
+                          icon: Icons.dashboard_rounded,
+                          onPressed: () {
+                            HapticService.medium();
+                            // Assuming navigation will be handled by HostNavigationShell or similar
+                            // For now, we'll just pop to previous screen if possible
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
+          ),
         ],
       ),
     );

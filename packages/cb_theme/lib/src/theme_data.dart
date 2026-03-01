@@ -250,7 +250,7 @@ class CBTheme {
       // Tabs
       tabBarTheme: TabBarThemeData(
         labelColor: scheme.primary,
-        unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.35),
+        unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.5),
         indicatorColor: scheme.primary,
         dividerColor: scheme.outlineVariant.withValues(alpha: 0.35),
         labelStyle: CBTypography.textTheme.labelSmall?.copyWith(

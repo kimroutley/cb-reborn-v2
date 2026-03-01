@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'games_night_recap_screen.dart';
 
-/// Displays game history records and aggregate stats.
 class StatsView extends StatefulWidget {
   final GameState gameState;
   final VoidCallback? onOpenCommand;
@@ -48,6 +47,7 @@ class _StatsViewState extends State<StatsView> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     if (_loading) {
       return const Center(
@@ -57,83 +57,108 @@ class _StatsViewState extends State<StatsView> {
 
     return Column(
       children: [
-        // TACTICAL HEADER for Stats
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: Row(
             children: [
               CBBadge(text: 'ANALYTICS ENGINE', color: scheme.primary),
               const Spacer(),
               if (widget.onOpenCommand != null) ...[
                 CBGhostButton(
-                  label: 'Command',
+                  label: 'COMMAND',
                   icon: Icons.dashboard_customize_rounded,
                   fullWidth: false,
-                  onPressed: widget.onOpenCommand,
+                  onPressed: () {
+                    HapticService.selection();
+                    widget.onOpenCommand!();
+                  },
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
               ],
               if (_records.isNotEmpty)
                 CBGhostButton(
                   label: 'PURGE DATA',
                   fullWidth: false,
-                  color: scheme.error, // Migrated from CBColors.dead
-                  onPressed: _confirmClearAll,
+                  color: scheme.error,
+                  onPressed: () {
+                    HapticService.heavy();
+                    _confirmClearAll();
+                  },
                 ),
             ],
           ),
         ),
         Expanded(
-          child: _records.isEmpty ? _buildEmptyState() : _buildContent(scheme),
+          child: _records.isEmpty ? _buildEmptyState(scheme, textTheme) : _buildContent(scheme, textTheme),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState() {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
+  Widget _buildEmptyState(ColorScheme scheme, TextTheme textTheme) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.bar_chart,
-              size: 80, color: scheme.surfaceContainerHighest),
-          const SizedBox(height: 24),
-          Text(
-            'NO GAME RECORDS',
-            style: textTheme.displaySmall!.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.7),
+      child: CBFadeSlide(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: CBGlassTile(
+            isPrismatic: true,
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.bar_chart_rounded,
+                    size: 64, color: scheme.primary.withValues(alpha: 0.2)),
+                const SizedBox(height: 24),
+                Text(
+                  'NO ARCHIVED DATA',
+                  style: textTheme.labelLarge?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'COMPLETE A SESSION TO GENERATE METRICS.',
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.5),
+                    height: 1.4,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Complete a game to see stats here.',
-            style: textTheme.bodySmall!.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildContent(ColorScheme scheme) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _records.length + 1,
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return _buildHeader(scheme);
-        }
-        final record = _records[index - 1];
-        return _buildRecordTile(record, scheme);
-      },
+  Widget _buildContent(ColorScheme scheme, TextTheme textTheme) {
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: scheme.primary,
+      backgroundColor: scheme.surface,
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 48),
+        physics: const BouncingScrollPhysics(),
+        itemCount: _records.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildHeader(scheme, textTheme);
+          }
+          final record = _records[index - 1];
+          return CBFadeSlide(
+            delay: Duration(milliseconds: 50 * index.clamp(0, 10)),
+            child: _buildRecordTile(record, scheme, textTheme),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildHeader(ColorScheme scheme) {
+  Widget _buildHeader(ColorScheme scheme, TextTheme textTheme) {
     final totalAwards = allRoleAwardDefinitions().length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -143,9 +168,9 @@ class _StatsViewState extends State<StatsView> {
             Expanded(
               child: _buildQuickStatTile(
                 context,
-                'TOTAL GAMES',
+                'TOTAL SESSIONS',
                 '${_stats.totalGames}',
-                Icons.videogame_asset_outlined,
+                Icons.videogame_asset_rounded,
                 scheme.primary,
               ),
             ),
@@ -153,9 +178,9 @@ class _StatsViewState extends State<StatsView> {
             Expanded(
               child: _buildQuickStatTile(
                 context,
-                'AVG PLAYERS',
+                'AVG OPERATIVES',
                 _stats.averagePlayerCount.toStringAsFixed(1),
-                Icons.people_outline_rounded,
+                Icons.people_alt_rounded,
                 scheme.secondary,
               ),
             ),
@@ -163,27 +188,39 @@ class _StatsViewState extends State<StatsView> {
             Expanded(
               child: _buildQuickStatTile(
                 context,
-                'ROLE AWARDS',
+                'ROLE ARCHIVES',
                 '$totalAwards',
-                Icons.emoji_events_rounded,
+                Icons.military_tech_rounded,
                 scheme.tertiary,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
         if (widget.gameState.phase != GamePhase.lobby) ...[
-          _buildLiveIntel(scheme),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 100),
+            child: _buildLiveIntel(scheme, textTheme),
+          ),
           const SizedBox(height: 24),
-          _buildVotingArchive(scheme),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 200),
+            child: _buildVotingArchive(scheme, textTheme),
+          ),
           const SizedBox(height: 24),
         ],
-        _buildStatsCard(scheme),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 300),
+          child: _buildStatsCard(scheme, textTheme),
+        ),
         const SizedBox(height: 24),
-        _buildGamesNightSessions(scheme),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 400),
+          child: _buildGamesNightSessions(scheme, textTheme),
+        ),
         const SizedBox(height: 24),
-        CBSectionHeader(title: 'GAME HISTORY', count: _records.length),
-        const SizedBox(height: 12),
+        const CBFeedSeparator(label: 'MISSION LOGS'),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -199,28 +236,39 @@ class _StatsViewState extends State<StatsView> {
     final textTheme = Theme.of(context).textTheme;
 
     return CBGlassTile(
-      borderColor: color.withValues(alpha: 0.2),
+      borderColor: color.withValues(alpha: 0.3),
       borderRadius: BorderRadius.circular(CBRadius.md),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       isPrismatic: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 16),
           Text(
             value,
             style: textTheme.headlineSmall!.copyWith(
-              color: scheme.onSurface,
-              fontWeight: FontWeight.bold,
+              color: color,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'RobotoMono',
+              shadows: CBColors.textGlow(color, intensity: 0.3),
             ),
           ),
+          const SizedBox(height: 6),
           Text(
             label,
             style: textTheme.labelSmall!.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.4),
               letterSpacing: 1.0,
-              fontSize: 8,
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -228,8 +276,7 @@ class _StatsViewState extends State<StatsView> {
     );
   }
 
-  Widget _buildLiveIntel(ColorScheme scheme) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _buildLiveIntel(ColorScheme scheme, TextTheme textTheme) {
     final players = widget.gameState.players;
     final alive = players.where((p) => p.isAlive).toList();
     final staff = alive.where((p) => p.alliance == Team.clubStaff).length;
@@ -237,34 +284,45 @@ class _StatsViewState extends State<StatsView> {
     final neutrals = alive.length - staff - animals;
 
     return CBPanel(
-      padding: const EdgeInsets.all(20),
-      borderColor: scheme.secondary.withValues(alpha: 0.5),
+      padding: const EdgeInsets.all(24),
+      borderColor: scheme.secondary.withValues(alpha: 0.4),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CBBadge(text: 'LIVE GAME INTEL', color: scheme.secondary),
-          const SizedBox(height: 16),
+          CBSectionHeader(
+            title: 'LIVE OPERATIVE INTEL',
+            icon: Icons.radar_rounded,
+            color: scheme.secondary,
+          ),
+          const SizedBox(height: 24),
           Row(
             children: [
               Expanded(
-                  child: _statBox('ALIVE', '${alive.length}',
-                      scheme.tertiary)), // Migrated from CBColors.matrixGreen
-              const SizedBox(width: 8),
-              Expanded(child: _statBox('STAFF', '$staff', scheme.secondary)),
-              const SizedBox(width: 8),
-              Expanded(child: _statBox('ANIMALS', '$animals', scheme.primary)),
-              const SizedBox(width: 8),
+                  child: _statBox('ACTIVE', '${alive.length}',
+                      scheme.tertiary, textTheme)),
+              const SizedBox(width: 12),
               Expanded(
-                  child: _statBox('NEUTRALS', '$neutrals',
-                      scheme.error)), // Migrated from CBColors.alertOrange
+                  child: _statBox('STAFF', '$staff', scheme.primary,
+                      textTheme)),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: _statBox('PARTY', '$animals', scheme.secondary,
+                      textTheme)),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: _statBox('NEUTRAL', '$neutrals',
+                      CBColors.alertOrange, textTheme)),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text(
-            'CORE STABILITY: ${(alive.length / players.length * 100).round()}%',
+            'SYSTEM STABILITY: ${(alive.length / players.length * 100).round()}%',
+            textAlign: TextAlign.center,
             style: textTheme.labelSmall!.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.4),
-              letterSpacing: 2,
+              letterSpacing: 1.5,
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -272,30 +330,33 @@ class _StatsViewState extends State<StatsView> {
     );
   }
 
-  Widget _statBox(String label, String value, Color accentColor) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
+  Widget _statBox(String label, String value, Color accentColor, TextTheme textTheme) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
         border: Border.all(color: accentColor.withValues(alpha: 0.3)),
         color: accentColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
           Text(
             value,
-            style: textTheme.displayLarge!.copyWith(
+            style: textTheme.headlineSmall!.copyWith(
               color: accentColor,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'RobotoMono',
+              shadows: CBColors.textGlow(accentColor, intensity: 0.3),
             ),
           ),
+          const SizedBox(height: 6),
           Text(
             label,
             style: textTheme.labelSmall!.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.4),
-              letterSpacing: 1.5,
+              color: accentColor.withValues(alpha: 0.7),
+              letterSpacing: 1.0,
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -303,8 +364,7 @@ class _StatsViewState extends State<StatsView> {
     );
   }
 
-  Widget _buildVotingArchive(ColorScheme scheme) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _buildVotingArchive(ColorScheme scheme, TextTheme textTheme) {
     final eventLog = widget.gameState.eventLog;
     final voteEvents = eventLog.whereType<GameEventVote>().toList()
       ..sort((a, b) => a.day.compareTo(b.day));
@@ -313,31 +373,34 @@ class _StatsViewState extends State<StatsView> {
       return const SizedBox.shrink();
     }
 
-    // Group by day
     final byDay = <int, List<GameEventVote>>{};
     for (final v in voteEvents) {
       byDay.putIfAbsent(v.day, () => []).add(v);
     }
 
     return CBPanel(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       borderColor: scheme.tertiary.withValues(alpha: 0.4),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CBBadge(text: 'VOTING ARCHIVE', color: scheme.tertiary),
-          const SizedBox(height: 16),
+          CBSectionHeader(
+            title: 'VOTING ARCHIVES',
+            icon: Icons.how_to_vote_rounded,
+            color: scheme.tertiary,
+          ),
+          const SizedBox(height: 24),
           for (final day in byDay.keys.toList()..sort()) ...[
             Text(
-              'DAY $day',
+              'DAY $day PROTOCOL',
               style: textTheme.labelSmall?.copyWith(
                 color: scheme.tertiary,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2.0,
-                fontSize: 9,
+                fontSize: 10,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             ...byDay[day]!.map((v) {
               final voter = widget.gameState.players
                   .cast<Player?>()
@@ -345,38 +408,38 @@ class _StatsViewState extends State<StatsView> {
               final target = widget.gameState.players
                   .cast<Player?>()
                   .firstWhere((p) => p?.id == v.targetId, orElse: () => null);
-              final voterLabel = voter?.name ?? v.voterId;
+              final voterLabel = voter?.name.toUpperCase() ?? v.voterId.toUpperCase();
               final targetLabel = v.targetId == 'abstain'
-                  ? 'ABSTAIN'
-                  : (target?.name ?? v.targetId);
+                  ? 'ABSTAINED'
+                  : (target?.name.toUpperCase() ?? v.targetId.toUpperCase());
               return Padding(
-                padding: const EdgeInsets.only(bottom: 4),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    Icon(Icons.how_to_vote_rounded,
-                        size: 12,
+                    Icon(Icons.arrow_right_alt_rounded,
+                        size: 16,
                         color: scheme.onSurface.withValues(alpha: 0.4)),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Text(
                       '$voterLabel → $targetLabel',
                       style: textTheme.bodySmall?.copyWith(
                         color: scheme.onSurface.withValues(alpha: 0.7),
                         fontSize: 11,
+                        fontFamily: 'RobotoMono',
                       ),
                     ),
                   ],
                 ),
               );
             }),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildStatsCard(ColorScheme scheme) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _buildStatsCard(ColorScheme scheme, TextTheme textTheme) {
     final total = _stats.totalGames;
     if (total == 0) return const SizedBox.shrink();
 
@@ -388,65 +451,69 @@ class _StatsViewState extends State<StatsView> {
     final neutralPct = total > 0 ? (neutralWins / total * 100).round() : 0;
 
     return CBPanel(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
+      borderColor: scheme.primary.withValues(alpha: 0.4),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CBBadge(text: 'AGGREGATE STATS', color: scheme.primary),
-          const SizedBox(height: 16),
+          CBSectionHeader(
+            title: 'AGGREGATE PERFORMANCE',
+            icon: Icons.leaderboard_rounded,
+            color: scheme.primary,
+          ),
+          const SizedBox(height: 24),
 
-          // Top row — totals
           Row(
             children: [
-              Expanded(child: _statBox('GAMES', '$total', scheme.primary)),
-              const SizedBox(width: 8),
+              Expanded(child: _statBox('MISSIONS', '$total', scheme.primary, textTheme)),
+              const SizedBox(width: 12),
               Expanded(
                   child: _statBox(
-                      'AVG PLAYERS',
+                      'AVG OPERATIVES',
                       _stats.averagePlayerCount.toStringAsFixed(1),
-                      scheme.secondary)),
-              const SizedBox(width: 8),
+                      scheme.secondary, textTheme)),
+              const SizedBox(width: 12),
               Expanded(
                   child: _statBox(
-                      'AVG DAYS',
+                      'AVG CYCLES',
                       _stats.averageDayCount.toStringAsFixed(1),
-                      scheme.error)), // Migrated from CBColors.alertOrange
+                      CBColors.alertOrange, textTheme)),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // Win rate bars
           Text(
-            'WIN RATES',
+            'FACTION SUCCESS RATES',
             style: textTheme.labelSmall!.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.6),
-              letterSpacing: 2,
+              color: scheme.onSurface.withValues(alpha: 0.4),
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w900,
+              fontSize: 10,
             ),
           ),
-          const SizedBox(height: 8),
-          _winBar('CLUB STAFF', staffPct, scheme.secondary),
-          const SizedBox(height: 6),
-          _winBar('PARTY ANIMALS', paPct,
-              scheme.tertiary), // Migrated from CBColors.matrixGreen
-          const SizedBox(height: 6),
-          _winBar('NEUTRAL', neutralPct,
-              scheme.error), // Migrated from CBColors.alertOrange
+          const SizedBox(height: 12),
+          _winBar('CLUB STAFF', staffPct, scheme.primary, textTheme),
+          const SizedBox(height: 10),
+          _winBar('PARTY ANIMALS', paPct, scheme.secondary, textTheme),
+          const SizedBox(height: 10),
+          _winBar('NEUTRAL', neutralPct, CBColors.alertOrange, textTheme),
 
-          // Top roles
           if (_stats.roleFrequency.isNotEmpty) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Text(
-              'TOP ROLES',
+              'TOP OPERATIVE ROLES',
               style: textTheme.labelSmall!.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.6),
-                letterSpacing: 2,
+                color: scheme.onSurface.withValues(alpha: 0.4),
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w900,
+                fontSize: 10,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
-              runSpacing: 6,
-              children: _topRoles(scheme),
+              runSpacing: 8,
+              children: _topRoles(scheme, textTheme),
             ),
           ],
         ],
@@ -454,50 +521,42 @@ class _StatsViewState extends State<StatsView> {
     );
   }
 
-  Widget _winBar(String label, int percent, Color color) {
+  Widget _winBar(String label, int percent, Color color, TextTheme textTheme) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Row(
       children: [
         SizedBox(
-          width: 100,
+          width: 110,
           child: Text(
             label,
             style: textTheme.labelSmall!.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
         Expanded(
-          child: Stack(
-            children: [
-              Container(
-                height: 16,
-                decoration: BoxDecoration(
-                  color: scheme.surfaceContainerLowest,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              FractionallySizedBox(
-                widthFactor: percent / 100,
-                child: Container(
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-            ],
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: percent / 100,
+              minHeight: 12,
+              backgroundColor: scheme.onSurface.withValues(alpha: 0.1),
+              valueColor: AlwaysStoppedAnimation<Color>(color.withValues(alpha: 0.7)),
+            ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         SizedBox(
-          width: 36,
+          width: 40,
           child: Text(
             '$percent%',
-            style: textTheme.labelSmall!.copyWith(color: color, fontSize: 12),
+            style: textTheme.labelMedium!.copyWith(
+              color: color,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'RobotoMono',
+            ),
             textAlign: TextAlign.right,
           ),
         ),
@@ -505,22 +564,24 @@ class _StatsViewState extends State<StatsView> {
     );
   }
 
-  List<Widget> _topRoles(ColorScheme scheme) {
+  List<Widget> _topRoles(ColorScheme scheme, TextTheme textTheme) {
     final sorted = _stats.roleFrequency.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    return sorted.take(8).map((e) {
+    return sorted.take(6).map((e) {
       final wins = _stats.roleWinCount[e.key] ?? 0;
-      final roleName = roleCatalogMap[e.key]?.name ??
+      final roleDef = roleCatalogMap[e.key];
+      final roleName = roleDef?.name ??
           e.key.replaceAll('_', ' ').toUpperCase();
-      return CBBadge(
+      final roleColor = roleDef != null ? CBColors.fromHex(roleDef.colorHex) : scheme.primary;
+
+      return CBMiniTag(
         text: '$roleName ×${e.value} (W:$wins)',
-        color: scheme.primary,
+        color: roleColor,
       );
     }).toList();
   }
 
-  Widget _buildGamesNightSessions(ColorScheme scheme) {
-    // Use cached sessions
+  Widget _buildGamesNightSessions(ColorScheme scheme, TextTheme textTheme) {
     if (_sessions.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -528,39 +589,40 @@ class _StatsViewState extends State<StatsView> {
     final recordsById = {for (final r in _records) r.id: r};
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        CBSectionHeader(title: 'GAMES NIGHT SESSIONS', count: _sessions.length),
-        const SizedBox(height: 12),
+        CBSectionHeader(title: 'ARCHIVED SESSIONS', icon: Icons.folder_rounded, color: scheme.tertiary, count: _sessions.length),
+        const SizedBox(height: 16),
         ..._sessions.map((session) {
           final games = session.gameIds
               .map((id) => recordsById[id])
               .whereType<GameRecord>()
               .toList();
 
-          return Dismissible(
-            key: Key(session.id),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 16),
-              decoration: BoxDecoration(
-                color: scheme.error, // Migrated from CBColors.bloodOrange
-                borderRadius: BorderRadius.circular(8),
+          return CBFadeSlide(
+            delay: Duration(milliseconds: 50 * _sessions.indexOf(session).clamp(0, 5)),
+            child: Dismissible(
+              key: Key(session.id),
+              direction: DismissDirection.endToStart,
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 24),
+                decoration: BoxDecoration(
+                  color: scheme.error,
+                  borderRadius: BorderRadius.circular(CBRadius.md),
+                ),
+                child: Icon(Icons.delete_forever_rounded, color: scheme.onError, size: 28),
               ),
-              child: Icon(Icons.delete,
-                  color: scheme.onSurface), // Migrated from CBColors.voidBlack
+              confirmDismiss: (_) => _confirmDelete(
+                'DELETE SESSION LOG',
+                'PERMANENTLY ERASE SESSION "${session.sessionName.toUpperCase()}" (GAME RECORDS REMAIN).',
+              ),
+              onDismissed: (_) async {
+                await PersistenceService.instance.deleteSession(session.id);
+                _loadData();
+              },
+              child: _buildSessionTile(session, games, scheme, textTheme),
             ),
-            confirmDismiss: (_) => _confirmDelete(
-              'Delete session "${session.sessionName}"?',
-              'This will not delete the individual game records.',
-            ),
-            onDismissed: (_) async {
-              await PersistenceService.instance.deleteSession(session.id);
-              // Reload data to refresh list
-              _loadData();
-            },
-            child: _buildSessionTile(session, games, scheme),
           );
         }),
       ],
@@ -568,19 +630,19 @@ class _StatsViewState extends State<StatsView> {
   }
 
   Widget _buildSessionTile(
-      GamesNightRecord session, List<GameRecord> games, ColorScheme scheme) {
-    final textTheme = Theme.of(context).textTheme;
+      GamesNightRecord session, List<GameRecord> games, ColorScheme scheme, TextTheme textTheme) {
     final dateRange = session.endedAt != null
         ? '${DateFormat('MMM dd').format(session.startedAt)} - ${DateFormat('MMM dd, yyyy').format(session.endedAt!)}'
-        : '${DateFormat('MMM dd, yyyy').format(session.startedAt)} (Active)';
+        : '${DateFormat('MMM dd, yyyy').format(session.startedAt)} (ACTIVE)';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: CBPanel(
-        padding: const EdgeInsets.all(16),
+      child: CBGlassTile(
+        padding: const EdgeInsets.all(20),
+        isPrismatic: session.isActive,
         borderColor: session.isActive
-            ? scheme.tertiary // Migrated from CBColors.matrixGreen
-            : scheme.outline.withValues(alpha: 0.2),
+            ? scheme.tertiary
+            : scheme.outlineVariant.withValues(alpha: 0.2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -588,27 +650,27 @@ class _StatsViewState extends State<StatsView> {
               children: [
                 if (session.isActive)
                   Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: 12),
                     child: CBBadge(
                         text: 'ACTIVE',
-                        color: scheme
-                            .tertiary), // Migrated from CBColors.matrixGreen
+                        color: scheme.tertiary, icon: Icons.bolt_rounded),
                   ),
                 Expanded(
                   child: Text(
-                    session.sessionName,
-                    style: textTheme.headlineSmall!.copyWith(
-                      color: session.isActive
-                          ? scheme
-                              .tertiary // Migrated from CBColors.matrixGreen
-                          : scheme.onSurface,
+                    session.sessionName.toUpperCase(),
+                    style: textTheme.titleMedium!.copyWith(
+                      color: session.isActive ? scheme.tertiary : scheme.onSurface,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                      shadows: session.isActive ? CBColors.textGlow(scheme.tertiary, intensity: 0.3) : null,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.play_circle_outline_rounded),
+                  icon: Icon(Icons.open_in_new_rounded, color: scheme.onSurface.withValues(alpha: 0.7)),
                   tooltip: 'View Recap',
                   onPressed: () {
+                    HapticService.selection();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -622,19 +684,40 @@ class _StatsViewState extends State<StatsView> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Text(
               dateRange,
               style: textTheme.labelSmall!.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.6),
+                color: scheme.onSurface.withValues(alpha: 0.5),
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              '${games.length} game${games.length == 1 ? '' : 's'} • ${session.playerNames.length} player${session.playerNames.length == 1 ? '' : 's'}',
-              style: textTheme.bodySmall!.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.7),
-              ),
+            Row(
+              children: [
+                Icon(Icons.videogame_asset_rounded, size: 16, color: scheme.primary.withValues(alpha: 0.7)),
+                const SizedBox(width: 8),
+                Text(
+                  '${games.length} MISSION${games.length == 1 ? '' : 'S'}',
+                  style: textTheme.bodySmall!.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Icon(Icons.people_alt_rounded, size: 16, color: scheme.secondary.withValues(alpha: 0.7)),
+                const SizedBox(width: 8),
+                Text(
+                  '${session.playerNames.length} OPERATIVE${session.playerNames.length == 1 ? '' : 'S'}',
+                  style: textTheme.bodySmall!.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -642,20 +725,18 @@ class _StatsViewState extends State<StatsView> {
     );
   }
 
-  Widget _buildRecordTile(GameRecord record, ColorScheme scheme) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _buildRecordTile(GameRecord record, ColorScheme scheme, TextTheme textTheme) {
     final date = DateFormat('MMM dd, yyyy – HH:mm').format(record.startedAt);
     final winnerLabel = switch (record.winner) {
-      Team.clubStaff => 'CLUB STAFF',
-      Team.partyAnimals => 'PARTY ANIMALS',
-      Team.neutral => 'NEUTRAL',
+      Team.clubStaff => 'STAFF VICTORY',
+      Team.partyAnimals => 'PARTY VICTORY',
+      Team.neutral => 'NEUTRAL VICTORY',
       _ => record.winner.name.toUpperCase(),
     };
     final winnerColor = switch (record.winner) {
-      Team.clubStaff => scheme.secondary,
-      Team.partyAnimals =>
-        scheme.tertiary, // Migrated from CBColors.matrixGreen
-      Team.neutral => scheme.error, // Migrated from CBColors.alertOrange
+      Team.clubStaff => scheme.primary,
+      Team.partyAnimals => scheme.secondary,
+      Team.neutral => CBColors.alertOrange,
       _ => scheme.onSurface.withValues(alpha: 0.6),
     };
 
@@ -663,74 +744,82 @@ class _StatsViewState extends State<StatsView> {
       key: Key(record.id),
       direction: DismissDirection.endToStart,
       confirmDismiss: (_) => _confirmDelete(
-        'DELETE GAME RECORD',
-        'Delete this archived game record? This cannot be undone.',
+        'DELETE MISSION LOG',
+        'PERMANENTLY ERASE THIS ARCHIVED MISSION LOG? THIS CANNOT BE UNDONE.',
       ),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
-        color:
-            scheme.error.withValues(alpha: 0.8), // Migrated from CBColors.dead
-        child: Icon(Icons.delete_forever, color: scheme.onSurface),
+        color: scheme.error,
+        child: Icon(Icons.delete_forever_rounded, color: scheme.onError, size: 28),
       ),
       onDismissed: (_) async {
+        HapticService.heavy();
         await PersistenceService.instance.deleteGameRecord(record.id);
         await _loadData();
       },
       child: CBPanel(
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 12),
-        borderColor: winnerColor.withValues(alpha: 0.3),
+        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.only(bottom: 16),
+        borderColor: winnerColor.withValues(alpha: 0.4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                CBBadge(text: winnerLabel, color: winnerColor),
+                CBBadge(text: winnerLabel, color: winnerColor, icon: Icons.emoji_events_rounded),
                 const Spacer(),
                 Text(
                   date,
                   style: textTheme.labelSmall!.copyWith(
                     color: scheme.onSurface.withValues(alpha: 0.5),
-                    fontSize: 11,
+                    fontSize: 10,
+                    letterSpacing: 0.5,
+                    fontFamily: 'RobotoMono',
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(
               children: [
                 _miniStat(
-                    Icons.people_outline, '${record.playerCount}', scheme),
-                const SizedBox(width: 20),
+                    Icons.people_alt_rounded, '${record.playerCount} Operatives', scheme, textTheme),
+                const SizedBox(width: 24),
                 _miniStat(
-                    Icons.wb_sunny_outlined, '${record.dayCount} days', scheme),
-                const SizedBox(width: 20),
-                _miniStat(Icons.casino_outlined,
-                    '${record.rolesInPlay.length} roles', scheme),
+                    Icons.timer_rounded, '${record.dayCount} Cycles', scheme, textTheme),
+                const SizedBox(width: 24),
+                _miniStat(Icons.assignment_ind_rounded,
+                    '${record.rolesInPlay.length} Roles', scheme, textTheme),
               ],
             ),
             if (record.roster.isNotEmpty) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
+              Text(
+                'OPERATIVE STATUS',
+                style: textTheme.labelSmall!.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.4),
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 9,
+                ),
+              ),
+              const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
-                runSpacing: 6,
-                children: record.roster.map((snap) {
-                  final color = snap.alive
-                      ? scheme.tertiary
-                      : scheme
-                          .error; // Migrated from CBColors.matrixGreen and CBColors.dead
-                  return Text(
-                    snap.name,
-                    style: textTheme.bodySmall!.copyWith(
-                      color: color.withValues(alpha: 0.7),
-                      decoration: snap.alive
-                          ? TextDecoration.none
-                          : TextDecoration.lineThrough,
-                      fontSize: 12,
-                    ),
-                  );
-                }).toList(),
+                runSpacing: 8,
+                children: record.roster
+                    .map<Widget>((snap) {
+                      final color = snap.alive
+                          ? scheme.tertiary
+                          : scheme.error;
+                      return CBMiniTag(
+                        text: snap.name,
+                        color: color,
+                        tooltip: snap.alive ? null : 'Eliminated',
+                      );
+                    })
+                    .toList(),
               ),
             ],
           ],
@@ -739,24 +828,23 @@ class _StatsViewState extends State<StatsView> {
     );
   }
 
-  Widget _miniStat(IconData icon, String value, ColorScheme scheme) {
-    final textTheme = Theme.of(context).textTheme;
-
+  Widget _miniStat(IconData icon, String value, ColorScheme scheme, TextTheme textTheme) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           icon,
           size: 16,
-          color: scheme.primary.withValues(alpha: 0.7),
+          color: scheme.onSurface.withValues(alpha: 0.5),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         Text(
-          value,
+          value.toUpperCase(),
           style: textTheme.bodySmall!.copyWith(
             color: scheme.onSurface.withValues(alpha: 0.8),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
           ),
         ),
       ],
@@ -769,25 +857,31 @@ class _StatsViewState extends State<StatsView> {
       accentColor: Theme.of(context).colorScheme.error,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'CLEAR ALL RECORDS',
+            'PURGE ALL ARCHIVES',
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Theme.of(context).colorScheme.error,
-                  letterSpacing: 1.6,
-                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2.0,
+                  fontWeight: FontWeight.w900,
                   shadows: CBColors.textGlow(
                     Theme.of(context).colorScheme.error,
-                    intensity: 0.55,
+                    intensity: 0.6,
                   ),
                 ),
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'Delete all game history? This cannot be undone.',
-          ),
           const SizedBox(height: 24),
+          Text(
+            'PERMANENTLY DELETE ALL GAME HISTORY AND SESSION LOGS? THIS CANNOT BE UNDONE.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                  height: 1.5,
+                ),
+          ),
+          const SizedBox(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -808,6 +902,7 @@ class _StatsViewState extends State<StatsView> {
       ),
     ).then((confirmed) {
       if (confirmed == true) {
+        HapticService.heavy();
         PersistenceService.instance.clearGameRecords();
         _loadData();
       }
@@ -818,29 +913,31 @@ class _StatsViewState extends State<StatsView> {
     final scheme = Theme.of(context).colorScheme;
     return showThemedDialog<bool>(
       context: context,
-      accentColor: scheme.error, // Migrated from CBColors.bloodOrange
+      accentColor: scheme.error,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            title,
+            title.toUpperCase(),
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: scheme.error, // Migrated from CBColors.bloodOrange
-                  letterSpacing: 1.6,
-                  fontWeight: FontWeight.bold,
-                  shadows: CBColors.textGlow(scheme.error, intensity: 0.55),
-                ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.75),
-                  height: 1.3,
+                  color: scheme.error,
+                  letterSpacing: 2.0,
+                  fontWeight: FontWeight.w900,
+                  shadows: CBColors.textGlow(scheme.error, intensity: 0.6),
                 ),
           ),
           const SizedBox(height: 24),
+          Text(
+            message.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.7),
+                  height: 1.5,
+                ),
+          ),
+          const SizedBox(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -851,9 +948,8 @@ class _StatsViewState extends State<StatsView> {
               const SizedBox(width: 12),
               CBPrimaryButton(
                 fullWidth: false,
-                label: 'DELETE',
-                backgroundColor:
-                    scheme.error, // Migrated from CBColors.bloodOrange
+                label: 'CONFIRM DELETE',
+                backgroundColor: scheme.error,
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],

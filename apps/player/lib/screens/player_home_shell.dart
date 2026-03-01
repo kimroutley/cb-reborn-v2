@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cb_theme/cb_theme.dart'; // Import for CBMotion
+
 import '../player_destinations.dart';
 import '../player_navigation.dart';
 import '../active_bridge.dart';
 import '../player_onboarding_provider.dart';
+import 'claim_screen.dart';
 import 'connect_screen.dart';
 import 'lobby_screen.dart';
 import 'profile_screen.dart';
@@ -32,7 +35,7 @@ class PlayerHomeShell extends ConsumerStatefulWidget {
   const PlayerHomeShell({
     super.key,
     this.startConfirmTimeout = const Duration(seconds: 10),
-    this.transitionDuration = const Duration(milliseconds: 2200),
+    this.transitionDuration = CBMotion.transition, // Using CBMotion.transition
   });
 
   final Duration startConfirmTimeout;
@@ -66,7 +69,6 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
   void _handleManualStartConfirmation() {
     final onboarding = ref.read(playerOnboardingProvider);
 
-    // Only allow if we are actually waiting for confirmation
     if (onboarding.awaitingStartConfirmation) {
       ref
           .read(playerOnboardingProvider.notifier)
@@ -107,7 +109,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
     if ((connectedNow || acceptedNow) &&
         nextPhase == 'lobby' &&
         destination == PlayerDestination.connect) {
-      nav.setDestination(PlayerDestination.lobby);
+      // No auto-navigate: Connect screen shows group chat and "Continue to Lounge".
     }
 
     if (nextPhase == prevPhase) {
@@ -140,8 +142,6 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         break;
     }
 
-    // Safety net: if the player has already confirmed role during setup,
-    // auto-progress without requiring an extra tap.
     if (nextPhase == 'setup') {
       final myId = nextState.myPlayerId;
       final isRoleConfirmed =
@@ -152,8 +152,6 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
       }
     }
   }
-
-  // _showStartConfirmationDialog removed
 
   void _beginTransitionToGame() {
     if (!mounted) {
@@ -185,8 +183,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         activeWidget = const LobbyScreen();
         break;
       case PlayerDestination.claim:
-        // Identity is now auto-claimed by authUid/name; skip straight to game.
-        activeWidget = const GameScreen();
+        activeWidget = ClaimScreen(); // Retained for explicit claim screen
         break;
       case PlayerDestination.transition:
         activeWidget = const StartTransitionScreen();
@@ -218,7 +215,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
     }
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 500),
+      duration: CBMotion.transition,
       transitionBuilder: (Widget child, Animation<double> animation) {
         return FadeTransition(
           opacity: animation,
@@ -228,7 +225,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
               end: Offset.zero,
             ).animate(CurvedAnimation(
               parent: animation,
-              curve: Curves.easeOutCubic,
+              curve: CBMotion.emphasizedCurve,
             )),
             child: child,
           ),

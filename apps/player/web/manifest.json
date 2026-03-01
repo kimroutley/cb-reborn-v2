@@ -4,7 +4,7 @@
     "start_url": ".",
     "display": "standalone",
     "background_color": "#000000",
-    "theme_color": "#00F0FF",
+    "theme_color": "#4CC9F0",
     "description": "Social deduction game - party edition. Find the dealers before they take over the party.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,

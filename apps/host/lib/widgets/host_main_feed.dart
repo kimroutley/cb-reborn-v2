@@ -23,16 +23,20 @@ class HostMainFeed extends ConsumerStatefulWidget {
 class _HostMainFeedState extends ConsumerState<HostMainFeed> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  /// When set, messages are sent only to players with this role.
+  String? _targetRoleId;
 
   void _onSend() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+    HapticService.selection();
 
     ref.read(gameProvider.notifier).postBulletin(
       title: 'HOST',
       content: text,
       roleId: null, // Indicates a message from the host
       type: 'chat',
+      targetRoleId: _targetRoleId,
     );
 
     _controller.clear();
@@ -51,6 +55,55 @@ class _HostMainFeedState extends ConsumerState<HostMainFeed> {
     });
   }
 
+  /// Send-to chips: EVERYONE + one per player (by name). Selection maps to
+  /// targetRoleId for delivery (M3 FilterChip from theme).
+  Widget _buildTargetRoleChips(ColorScheme scheme, TextTheme textTheme) {
+    final playersWithRole = widget.gameState.players
+        .where((p) => p.role.id != 'unassigned')
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: FilterChip(
+              label: Text(
+                'EVERYONE',
+                style: textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              selected: _targetRoleId == null,
+              onSelected: (_) => setState(() => _targetRoleId = null),
+            ),
+          ),
+          ...playersWithRole.map((player) {
+            final selected = _targetRoleId == player.role.id;
+            return Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: FilterChip(
+                label: Text(
+                  player.name.toUpperCase(),
+                  style: textTheme.labelSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                selected: selected,
+                onSelected: (_) => setState(() =>
+                    _targetRoleId = selected ? null : player.role.id),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -63,7 +116,8 @@ class _HostMainFeedState extends ConsumerState<HostMainFeed> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // Use the unified bulletinBoard for the feed
+    // Host sees the entire group chat: full bulletin (including host-only, hostIntel)
+    // plus ghost messages. Players see only player-safe entries (sanitized in player app).
     final messages = widget.gameState.bulletinBoard;
 
     // Interleave Ghost Chat for Host only
@@ -111,23 +165,28 @@ class _HostMainFeedState extends ConsumerState<HostMainFeed> {
     return Column(
       children: [
         Expanded(
-          child: messages.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.chat_bubble_outline_rounded,
-                          size: 48,
-                          color: scheme.onSurface.withValues(alpha: 0.2)),
-                      const SizedBox(height: 16),
-                      Text(
-                        'NO COMMS YET',
-                        style: textTheme.labelMedium?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.4),
-                          letterSpacing: 2.0,
+          child: Semantics(
+            label: 'Group chat message list',
+            child: messages.isEmpty
+              ? Semantics(
+                  label: 'Group chat: no messages yet',
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.chat_bubble_outline_rounded,
+                            size: 48,
+                            color: scheme.onSurface.withValues(alpha: 0.2)),
+                        const SizedBox(height: 16),
+                        Text(
+                          'NO COMMS YET',
+                          style: textTheme.labelMedium?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.4),
+                            letterSpacing: 2.0,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 )
               : ListView.builder(
@@ -386,34 +445,41 @@ class _HostMainFeedState extends ConsumerState<HostMainFeed> {
             },
           ),
         ),
+        ),
 
+        // Target role selector (Everyone vs specific role)
+        _buildTargetRoleChips(scheme, textTheme),
+        const SizedBox(height: CBSpace.x1),
         // Narrative Entry Area
-        CBPanel(
-          margin: const EdgeInsets.all(12),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          borderColor: scheme.primary.withValues(alpha: 0.3),
-          child: Row(
-            children: [
-              Expanded(
-                child: CBTextField(
-                  controller: _controller,
-                  hintText: 'Send public message...',
-                  textStyle: textTheme.bodyMedium!,
-                  textInputAction: TextInputAction.send,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
+        Semantics(
+          label: 'Send message to group chat',
+          child: CBPanel(
+            margin: CBInsets.screen,
+            padding: CBInsets.panel,
+            borderColor: scheme.primary.withValues(alpha: 0.3),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CBTextField(
+                    controller: _controller,
+                    hintText: 'Send public message...',
+                    textStyle: textTheme.bodyMedium!,
+                    textInputAction: TextInputAction.send,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                    onSubmitted: (_) => _onSend(),
                   ),
-                  onSubmitted: (_) => _onSend(),
                 ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: _onSend,
-                icon: Icon(Icons.send_rounded, color: scheme.primary),
-                tooltip: 'Send Message',
-              ),
-            ],
+                const SizedBox(width: CBSpace.x2),
+                IconButton(
+                  onPressed: _onSend,
+                  icon: Icon(Icons.send_rounded, color: scheme.primary),
+                  tooltip: 'Send message',
+                ),
+              ],
+            ),
           ),
         ),
       ],

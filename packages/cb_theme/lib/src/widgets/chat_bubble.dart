@@ -116,7 +116,7 @@ class CBMessageBubble extends StatelessWidget {
   Widget _buildBubbleMessage(BuildContext context) {
     final accentColor = color ?? Theme.of(context).colorScheme.primary;
 
-    // Bubble shape constants
+    // Bubble shape: Style Guide 20px corners, 4px grouped edge (M3-friendly)
     const radius = Radius.circular(20);
     const smallRadius = Radius.circular(4);
 
@@ -228,9 +228,12 @@ class CBMessageBubble extends StatelessWidget {
                       ),
                     ),
                   ),
-                GestureDetector(
-                  onTap: onTap,
-                  child: Stack(
+                Semantics(
+                  button: onTap != null,
+                  label: sender.isNotEmpty ? '$sender: $message' : message,
+                  child: GestureDetector(
+                    onTap: onTap,
+                    child: Stack(
                     clipBehavior: Clip.none,
                     children: [
                       Container(
@@ -241,7 +244,7 @@ class CBMessageBubble extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: isSender
                               ? accentColor.withValues(alpha: 0.2)
-                              : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                              : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.7),
                           borderRadius: borderRadius,
                           border: isSender
                               ? Border.all(color: accentColor.withValues(alpha: 0.5))
@@ -267,6 +270,7 @@ class CBMessageBubble extends StatelessWidget {
                           ),
                         ),
                     ],
+                    ),
                   ),
                 ),
                 if (groupPosition == CBMessageGroupPosition.bottom ||
@@ -277,7 +281,7 @@ class CBMessageBubble extends StatelessWidget {
                       child: Text(
                         _formatTime(timestamp!),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                           fontSize: isCompact ? 8 : 9,
                         ),
                       ),

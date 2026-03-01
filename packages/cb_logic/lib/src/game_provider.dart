@@ -829,11 +829,13 @@ class Game extends _$Game {
   }
 
   /// Add a message to the public feed (bulletin board).
+  /// When [targetRoleId] is set, only players with that role see the message (e.g. host message to Dealers only).
   void postBulletin({
     required String title,
     required String content,
     String? roleId,
     String type = 'info',
+    String? targetRoleId,
   }) {
     final entry = BulletinEntry(
       id: '${DateTime.now().millisecondsSinceEpoch}_msg',
@@ -842,6 +844,7 @@ class Game extends _$Game {
       type: type,
       timestamp: DateTime.now(),
       roleId: roleId,
+      targetRoleId: targetRoleId,
     );
 
     // Chat messages are captured in gameHistory so the AI recap has full
@@ -1421,9 +1424,11 @@ class Game extends _$Game {
     _persist();
   }
 
-  /// Reset for a rematch: back to lobby keeping player names/IDs but
-  /// wiping roles, votes, and all game-specific state.
-  void returnToLobbyWithPlayers() {
+  /// Reset for a rematch: back to lobby keeping player names/IDs.
+  ///
+  /// By default this wipes roles/alliance. When [preserveRoles] is true,
+  /// existing role assignments are retained for this join code lifecycle.
+  void returnToLobbyWithPlayers({bool preserveRoles = false}) {
     const unassigned = Role(
       id: 'unassigned',
       name: 'Unassigned',
@@ -1444,8 +1449,8 @@ class Game extends _$Game {
               name: p.name,
               authUid: p.authUid,
               isBot: p.isBot,
-              role: unassigned,
-              alliance: Team.unknown,
+              role: preserveRoles ? p.role : unassigned,
+              alliance: preserveRoles ? p.alliance : Team.unknown,
             ))
         .toList();
 
@@ -1867,9 +1872,17 @@ class Game extends _$Game {
         final resolvedDay = state.dayCount;
         final dayReportLines = [...res.report, ...dayResolution.lines];
 
+        final playersForNightScript = state.players;
+        final playersAfterJoinDelay = playersForNightScript
+            .map(
+              (player) => player.joinsNextNight
+                  ? player.copyWith(joinsNextNight: false)
+                  : player,
+            )
+            .toList();
+
         state = state.copyWith(
-          players:
-              state.players, // Current state includes resolution + deadpool
+          players: playersAfterJoinDelay,
           lastDayReport: [
             ...res.report,
             ...dayResolution.lines,
@@ -1888,7 +1901,7 @@ class Game extends _$Game {
           dayCount: state.dayCount + 1,
           phase: GamePhase.night,
           scriptQueue: ScriptBuilder.buildNightScript(
-            state.players,
+            playersForNightScript,
             state.dayCount + 1,
           ),
           scriptIndex: 0,

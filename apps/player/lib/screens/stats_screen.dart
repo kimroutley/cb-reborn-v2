@@ -19,47 +19,49 @@ class StatsScreen extends ConsumerWidget {
     final stats = ref.watch(playerStatsProvider);
 
     return CBPrismScaffold(
-      title: 'GAME STATS',
+      title: 'OPERATIVE STATS',
       drawer: const CustomDrawer(),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 48),
+          physics: const BouncingScrollPhysics(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CBFadeSlide(
                 child: CBPanel(
                   borderColor: scheme.primary.withValues(alpha: 0.4),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       CBSectionHeader(
-                        title: "CAREER METRICS",
-                        icon: Icons.show_chart_rounded,
+                        title: "PERFORMANCE METRICS",
+                        icon: Icons.analytics_rounded,
                         color: scheme.primary,
                       ),
-                      const SizedBox(height: CBSpace.x6),
+                      const SizedBox(height: 32),
                       _buildStatRow(
                         "GAMES PLAYED",
                         "${stats.gamesPlayed}",
                         scheme.secondary,
                         context,
                       ),
-                      const SizedBox(height: CBSpace.x4),
+                      const SizedBox(height: 20),
                       _buildStatRow(
                         "GAMES WON",
                         "${stats.gamesWon}",
                         scheme.primary,
                         context,
                       ),
-                      const SizedBox(height: CBSpace.x4),
+                      const SizedBox(height: 20),
                       _buildStatRow(
                         "WIN RATE",
                         "${stats.winRate.toStringAsFixed(0)}%",
                         scheme.tertiary,
                         context,
                       ),
-                      const SizedBox(height: CBSpace.x4),
+                      const SizedBox(height: 20),
                       _buildStatRow(
                         "FAVORITE ROLE",
                         stats.favoriteRole.toUpperCase(),
@@ -70,21 +72,31 @@ class StatsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: CBSpace.x8),
+              const SizedBox(height: 32),
               CBFadeSlide(
-                delay: const Duration(milliseconds: 100),
+                delay: const Duration(milliseconds: 150),
                 child: CBGlassTile(
                   isPrismatic: true,
+                  padding: const EdgeInsets.all(20),
+                  borderColor: scheme.primary.withValues(alpha: 0.5),
                   onTap: () {
+                    HapticService.medium();
                     ref
                         .read(playerNavigationProvider.notifier)
                         .setDestination(PlayerDestination.hallOfFame);
                   },
                   child: Row(
                     children: [
-                      Icon(Icons.emoji_events_rounded,
-                          color: scheme.primary, size: 32),
-                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: scheme.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.emoji_events_rounded,
+                            color: scheme.primary, size: 28),
+                      ),
+                      const SizedBox(width: 20),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,10 +109,14 @@ class StatsScreen extends ConsumerWidget {
                                 letterSpacing: 1.5,
                               ),
                             ),
+                            const SizedBox(height: 4),
                             Text(
-                              "Check your awards and standing",
+                              "CHECK YOUR AWARDS AND RANKINGS",
                               style: textTheme.bodySmall!.copyWith(
-                                color: scheme.onSurface.withValues(alpha: 0.7),
+                                color: scheme.onSurface.withValues(alpha: 0.5),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ],
@@ -128,16 +144,19 @@ class StatsScreen extends ConsumerWidget {
         Text(
           label,
           style: textTheme.labelMedium!.copyWith(
-            color: scheme.onSurface.withValues(alpha: 0.6),
-            letterSpacing: 1.1,
+            color: scheme.onSurface.withValues(alpha: 0.4),
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.w900,
+            fontSize: 10,
           ),
         ),
         Text(
           value,
           style: textTheme.headlineSmall!.copyWith(
             color: color,
-            fontWeight: FontWeight.bold,
-            shadows: CBColors.textGlow(color, intensity: 0.4),
+            fontWeight: FontWeight.w900,
+            fontFamily: 'RobotoMono',
+            shadows: CBColors.textGlow(color, intensity: 0.3),
           ),
         ),
       ],

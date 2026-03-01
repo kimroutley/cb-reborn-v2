@@ -4,6 +4,7 @@ import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import '../widgets/custom_drawer.dart';
 
@@ -31,7 +32,6 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Timer? _progressTimer;
   double _progress = 0;
 
-  // Slide duration in seconds
   static const int _slideDuration = 8;
 
   @override
@@ -41,7 +41,6 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
     try {
       _recap = RecapGenerator.generateRecap(widget.session, widget.games);
     } catch (_) {
-      // Fallback: never crash the recap UI due to partial/corrupt data.
       final totalDuration = widget.session.endedAt != null
           ? widget.session.endedAt!.difference(widget.session.startedAt)
           : DateTime.now().difference(widget.session.startedAt);
@@ -85,7 +84,6 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
         return;
       }
 
-      // Clamp and advance exactly once.
       setState(() => _progress = 1.0);
       timer.cancel();
       _nextPage();
@@ -98,8 +96,8 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
         return;
       }
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
+        duration: CBMotion.transition,
+        curve: CBMotion.emphasizedCurve,
       );
     } else {
       _progressTimer?.cancel();
@@ -109,19 +107,19 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   void _previousPage() {
     if (_currentPage > 0) {
       _pageController.previousPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
+        duration: CBMotion.transition,
+        curve: CBMotion.emphasizedCurve,
       );
     }
   }
 
   int get _totalSlides {
-    int count = 3; // Intro, Roster, Summary
+    int count = 2; // Intro, Summary (Roster is in Intro now)
     if (_recap.mvp != null) count++;
     if (_recap.mainCharacter != null) count++;
     if (_recap.ghost != null) count++;
     if (_recap.dealerOfDeath != null) count++;
-    count += _recap.specialAwards.length;
+    count += _recap.specialAwards.length; // Each special award is a slide
     if (_recap.spiciestMoment != null) count++;
     return count;
   }
@@ -135,10 +133,8 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
       drawer: const CustomDrawer(),
       body: Stack(
         children: [
-          // ── ANIMATED BACKGROUND ──
           _buildDynamicBackground(scheme),
 
-          // ── STORY CONTENT ──
           PageView(
             controller: _pageController,
             onPageChanged: (index) {
@@ -150,19 +146,24 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
             children: _buildSlides(scheme),
           ),
 
-          // ── NAVIGATION OVERLAY ──
           Row(
             children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: _previousPage,
+                  onTap: () {
+                    HapticService.light();
+                    _previousPage();
+                  },
                   behavior: HitTestBehavior.translucent,
                   child: const SizedBox.expand(),
                 ),
               ),
               Expanded(
                 child: GestureDetector(
-                  onTap: _nextPage,
+                  onTap: () {
+                    HapticService.light();
+                    _nextPage();
+                  },
                   behavior: HitTestBehavior.translucent,
                   child: const SizedBox.expand(),
                 ),
@@ -170,26 +171,29 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
             ],
           ),
 
-          // ── TOP INDICATORS ──
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x5, CBSpace.x4, 0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildProgressBar(scheme),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: CBSpace.x4),
                   Row(
                     children: [
-                      const CBConnectionDot(
-                          isConnected: true, label: "SESSION RECAP"),
-                      const SizedBox(width: 8),
-                      const SimulationModeBadgeAction(),
+                      CBBadge(
+                        text: 'ARCHIVED SESSION',
+                        color: scheme.tertiary,
+                        icon: Icons.archive_rounded,
+                      ),
                       const Spacer(),
                       IconButton(
-                        tooltip: 'Close',
-                        icon: Icon(Icons.close, color: scheme.onSurface),
-                        onPressed: () => Navigator.pop(context),
+                        tooltip: 'CLOSE RECAP',
+                        icon: Icon(Icons.close_rounded, color: scheme.onSurface, size: 24),
+                        onPressed: () {
+                          HapticService.selection();
+                          Navigator.pop(context);
+                        },
                       ),
                     ],
                   ),
@@ -204,21 +208,29 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
 
   Widget _buildDynamicBackground(ColorScheme scheme) {
     final colors = [
-      scheme.tertiary, // Previously CBColors.matrixGreen
-      scheme.primary, // Previously CBColors.neonBlue
-      scheme.secondary, // Previously CBColors.neonPurple
-      scheme.secondary, // Previously CBColors.hotPink
-      scheme.error, // Previously CBColors.bloodOrange
+      scheme.tertiary, // Starts with tertiary
+      scheme.primary,
+      scheme.secondary,
+      scheme.error,
+      CBColors.alertOrange,
     ];
     final color = colors[_currentPage % colors.length];
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 1000),
+      curve: Curves.easeInOutCubic,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.25),
+        gradient: RadialGradient(
+          colors: [
+            color.withValues(alpha: 0.3),
+            scheme.surface.withValues(alpha: 0.8),
+          ],
+          stops: [0.0, 1.0],
+          center: Alignment(0.5 - (_progress * 0.5), 0.5 + (_progress * 0.5)),
+        ),
       ),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: ColoredBox(color: scheme.surface.withValues(alpha: 0.2)),
       ),
     );
@@ -237,32 +249,15 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
 
         return Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: Stack(
-              children: [
-                Container(
-                  height: 3,
-                  decoration: BoxDecoration(
-                    color: scheme.onSurface.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                FractionallySizedBox(
-                  widthFactor: value,
-                  child: Container(
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: scheme.onSurface,
-                      borderRadius: BorderRadius.circular(2),
-                      boxShadow: [
-                        BoxShadow(
-                            color: scheme.onSurface.withValues(alpha: 0.5),
-                            blurRadius: 4),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x1),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(CBRadius.xs),
+              child: LinearProgressIndicator(
+                value: value,
+                minHeight: CBSpace.x1,
+                backgroundColor: scheme.onSurface.withValues(alpha: 0.1),
+                valueColor: AlwaysStoppedAnimation<Color>(scheme.onSurface.withValues(alpha: 0.8)),
+              ),
             ),
           ),
         );
@@ -273,42 +268,41 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   List<Widget> _buildSlides(ColorScheme scheme) {
     final slides = <Widget>[
       _buildIntroSlide(scheme),
-      _buildRosterSlide(scheme),
     ];
 
     if (_recap.mvp != null) {
       slides.add(
-        _buildAwardSlide("MVP", _recap.mvp!, Icons.emoji_events,
-            scheme.tertiary), // Previously CBColors.yellow
+        _buildAwardSlide("MOST VALUABLE OPERATIVE", _recap.mvp!, Icons.star_rounded,
+            scheme.tertiary),
       );
     }
     if (_recap.mainCharacter != null) {
       slides.add(
         _buildAwardSlide(
-          "MAIN CHARACTER",
+          "THE KEY PLAYER",
           _recap.mainCharacter!,
-          Icons.my_location,
-          scheme.secondary, // Previously CBColors.hotPink
+          Icons.person_pin_rounded,
+          scheme.secondary,
         ),
       );
     }
     if (_recap.ghost != null) {
       slides.add(
         _buildAwardSlide(
-          "THE GHOST",
+          "SPECTRAL OBSERVER",
           _recap.ghost!,
-          Icons.visibility_off,
-          scheme.secondary, // Previously CBColors.neonPurple
+          Icons.visibility_off_rounded,
+          scheme.primary,
         ),
       );
     }
     if (_recap.dealerOfDeath != null) {
       slides.add(
         _buildAwardSlide(
-          "DEALER OF DEATH",
+          "THE ELIMINATOR",
           _recap.dealerOfDeath!,
-          Icons.local_bar,
-          scheme.error, // Previously CBColors.bloodOrange
+          Icons.crisis_alert_rounded,
+          scheme.error,
         ),
       );
     }
@@ -325,17 +319,17 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   }
 
   static IconData _specialAwardIcon(String id) => switch (id) {
-        'cannon_fodder' => Icons.crisis_alert,
-        'the_npc' => Icons.person_off,
-        'friendly_fire_champion' => Icons.group_remove,
-        'professional_victim' => Icons.healing,
-        'the_cockroach' => Icons.pest_control,
-        'absolutely_clueless' => Icons.psychology_alt,
-        'the_tourist' => Icons.luggage,
-        'designated_scapegoat' => Icons.front_hand,
-        'the_judas' => Icons.masks,
-        'participation_trophy' => Icons.workspace_premium,
-        _ => Icons.emoji_events,
+        'cannon_fodder' => Icons.local_fire_department_rounded,
+        'the_npc' => Icons.person_off_rounded,
+        'friendly_fire_champion' => Icons.group_remove_rounded,
+        'professional_victim' => Icons.healing_rounded,
+        'the_cockroach' => Icons.pest_control_rounded,
+        'absolutely_clueless' => Icons.psychology_alt_rounded,
+        'the_tourist' => Icons.luggage_rounded,
+        'designated_scapegoat' => Icons.front_hand_rounded,
+        'the_judas' => Icons.masks_rounded,
+        'participation_trophy' => Icons.workspace_premium_rounded,
+        _ => Icons.emoji_events_rounded,
       };
 
   static Color _specialAwardColor(String id, ColorScheme scheme) =>
@@ -359,54 +353,70 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
     final color = _specialAwardColor(award.id, scheme);
 
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            award.title.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: textTheme.displayLarge!
-                .copyWith(color: scheme.onSurface, fontSize: 32)
-                .copyWith(shadows: CBColors.textGlow(color)),
-          ),
-          const SizedBox(height: 40),
-          Container(
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: color, width: 2.5),
-              boxShadow: CBColors.circleGlow(color, intensity: 0.8),
-            ),
-            child: Icon(icon, size: 64, color: color),
-          ),
-          const SizedBox(height: 40),
-          Text(
-            award.playerName.toUpperCase(),
-            style: textTheme.displayMedium!
-                .copyWith(color: scheme.onSurface, fontSize: 34),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            award.stat.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: textTheme.labelSmall!.copyWith(
-              color: color.withValues(alpha: 0.8),
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 28),
-          CBGlassTile(
-            borderColor: color.withValues(alpha: 0.3),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          CBFadeSlide(
             child: Text(
-              '"${award.roastLine}"',
+              award.title.toUpperCase(),
               textAlign: TextAlign.center,
-              style: textTheme.bodyMedium!.copyWith(
-                fontStyle: FontStyle.italic,
-                color: scheme.onSurface.withValues(alpha: 0.7),
-                height: 1.5,
+              style: textTheme.displaySmall!
+                  .copyWith(color: scheme.onSurface)
+                  .copyWith(shadows: CBColors.textGlow(color, intensity: 0.6)),
+            ),
+          ),
+          const SizedBox(height: CBSpace.x10),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 100),
+            child: Container(
+              padding: const EdgeInsets.all(CBSpace.x6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.5), width: 2.5),
+                boxShadow: CBColors.circleGlow(color, intensity: 0.8),
+              ),
+              child: Icon(icon, size: CBSpace.x16, color: color),
+            ),
+          ),
+          const SizedBox(height: CBSpace.x8),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 200),
+            child: Text(
+              award.playerName.toUpperCase(),
+              style: textTheme.displayMedium!
+                  .copyWith(color: scheme.onSurface, fontSize: 36, fontWeight: FontWeight.w900, letterSpacing: 2.0),
+            ),
+          ),
+          const SizedBox(height: CBSpace.x3),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 300),
+            child: Text(
+              award.stat.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: textTheme.labelLarge!.copyWith(
+                color: color.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          const SizedBox(height: CBSpace.x6),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 400),
+            child: CBGlassTile(
+              borderColor: color.withValues(alpha: 0.3),
+              padding: const EdgeInsets.all(CBSpace.x5),
+              child: Text(
+                '"${award.roastLine.toUpperCase()}"',
+                textAlign: TextAlign.center,
+                style: textTheme.bodyMedium!.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: scheme.onSurface.withValues(alpha: 0.7),
+                  height: 1.5,
+                  fontSize: 14,
+                ),
               ),
             ),
           ),
@@ -418,55 +428,87 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Widget _buildIntroSlide(ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.auto_awesome, color: scheme.tertiary, size: 80),
-          const SizedBox(height: 32),
-          Text(
-            widget.session.sessionName.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: textTheme.displayLarge!
-                .copyWith(
-                  color: scheme.onSurface,
+          CBFadeSlide(
+            child: Icon(Icons.auto_awesome_rounded, color: scheme.tertiary, size: CBSpace.x16 + CBSpace.x4),
+          ),
+          const SizedBox(height: CBSpace.x8),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 100),
+            child: Text(
+              widget.session.sessionName.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: textTheme.displayLarge!
+                  .copyWith(
+                    color: scheme.onSurface,
+                    letterSpacing: 4,
+                    fontWeight: FontWeight.w900,
+                  )
+                  .copyWith(shadows: CBColors.textGlow(scheme.tertiary, intensity: 0.8)),
+            ),
+          ),
+          const SizedBox(height: CBSpace.x6),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 200),
+            child: Text(
+              "AN OPERATIONS RECAP.".toUpperCase(),
+              style: textTheme.labelLarge!.copyWith(
                   letterSpacing: 4,
-                )
-                .copyWith(shadows: CBColors.textGlow(scheme.tertiary)),
+                  color: scheme.onSurface.withValues(alpha: 0.5),
+                  fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
-          const SizedBox(height: 24),
-          Text(
-            "WHAT A NIGHT.",
-            style: textTheme.labelSmall!.copyWith(
-                letterSpacing: 4,
-                color: scheme.onSurface.withValues(alpha: 0.5)),
+          const SizedBox(height: CBSpace.x12),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 300),
+            child: _buildStatRow(
+                Icons.videogame_asset_rounded, "${_recap.totalGames} MISSIONS LOGGED", scheme.primary),
           ),
-          const SizedBox(height: 64),
-          _buildStatRow(
-              Icons.videogame_asset, "${_recap.totalGames} GAMES PLAYED"),
-          const SizedBox(height: 16),
-          _buildStatRow(Icons.timer,
-              "${_recap.totalDuration.inHours}H ${_recap.totalDuration.inMinutes % 60}M DURATION"),
+          const SizedBox(height: CBSpace.x3),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 400),
+            child: _buildStatRow(Icons.timer_rounded,
+                "${_recap.totalDuration.inHours}H ${_recap.totalDuration.inMinutes % 60}M ACTIVE", scheme.secondary),
+          ),
+          const SizedBox(height: CBSpace.x3),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 500),
+            child: _buildStatRow(Icons.people_alt_rounded, "${_recap.uniquePlayers} UNIQUE OPERATIVES", scheme.tertiary),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatRow(IconData icon, String label) {
+  Widget _buildStatRow(IconData icon, String label, Color accentColor) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return CBGlassTile(
       isPrismatic: true,
-      borderColor: scheme.onSurface.withValues(alpha: 0.2),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      borderColor: accentColor.withValues(alpha: 0.3),
+      padding: const EdgeInsets.symmetric(horizontal: CBSpace.x5, vertical: CBSpace.x4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: scheme.onSurface.withValues(alpha: 0.7), size: 20),
-          const SizedBox(width: 16),
-          Text(label,
-              style: textTheme.labelSmall!.copyWith(
-                  color: scheme.onSurface, fontWeight: FontWeight.bold)),
+          Container(
+            padding: const EdgeInsets.all(CBSpace.x1),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: accentColor.withValues(alpha: 0.1),
+            ),
+            child: Icon(icon, color: accentColor, size: 20),
+          ),
+          const SizedBox(width: CBSpace.x4),
+          Text(label.toUpperCase(),
+              style: textTheme.labelLarge!.copyWith(
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.0,
+                  fontSize: 12)),
         ],
       ),
     );
@@ -475,31 +517,42 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Widget _buildRosterSlide(ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("THE GUEST LIST",
-              style: textTheme.headlineMedium!
-                  .copyWith(
-                      color: scheme.primary) // Previously CBColors.neonBlue
-                  .copyWith(shadows: CBColors.textGlow(scheme.primary))),
-          const SizedBox(height: 48),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            alignment: WrapAlignment.center,
-            children: widget.session.playerNames.map((name) {
-              return CBBadge(
-                  text: name,
-                  color: scheme.primary); // Previously CBColors.neonBlue
-            }).toList(),
+          CBFadeSlide(
+            child: Text("ACTIVE OPERATIVES",
+                style: textTheme.headlineMedium!
+                    .copyWith(color: scheme.primary)
+                    .copyWith(shadows: CBColors.textGlow(scheme.primary, intensity: 0.6))),
           ),
-          const SizedBox(height: 48),
-          Text("${_recap.uniquePlayers} LEGENDS ENTERED.\nSOME NEVER LEFT.",
-              textAlign: TextAlign.center,
-              style: textTheme.labelSmall!.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.4), height: 1.5)),
+          const SizedBox(height: CBSpace.x8),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 100),
+            child: Wrap(
+              spacing: CBSpace.x3,
+              runSpacing: CBSpace.x3,
+              alignment: WrapAlignment.center,
+              children: widget.session.playerNames.map((name) {
+                return CBMiniTag(
+                    text: name.toUpperCase(),
+                    color: scheme.primary);
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: CBSpace.x8),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 200),
+            child: Text("${_recap.uniquePlayers} OPERATIVES DEPLOYED.\nSOME NEVER RETURNED.".toUpperCase(),
+                textAlign: TextAlign.center,
+                style: textTheme.labelSmall!.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.4),
+                    height: 1.5,
+                    letterSpacing: 1.0,
+                    fontWeight: FontWeight.w700,
+                )),
+          ),
         ],
       ),
     );
@@ -510,34 +563,49 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(title,
-              style: textTheme.displayLarge!
-                  .copyWith(color: scheme.onSurface)
-                  .copyWith(shadows: CBColors.textGlow(color))),
-          const SizedBox(height: 48),
-          Container(
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: color, width: 3),
-              boxShadow: CBColors.circleGlow(color, intensity: 1.0),
-            ),
-            child: Icon(icon, size: 80, color: color),
+          CBFadeSlide(
+            child: Text(title.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: textTheme.displayLarge!
+                    .copyWith(color: scheme.onSurface)
+                    .copyWith(shadows: CBColors.textGlow(color, intensity: 0.8))),
           ),
-          const SizedBox(height: 48),
-          Text(award.playerName.toUpperCase(),
-              style: textTheme.displayMedium!
-                  .copyWith(color: scheme.onSurface, fontSize: 36)),
-          const SizedBox(height: 16),
-          Text(award.description.toUpperCase(),
-              textAlign: TextAlign.center,
-              style: textTheme.labelSmall!.copyWith(
-                  color: color.withValues(alpha: 0.8),
-                  fontWeight: FontWeight.bold)),
+          const SizedBox(height: CBSpace.x10),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 100),
+            child: Container(
+              padding: const EdgeInsets.all(CBSpace.x6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.5), width: 3),
+                boxShadow: CBColors.circleGlow(color, intensity: 1.0),
+              ),
+              child: Icon(icon, size: CBSpace.x16 + CBSpace.x4, color: color),
+            ),
+          ),
+          const SizedBox(height: CBSpace.x10),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 200),
+            child: Text(award.playerName.toUpperCase(),
+                style: textTheme.displayMedium!
+                    .copyWith(color: scheme.onSurface, fontSize: 36, fontWeight: FontWeight.w900, letterSpacing: 2.0)),
+          ),
+          const SizedBox(height: CBSpace.x4),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 300),
+            child: Text(award.description.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: textTheme.labelLarge!.copyWith(
+                    color: color.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.0,
+                    fontSize: 12,)
+            ),
+          ),
         ],
       ),
     );
@@ -546,42 +614,39 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Widget _buildSpicySlide(ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("SPICIEST MOMENT",
-              style: textTheme.headlineMedium!.copyWith(
-                  color: scheme.error)), // Previously CBColors.bloodOrange
-          const SizedBox(height: 48),
-          CBPanel(
-            borderColor: scheme.error,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.security, color: scheme.error),
-                    const SizedBox(width: CBSpace.x3),
-                    Expanded(
-                      child: Text(
-                        "RECORDED DATA",
-                        style: textTheme.headlineSmall!.copyWith(
-                          color: scheme.error,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: CBSpace.x3),
-                Text(
-                  _recap.spiciestMoment ?? "NONE RECORDED",
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium!
-                      .copyWith(height: 1.5, fontStyle: FontStyle.italic),
-                ),
-              ],
+          CBFadeSlide(
+            child: Text("CRITICAL INCIDENT LOG",
+                style: textTheme.headlineMedium!.
+                    copyWith(color: scheme.error)
+                    .copyWith(shadows: CBColors.textGlow(scheme.error, intensity: 0.6))),
+          ),
+          const SizedBox(height: CBSpace.x8),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 100),
+            child: CBPanel(
+              borderColor: scheme.error.withValues(alpha: 0.5),
+              padding: const EdgeInsets.all(CBSpace.x6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CBSectionHeader(
+                    title: "RECORDED TELEMETRY",
+                    icon: Icons.security_rounded,
+                    color: scheme.error,
+                  ),
+                  const SizedBox(height: CBSpace.x4),
+                  Text(
+                    (_recap.spiciestMoment ?? "NO DATA RECORDED").toUpperCase(),
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium!
+                        .copyWith(height: 1.6, fontStyle: FontStyle.italic, color: scheme.onSurface.withValues(alpha: 0.7), fontSize: 14),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -592,46 +657,57 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Widget _buildSummarySlide(ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("NIGHT SUMMARY",
-              style: textTheme.headlineMedium!
-                  .copyWith(
-                      color: scheme.tertiary) // Previously CBColors.matrixGreen
-                  .copyWith(shadows: CBColors.textGlow(scheme.tertiary))),
-          const SizedBox(height: 48),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildLargeStat("STAFF WINS", _recap.clubStaffWins,
-                  scheme.secondary), // Previously CBColors.hotPink
-              _buildLargeStat("ANIMAL WINS", _recap.partyAnimalsWins,
-                  scheme.primary), // Previously CBColors.neonBlue
-            ],
+          CBFadeSlide(
+            child: Text("SESSION OVERVIEW",
+                style: textTheme.headlineMedium!
+                    .copyWith(color: scheme.tertiary)
+                    .copyWith(shadows: CBColors.textGlow(scheme.tertiary, intensity: 0.6))),
           ),
-          const SizedBox(height: 64),
-          CBPrimaryButton(
-            label: "CLOSE RECAP",
-            onPressed: () => Navigator.pop(context),
+          const SizedBox(height: CBSpace.x8),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 100),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildLargeStat("STAFF PROTOCOLS", _recap.clubStaffWins,
+                    scheme.primary, textTheme),
+                _buildLargeStat("PARTY ANIMAL ENGAGEMENTS", _recap.partyAnimalsWins,
+                    scheme.secondary, textTheme),
+              ],
+            ),
+          ),
+          const SizedBox(height: CBSpace.x12),
+          CBFadeSlide(
+            delay: const Duration(milliseconds: 200),
+            child: CBPrimaryButton(
+              label: "CLOSE RECAP",
+              icon: Icons.exit_to_app_rounded,
+              onPressed: () {
+                HapticService.heavy();
+                Navigator.pop(context);
+              },
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLargeStat(String label, int value, Color color) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _buildLargeStat(String label, int value, Color color, TextTheme textTheme) {
     return Column(
       children: [
         Text("$value",
             style:
-                textTheme.displayLarge!.copyWith(color: color, fontSize: 64)),
-        const SizedBox(height: 8),
-        Text(label,
-            style: textTheme.labelSmall!
-                .copyWith(color: color.withValues(alpha: 0.5))),
+                textTheme.displayLarge!.copyWith(color: color, fontSize: 64, fontWeight: FontWeight.w900, fontFamily: 'RobotoMono', shadows: CBColors.textGlow(color, intensity: 0.5))),
+        const SizedBox(height: CBSpace.x2),
+        Text(label.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: textTheme.labelLarge!
+                .copyWith(color: color.withValues(alpha: 0.5), fontSize: 11, letterSpacing: 1.0, fontWeight: FontWeight.w700)),
       ],
     );
   }

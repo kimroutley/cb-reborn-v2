@@ -19,98 +19,124 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return CBPrismScaffold(
-      title: '',
+      title: 'COMMAND CENTER',
       actions: const [SimulationModeBadgeAction()],
       drawer: const CustomDrawer(),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: CBSpace.x6,
-            vertical: CBSpace.x10,
-          ),
+          padding: const EdgeInsets.all(24),
+          physics: const BouncingScrollPhysics(),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ── LOGO / TITLE AREA ──
-              TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(seconds: 1),
-                child: Text(
-                  'HOST COMMAND CENTER',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineSmall!.copyWith(
-                    color: scheme.primary,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.w900,
-                    shadows: CBColors.textGlow(scheme.primary),
-                  ),
-                ),
-                builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: Transform.translate(
-                      offset: Offset(0, 20 * (1 - value)),
-                      child: child,
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: CBSpace.x12),
-
-              // ── MAIN ACTIONS PANEL ──
-              CBPanel(
-                borderColor: scheme.primary.withValues(alpha: 0.5),
+              CBFadeSlide(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    CBPrimaryButton(
-                      label: 'OPEN THE CLUB',
-                      icon: Icons.nightlife_rounded,
-                      onPressed: () {
-                        HapticService.heavy();
-                        ref
-                            .read(hostNavigationProvider.notifier)
-                            .setDestination(HostDestination.lobby);
-                      },
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: scheme.primary.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
+                        boxShadow: CBColors.circleGlow(scheme.primary, intensity: 0.3),
+                      ),
+                      child: Icon(
+                        Icons.nightlife_rounded,
+                        size: 64,
+                        color: scheme.primary,
+                        shadows: CBColors.iconGlow(scheme.primary),
+                      ),
                     ),
-                    const SizedBox(height: CBSpace.x4),
-                    CBGhostButton(
-                      label: 'RESTORE SESSION',
-                      onPressed: () {
-                        HapticService.light();
-                        ref
-                            .read(hostNavigationProvider.notifier)
-                            .setDestination(HostDestination.saveLoad);
-                      },
+                    const SizedBox(height: 32),
+                    Text(
+                      'HOST TERMINAL',
+                      textAlign: TextAlign.center,
+                      style: textTheme.headlineMedium!.copyWith(
+                        color: scheme.primary,
+                        letterSpacing: 4,
+                        fontWeight: FontWeight.w900,
+                        shadows: CBColors.textGlow(scheme.primary),
+                      ),
                     ),
-                    const SizedBox(height: CBSpace.x3),
-                    CBGhostButton(
-                      label: 'VIEW HALL OF FAME',
-                      onPressed: () {
-                        HapticService.light();
-                        ref
-                            .read(hostNavigationProvider.notifier)
-                            .setDestination(HostDestination.hallOfFame);
-                      },
+                    const SizedBox(height: 8),
+                    CBBadge(
+                      text: 'SESSION DIRECTOR ACTIVE',
+                      color: scheme.tertiary,
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: CBSpace.x10),
+              const SizedBox(height: 48),
+
+              // ── MAIN ACTIONS PANEL ──
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 120),
+                child: CBPanel(
+                  borderColor: scheme.primary.withValues(alpha: 0.4),
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      CBPrimaryButton(
+                        label: 'OPEN THE CLUB',
+                        icon: Icons.login_rounded,
+                        onPressed: () {
+                          HapticService.heavy();
+                          ref
+                              .read(hostNavigationProvider.notifier)
+                              .setDestination(HostDestination.lobby);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      CBGhostButton(
+                        label: 'RESTORE SESSION',
+                        icon: Icons.settings_backup_restore_rounded,
+                        onPressed: () {
+                          HapticService.medium();
+                          ref
+                              .read(hostNavigationProvider.notifier)
+                              .setDestination(HostDestination.saveLoad);
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      CBGhostButton(
+                        label: 'HALL OF FAME',
+                        icon: Icons.emoji_events_rounded,
+                        onPressed: () {
+                          HapticService.medium();
+                          ref
+                              .read(hostNavigationProvider.notifier)
+                              .setDestination(HostDestination.hallOfFame);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 48),
 
               // ── SYSTEM FOOTER ──
-              Text(
-                'V4.0.8 NEON | SECURE CONNECTION ACTIVE',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelSmall!.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.6),
-                  letterSpacing: 1.5,
-                  fontSize: 9,
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 240),
+                child: Text(
+                  'V4.0.8 NEON | SECURE UPLINK ACTIVE',
+                  textAlign: TextAlign.center,
+                  style: textTheme.labelSmall!.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.4),
+                    letterSpacing: 2.0,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 9,
+                  ),
                 ),
               ),
             ],

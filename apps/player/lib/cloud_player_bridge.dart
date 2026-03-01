@@ -26,6 +26,13 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   String? _cachedJoinCode;
   String? _cachedPlayerName;
 
+  /// Cached role from private state so we keep it when public state (hidden role) overwrites.
+  /// Applies to all roles (Dealer, Medic, Bouncer, etc.): ensures correct role name and canAct for night actions in cloud mode.
+  String? _lastPrivateRoleId;
+  String? _lastPrivateRoleName;
+  String? _lastPrivateRoleColorHex;
+  String? _lastPrivateRoleDescription;
+
   /// Global error stream that the UI can listen to.
   final _bridgeErrorController = StreamController<BridgeError>.broadcast();
   Stream<BridgeError> get bridgeErrors => _bridgeErrorController.stream;
@@ -56,6 +63,10 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     _cachedJoinCode = code.trim().toUpperCase();
 
     // Reset connection state before attempting to connect.
+    _lastPrivateRoleId = null;
+    _lastPrivateRoleName = null;
+    _lastPrivateRoleColorHex = null;
+    _lastPrivateRoleDescription = null;
     state = state.copyWith(
       joinError: null,
       joinAccepted: false,
@@ -154,7 +165,16 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   /// Send a join request (player name → joins subcollection).
   Future<void> sendJoinRequest(String playerName) async {
     if (_firebase == null) return;
-    await _firebase!.sendJoinRequest(playerName);
+    try {
+      await _firebase!.sendJoinRequest(playerName);
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Join request failed. Please retry.',
+        code: 'join_request_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
     debugPrint('[CloudPlayerBridge] Join request sent: $playerName');
   }
 
@@ -188,11 +208,20 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   @override
   Future<void> vote({required String voterId, required String targetId}) async {
     if (_firebase == null) return;
-    await _firebase!.sendAction(
-      stepId: kDayVoteStepId,
-      playerId: voterId,
-      targetId: targetId,
-    );
+    try {
+      await _firebase!.sendAction(
+        stepId: kDayVoteStepId,
+        playerId: voterId,
+        targetId: targetId,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Vote failed to send. Try again.',
+        code: 'vote_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
   }
 
   /// Send a night action or other step action.
@@ -203,17 +232,35 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     String? voterId,
   }) async {
     if (_firebase == null) return;
-    await _firebase!.sendAction(
-      stepId: stepId,
-      playerId: voterId ?? state.myPlayerId ?? '',
-      targetId: targetId,
-    );
+    try {
+      await _firebase!.sendAction(
+        stepId: stepId,
+        playerId: voterId ?? state.myPlayerId ?? '',
+        targetId: targetId,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Action failed to send. Try again.',
+        code: 'interaction_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
   }
 
   @override
   Future<void> confirmRole({required String playerId}) async {
     if (_firebase == null) return;
-    await _firebase!.sendRoleConfirm(playerId: playerId);
+    try {
+      await _firebase!.sendRoleConfirm(playerId: playerId);
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Role confirmation failed. Try again.',
+        code: 'role_confirm_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
   }
 
   @override
@@ -222,10 +269,19 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     required String targetPlayerId,
   }) async {
     if (_firebase == null) return;
-    await _firebase!.sendDeadPoolBet(
-      playerId: playerId,
-      targetPlayerId: targetPlayerId,
-    );
+    try {
+      await _firebase!.sendDeadPoolBet(
+        playerId: playerId,
+        targetPlayerId: targetPlayerId,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Dead-pool bet failed to send. Try again.',
+        code: 'dead_pool_bet_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
   }
 
   @override
@@ -239,11 +295,20 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       return;
     }
     if (_firebase == null) return;
-    await _firebase!.sendGhostChat(
-      playerId: playerId,
-      message: trimmed,
-      playerName: playerName,
-    );
+    try {
+      await _firebase!.sendGhostChat(
+        playerId: playerId,
+        message: trimmed,
+        playerName: playerName,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Ghost chat failed to send. Try again.',
+        code: 'ghost_chat_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
   }
 
   @override
@@ -263,10 +328,47 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
     // Actually, let's rely on FirebaseBridge having a generic 'sendBulletin' or 'sendChat'
     // I will add 'sendChat' to FirebaseBridge in subsequent step.
-    await _firebase!.sendChat(
-      title: title,
-      message: floatContent,
-      roleId: roleId,
+    final myPlayerId = state.myPlayerId?.trim() ?? '';
+    if (myPlayerId.isEmpty) {
+      final error = StateError(
+        'Cannot send chat before claiming a player identity.',
+      );
+      _reportRuntimeError(
+        message: 'Claim your player identity before sending chat.',
+        code: 'chat_identity_missing',
+        originalError: error,
+      );
+      throw error;
+    }
+    try {
+      await _firebase!.sendChat(
+        playerId: myPlayerId,
+        title: title,
+        message: floatContent,
+        roleId: roleId,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Chat failed to send. Try again.',
+        code: 'chat_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
+  }
+
+  void _reportRuntimeError({
+    required String message,
+    required String code,
+    Object? originalError,
+  }) {
+    state = state.copyWith(joinError: message);
+    _bridgeErrorController.add(
+      BridgeError(
+        message: message,
+        code: code,
+        originalError: originalError,
+      ),
     );
   }
 
@@ -286,6 +388,10 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     _gameSub = null;
     _privateSub = null;
     _firebase = null;
+    _lastPrivateRoleId = null;
+    _lastPrivateRoleName = null;
+    _lastPrivateRoleColorHex = null;
+    _lastPrivateRoleDescription = null;
   }
 
   // ─── INBOUND ──────────────────────────────────
@@ -321,6 +427,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         ) ??
         {};
 
+    // Public bulletin from host (mirrored group chat); see docs/operations/group-chat-sync-and-visibility.md
     final bulletinRaw = data['bulletinBoard'] as List<dynamic>?;
     final bulletinBoard = bulletinRaw
             ?.map((e) => BulletinEntry.fromJson(e as Map<String, dynamic>))
@@ -335,12 +442,47 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         state.myPlayerId != null && players.any((p) => p.id == state.myPlayerId)
             ? state.myPlayerId
             : null;
-    final PlayerSnapshot? updatedMyPlayerSnapshot = updatedMyPlayerId != null
+    PlayerSnapshot? updatedMyPlayerSnapshot = updatedMyPlayerId != null
         ? _mergePublicWithPrivatePlayer(
             players.firstWhere((p) => p.id == updatedMyPlayerId),
             state.myPlayerSnapshot,
           )
         : null;
+    // If merge still left role hidden/empty (e.g. public arrived before private), apply cached private role for any role.
+    if (updatedMyPlayerSnapshot != null &&
+        (_lastPrivateRoleId != null) &&
+        (updatedMyPlayerSnapshot.roleId == 'hidden' ||
+            updatedMyPlayerSnapshot.roleId.isEmpty)) {
+      updatedMyPlayerSnapshot = PlayerSnapshot(
+        id: updatedMyPlayerSnapshot.id,
+        name: updatedMyPlayerSnapshot.name,
+        authUid: updatedMyPlayerSnapshot.authUid,
+        roleId: _lastPrivateRoleId!,
+        roleName: _lastPrivateRoleName ?? 'Unknown',
+        roleDescription:
+            _lastPrivateRoleDescription ?? updatedMyPlayerSnapshot.roleDescription,
+        roleColorHex:
+            _lastPrivateRoleColorHex ?? updatedMyPlayerSnapshot.roleColorHex,
+        alliance: updatedMyPlayerSnapshot.alliance,
+        isAlive: updatedMyPlayerSnapshot.isAlive,
+        deathDay: updatedMyPlayerSnapshot.deathDay,
+        silencedDay: updatedMyPlayerSnapshot.silencedDay,
+        medicChoice: updatedMyPlayerSnapshot.medicChoice,
+        lives: updatedMyPlayerSnapshot.lives,
+        drinksOwed: updatedMyPlayerSnapshot.drinksOwed,
+        currentBetTargetId: updatedMyPlayerSnapshot.currentBetTargetId,
+        penalties: updatedMyPlayerSnapshot.penalties,
+        hasRumour: updatedMyPlayerSnapshot.hasRumour,
+        clingerPartnerId: updatedMyPlayerSnapshot.clingerPartnerId,
+        hasReviveToken: updatedMyPlayerSnapshot.hasReviveToken,
+        secondWindPendingConversion:
+            updatedMyPlayerSnapshot.secondWindPendingConversion,
+        creepTargetId: updatedMyPlayerSnapshot.creepTargetId,
+        whoreDeflectionUsed: updatedMyPlayerSnapshot.whoreDeflectionUsed,
+        tabooNames: updatedMyPlayerSnapshot.tabooNames,
+        blockedVoteTargets: updatedMyPlayerSnapshot.blockedVoteTargets,
+      );
+    }
 
     state = state.copyWith(
       phase: phase,
@@ -358,7 +500,9 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       roleConfirmedPlayerIds: _toStringList(data['roleConfirmedPlayerIds']),
       gameHistory: _toStringList(data['gameHistory']),
       deadPoolBets: deadPoolBets,
-      bulletinBoard: bulletinBoard,
+      bulletinBoard: PlayerGameState.sanitizePublicBulletinEntries(
+        bulletinBoard,
+      ),
       ghostChatMessages: state.ghostChatMessages,
       isConnected: true,
       joinAccepted: true,
@@ -452,13 +596,23 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   void _applyPrivateState(Map<String, dynamic> data) {
     if (state.myPlayerId == null) return;
 
+    final roleId = data['roleId'] as String?;
+    final roleName = data['roleName'] as String?;
+    // Cache for any assigned role (all roles: dealer, medic, bouncer, etc.) so public-state merge can restore it.
+    if (roleId != null && roleId.isNotEmpty && roleId != 'unassigned') {
+      _lastPrivateRoleId = roleId;
+      _lastPrivateRoleName = roleName;
+      _lastPrivateRoleColorHex = data['roleColorHex'] as String?;
+      _lastPrivateRoleDescription = data['roleDescription'] as String?;
+    }
+
     final updatedPlayers = state.players.map((p) {
       if (p.id != state.myPlayerId) return p;
       return PlayerSnapshot(
         id: p.id,
         name: p.name,
-        roleId: data['roleId'] as String? ?? p.roleId,
-        roleName: data['roleName'] as String? ?? p.roleName,
+        roleId: roleId ?? p.roleId,
+        roleName: roleName ?? p.roleName,
         roleDescription:
             data['roleDescription'] as String? ?? p.roleDescription,
         roleColorHex: data['roleColorHex'] as String? ?? p.roleColorHex,

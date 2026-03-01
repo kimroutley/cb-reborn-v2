@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cb_logic/cb_logic.dart';
 
+import '../player_bridge.dart';
+
 /// In-game chat widget for player communication.
 /// Connected to the shared GameState bulletin board.
 class ChatWidget extends ConsumerStatefulWidget {
@@ -34,6 +36,7 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
   void _sendMessage() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+    HapticService.selection();
 
     final gameState = ref.read(gameProvider);
     String? roleId;
@@ -75,7 +78,19 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
 
     // Watch shared game state instead of local chat provider
     final gameState = ref.watch(gameProvider);
-    final messages = gameState.bulletinBoard;
+    // Player-safe list: sanitize (no host-only/hostIntel) and filter role-targeted messages
+    var messages = PlayerGameState.sanitizePublicBulletinEntries(
+      gameState.bulletinBoard,
+    );
+    String? myRoleId;
+    try {
+      final me = gameState.players.firstWhere((p) => p.id == widget.playerId);
+      myRoleId = me.role.id;
+    } catch (_) {}
+    messages = messages
+        .where((e) =>
+            e.targetRoleId == null || e.targetRoleId == myRoleId)
+        .toList();
 
     // Listen for new messages to auto-scroll
     ref.listen(gameProvider.select((s) => s.bulletinBoard.length),
@@ -87,16 +102,17 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
 
     return Container(
       decoration: BoxDecoration(
-        color: scheme.surface.withValues(alpha: 0.5), // Glass-like background
+        color: scheme.surfaceContainerLow.withValues(alpha: 0.8),
         border: Border(
           top: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2)),
         ),
       ),
       child: Column(
         children: [
-          // Messages List
           Expanded(
-            child: NotificationListener<ScrollNotification>(
+            child: Semantics(
+              label: 'Group chat messages',
+              child: NotificationListener<ScrollNotification>(
               onNotification: (notification) {
                 if (notification is UserScrollNotification) {
                   // If user manually scrolls, we could disable auto-scroll
@@ -106,8 +122,8 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
               },
               child: ListView.builder(
                 controller: _scrollController,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: CBSpace.x4, vertical: CBSpace.x3),
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   final entry = messages[index];
@@ -125,14 +141,16 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
                     );
                   }
 
-                  // Resolve sender details
-                  bool isMe = entry.title == widget.playerName;
+                  // Resolve sender details (show player name, not character)
+                  bool isMe = false;
                   Color bubbleColor = scheme.primary;
                   String? avatarAsset;
                   CBMessageStyle style = CBMessageStyle.standard;
+                  String senderName = entry.title;
 
                   if (entry.roleId == null) {
                     // Host message
+                    senderName = 'HOST';
                     avatarAsset = 'assets/roles/host_avatar.png';
                     style = CBMessageStyle.narrative;
 
@@ -148,27 +166,24 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
                       bubbleColor = scheme.secondary;
                     }
                   } else {
-                    // Player message
+                    // Player message: show sender as player name
                     try {
-                      // We need to find the player by roleId to match Host logic
                       final senderPlayer = gameState.players
                           .firstWhere((p) => p.role.id == entry.roleId);
-
-                      // Check if it's actually me (by player ID)
+                      senderName = senderPlayer.name;
                       if (senderPlayer.id == widget.playerId) {
                         isMe = true;
                       }
-
                       bubbleColor =
                           CBColors.fromHex(senderPlayer.role.colorHex);
                       avatarAsset = 'assets/roles/${senderPlayer.role.id}.png';
                     } catch (_) {
-                      // Fallback if role lookup fails
+                      senderName = entry.title;
                     }
                   }
 
                   return CBMessageBubble(
-                    sender: entry.title,
+                    sender: senderName,
                     message: entry.content,
                     color: bubbleColor,
                     isSender: isMe,
@@ -179,42 +194,45 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
                 },
               ),
             ),
+            ),
           ),
 
-          // Input Area
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: scheme.surface,
-              border: Border(
-                  top: BorderSide(
-                      color: scheme.outlineVariant.withValues(alpha: 0.2))),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CBTextField(
-                    controller: _controller,
-                    hintText: 'Type your message...',
-                    textStyle: textTheme.bodyMedium!,
-                    textInputAction: TextInputAction.send,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
+          Semantics(
+            label: 'Send message to group chat',
+            child: Container(
+              padding: CBInsets.panel,
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerLow,
+                border: Border(
+                    top: BorderSide(
+                        color: scheme.outlineVariant.withValues(alpha: 0.2))),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: CBTextField(
+                      controller: _controller,
+                      hintText: 'Type your message...',
+                      textStyle: textTheme.bodyMedium!,
+                      textInputAction: TextInputAction.send,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        isDense: true,
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
                     ),
-                    onSubmitted: (_) => _sendMessage(),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  tooltip: 'Send message',
-                  onPressed: _sendMessage,
-                  icon: Icon(Icons.send_rounded, color: scheme.primary),
-                  style: IconButton.styleFrom(
-                    backgroundColor: scheme.primary.withValues(alpha: 0.1),
+                  const SizedBox(width: CBSpace.x2),
+                  IconButton(
+                    tooltip: 'Send message',
+                    onPressed: _sendMessage,
+                    icon: Icon(Icons.send_rounded, color: scheme.primary),
+                    style: IconButton.styleFrom(
+                      backgroundColor: scheme.primary.withValues(alpha: 0.1),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

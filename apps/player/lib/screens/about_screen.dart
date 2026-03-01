@@ -17,37 +17,42 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return CBPrismScaffold(
-      title: 'ABOUT',
+      title: 'ABOUT CLUB',
       drawer: const CustomDrawer(),
       body: FutureBuilder<_PlayerAboutData>(
         future: _loadAboutData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(child: CBBreathingLoader());
+            return const Center(child: CBBreathingSpinner());
           }
 
           final packageInfo = snapshot.data?.packageInfo;
           final releases = snapshot.data?.releases ?? const <AppBuildUpdate>[];
           final releaseDate = releases.isNotEmpty
               ? DateFormat.yMMMd().format(releases.first.releaseDate)
-              : 'Unknown release date';
+              : 'UNKNOWN';
 
           final versionLabel = packageInfo == null
-              ? 'Unknown version'
-              : '${packageInfo.version} (Build ${packageInfo.buildNumber})';
+              ? 'UNKNOWN VERSION'
+              : 'V${packageInfo.version} (BUILD ${packageInfo.buildNumber})';
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            child: CBAboutContent(
-              appHeading: 'CLUB BLACKOUT: REBORN',
-              appSubtitle: 'PLAYER COMPANION APP',
-              versionLabel: versionLabel,
-              releaseDateLabel: releaseDate,
-              creditsLabel: 'Kim, Val, Lilo, Stitch and Mushu Kyrian',
-              copyrightLabel:
-                  '© ${DateTime.now().year} Kyrian Co. All rights reserved.',
-              recentBuilds: releases,
+            padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x6, CBSpace.x6, CBSpace.x12),
+            physics: const BouncingScrollPhysics(),
+            child: CBFadeSlide(
+              child: CBAboutContent(
+                appHeading: 'CLUB BLACKOUT: REBORN',
+                appSubtitle: 'PLAYER TERMINAL',
+                versionLabel: versionLabel,
+                releaseDateLabel: releaseDate,
+                creditsLabel: 'KYRIAN CO. OPERATIVES',
+                copyrightLabel:
+                    '© ${DateTime.now().year} KYRIAN CO. ALL RIGHTS RESERVED.',
+                recentBuilds: releases,
+              ),
             ),
           );
         },

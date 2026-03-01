@@ -1,6 +1,7 @@
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 class VoteIntelPanel extends StatelessWidget {
   final GameState gameState;
@@ -26,34 +27,37 @@ class VoteIntelPanel extends StatelessWidget {
     final maxVotes =
         sortedTally.isNotEmpty ? sortedTally.first.value : 1;
 
-    return CBPanel(
-      borderColor: scheme.secondary.withValues(alpha: 0.5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: CBSectionHeader(
-                  title: 'LIVE VOTE TRACKER',
-                  color: scheme.secondary,
-                  icon: Icons.how_to_vote_rounded,
+    return Semantics(
+      label: 'Live vote tracker. $votesIn of $totalVoters votes cast.',
+      child: CBPanel(
+        padding: CBInsets.panel,
+        borderColor: scheme.secondary.withValues(alpha: 0.5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: CBSectionHeader(
+                    title: 'LIVE VOTE TRACKER',
+                    color: scheme.secondary,
+                    icon: Icons.how_to_vote_rounded,
+                  ),
                 ),
-              ),
-              CBBadge(
-                text: '$votesIn/$totalVoters CAST',
-                color: votesIn >= totalVoters
-                    ? scheme.tertiary
-                    : scheme.secondary,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+                CBBadge(
+                  text: '$votesIn/$totalVoters CAST',
+                  color: votesIn >= totalVoters
+                      ? scheme.tertiary
+                      : scheme.secondary,
+                ),
+              ],
+            ),
+            const SizedBox(height: CBSpace.x3),
 
-          // Vote progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
+            // Vote progress bar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(CBRadius.xs),
+              child: LinearProgressIndicator(
               value: totalVoters > 0 ? votesIn / totalVoters : 0,
               minHeight: 4,
               backgroundColor: scheme.onSurface.withValues(alpha: 0.08),
@@ -61,10 +65,10 @@ class VoteIntelPanel extends StatelessWidget {
                 votesIn >= totalVoters ? scheme.tertiary : scheme.secondary,
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+            ),
+            const SizedBox(height: CBSpace.x4),
 
-          if (sortedTally.isEmpty)
+            if (sortedTally.isEmpty)
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -127,9 +131,9 @@ class VoteIntelPanel extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: CBSpace.x1),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
+                      borderRadius: BorderRadius.circular(CBRadius.xs),
                       child: LinearProgressIndicator(
                         value: barFraction,
                         minHeight: 6,
@@ -139,7 +143,7 @@ class VoteIntelPanel extends StatelessWidget {
                       ),
                     ),
                     if (voterNames.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: CBSpace.x1),
                       Text(
                         'BY: ${voterNames.join(', ')}',
                         style: textTheme.labelSmall!.copyWith(
@@ -156,7 +160,7 @@ class VoteIntelPanel extends StatelessWidget {
 
           // Last day report
           if (gameState.lastDayReport.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: CBSpace.x3),
             Text(
               '// LAST DAY RESOLUTION',
               style: textTheme.labelSmall!.copyWith(
@@ -166,7 +170,7 @@ class VoteIntelPanel extends StatelessWidget {
                 fontSize: 9,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: CBSpace.x2),
             ...gameState.lastDayReport.map((line) => Padding(
                   padding: const EdgeInsets.only(bottom: 3),
                   child: Text(
@@ -180,6 +184,7 @@ class VoteIntelPanel extends StatelessWidget {
                 )),
           ],
         ],
+        ),
       ),
     );
   }

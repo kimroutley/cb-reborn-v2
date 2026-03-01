@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../host_destinations.dart';
 import '../host_navigation.dart';
 import '../host_settings.dart';
+import '../cloud_host_bridge.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import '../widgets/host_main_feed.dart';
@@ -16,8 +19,9 @@ import 'dashboard_view.dart';
 import 'end_game_view.dart';
 import 'stats_view.dart';
 
-/// Phone-first game control screen using a tabbed layout (Feed + Nerve Centre).
-/// Benchmarked for Google Pixel 10 Pro.
+/// Host Command Center - Tactical Dashboard with God Mode and Analytics.
+/// Phone-first layout: critical intel up top, secondary panels collapsible.
+/// BottomControls live in the persistent _PersistentPhaseBar in HostGameScreen.
 class HostGameScreen extends ConsumerStatefulWidget {
   const HostGameScreen({super.key});
 
@@ -83,12 +87,35 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen>
     }
   }
 
+  void _cleanupCloudGameIfNeeded(SyncMode syncMode) {
+    if (syncMode != SyncMode.cloud) {
+      return;
+    }
+    unawaited(() async {
+      try {
+        await ref.read(cloudHostBridgeProvider).deleteGame();
+      } catch (error) {
+        debugPrint('[HostGameScreen] Cloud cleanup failed: $error');
+        if (!mounted) {
+          return;
+        }
+        showThemedSnackBar(
+          context,
+          'CLOUD CLEANUP FAILED. STALE GAME DATA MAY PERSIST.',
+          accentColor: Theme.of(context).colorScheme.error,
+        );
+      }
+    }());
+  }
+
   @override
   Widget build(BuildContext context) {
     final gameState = ref.watch(gameProvider);
     final controller = ref.read(gameProvider.notifier);
+    final settings = ref.watch(hostSettingsProvider);
     final nav = ref.read(hostNavigationProvider.notifier);
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     ref.listen(gameProvider.select((s) => s.phase), (previous, next) {
       if (previous == GamePhase.night && next == GamePhase.day) {
@@ -98,16 +125,20 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen>
 
     if (gameState.phase == GamePhase.endGame) {
       return CBPrismScaffold(
-        title: 'GAME RECAP',
+        title: 'MISSION DEBRIEF',
         body: EndGameView(
           gameState: gameState,
           controller: controller,
           onReturnToLobby: () {
+            _cleanupCloudGameIfNeeded(gameState.syncMode);
             controller.returnToLobby();
             nav.setDestination(HostDestination.lobby);
           },
           onRematchWithPlayers: () {
-            controller.returnToLobbyWithPlayers();
+            _cleanupCloudGameIfNeeded(gameState.syncMode);
+            controller.returnToLobbyWithPlayers(
+              preserveRoles: settings.lockRolesToJoinCode,
+            );
             nav.setDestination(HostDestination.lobby);
           },
         ),
@@ -118,13 +149,14 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen>
         gameState.scriptQueue.isNotEmpty;
 
     return CBPrismScaffold(
-      title: 'GAME CONTROL',
+      title: 'COMMAND CENTRE',
       drawer: const CustomDrawer(currentDestination: HostDestination.game),
       actions: [
         IconButton(
-          tooltip: 'View Analytics',
-          icon: const Icon(Icons.analytics_outlined),
+          tooltip: 'VIEW ANALYTICS',
+          icon: const Icon(Icons.analytics_rounded),
           onPressed: () {
+            HapticService.selection();
             showThemedDialog(
               context: context,
               child: StatsView(
@@ -139,40 +171,47 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen>
       appBarBottom: TabBar(
         controller: _tabController,
         indicatorColor: scheme.primary,
+        indicatorWeight: 3,
         labelColor: scheme.primary,
-        unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.5),
-        labelStyle: const TextStyle(
+        unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.4),
+        labelStyle: textTheme.labelSmall!.copyWith(
           fontWeight: FontWeight.w900,
-          letterSpacing: 1.5,
-          fontSize: 11,
+          letterSpacing: 2.0,
+          fontSize: 10,
+          overflow: TextOverflow.ellipsis,
         ),
         tabs: const [
           Tab(text: 'FEED', icon: Icon(Icons.forum_rounded, size: 18)),
           Tab(
-              text: 'NERVE CENTRE',
+              text: 'TACTICAL DASHBOARD',
               icon: Icon(Icons.radar_rounded, size: 18)),
         ],
       ),
       body: TabBarView(
         controller: _tabController,
+        physics: const BouncingScrollPhysics(),
         children: [
-          // Tab 1: Feed (Script Step + Main Feed)
           Column(
             children: [
               if (gameState.phase == GamePhase.setup)
-                _RoleConfirmationBar(
-                  players: gameState.players,
-                  confirmedIds: ref.watch(sessionProvider).roleConfirmedPlayerIds,
-                ),
-              if (hasScript) ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                  child: ScriptStepPanel(
-                    gameState: gameState,
-                    controller: controller,
+                CBFadeSlide(
+                  child: _RoleConfirmationBar(
+                    players: gameState.players,
+                    confirmedIds: ref.watch(sessionProvider).roleConfirmedPlayerIds,
                   ),
                 ),
-                const SizedBox(height: 8),
+              if (hasScript) ...[
+                CBFadeSlide(
+                  delay: gameState.phase == GamePhase.setup ? const Duration(milliseconds: 100) : Duration.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(CBSpace.x3, CBSpace.x3, CBSpace.x3, 0),
+                    child: ScriptStepPanel(
+                      gameState: gameState,
+                      controller: controller,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: CBSpace.x2),
               ],
               Expanded(
                 child: HostMainFeed(gameState: gameState),
@@ -180,19 +219,22 @@ class _HostGameScreenState extends ConsumerState<HostGameScreen>
             ],
           ),
 
-          // Tab 2: Nerve Centre Dashboard
           Column(
             children: [
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(CBSpace.x3),
+                  physics: const BouncingScrollPhysics(),
                   child: DashboardView(
                     gameState: gameState,
                     onAction: controller.advancePhase,
                     onAddMock: controller.addBot,
                     eyesOpen: gameState.eyesOpen,
                     onToggleEyes: controller.toggleEyes,
-                    onBack: () => nav.setDestination(HostDestination.lobby),
+                    onBack: () {
+                      HapticService.light();
+                      nav.setDestination(HostDestination.lobby);
+                    },
                   ),
                 ),
               ),
@@ -243,38 +285,49 @@ class _PersistentPhaseBar extends StatelessWidget {
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, CBSpace.x3),
       decoration: BoxDecoration(
-        color: scheme.surface,
+        color: scheme.surfaceContainerLow,
         border: Border(
-          top: BorderSide(color: phaseColor.withValues(alpha: 0.3)),
+          top: BorderSide(color: phaseColor.withValues(alpha: 0.4), width: 1.5),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.scrim.withValues(alpha: 0.3),
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: CBSpace.x2),
               decoration: BoxDecoration(
                 color: phaseColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(CBRadius.xs),
                 border: Border.all(color: phaseColor.withValues(alpha: 0.3)),
               ),
               child: Text(
-                phaseLabel,
+                phaseLabel.toUpperCase(),
                 style: textTheme.labelSmall?.copyWith(
                   color: phaseColor,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.5,
+                  fontSize: 10,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: CBSpace.x3),
             if (!isLobby)
               IconButton(
-                onPressed: () => onToggleEyes(!gameState.eyesOpen),
-                tooltip: gameState.eyesOpen ? 'Eyes Open' : 'Eyes Closed',
+                onPressed: () {
+                  HapticService.selection();
+                  onToggleEyes(!gameState.eyesOpen);
+                },
+                tooltip: gameState.eyesOpen ? 'EYES OPEN' : 'EYES CLOSED',
                 icon: Icon(
                   gameState.eyesOpen
                       ? Icons.visibility_rounded
@@ -285,30 +338,26 @@ class _PersistentPhaseBar extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
               ),
             if (gameState.scriptQueue.isNotEmpty) ...[
-              const SizedBox(width: 4),
+              const SizedBox(width: CBSpace.x1),
               Text(
-                '${gameState.scriptIndex + 1}/${gameState.scriptQueue.length}',
+                'STEP ${gameState.scriptIndex + 1}/${gameState.scriptQueue.length}',
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.onSurface.withValues(alpha: 0.4),
                   fontWeight: FontWeight.w700,
+                  fontSize: 9,
+                  letterSpacing: 0.5,
                 ),
               ),
             ],
             const Spacer(),
-            FilledButton.icon(
+            CBPrimaryButton(
+              label: isLobby ? 'INITIATE SESSION' : 'ADVANCE PROTOCOL',
+              icon: isLobby ? Icons.play_arrow_rounded : Icons.fast_forward_rounded,
               onPressed: () {
-                HapticFeedback.lightImpact();
+                HapticService.medium(); // Using medium haptic for primary action
                 onAction();
               },
-              icon: const Icon(Icons.fast_forward_rounded, size: 18),
-              label: Text(
-                isLobby ? 'START' : 'ADVANCE',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
-                  fontSize: 11,
-                ),
-              ),
+              fullWidth: false,
             ),
           ],
         ),
@@ -316,8 +365,6 @@ class _PersistentPhaseBar extends StatelessWidget {
     );
   }
 }
-
-// ─── ROLE CONFIRMATION BAR ──────────────────────────────────
 
 class _RoleConfirmationBar extends StatelessWidget {
   final List<Player> players;
@@ -345,31 +392,38 @@ class _RoleConfirmationBar extends StatelessWidget {
     final accentColor = allDone ? scheme.tertiary : scheme.secondary;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      padding: const EdgeInsets.fromLTRB(CBSpace.x3, CBSpace.x3, CBSpace.x3, 0),
       child: CBGlassTile(
         isPrismatic: allDone,
         borderColor: accentColor.withValues(alpha: 0.5),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(CBSpace.x4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(
-                  allDone
-                      ? Icons.check_circle_rounded
-                      : Icons.hourglass_top_rounded,
-                  size: 18,
-                  color: accentColor,
+                Container(
+                  padding: const EdgeInsets.all(CBSpace.x2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: accentColor.withValues(alpha: 0.1),
+                  ),
+                  child: Icon(
+                    allDone
+                        ? Icons.check_circle_rounded
+                        : Icons.hourglass_top_rounded,
+                    size: 18,
+                    color: accentColor,
+                  ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: CBSpace.x3),
                 Text(
-                  'ROLE CONFIRMATIONS',
+                  'OPERATIVE CONFIRMATIONS'.toUpperCase(),
                   style: textTheme.labelSmall?.copyWith(
                     color: scheme.onSurface.withValues(alpha: 0.5),
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 2.0,
-                    fontSize: 12,
+                    letterSpacing: 1.5,
+                    fontSize: 10,
                   ),
                 ),
                 const Spacer(),
@@ -379,13 +433,14 @@ class _RoleConfirmationBar extends StatelessWidget {
                     color: accentColor,
                     fontWeight: FontWeight.w900,
                     fontFamily: 'RobotoMono',
+                    shadows: allDone ? CBColors.textGlow(accentColor, intensity: 0.3) : null,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: CBSpace.x3),
             ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(CBRadius.xs),
               child: LinearProgressIndicator(
                 value: progress,
                 minHeight: 6,
@@ -394,42 +449,37 @@ class _RoleConfirmationBar extends StatelessWidget {
               ),
             ),
             if (pending.isNotEmpty) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: CBSpace.x3),
+              Text(
+                'PENDING BIOMETRIC CONFIRMATION FROM:'.toUpperCase(),
+                style: textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.4),
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  fontSize: 9,
+                ),
+              ),
+              const SizedBox(height: CBSpace.x2),
               Wrap(
-                spacing: 6,
-                runSpacing: 4,
-                children: pending.map((p) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: scheme.error.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: scheme.error.withValues(alpha: 0.25),
-                      ),
-                    ),
-                    child: Text(
-                      p.name.toUpperCase(),
-                      style: textTheme.labelSmall?.copyWith(
-                        color: scheme.error,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                        fontSize: 12,
-                      ),
-                    ),
-                  );
-                }).toList(),
+                spacing: CBSpace.x2,
+                runSpacing: CBSpace.x1,
+                children: pending
+                    .map<Widget>((p) => CBMiniTag(
+                          text: p.name.toUpperCase(),
+                          color: scheme.error,
+                          tooltip: 'Pending confirmation',
+                        ))
+                    .toList(),
               ),
             ] else ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: CBSpace.x2),
               Text(
-                'ALL PLAYERS CONFIRMED — READY TO PROCEED',
+                'ALL OPERATIVES CONFIRMED — READY TO ADVANCE'.toUpperCase(),
                 style: textTheme.labelSmall?.copyWith(
                   color: scheme.tertiary,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.0,
-                  fontSize: 12,
+                  fontSize: 10,
                 ),
               ),
             ],

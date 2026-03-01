@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../sheets/message_context_sheet.dart';
 
-/// Host-side chat view showing bulletin board messages and ghost chat
-/// from dead players, allowing the host to send narrative messages.
+/// Host-side chat view showing the entire group chat: all bulletin messages
+/// (including host-only and hostIntel) plus ghost chat from dead players.
+/// Players see only player-safe entries on all platforms (including browsers).
 ///
 /// Uses [CBGlassTile] for the container and [CBMessageBubble] for messages
 /// to mirror the Player App's chat aesthetics.
@@ -25,6 +26,7 @@ class _HostChatViewState extends ConsumerState<HostChatView>
   final ScrollController _liveScrollController = ScrollController();
   final ScrollController _ghostScrollController = ScrollController();
   late final TabController _tabController;
+  String? _targetRoleId;
 
   @override
   void initState() {
@@ -44,12 +46,14 @@ class _HostChatViewState extends ConsumerState<HostChatView>
   void _sendNarrativeMessage() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+    HapticService.selection();
 
     ref.read(gameProvider.notifier).postBulletin(
       title: 'HOST',
       content: text,
       type: 'chat',
       roleId: null,
+      targetRoleId: _targetRoleId,
     );
 
     _controller.clear();
@@ -57,8 +61,8 @@ class _HostChatViewState extends ConsumerState<HostChatView>
       if (_liveScrollController.hasClients) {
         _liveScrollController.animateTo(
           _liveScrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
         );
       }
     });
@@ -86,120 +90,181 @@ class _HostChatViewState extends ConsumerState<HostChatView>
         widget.gameState.players.where((p) => !p.isAlive).length;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        CBSectionHeader(
-          title: 'COMMS CHANNEL',
-          icon: Icons.chat_bubble_outline_rounded,
-          color: scheme.secondary,
-        ),
-        const SizedBox(height: 12),
-
-        // Tab bar
-        CBGlassTile(
-          borderColor: scheme.secondary.withValues(alpha: 0.2),
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: TabBar(
-            controller: _tabController,
-            indicatorSize: TabBarIndicatorSize.tab,
-            dividerColor: Colors.transparent,
-            indicator: BoxDecoration(
-              color: scheme.secondary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
-              border:
-                  Border.all(color: scheme.secondary.withValues(alpha: 0.4)),
-            ),
-            labelStyle: textTheme.labelSmall!.copyWith(
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
-            ),
-            unselectedLabelStyle: textTheme.labelSmall!.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
-            labelColor: scheme.secondary,
-            unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.4),
-            tabs: [
-              const Tab(text: 'LIVE FEED'),
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('GHOST COMMS'),
-                    if (ghostMessages.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: scheme.tertiary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${ghostMessages.length}',
-                          style: textTheme.labelSmall!.copyWith(
-                            color: scheme.onTertiary,
-                            fontSize: 8,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
+        CBFadeSlide(
+          child: CBSectionHeader(
+            title: 'COMMS CHANNEL',
+            icon: Icons.chat_bubble_outline_rounded,
+            color: scheme.secondary,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: CBSpace.x4),
+
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 100),
+          child: CBGlassTile(
+            borderColor: scheme.secondary.withValues(alpha: 0.2),
+            padding: const EdgeInsets.symmetric(
+                horizontal: CBSpace.x1, vertical: CBSpace.x1),
+            child: TabBar(
+              controller: _tabController,
+              indicatorSize: TabBarIndicatorSize.tab,
+              dividerColor: Colors.transparent,
+              indicator: BoxDecoration(
+                color: scheme.secondary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(CBRadius.sm),
+                border:
+                    Border.all(color: scheme.secondary.withValues(alpha: 0.4)),
+              ),
+              labelStyle: textTheme.labelSmall!.copyWith(
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+              unselectedLabelStyle: textTheme.labelSmall!.copyWith(
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.0,
+              ),
+              labelColor: scheme.secondary,
+              unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.4),
+              tabs: [
+                const Tab(text: 'LIVE FEED'),
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('GHOST COMMS'),
+                      if (ghostMessages.isNotEmpty) ...[
+                        const SizedBox(width: CBSpace.x2),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: CBSpace.x2, vertical: CBSpace.x1),
+                          decoration: BoxDecoration(
+                            color: scheme.tertiary,
+                            borderRadius: BorderRadius.circular(CBRadius.xs),
+                          ),
+                          child: Text(
+                            '${ghostMessages.length}',
+                            style: textTheme.labelSmall!.copyWith(
+                              color: scheme.onTertiary,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: CBSpace.x4),
 
         Expanded(
           child: TabBarView(
             controller: _tabController,
+            physics: const BouncingScrollPhysics(),
             children: [
-              // Tab 1: Live Feed
               _buildLiveFeed(scheme, textTheme, messages),
-              // Tab 2: Ghost Comms
               _buildGhostFeed(scheme, textTheme, ghostMessages, deadCount),
             ],
           ),
         ),
 
-        const SizedBox(height: 8),
-        CBGlassTile(
-          borderColor: scheme.secondary.withValues(alpha: 0.25),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: CBTextField(
-                  controller: _controller,
-                  textStyle: textTheme.bodyMedium!,
-                  textInputAction: TextInputAction.send,
-                  decoration: InputDecoration(
-                    hintText: 'Send narrative message...',
-                    hintStyle: textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.4),
+        const SizedBox(height: CBSpace.x4),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 200),
+          child: _buildTargetRoleChips(scheme, textTheme),
+        ),
+        const SizedBox(height: CBSpace.x2),
+        CBFadeSlide(
+          delay: const Duration(milliseconds: 300),
+          child: CBGlassTile(
+            borderColor: scheme.secondary.withValues(alpha: 0.3),
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x2),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CBTextField(
+                    controller: _controller,
+                    hintText: 'SEND NARRATIVE MESSAGE...',
+                    textStyle: textTheme.bodyMedium!,
+                    textInputAction: TextInputAction.send,
+                    decoration: InputDecoration(
+                      hintText: 'SEND NARRATIVE MESSAGE...',
+                      hintStyle: textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.4),
+                        letterSpacing: 0.5,
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                      border: InputBorder.none,
+                      isDense: true,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    border: InputBorder.none,
+                    onSubmitted: (_) => _sendNarrativeMessage(),
                   ),
-                  onSubmitted: (_) => _sendNarrativeMessage(),
                 ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: _sendNarrativeMessage,
-                icon: Icon(Icons.send_rounded, color: scheme.secondary),
-                tooltip: 'Send narrative',
-              ),
-            ],
+                const SizedBox(width: CBSpace.x2),
+                IconButton(
+                  onPressed: _sendNarrativeMessage,
+                  icon: Icon(Icons.send_rounded, color: scheme.secondary, size: 20),
+                  tooltip: 'Send narrative message',
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTargetRoleChips(ColorScheme scheme, TextTheme textTheme) {
+    final playersWithRole = widget.gameState.players
+        .where((p) => p.role.id != 'unassigned')
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: CBSpace.x2),
+            child: CBFilterChip(
+              label: 'EVERYONE',
+              selected: _targetRoleId == null,
+              onSelected: () {
+                HapticService.selection();
+                setState(() => _targetRoleId = null);
+              },
+              color: scheme.secondary,
+              dense: true,
+            ),
+          ),
+          ...playersWithRole.map((player) {
+            final selected = _targetRoleId == player.role.id;
+            final roleColor = CBColors.fromHex(player.role.colorHex);
+            return Padding(
+              padding: const EdgeInsets.only(right: CBSpace.x2),
+              child: CBFilterChip(
+                label: player.name,
+                selected: selected,
+                onSelected: () {
+                  HapticService.selection();
+                  setState(() =>
+                      _targetRoleId = selected ? null : player.role.id);
+                },
+                color: roleColor,
+                dense: true,
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 
@@ -212,23 +277,42 @@ class _HostChatViewState extends ConsumerState<HostChatView>
       borderColor: scheme.secondary.withValues(alpha: 0.25),
       padding: EdgeInsets.zero,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(CBRadius.md),
         child: messages.isEmpty
             ? Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'NO TRANSMISSIONS YET.',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.3),
-                      letterSpacing: 1.5,
-                    ),
+                  padding: const EdgeInsets.all(CBSpace.x6),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.chat_bubble_outline_rounded,
+                          size: 48, color: scheme.onSurface.withValues(alpha: 0.1)),
+                      const SizedBox(height: CBSpace.x4),
+                      Text(
+                        'NO TRANSMISSIONS LOGGED.',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.3),
+                          letterSpacing: 2.0,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: CBSpace.x2),
+                      Text(
+                        'START A GAME TO SEE LIVE COMMUNICATIONS.',
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.2),
+                          fontSize: 9,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               )
             : ListView.builder(
                 controller: _liveScrollController,
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: CBSpace.x2, horizontal: CBSpace.x4),
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   final entry = messages[index];
@@ -251,31 +335,37 @@ class _HostChatViewState extends ConsumerState<HostChatView>
                     } catch (_) {}
                   }
 
-                  if (isHost) {
-                    return CBMessageBubble(
-                      sender: senderName,
-                      message: entry.content,
-                      style: CBMessageStyle.narrative,
-                      color: scheme.secondary,
-                      isSender: true,
-                      isCompact: true,
-                      isPrismatic: true,
-                    );
+                  final isPrevSameSender = index > 0 &&
+                      messages[index - 1].roleId == entry.roleId;
+                  final isNextSameSender = index < messages.length - 1 &&
+                      messages[index + 1].roleId == entry.roleId;
+
+                  CBMessageGroupPosition groupPos = CBMessageGroupPosition.single;
+                  if (isPrevSameSender && isNextSameSender) {
+                    groupPos = CBMessageGroupPosition.middle;
+                  } else if (isPrevSameSender && !isNextSameSender) {
+                    groupPos = CBMessageGroupPosition.bottom;
+                  } else if (!isPrevSameSender && isNextSameSender) {
+                    groupPos = CBMessageGroupPosition.top;
                   }
 
                   return CBMessageBubble(
-                    sender: senderName,
+                    sender: senderName.toUpperCase(),
                     message: entry.content,
-                    style: CBMessageStyle.standard,
-                    color: scheme.primary,
-                    isSender: false,
+                    style: isHost ? CBMessageStyle.narrative : CBMessageStyle.standard,
+                    color: isHost ? scheme.secondary : CBColors.fromHex(widget.gameState.players.firstWhere((p) => p.role.id == entry.roleId, orElse: () => Player(id: '', name: '', roleId: 'unassigned', roleName: '', roleColorHex: CBColors.primary.toHexString(), isBot: false, isAlive: true, alliance: Team.unknown)).roleColorHex),
+                    isSender: isHost, // Host messages appear on the right
                     isCompact: true,
                     avatarAsset: avatarAsset,
-                    onTap: () => showMessageContextActions(
-                      context,
-                      playerName: senderName,
-                      message: entry.content,
-                    ),
+                    groupPosition: groupPos,
+                    onTap: () {
+                      HapticService.light();
+                      showMessageContextActions(
+                        context,
+                        playerName: senderName,
+                        message: entry.content,
+                      );
+                    },
                   );
                 },
               ),
@@ -293,34 +383,33 @@ class _HostChatViewState extends ConsumerState<HostChatView>
       borderColor: scheme.tertiary.withValues(alpha: 0.25),
       padding: EdgeInsets.zero,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(CBRadius.md),
         child: Column(
           children: [
-            // Ghost count header
             Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x2),
               decoration: BoxDecoration(
                 color: scheme.tertiary.withValues(alpha: 0.08),
                 border: Border(
                   bottom: BorderSide(
                     color: scheme.tertiary.withValues(alpha: 0.2),
+                    width: 1,
                   ),
                 ),
               ),
               child: Row(
                 children: [
                   Icon(Icons.people_outline_rounded,
-                      color: scheme.tertiary, size: 14),
-                  const SizedBox(width: 8),
+                      color: scheme.tertiary, size: 16),
+                  const SizedBox(width: CBSpace.x2),
                   Text(
-                    '$deadCount GHOST${deadCount == 1 ? '' : 'S'} ACTIVE',
+                    '$deadCount OPERATIVE${deadCount == 1 ? '' : 'S'} ELIMINATED',
                     style: textTheme.labelSmall!.copyWith(
                       color: scheme.tertiary,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 1.0,
-                      fontSize: 9,
+                      fontSize: 10,
                     ),
                   ),
                 ],
@@ -330,7 +419,7 @@ class _HostChatViewState extends ConsumerState<HostChatView>
               child: ghostMessages.isEmpty
                   ? Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(CBSpace.x6),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -338,15 +427,26 @@ class _HostChatViewState extends ConsumerState<HostChatView>
                               Icons.visibility_off_rounded,
                               color:
                                   scheme.onSurface.withValues(alpha: 0.15),
-                              size: 32,
+                              size: 48,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: CBSpace.x4),
                             Text(
                               'SPECTATOR CHANNEL SILENT.',
-                              style: textTheme.labelSmall?.copyWith(
+                              style: textTheme.labelLarge?.copyWith(
                                 color: scheme.onSurface
                                     .withValues(alpha: 0.3),
-                                letterSpacing: 1.5,
+                                letterSpacing: 2.0,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: CBSpace.x2),
+                            Text(
+                              'NO TRANSMISSIONS FROM ELIMINATED OPERATIVES.',
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurface.withValues(alpha: 0.2),
+                                fontSize: 9,
+                                letterSpacing: 1.0,
                               ),
                             ),
                           ],
@@ -355,7 +455,7 @@ class _HostChatViewState extends ConsumerState<HostChatView>
                     )
                   : ListView.builder(
                       controller: _ghostScrollController,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: CBSpace.x2, horizontal: CBSpace.x4),
                       itemCount: ghostMessages.length,
                       itemBuilder: (context, index) {
                         final msg = ghostMessages[index];
@@ -370,19 +470,29 @@ class _HostChatViewState extends ConsumerState<HostChatView>
                             ? cleaned.substring(colonIdx + 1).trim()
                             : cleaned;
 
+                        // Ghost messages are always from 'outside' the live game context, hence isSender: false
                         return CBMessageBubble(
-                          sender: sender,
+                          sender: sender.toUpperCase(),
                           message: body,
                           style: CBMessageStyle.whisper,
                           color: scheme.tertiary,
                           isSender: false,
                           isCompact: true,
+                          avatarAsset: 'assets/roles/ghost.png', // Assuming a ghost avatar exists
                           tags: [
                             CBMiniTag(
-                              text: 'GHOST',
+                              text: 'SPECTATOR',
                               color: scheme.tertiary,
                             ),
                           ],
+                           onTap: () {
+                              HapticService.light();
+                              showMessageContextActions(
+                                context,
+                                playerName: sender,
+                                message: body,
+                              );
+                            },
                         );
                       },
                     ),

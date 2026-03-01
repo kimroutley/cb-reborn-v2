@@ -13,6 +13,8 @@ abstract class BulletinEntry with _$BulletinEntry {
     required DateTime timestamp,
     String? roleId,
     @Default(false) bool isHostOnly,
+    /// When set, only players with this role see the message (e.g. host message to Dealers only).
+    String? targetRoleId,
   }) = _BulletinEntry;
 
   factory BulletinEntry.fromJson(Map<String, dynamic> json) =>

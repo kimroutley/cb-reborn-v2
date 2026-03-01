@@ -5,6 +5,7 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -16,6 +17,18 @@ import 'host_settings.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // System UI for dark Radiant Neon theme (Pixel / modern Android: status + nav bar)
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
+
   await Hive.initFlutter();
   await _initializePersistenceOfflineFirst();
   await _initializeFirebaseServices();

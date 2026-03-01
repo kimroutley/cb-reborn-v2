@@ -47,87 +47,102 @@ class _NotificationsPromptBannerState
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
-      child: CBGlassTile(
-        borderColor: scheme.primary.withValues(alpha: 0.5),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              Icon(
-                Icons.notifications_outlined,
-                color: scheme.primary,
-                size: 22,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Stay in the loop',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Get notified when it\'s your turn — even if the app is closed.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.85),
-                      ),
-                    ),
-                  ],
+    return Semantics(
+      label: installAvailable && (supported && !promptState.isGranted)
+          ? 'Notifications: get notified when it\'s your turn. You can enable notifications or install the app.'
+          : installAvailable
+              ? 'Install the app for a better experience.'
+              : 'Enable notifications to get notified when it\'s your turn.',
+      child: Padding(
+        padding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
+        child: CBGlassTile(
+          borderColor: scheme.primary.withValues(alpha: 0.5),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.notifications_outlined,
+                  color: scheme.primary,
+                  size: 22,
                 ),
-              ),
-              if (supported && !promptState.isGranted)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: FilledButton.tonal(
-                    onPressed: promptState.isRequesting
-                        ? null
-                        : () async {
-                            final result = await ref
-                                .read(notificationsPromptProvider.notifier)
-                                .requestPermission();
-                            if (result == NotificationPermission.granted &&
-                                vapidPublicKeyBase64.isNotEmpty) {
-                              final sub = await getPushSubscription(
-                                  vapidPublicKeyBase64);
-                              if (sub != null && mounted) {
-                                await ref
-                                    .read(cloudPlayerBridgeProvider.notifier)
-                                    .registerPushSubscription(sub);
-                              }
-                            }
-                          },
-                    child: promptState.isRequesting
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: scheme.onPrimaryContainer,
-                            ),
-                          )
-                        : const Text('Enable'),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Stay in the loop',
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Get notified when it\'s your turn — even if the app is closed.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              if (installAvailable) ...[
                 if (supported && !promptState.isGranted)
-                  const SizedBox(width: 8),
-                CBGhostButton(
-                  label: 'Install app',
-                  fullWidth: false,
-                  onPressed: () async {
-                    await showPwaInstallPrompt();
-                  },
-                ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Semantics(
+                      button: true,
+                      label: 'Enable notifications',
+                      child: FilledButton.tonal(
+                        onPressed: promptState.isRequesting
+                            ? null
+                            : () async {
+                                final result = await ref
+                                    .read(notificationsPromptProvider.notifier)
+                                    .requestPermission();
+                                if (result == NotificationPermission.granted &&
+                                    vapidPublicKeyBase64.isNotEmpty) {
+                                  final sub = await getPushSubscription(
+                                      vapidPublicKeyBase64);
+                                  if (sub != null && mounted) {
+                                    await ref
+                                        .read(cloudPlayerBridgeProvider.notifier)
+                                        .registerPushSubscription(sub);
+                                  }
+                                }
+                              },
+                        child: promptState.isRequesting
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: scheme.onPrimaryContainer,
+                                ),
+                              )
+                            : const Text('Enable'),
+                      ),
+                    ),
+                  ),
+                if (installAvailable) ...[
+                  if (supported && !promptState.isGranted)
+                    const SizedBox(width: 8),
+                  Semantics(
+                    button: true,
+                    label: 'Install app to home screen',
+                    child: CBGhostButton(
+                      label: 'Install app',
+                      fullWidth: false,
+                      onPressed: () async {
+                        await showPwaInstallPrompt();
+                      },
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

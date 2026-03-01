@@ -1,0 +1,470 @@
+﻿import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_models/cb_models.dart';
+import 'package:cb_theme/cb_theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../sheets/single_player_role_sheet.dart';
+
+final userProfileProvider =
+    StreamProvider.family<Map<String, dynamic>?, String>((ref, uid) {
+  return FirebaseFirestore.instance
+      .collection('user_profiles')
+      .doc(uid)
+      .snapshots()
+      .map((doc) => doc.data());
+});
+
+class LobbyPlayerList extends ConsumerWidget {
+  const LobbyPlayerList({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final gameState = ref.watch(gameProvider);
+    final session = ref.watch(sessionProvider);
+    final controller = ref.read(gameProvider.notifier);
+
+    final players = gameState.players;
+    final connectedHumans = players.where((p) => !p.isBot).length;
+    final confirmedHumans = session.roleConfirmedPlayerIds
+        .where((id) => players.any((p) => p.id == id && !p.isBot))
+        .length;
+    final allConfirmed =
+        confirmedHumans >= connectedHumans && connectedHumans > 0;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Roster header with count
+        CBGlassTile(
+          isPrismatic: allConfirmed,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          borderColor: (allConfirmed ? scheme.tertiary : scheme.primary)
+              .withValues(alpha: 0.4),
+          child: Row(
+            children: [
+              Icon(
+                Icons.people_alt_rounded,
+                size: 18,
+                color: allConfirmed ? scheme.tertiary : scheme.primary,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'GUEST LIST',
+                style: textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.5),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                  fontSize: 9,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${players.length}',
+                style: textTheme.titleMedium?.copyWith(
+                  color: allConfirmed ? scheme.tertiary : scheme.primary,
+                  fontWeight: FontWeight.w900,
+                  fontFamily: 'RobotoMono',
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // Player list or empty state
+        if (players.isEmpty)
+          CBGlassTile(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CBBreathingLoader(size: 48, color: scheme.tertiary),
+                const SizedBox(height: 20),
+                Text(
+                  'WAITING FOR GUESTS...',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: scheme.tertiary,
+                    letterSpacing: 2.5,
+                    fontWeight: FontWeight.w900,
+                    shadows:
+                        CBColors.textGlow(scheme.tertiary, intensity: 0.5),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Share the code or QR to let players in.',
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          CBGlassTile(
+            padding: EdgeInsets.zero,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: players.length,
+                  separatorBuilder: (_, __) => Divider(
+                    height: 1,
+                    indent: 56,
+                    endIndent: 16,
+                    color: scheme.outlineVariant.withValues(alpha: 0.1),
+                  ),
+                  itemBuilder: (context, index) {
+                    final player = players[index];
+                    return _PlayerTile(
+                      player: player,
+                      index: index,
+                      isConfirmed: session.roleConfirmedPlayerIds
+                          .contains(player.id),
+                      onAssignRole: () => showThemedBottomSheet<void>(
+                        context: context,
+                        accentColor: scheme.secondary,
+                        child: SinglePlayerRoleSheet(
+                          playerId: player.id,
+                          playerName: player.name,
+                        ),
+                      ),
+                      onRename: () async {
+                        final name = await _showRenameDialog(
+                          context,
+                          initialName: player.name,
+                        );
+                        if (name != null && name.trim().isNotEmpty) {
+                          controller.updatePlayerName(player.id, name.trim());
+                        }
+                      },
+                      onMerge: players.length > 1
+                          ? () async {
+                              final targetId = await _showMergeDialog(
+                                context,
+                                players: players,
+                                sourcePlayer: player,
+                              );
+                              if (targetId != null) {
+                                controller.mergePlayers(
+                                  sourceId: player.id,
+                                  targetId: targetId,
+                                );
+                              }
+                            }
+                          : null,
+                      onRemove: () {
+                        HapticService.heavy();
+                        controller.removePlayer(player.id);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
+  Future<String?> _showRenameDialog(
+    BuildContext context, {
+    required String initialName,
+  }) async {
+    final ctrl = TextEditingController(text: initialName);
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return showThemedDialog<String>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'RENAME GUEST',
+            style: textTheme.labelLarge!.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 20),
+          CBTextField(controller: ctrl, autofocus: true, hintText: 'New name'),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              CBGhostButton(
+                label: 'CANCEL',
+                onPressed: () => Navigator.pop(context),
+              ),
+              const SizedBox(width: 12),
+              CBPrimaryButton(
+                label: 'SAVE',
+                fullWidth: false,
+                onPressed: () => Navigator.pop(context, ctrl.text),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> _showMergeDialog(
+    BuildContext context, {
+    required List<Player> players,
+    required Player sourcePlayer,
+  }) async {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final targets = players.where((p) => p.id != sourcePlayer.id).toList();
+    return showThemedDialog<String>(
+      context: context,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'MERGE INTO...',
+            style: textTheme.labelLarge!.copyWith(
+              color: scheme.secondary,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Move ${sourcePlayer.name} into another player slot.',
+            style: textTheme.bodySmall!
+                .copyWith(color: scheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 20),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 280),
+            child: SingleChildScrollView(
+              child: Column(
+                children: targets
+                    .map((t) => Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: CBPrimaryButton(
+                            label: t.name.toUpperCase(),
+                            backgroundColor:
+                                scheme.secondary.withValues(alpha: 0.15),
+                            foregroundColor: scheme.secondary,
+                            onPressed: () => Navigator.pop(context, t.id),
+                          ),
+                        ))
+                    .toList(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: CBGhostButton(
+              label: 'CANCEL',
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── PLAYER TILE ────────────────────────────────────────────
+
+class _PlayerTile extends StatelessWidget {
+  final Player player;
+  final int index;
+  final bool isConfirmed;
+  final VoidCallback onRename;
+  final VoidCallback? onMerge;
+  final VoidCallback onRemove;
+  final VoidCallback onAssignRole;
+
+  const _PlayerTile({
+    required this.player,
+    required this.index,
+    required this.isConfirmed,
+    required this.onRename,
+    this.onMerge,
+    required this.onRemove,
+    required this.onAssignRole,
+  });
+
+  bool get _hasRole => player.role.id != 'unassigned';
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final roleColor =
+        _hasRole ? CBColors.fromHex(player.role.colorHex) : null;
+    final accent = roleColor ?? (player.isBot ? scheme.tertiary : scheme.primary);
+
+    return CBFadeSlide(
+      delay: Duration(milliseconds: 30 * index.clamp(0, 10)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          children: [
+            // Avatar — role icon when assigned, generic icon otherwise
+            if (_hasRole)
+              CBRoleAvatar(
+                assetPath: player.role.assetPath,
+                color: roleColor!,
+                size: 36,
+              )
+            else
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: accent.withValues(alpha: 0.1),
+                  border: Border.all(
+                    color: accent.withValues(alpha: 0.4),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    player.isBot
+                        ? Icons.smart_toy_rounded
+                        : Icons.person_rounded,
+                    size: 18,
+                    color: accent,
+                  ),
+                ),
+              ),
+            const SizedBox(width: 12),
+
+            // Name + role/status tags
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    player.name.toUpperCase(),
+                    style: textTheme.labelMedium?.copyWith(
+                      color: scheme.onSurface,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      if (_hasRole)
+                        CBMiniTag(
+                          text: player.role.name.toUpperCase(),
+                          color: roleColor!,
+                        )
+                      else if (player.isBot)
+                        CBMiniTag(text: 'BOT', color: scheme.tertiary)
+                      else
+                        CBMiniTag(text: 'JOINED', color: scheme.primary),
+                      if (_hasRole) ...[
+                        const SizedBox(width: 4),
+                        if (isConfirmed)
+                          CBMiniTag(text: 'READY', color: scheme.tertiary)
+                        else
+                          CBMiniTag(
+                            text: 'PENDING',
+                            color: scheme.onSurface.withValues(alpha: 0.4),
+                          ),
+                      ] else if (!player.isBot && isConfirmed) ...[
+                        const SizedBox(width: 4),
+                        CBMiniTag(text: 'READY', color: scheme.tertiary),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Action icons
+            _TileAction(
+              icon: Icons.assignment_ind_rounded,
+              color: scheme.secondary,
+              tooltip: 'Assign Role',
+              onTap: onAssignRole,
+            ),
+            const SizedBox(width: 4),
+            _TileAction(
+              icon: Icons.edit_rounded,
+              color: scheme.primary,
+              tooltip: 'Rename',
+              onTap: onRename,
+            ),
+            if (onMerge != null) ...[
+              const SizedBox(width: 4),
+              _TileAction(
+                icon: Icons.merge_rounded,
+                color: scheme.secondary,
+                tooltip: 'Merge',
+                onTap: onMerge!,
+              ),
+            ],
+            const SizedBox(width: 4),
+            _TileAction(
+              icon: Icons.close_rounded,
+              color: scheme.error,
+              tooltip: 'Remove',
+              onTap: onRemove,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TileAction extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  const _TileAction({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: () {
+          HapticService.selection();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(icon, size: 16, color: color.withValues(alpha: 0.7)),
+        ),
+      ),
+    );
+  }
+}
