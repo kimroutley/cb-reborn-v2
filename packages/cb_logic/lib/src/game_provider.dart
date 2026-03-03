@@ -60,7 +60,10 @@ class Game extends _$Game {
       final (gameState, _) = saved;
       state = gameState;
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name); // approximate
+      AnalyticsService.logGameStarted(
+          playerCount: state.players.length,
+          gameStyle: state.gameStyle.name,
+          syncMode: state.syncMode.name); // approximate
       return true;
     } catch (_) {
       return false;
@@ -134,7 +137,10 @@ class Game extends _$Game {
       final (gameState, _) = saved;
       state = gameState;
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+      AnalyticsService.logGameStarted(
+          playerCount: state.players.length,
+          gameStyle: state.gameStyle.name,
+          syncMode: state.syncMode.name);
       return true;
     } catch (_) {
       return false;
@@ -198,7 +204,10 @@ class Game extends _$Game {
       );
 
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+      AnalyticsService.logGameStarted(
+          playerCount: state.players.length,
+          gameStyle: state.gameStyle.name,
+          syncMode: state.syncMode.name);
       _persist();
       return true;
     } catch (_) {
@@ -1368,6 +1377,15 @@ class Game extends _$Game {
     if (state.players.length < minPlayers) return false;
     if (state.phase != GamePhase.lobby) return false;
 
+    final now = DateTime.now();
+    final gameStartedMarker = BulletinEntry(
+      id: 'game_started_${now.millisecondsSinceEpoch}',
+      title: 'GAME STARTED',
+      content: 'THE GAME HAS BEGUN',
+      type: 'game_started',
+      timestamp: now,
+    );
+
     if (state.gameStyle == GameStyle.manual) {
       final allAssigned = state.players.every(
           (p) => p.role.id != 'unassigned' && p.alliance != Team.unknown);
@@ -1382,12 +1400,16 @@ class Game extends _$Game {
         scriptIndex: 0,
         actionLog: const {},
         dayCount: 1,
+        bulletinBoard: [...state.bulletinBoard, gameStartedMarker],
       );
       final sessionController = ref.read(sessionProvider.notifier);
       sessionController.clearRoleConfirmations();
       sessionController.setForceStartOverride(false);
       _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+      AnalyticsService.logGameStarted(
+          playerCount: state.players.length,
+          gameStyle: state.gameStyle.name,
+          syncMode: state.syncMode.name);
       _persist();
       return true;
     }
@@ -1403,12 +1425,16 @@ class Game extends _$Game {
       scriptIndex: 0,
       actionLog: const {},
       dayCount: 1,
+      bulletinBoard: [...state.bulletinBoard, gameStartedMarker],
     );
     final sessionController = ref.read(sessionProvider.notifier);
     sessionController.clearRoleConfirmations();
     sessionController.setForceStartOverride(false);
     _gameStartedAt = DateTime.now();
-      AnalyticsService.logGameStarted(playerCount: state.players.length, gameStyle: state.gameStyle.name, syncMode: state.syncMode.name);
+    AnalyticsService.logGameStarted(
+        playerCount: state.players.length,
+        gameStyle: state.gameStyle.name,
+        syncMode: state.syncMode.name);
     _persist();
     return true;
   }
@@ -1657,7 +1683,11 @@ class Game extends _$Game {
   void _checkAndResolveWinCondition(List<Player> players) {
     final win = GameResolutionLogic.checkWinCondition(players);
     if (win != null) {
-      AnalyticsService.logGameCompleted(winner: win.winner.name, dayCount: state.dayCount, duration: DateTime.now().difference(_gameStartedAt ?? DateTime.now()));
+      AnalyticsService.logGameCompleted(
+          winner: win.winner.name,
+          dayCount: state.dayCount,
+          duration:
+              DateTime.now().difference(_gameStartedAt ?? DateTime.now()));
       state = GameResolutionLogic.applyWinResult(state, win);
       archiveGame();
     }

@@ -83,7 +83,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
       '/join',
       {
         'mode': 'cloud',
-        'code': joinCode, // Ensure code is uppercase/trimmed elsewhere if needed
+        'code':
+            joinCode, // Ensure code is uppercase/trimmed elsewhere if needed
       },
     ).toString();
   }
@@ -264,7 +265,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: CBGlassTile(
                 isPrismatic: isCloudVerified,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 borderColor: statusColor.withValues(alpha: 0.4),
                 child: Row(
                   children: [
@@ -280,6 +282,28 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                       ),
                     ),
                     const Spacer(),
+                    if (playerCount > 0)
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: statusColor.withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          '$playerCount ONLINE',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: statusColor,
+                            fontFamily: 'RobotoMono',
+                            fontWeight: FontWeight.w900,
+                            fontSize: 9,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
                     Transform.scale(
                       scale: 0.75,
                       child: Switch.adaptive(
@@ -323,13 +347,16 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                                 joinCode: session.joinCode,
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 24, horizontal: 16),
                                 child: Column(
                                   children: [
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.radar_rounded, color: scheme.primary, size: 16),
+                                        Icon(Icons.radar_rounded,
+                                            color: scheme.primary, size: 16),
                                         const SizedBox(width: 10),
                                         Text(
                                           'SIGNAL BROADCAST ACTIVE',
@@ -343,36 +370,51 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                                       ],
                                     ),
                                     const SizedBox(height: 24),
-                                    Text(
-                                      session.joinCode,
-                                      style: textTheme.displayLarge?.copyWith(
-                                        fontFamily: 'RobotoMono',
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 10,
-                                        color: scheme.primary,
-                                        fontSize: 54,
-                                        shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+                                    GestureDetector(
+                                      onLongPress: () => _copyToClipboard(
+                                        context,
+                                        value: session.joinCode,
+                                        successMessage:
+                                            'ACCESS KEY COPIED TO CLIPBOARD.',
+                                      ),
+                                      child: Text(
+                                        session.joinCode,
+                                        style: textTheme.displayLarge?.copyWith(
+                                          fontFamily: 'RobotoMono',
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 10,
+                                          color: scheme.primary,
+                                          fontSize: 54,
+                                          shadows: CBColors.textGlow(
+                                              scheme.primary,
+                                              intensity: 0.8),
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(height: 24),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
                                       decoration: BoxDecoration(
-                                        color: scheme.primary.withValues(alpha: 0.15),
+                                        color: scheme.primary
+                                            .withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: scheme.primary.withValues(alpha: 0.3),
+                                          color: scheme.primary
+                                              .withValues(alpha: 0.3),
                                           width: 1,
                                         ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.qr_code_scanner_rounded, size: 18, color: scheme.primary),
+                                          Icon(Icons.qr_code_scanner_rounded,
+                                              size: 18, color: scheme.primary),
                                           const SizedBox(width: 10),
                                           Text(
                                             'OPEN BEACON',
-                                            style: textTheme.labelMedium?.copyWith(
+                                            style:
+                                                textTheme.labelMedium?.copyWith(
                                               color: scheme.primary,
                                               letterSpacing: 1.5,
                                               fontWeight: FontWeight.w900,
@@ -419,16 +461,23 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: CBGlassTile(
-                isPrismatic: true,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                isPrismatic: canStart,
+                borderColor:
+                    canStart ? scheme.tertiary.withValues(alpha: 0.5) : null,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 child: SafeArea(
                   top: false,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CBPrimaryButton(
-                        label: canStart ? 'INITIATE SEQUENCE' : 'WAITING FOR PLAYERS ($playerCount/${Game.minPlayers})',
-                        icon: Icons.play_arrow_rounded,
+                        label: canStart
+                            ? 'INITIATE SEQUENCE'
+                            : 'WAITING FOR PLAYERS ($playerCount/${Game.minPlayers})',
+                        icon: canStart
+                            ? Icons.play_arrow_rounded
+                            : Icons.hourglass_top_rounded,
                         onPressed: canStart
                             ? () {
                                 controller.startGame();
@@ -443,7 +492,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen> {
                             child: CBGhostButton(
                               label: 'ROLES',
                               icon: Icons.admin_panel_settings_outlined,
-                              onPressed: () => _showManualRoleAssignmentSheet(context),
+                              onPressed: () =>
+                                  _showManualRoleAssignmentSheet(context),
                             ),
                           ),
                           const SizedBox(width: 12),
