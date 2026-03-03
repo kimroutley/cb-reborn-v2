@@ -50,16 +50,17 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     if (player == null) {
       // If player is not claimed yet, send as a generic 'lounge' user
       ref.read(activeBridgeProvider).actions.sendBulletin(
-        title: 'LOUNGE', // Generic name for unclaimed players
-        floatContent: text,
-        roleId: null, // No role assigned yet
-      );
+            title: 'LOUNGE', // Generic name for unclaimed players
+            floatContent: text,
+            roleId: null, // No role assigned yet
+          );
     } else {
       ref.read(activeBridgeProvider).actions.sendBulletin(
-        title: player.roleName, // This will be 'Unassigned' in lobby, which is fine
-        floatContent: text,
-        roleId: player.roleId,
-      );
+            title: player
+                .roleName, // This will be 'Unassigned' in lobby, which is fine
+            floatContent: text,
+            roleId: player.roleId,
+          );
     }
 
     _chatController.clear();
@@ -214,16 +215,19 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
     final (statusIcon, statusColor) = switch (status.tone) {
       _LobbyStatusTone.readyToJoin => (Icons.bolt_rounded, scheme.tertiary),
-      _LobbyStatusTone.waitingPlayers =>
-        (Icons.groups_3_rounded, scheme.secondary),
+      _LobbyStatusTone.waitingPlayers => (
+          Icons.groups_3_rounded,
+          scheme.secondary
+        ),
       _LobbyStatusTone.setup => (Icons.badge_rounded, scheme.primary),
-      _LobbyStatusTone.waitingHost =>
-        (Icons.hourglass_top_rounded, scheme.onSurfaceVariant),
+      _LobbyStatusTone.waitingHost => (
+          Icons.hourglass_top_rounded,
+          scheme.onSurfaceVariant
+        ),
     };
 
-    final otherPlayers = gameState.players
-        .where((p) => p.id != gameState.myPlayerId)
-        .toList();
+    final otherPlayers =
+        gameState.players.where((p) => p.id != gameState.myPlayerId).toList();
 
     return CBPrismScaffold(
       title: 'THE LOUNGE',
@@ -436,8 +440,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                               Text(
                                 player.name.toUpperCase(),
                                 style: textTheme.labelSmall?.copyWith(
-                                  color: scheme.onSurface
-                                      .withValues(alpha: 0.8),
+                                  color:
+                                      scheme.onSurface.withValues(alpha: 0.8),
                                   letterSpacing: 1.0,
                                   fontSize: 10,
                                 ),
