@@ -14,13 +14,10 @@ class GuidesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final gameState = ref.watch(gameProvider);
 
-    return CBPrismScaffold(
-      title: 'THE BLACKBOOK',
+    return CBGuideScreen(
+      gameState: gameState,
+      localPlayer: null,
       drawer: const CustomDrawer(currentDestination: HostDestination.guides),
-      body: CBGuideScreen(
-        gameState: gameState,
-        localPlayer: null,
-      ),
     );
   }
 }

@@ -84,6 +84,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
     return Container(
       width: 80,
       decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
         border: Border(
           right: BorderSide(
             color: scheme.outlineVariant.withValues(alpha: 0.15),
@@ -954,16 +955,16 @@ class _RailItem extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: isSubItem ? 8 : 12),
           decoration: isActive
               ? BoxDecoration(
-                  color: activeColor.withValues(alpha: 0.1),
+                  color: activeColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: activeColor.withValues(alpha: 0.3),
+                    color: activeColor.withValues(alpha: 0.5),
                     width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: activeColor.withValues(alpha: 0.1),
-                      blurRadius: 8,
+                      color: activeColor.withValues(alpha: 0.15),
+                      blurRadius: 10,
                     ),
                   ],
                 )

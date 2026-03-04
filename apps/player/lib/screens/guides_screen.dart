@@ -23,13 +23,10 @@ class GuidesScreen extends ConsumerWidget {
     // Construct local Player from playerState.myPlayerSnapshot
     final localPlayer = _mapToPlayer(playerState.myPlayerSnapshot);
 
-    return CBPrismScaffold(
-      title: 'THE BLACKBOOK',
+    return CBGuideScreen(
+      gameState: gameState,
+      localPlayer: localPlayer,
       drawer: const CustomDrawer(),
-      body: CBGuideScreen(
-        gameState: gameState,
-        localPlayer: localPlayer,
-      ),
     );
   }
 
