@@ -93,8 +93,9 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen>
   String _buildPlayerJoinUrl(String joinCode) {
     return Uri.https(
       _playerJoinHost,
-      '/download.html',
+      '/join',
       {
+        'mode': 'cloud',
         'code': joinCode,
       },
     ).toString();
@@ -161,7 +162,7 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen>
                 data: joinUrl,
                 size: 240,
                 version: QrVersions.auto,
-                backgroundColor: scheme.surface,
+                backgroundColor: Colors.white,
               ),
             ),
           ),
@@ -277,6 +278,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen>
         top: false,
         child: Column(
           children: [
+            // Push content below the AppBar and TabBar
+            SizedBox(height: kToolbarHeight + 48 + MediaQuery.paddingOf(context).top),
             // ─── NETWORK STATUS BAR ───
             Padding(
               padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
@@ -489,15 +492,7 @@ class _JoinCard extends StatelessWidget {
                 data: joinUrl,
                 size: 140,
                 version: QrVersions.auto,
-                eyeStyle: QrEyeStyle(
-                  eyeShape: QrEyeShape.square,
-                  color: scheme.primary,
-                ),
-                dataModuleStyle: QrDataModuleStyle(
-                  dataModuleShape: QrDataModuleShape.square,
-                  color: scheme.primary,
-                ),
-                backgroundColor: CBColors.voidBlack,
+                backgroundColor: Colors.white,
               ),
             ),
           ),

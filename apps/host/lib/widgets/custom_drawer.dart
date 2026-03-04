@@ -92,42 +92,42 @@ class CustomDrawer extends ConsumerWidget {
     final selectedIndex = drawerDestinations
         .indexWhere((d) => d.destination == activeDestination);
 
+    Future<void> handleDestinationSelected(int index) async {
+      HapticService.selection();
+      final destination = drawerDestinations[index].destination;
+      if (destination == activeDestination) {
+        return;
+      }
+
+      final canLeave = await _confirmDiscardProfileChanges(
+        context,
+        ref,
+        activeDestination,
+        destination,
+      );
+      if (!context.mounted) {
+        return;
+      }
+      if (!canLeave) {
+        return;
+      }
+
+      if (onDrawerItemTap != null) {
+        onDrawerItemTap!(destination);
+      } else {
+        ref.read(hostNavigationProvider.notifier).setDestination(destination);
+      }
+
+      try {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      } catch (_) {}
+    }
+
     return CBSideDrawer(
       selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
-      onDestinationSelected: (index) async {
-        HapticService.selection();
-        final destination = drawerDestinations[index].destination;
-        if (destination == activeDestination) {
-          return;
-        }
-
-        final canLeave = await _confirmDiscardProfileChanges(
-          context,
-          ref,
-          activeDestination,
-          destination,
-        );
-        if (!context.mounted) {
-          return;
-        }
-        if (!canLeave) {
-          return;
-        }
-
-        if (onDrawerItemTap != null) {
-          onDrawerItemTap!(destination);
-        } else {
-          ref.read(hostNavigationProvider.notifier).setDestination(destination);
-        }
-
-        // Close the drawer if it's likely we're in a mobile-style overlay
-        // (Scaffold.of(context).isDrawerOpen is a better check if needed)
-        try {
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
-          }
-        } catch (_) {}
-      },
+      onDestinationSelected: handleDestinationSelected,
       drawerHeader: _buildDrawerHeader(context, theme, colorScheme), // Pass the header
       children: [
         const Padding(
@@ -138,11 +138,16 @@ class CustomDrawer extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-
-        ...gameplayDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...gameplayDestinations.map((dest) {
+          final idx = drawerDestinations.indexOf(dest);
+          final isSelected = idx == selectedIndex;
+          return _DrawerTile(
+            icon: dest.icon,
+            label: dest.label,
+            isSelected: isSelected,
+            onTap: () => handleDestinationSelected(idx),
+          );
+        }),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
@@ -152,10 +157,16 @@ class CustomDrawer extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...statsAndAwardsDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...statsAndAwardsDestinations.map((dest) {
+          final idx = drawerDestinations.indexOf(dest);
+          final isSelected = idx == selectedIndex;
+          return _DrawerTile(
+            icon: dest.icon,
+            label: dest.label,
+            isSelected: isSelected,
+            onTap: () => handleDestinationSelected(idx),
+          );
+        }),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
@@ -165,11 +176,16 @@ class CustomDrawer extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-
-        ...gamesNightDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...gamesNightDestinations.map((dest) {
+          final idx = drawerDestinations.indexOf(dest);
+          final isSelected = idx == selectedIndex;
+          return _DrawerTile(
+            icon: dest.icon,
+            label: dest.label,
+            isSelected: isSelected,
+            onTap: () => handleDestinationSelected(idx),
+          );
+        }),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
@@ -179,10 +195,16 @@ class CustomDrawer extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...walletDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...walletDestinations.map((dest) {
+          final idx = drawerDestinations.indexOf(dest);
+          final isSelected = idx == selectedIndex;
+          return _DrawerTile(
+            icon: dest.icon,
+            label: dest.label,
+            isSelected: isSelected,
+            onTap: () => handleDestinationSelected(idx),
+          );
+        }),
 
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
@@ -192,10 +214,16 @@ class CustomDrawer extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: CBSpace.x2),
-        ...otherDestinations.map((dest) => NavigationDrawerDestination(
-              icon: Icon(dest.icon),
-              label: Text(dest.label),
-            )),
+        ...otherDestinations.map((dest) {
+          final idx = drawerDestinations.indexOf(dest);
+          final isSelected = idx == selectedIndex;
+          return _DrawerTile(
+            icon: dest.icon,
+            label: dest.label,
+            isSelected: isSelected,
+            onTap: () => handleDestinationSelected(idx),
+          );
+        }),
 
         const SizedBox(height: 24),
       ],
@@ -230,6 +258,75 @@ class CustomDrawer extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DrawerTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _DrawerTile({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: 2),
+      child: Material(
+        color: CBColors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(CBSpace.x3),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isSelected 
+                  ? colorScheme.secondary.withValues(alpha: 0.15) 
+                  : CBColors.transparent,
+              borderRadius: BorderRadius.circular(CBSpace.x3),
+              border: isSelected 
+                  ? Border.all(
+                      color: colorScheme.secondary.withValues(alpha: 0.5),
+                      width: 1.0,
+                    )
+                  : null,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected 
+                      ? colorScheme.secondary 
+                      : colorScheme.onSurfaceVariant,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: isSelected 
+                          ? colorScheme.secondary 
+                          : colorScheme.onSurfaceVariant,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

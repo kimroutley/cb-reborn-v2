@@ -23,38 +23,34 @@ class CBSideDrawer extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(
-            alpha: 0.15), // Subtle transparency for glassmorphism
-        border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.35), // Vibrant neon border
-          width: 1.5,
+    return Drawer(
+      backgroundColor: CBColors.transparent,
+      elevation: 0,
+      width: 300,
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.15), // Subtle transparency
+          border: Border(
+            right: BorderSide(
+              color: colorScheme.primary.withValues(alpha: 0.35), // Vibrant neon border
+              width: 1.5,
+            ),
+          ),
+          boxShadow: CBColors.boxGlow(colorScheme.primary, intensity: 0.25), // Neon glow
         ),
-        borderRadius: BorderRadius.circular(CBSpace.x3),
-        boxShadow: CBColors.boxGlow(colorScheme.primary, intensity: 0.25), // Neon glow
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(CBSpace.x3),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0), // Strong blur effect
-          child: NavigationDrawer(
-            backgroundColor: CBColors.transparent, // Make NavigationDrawer itself transparent
-            indicatorColor: colorScheme.secondary.withValues(alpha: 0.15), // Neon pink indicator tint
-            indicatorShape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(CBSpace.x3),
-              side: BorderSide(
-                color: colorScheme.secondary.withValues(alpha: 0.5), // Neon highlight for selected item
-                width: 1.0,
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0), // Strong blur effect
+            child: SafeArea(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  drawerHeader,
+                  const SizedBox(height: CBSpace.x2),
+                  ...children,
+                ],
               ),
             ),
-            selectedIndex: selectedIndex,
-            onDestinationSelected: onDestinationSelected,
-            children: [
-              drawerHeader,
-              const SizedBox(height: CBSpace.x2), // Spacing after the header
-              ...children,
-            ],
           ),
         ),
       ),

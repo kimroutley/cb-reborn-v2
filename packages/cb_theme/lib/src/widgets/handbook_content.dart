@@ -196,111 +196,64 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return Row(
-      children: [
-        // ── Navigation Rail ──
-        Container(
-          width: 72,
-          decoration: BoxDecoration(
-            border: Border(
-              right: BorderSide(
-                color: scheme.outlineVariant.withValues(alpha: 0.2),
-              ),
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 100),
+      itemCount: _categories.length,
+      itemBuilder: (context, index) {
+        final cat = _categories[index];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 32),
+            CBSectionHeader(
+              title: cat.title,
+              color: scheme.primary,
             ),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _categories.length,
-                  itemBuilder: (context, index) {
-                    final cat = _categories[index];
-                    final isActive = _activeCategoryIndex == index;
+            const SizedBox(height: 16),
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: IconButton(
-                        icon: Icon(
-                          cat.icon,
-                          color: isActive
-                              ? scheme.primary
-                              : scheme.onSurface.withValues(alpha: 0.4),
-                        ),
-                        onPressed: () => _scrollToCategory(index),
-                        tooltip: cat.title,
-                      ),
-                    );
-                  },
-                ),
+            // ── INJECT LIVE DATA FOR OVERVIEW ──
+            if (index == 0 && widget.gameState != null) ...[
+              const SizedBox(height: 16),
+              CBAllianceGraph(
+                roles:
+                    widget.gameState!.players.map((p) => p.role).toList(),
               ),
+              const SizedBox(height: 24),
+              CBPhaseTimeline(currentPhase: widget.gameState!.phase),
+              const SizedBox(height: 32),
             ],
-          ),
-        ),
 
-        // ── Content ──
-        Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 100),
-            itemCount: _categories.length,
-            itemBuilder: (context, index) {
-              final cat = _categories[index];
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 32),
-                  CBSectionHeader(
-                    title: cat.title,
-                    color: scheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── INJECT LIVE DATA FOR OVERVIEW ──
-                  if (index == 0 && widget.gameState != null) ...[
-                    const SizedBox(height: 16),
-                    CBAllianceGraph(
-                      roles:
-                          widget.gameState!.players.map((p) => p.role).toList(),
-                    ),
-                    const SizedBox(height: 24),
-                    CBPhaseTimeline(currentPhase: widget.gameState!.phase),
-                    const SizedBox(height: 32),
-                  ],
-
-                  ...cat.sections.map((sec) => Padding(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        child: CBPanel(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                sec.title,
-                                style: theme.textTheme.titleMedium!.copyWith(
-                                  color: scheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                sec.content,
-                                style: theme.textTheme.bodyMedium!.copyWith(
-                                  color:
-                                      scheme.onSurface.withValues(alpha: 0.8),
-                                  height: 1.6,
-                                ),
-                              ),
-                            ],
+            ...cat.sections.map((sec) => Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: CBPanel(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          sec.title,
+                          style: theme.textTheme.titleMedium!.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
                           ),
                         ),
-                      )),
-                ],
-              );
-            },
-          ),
-        ),
-      ],
+                        const SizedBox(height: 12),
+                        Text(
+                          sec.content,
+                          style: theme.textTheme.bodyMedium!.copyWith(
+                            color:
+                                scheme.onSurface.withValues(alpha: 0.8),
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )),
+          ],
+        );
+      },
     );
   }
 }

@@ -24,7 +24,6 @@ class _CBGuideScreenState extends State<CBGuideScreen>
     with SingleTickerProviderStateMixin {
   Role? _selectedRoleForTips;
   String _searchQuery = "";
-  int _activeHandbookCategoryIndex = 0;
 
   // Updated for Sliding Panel UI
   bool _isPanelOpen = false;
@@ -63,18 +62,11 @@ class _CBGuideScreenState extends State<CBGuideScreen>
             TabBarView(
               children: [
                 // Tab 1: Manual
-                Column(
-                  children: [
-                    _buildMobileSubNavigation(scheme),
-                    Expanded(
-                      child: CBIndexedHandbook(
-                        gameState: widget.gameState,
-                        activeCategoryIndex: _activeHandbookCategoryIndex,
-                        onCategoryChanged: (index) =>
-                            setState(() => _activeHandbookCategoryIndex = index),
-                      ),
-                    ),
-                  ],
+                Padding(
+                  padding: EdgeInsets.only(top: kToolbarHeight + 48 + MediaQuery.paddingOf(context).top),
+                  child: CBIndexedHandbook(
+                    gameState: widget.gameState,
+                  ),
                 ),
                 // Tab 2: Operatives
                 _buildOperativesTab(),
@@ -102,50 +94,6 @@ class _CBGuideScreenState extends State<CBGuideScreen>
     );
   }
 
-  Widget _buildMobileSubNavigation(ColorScheme scheme) {
-    final icons = [
-      Icons.nightlife_rounded,
-      Icons.loop_rounded,
-      Icons.groups_rounded,
-      Icons.wine_bar_rounded,
-      Icons.settings_remote_rounded,
-      Icons.smartphone_rounded,
-    ];
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.1),
-        border: Border(
-          bottom: BorderSide(
-            color: scheme.outlineVariant.withValues(alpha: 0.15),
-          ),
-        ),
-      ),
-      child: Center(
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          shrinkWrap: true,
-          itemCount: 6,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemBuilder: (context, index) {
-            final isActive = _activeHandbookCategoryIndex == index;
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: IconButton(
-                icon: Icon(icons[index]),
-                color: isActive ? scheme.primary : scheme.onSurfaceVariant.withValues(alpha: 0.5),
-                onPressed: () {
-                  HapticService.light();
-                  setState(() => _activeHandbookCategoryIndex = index);
-                },
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
   // ── Tab 2: Operatives (Interactive Browser) ──
   Widget _buildOperativesTab() {
     // If no roles are loaded, provide a fallback or filter properly
@@ -168,6 +116,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
 
     return Column(
       children: [
+        SizedBox(height: kToolbarHeight + 48 + MediaQuery.paddingOf(context).top),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: CBTextField(
@@ -544,6 +493,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       children: [
+        SizedBox(height: kToolbarHeight + 48 + MediaQuery.paddingOf(context).top),
         CBSectionHeader(
             title: "STRATEGIC INTEL",
             color: Theme.of(context).colorScheme.primary),
