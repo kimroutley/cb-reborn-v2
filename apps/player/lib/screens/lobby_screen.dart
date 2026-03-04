@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cb_models/cb_models.dart';
 import '../active_bridge.dart';
 import '../player_bridge.dart';
+import '../player_destinations.dart';
+import '../player_navigation.dart';
 import '../player_onboarding_provider.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/full_role_reveal_content.dart';
@@ -169,6 +171,9 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     required bool hasRole,
     required bool isRoleConfirmed,
   }) {
+    if (phase != 'lobby' && phase != 'setup') {
+      return "THE GAME HAS BEGUN. PRESS 'ENTER GAME' TO JOIN THE ACTIVE SESSION.";
+    }
     if (phase == 'setup' && !hasRole) {
       return "ROLES ARE BEING ASSIGNED. STAY HERE; YOUR ROLE WILL APPEAR BELOW WHEN THE HOST ASSIGNS IT.";
     }
@@ -578,6 +583,26 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
       physics: const BouncingScrollPhysics(),
       children: [
         const NotificationsPromptBanner(),
+
+        if (gameState.phase != 'lobby' && gameState.phase != 'setup')
+          Padding(
+            padding: const EdgeInsets.only(bottom: CBSpace.x6),
+            child: CBFadeSlide(
+              child: CBGlassTile(
+                borderColor: scheme.primary.withValues(alpha: 0.5),
+                isPrismatic: true,
+                padding: const EdgeInsets.all(CBSpace.x4),
+                child: CBPrimaryButton(
+                  label: "LET'S GO!",
+                  icon: Icons.rocket_launch_rounded,
+                  onPressed: () {
+                    HapticService.heavy();
+                    ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.game);
+                  },
+                ),
+              ),
+            ),
+          ),
 
         if (pushState.isSupported &&
             pushState.permissionStatus ==

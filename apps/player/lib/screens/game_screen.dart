@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../active_bridge.dart';
 import '../player_bridge.dart';
 import '../player_bridge_actions.dart';
+import '../player_destinations.dart';
+import '../player_navigation.dart';
 import '../widgets/biometric_identity_header.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/game_action_tile.dart';
@@ -86,7 +88,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   label: 'RETURN TO LOBBY',
                   icon: Icons.arrow_back_rounded,
                   onPressed: () {
-                    ref.read(activeBridgeProvider).actions.leave();
+                    HapticService.selection();
+                    ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.lobby);
                   },
                 ),
               ],

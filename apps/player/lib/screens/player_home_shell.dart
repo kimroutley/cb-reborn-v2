@@ -84,13 +84,17 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
       nav.setDestination(PlayerDestination.lobby);
     }
 
-    // If player just claimed identity mid-game, navigate to game screen
+    // If player just claimed identity mid-game, navigate to appropriate screen
     final prevMyPlayerId = prevState?.myPlayerId;
     final nextMyPlayerId = nextState.myPlayerId;
     if (prevMyPlayerId == null && nextMyPlayerId != null) {
       final currentDest = ref.read(playerNavigationProvider);
       if (currentDest == PlayerDestination.claim) {
-        nav.setDestination(PlayerDestination.game);
+        nav.setDestination(
+          (nextPhase == 'setup' || nextPhase == 'lobby') 
+            ? PlayerDestination.lobby 
+            : PlayerDestination.game
+        );
         return;
       }
     }
@@ -112,9 +116,8 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         onboarding.setAwaitingStartConfirmation(false);
         if (nextState.myPlayerId == null) {
           nav.setDestination(PlayerDestination.claim);
-        } else {
-          nav.setDestination(PlayerDestination.game);
         }
+        // Do not auto-navigate to Game screen when game starts; Let's Go button will handle this.
         break;
       default:
         break;
