@@ -49,8 +49,9 @@ class CustomDrawer extends ConsumerWidget {
 
     const gameplayGroup = <HostDestination>{
       HostDestination.lobby,
+      HostDestination.gameSetup,
       HostDestination.game,
-      HostDestination.lounge,
+      HostDestination.djBooth,
       HostDestination.guides,
     };
     const statsAndAwardsGroup = <HostDestination>{
@@ -173,8 +174,8 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Wallet',
-            icon: Icons.account_balance_wallet_outlined,
+            title: 'My Account',
+            icon: Icons.person_outline_rounded,
           ),
         ),
         const SizedBox(height: CBSpace.x2),

@@ -41,22 +41,31 @@ class _CBGuideScreenState extends State<CBGuideScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final isMobile = MediaQuery.sizeOf(context).width < 800;
 
     return CBPrismScaffold(
       title: "THE BLACKBOOK",
       drawer: widget.drawer,
+      bottomNavigationBar: isMobile ? _buildBottomNavigation(scheme, theme) : null,
       body: Stack(
         children: [
           Row(
             children: [
               // ── INTEGRATED NAVIGATION RAIL ──
-              _buildNavigationRail(scheme, theme),
+              if (!isMobile) _buildNavigationRail(scheme, theme),
 
               // ── CONTENT AREA ──
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: _buildActiveContent(),
+                child: Column(
+                  children: [
+                    if (isMobile && _activeMainIndex == 0) _buildMobileSubNavigation(scheme),
+                    Expanded(
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: _buildActiveContent(),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -76,6 +85,67 @@ class _CBGuideScreenState extends State<CBGuideScreen>
                 : const SizedBox(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigation(ColorScheme scheme, ThemeData theme) {
+    return NavigationBar(
+      backgroundColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+      indicatorColor: scheme.primary.withValues(alpha: 0.2),
+      selectedIndex: _activeMainIndex,
+      onDestinationSelected: (index) {
+        HapticService.selection();
+        setState(() => _activeMainIndex = index);
+      },
+      destinations: const [
+        NavigationDestination(icon: Icon(Icons.menu_book_rounded), label: 'MANUAL'),
+        NavigationDestination(icon: Icon(Icons.groups_rounded), label: 'OPERATIVES'),
+        NavigationDestination(icon: Icon(Icons.psychology_rounded), label: 'INTEL'),
+      ],
+    );
+  }
+
+  Widget _buildMobileSubNavigation(ColorScheme scheme) {
+    final icons = [
+      Icons.nightlife_rounded,
+      Icons.loop_rounded,
+      Icons.groups_rounded,
+      Icons.wine_bar_rounded,
+      Icons.settings_remote_rounded,
+      Icons.smartphone_rounded,
+    ];
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.1),
+        border: Border(
+          bottom: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.15),
+          ),
+        ),
+      ),
+      child: Center(
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          shrinkWrap: true,
+          itemCount: 6,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemBuilder: (context, index) {
+            final isActive = _activeHandbookCategoryIndex == index;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: IconButton(
+                icon: Icon(icons[index]),
+                color: isActive ? scheme.primary : scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                onPressed: () {
+                  HapticService.light();
+                  setState(() => _activeHandbookCategoryIndex = index);
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }

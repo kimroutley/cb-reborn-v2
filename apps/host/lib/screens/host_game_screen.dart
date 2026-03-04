@@ -43,80 +43,107 @@ class HostGameScreen extends ConsumerWidget {
       );
     }
 
-    return CBPrismScaffold(
-      title: 'GAME CONTROL',
-      drawer: const CustomDrawer(currentDestination: HostDestination.game),
-      actions: [
-        IconButton(
-          tooltip: 'View Analytics',
-          icon: const Icon(Icons.analytics_outlined),
-          onPressed: () {
-            showThemedDialog(
-              context: context,
-              child: StatsView(
-                gameState: gameState,
-                onOpenCommand: () => Navigator.of(context).pop(),
-              ),
-            );
-          },
-        ),
-        const SimulationModeBadgeAction(),
-      ],
-      body: CBPhaseOverlay(
-        isNight: gameState.phase == GamePhase.night,
-        child: Row(
-        children: [
-          Expanded(child: HostMainFeed(gameState: gameState)),
-          Expanded(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.radar_rounded,
-                          size: 18, color: scheme.primary),
-                      const SizedBox(width: 12),
-                      Text(
-                        'NERVE CENTRE DASHBOARD',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2.0,
-                              shadows: CBColors.textGlow(scheme.primary,
-                                  intensity: 0.3),
-                            ),
-                      ),
-                    ],
-                  ),
+    final isMobile = MediaQuery.sizeOf(context).width < 800;
+
+    return DefaultTabController(
+      length: 2,
+      child: CBPrismScaffold(
+        title: 'GAME CONTROL',
+        drawer: const CustomDrawer(currentDestination: HostDestination.game),
+        actions: [
+          IconButton(
+            tooltip: 'View Analytics',
+            icon: const Icon(Icons.analytics_outlined),
+            onPressed: () {
+              showThemedDialog(
+                context: context,
+                child: StatsView(
+                  gameState: gameState,
+                  onOpenCommand: () => Navigator.of(context).pop(),
                 ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: DashboardView(
-                      gameState: gameState,
-                      onAction: controller.advancePhase,
-                      onAddMock: controller.addBot,
-                      eyesOpen: gameState.eyesOpen,
-                      onToggleEyes: controller.toggleEyes,
-                      onBack: () =>
-                          nav.setDestination(HostDestination.lobby),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
+          const SimulationModeBadgeAction(),
         ],
-      ),
+        appBarBottom: isMobile
+            ? TabBar(
+                indicatorColor: scheme.primary,
+                labelColor: scheme.primary,
+                tabs: const [
+                  Tab(text: 'FEED', icon: Icon(Icons.chat_bubble_outline_rounded, size: 18)),
+                  Tab(text: 'DASHBOARD', icon: Icon(Icons.dashboard_customize_rounded, size: 18)),
+                ],
+              )
+            : null,
+        body: CBPhaseOverlay(
+          isNight: gameState.phase == GamePhase.night,
+          child: isMobile
+              ? TabBarView(
+                  children: [
+                    HostMainFeed(gameState: gameState),
+                    _buildDashboard(context, gameState, controller, nav, scheme),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(child: HostMainFeed(gameState: gameState)),
+                    Expanded(
+                      child: _buildDashboard(context, gameState, controller, nav, scheme),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
+  }
+
+  Widget _buildDashboard(
+    BuildContext context,
+    GameState gameState,
+    Game controller,
+    HostNavigationNotifier nav,
+    ColorScheme scheme,
+  ) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 12,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.radar_rounded, size: 18, color: scheme.primary),
+              const SizedBox(width: 12),
+              Text(
+                'NERVE CENTRE DASHBOARD',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.0,
+                      shadows: CBColors.textGlow(scheme.primary, intensity: 0.3),
+                    ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: DashboardView(
+              gameState: gameState,
+              onAction: controller.advancePhase,
+              onAddMock: controller.addBot,
+              eyesOpen: gameState.eyesOpen,
+              onToggleEyes: controller.toggleEyes,
+              onBack: () => nav.setDestination(HostDestination.lobby),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
   }
 }

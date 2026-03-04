@@ -373,7 +373,7 @@ class GodModePanel extends ConsumerWidget {
                 label: 'SEND',
                 onPressed: () {
                   if (message.isNotEmpty) {
-                    controller.sendDirectorCommand('toast:');
+                    controller.sendDirectorCommand('toast:$message');
                   }
                   Navigator.pop(context);
                 },

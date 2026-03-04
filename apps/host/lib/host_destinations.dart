@@ -14,7 +14,6 @@ enum HostDestination {
   settings,
   profile,
   about,
-  lounge,
 }
 
 class HostDestinationConfig extends AbstractDestinationConfig<HostDestination> {
@@ -55,11 +54,6 @@ const hostDestinations = <HostDestinationConfig>[
     destination: HostDestination.profile,
     label: 'Profile',
     icon: Icons.person_rounded,
-  ),
-  HostDestinationConfig(
-    destination: HostDestination.lounge,
-    label: 'The Lounge',
-    icon: Icons.chat_bubble_outline_rounded,
   ),
   HostDestinationConfig(
     destination: HostDestination.settings,

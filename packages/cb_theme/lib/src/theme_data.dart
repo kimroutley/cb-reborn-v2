@@ -12,7 +12,7 @@ class CBTheme {
   CBTheme._();
 
   static const String globalBackgroundAsset =
-      'packages/cb_theme/assets/backgrounds/club_blackout_v2_game_background.png';
+      'assets/images/neon_x_brand.png';
 
   /// The default seed color for the design system.
   /// Uses radiant turquoise (#4CC9F0) as the primary brand color.

@@ -93,9 +93,8 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen>
   String _buildPlayerJoinUrl(String joinCode) {
     return Uri.https(
       _playerJoinHost,
-      '/join',
+      '/download.html',
       {
-        'mode': 'cloud',
         'code': joinCode,
       },
     ).toString();

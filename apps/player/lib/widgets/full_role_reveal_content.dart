@@ -35,20 +35,11 @@ class FullRoleRevealContent extends StatelessWidget {
             const SizedBox(height: CBSpace.x4),
             // Role Avatar
             Center(
-              child: Container(
-                padding: const EdgeInsets.all(CBSpace.x1),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                      color: roleColor.withValues(alpha: 0.3), width: 2),
-                  boxShadow: CBColors.circleGlow(roleColor, intensity: 0.4),
-                ),
-                child: CBRoleAvatar(
-                  assetPath: 'assets/roles/${player.roleId}.png',
-                  size: 120,
-                  color: roleColor,
-                  breathing: true,
-                ),
+              child: CBRoleAvatar(
+                assetPath: 'assets/roles/${player.roleId}.png',
+                size: 120,
+                color: roleColor,
+                breathing: true,
               ),
             ),
             const SizedBox(height: CBSpace.x8),

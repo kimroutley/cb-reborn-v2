@@ -16,7 +16,7 @@ class CBNeonBackground extends StatefulWidget {
     super.key,
     required this.child,
     this.backgroundAsset,
-    this.blurSigma = 10.0,
+    this.blurSigma = 48.0, // High blur so the image becomes a dynamic color wash
     this.showOverlay = true,
     this.showRadiance = false,
   });

@@ -38,6 +38,7 @@ class CustomDrawer extends ConsumerWidget {
     final currentDestination = ref.watch(playerNavigationProvider);
     const gameplayGroup = <PlayerDestination>{
       PlayerDestination.home,
+      PlayerDestination.lobby,
       PlayerDestination.game,
       PlayerDestination.guides,
     };
@@ -50,7 +51,6 @@ class CustomDrawer extends ConsumerWidget {
     };
     const walletGroup = <PlayerDestination>{
       PlayerDestination.profile,
-      PlayerDestination.claim,
     };
     const otherGroup = <PlayerDestination>{
       PlayerDestination.about,
@@ -152,8 +152,8 @@ class CustomDrawer extends ConsumerWidget {
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, 0),
           child: CBSectionHeader(
-            title: 'Wallet',
-            icon: Icons.account_balance_wallet_outlined,
+            title: 'My Account',
+            icon: Icons.person_outline_rounded,
           ),
         ),
         const SizedBox(height: CBSpace.x2),

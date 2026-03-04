@@ -60,10 +60,60 @@ class DirectorCommands extends ConsumerWidget {
                   description: 'VOICE OF GOD',
                   onPressed: () => _voiceOfGod(context, ref),
                 ),
+            ],
+          ),
+          const SizedBox(height: CBSpace.x3),
+          Row(
+            children: [
+              Expanded(
+                child: _buildCmdMiniButton(context, ref, 'NEON FLICKER', Icons.lightbulb_outline, scheme.primary),
+              ),
+              const SizedBox(width: CBSpace.x2),
+              Expanded(
+                child: _buildCmdMiniButton(context, ref, 'SYSTEM GLITCH', Icons.settings_ethernet, scheme.tertiary),
+              ),
+              const SizedBox(width: CBSpace.x2),
+              Expanded(
+                child: _buildCmdMiniButton(context, ref, 'BASS DROP', Icons.music_note_rounded, scheme.onSurface),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCmdMiniButton(BuildContext context, WidgetRef ref, String label, IconData icon, Color color) {
+    return InkWell(
+      onTap: () {
+        HapticService.selection();
+        ref.read(gameProvider.notifier).sendDirectorCommand(label);
+        showThemedSnackBar(context, '$label TRIGGERED.', accentColor: color);
+      },
+      borderRadius: BorderRadius.circular(CBRadius.sm),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x2, vertical: CBSpace.x2),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(CBRadius.sm),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(height: CBSpace.x1),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                    color: color,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

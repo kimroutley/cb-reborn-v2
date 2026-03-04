@@ -42,32 +42,71 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
       body: Column(
         children: [
           const SizedBox(height: CBSpace.x6),
+
+          // ── STEP INDICATOR ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6),
-            child: Text(
-              'SELECT IDENTITY',
-              style: textTheme.headlineMedium!.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-                shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
-              ),
-            ),
-          ),
-          const SizedBox(height: CBSpace.x2),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6),
-            child: Text(
-              'CHOOSE YOUR ASSIGNED IDENTITY FROM THE LIST BELOW.',
-              textAlign: TextAlign.center,
-              style: textTheme.labelSmall!.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.5),
-                letterSpacing: 1.0,
-                fontWeight: FontWeight.w800,
-              ),
+            child: Row(
+              children: [
+                _buildStepDot(scheme.tertiary, true, '1', 'CONNECTED'),
+                Expanded(child: Container(height: 1, color: scheme.outlineVariant.withValues(alpha: 0.2))),
+                _buildStepDot(scheme.primary, true, '2', 'CLAIM ID'),
+                Expanded(child: Container(height: 1, color: scheme.outlineVariant.withValues(alpha: 0.2))),
+                _buildStepDot(scheme.onSurfaceVariant.withValues(alpha: 0.35), false, '3', 'PLAY'),
+              ],
             ),
           ),
           const SizedBox(height: CBSpace.x6),
+
+          // ── HERO SECTION ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(CBSpace.x4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: scheme.primary.withValues(alpha: 0.08),
+                    border: Border.all(
+                      color: scheme.primary.withValues(alpha: 0.35),
+                      width: 2,
+                    ),
+                    boxShadow: CBColors.circleGlow(scheme.primary, intensity: 0.2),
+                  ),
+                  child: Icon(
+                    Icons.fingerprint_rounded,
+                    size: 48,
+                    color: scheme.primary,
+                    shadows: CBColors.iconGlow(scheme.primary),
+                  ),
+                ),
+                const SizedBox(height: CBSpace.x5),
+                Text(
+                  'SELECT IDENTITY',
+                  style: textTheme.headlineMedium!.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2.0,
+                    shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
+                  ),
+                ),
+                const SizedBox(height: CBSpace.x2),
+                Text(
+                  'CHOOSE YOUR ASSIGNED IDENTITY FROM THE LIST BELOW.',
+                  textAlign: TextAlign.center,
+                  style: textTheme.labelSmall!.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.5),
+                    letterSpacing: 1.0,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: CBSpace.x6),
+
+          // ── STATUS BAR ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4),
             child: CBPanel(
@@ -226,6 +265,48 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStepDot(Color color, bool isActive, String number, String label) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isActive ? color.withValues(alpha: 0.15) : Colors.transparent,
+            border: Border.all(color: color, width: isActive ? 2 : 1),
+            boxShadow: isActive
+                ? [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 6)]
+                : null,
+          ),
+          alignment: Alignment.center,
+          child: isActive && number == '1'
+              ? Icon(Icons.check_rounded, size: 14, color: color)
+              : Text(
+                  number,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 11,
+                  ),
+                ),
+        ),
+        const SizedBox(height: CBSpace.x1),
+        Text(
+          label,
+          style: textTheme.labelSmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w800,
+            fontSize: 8,
+            letterSpacing: 1.0,
+          ),
+        ),
+      ],
     );
   }
 }

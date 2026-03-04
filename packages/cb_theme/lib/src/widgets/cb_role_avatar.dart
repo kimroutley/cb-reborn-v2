@@ -98,23 +98,27 @@ class _CBRoleAvatarState extends State<CBRoleAvatar>
               ),
             ],
           ),
-          child: Center(
+          child: ClipOval(
             child: widget.assetPath != null
                 ? Image.asset(
                     widget.assetPath!,
-                    width: widget.size * 0.6,
-                    height: widget.size * 0.6,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Icon(
-                      widget.icon ?? Icons.person,
+                    width: widget.size,
+                    height: widget.size,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Center(
+                      child: Icon(
+                        widget.icon ?? Icons.person,
+                        color: effectiveColor,
+                        size: widget.size * 0.5,
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Icon(
+                      widget.icon ?? Icons.person_rounded,
                       color: effectiveColor,
                       size: widget.size * 0.5,
                     ),
-                  )
-                : Icon(
-                    widget.icon ?? Icons.person_rounded,
-                    color: effectiveColor,
-                    size: widget.size * 0.5,
                   ),
           ),
         );

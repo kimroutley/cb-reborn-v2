@@ -22,7 +22,6 @@ class LobbyScreen extends ConsumerStatefulWidget {
 class _LobbyScreenState extends ConsumerState<LobbyScreen> {
   static const int _minimumPlayersHintThreshold = 4;
   final TextEditingController _chatController = TextEditingController();
-  String? _lastRevealedRoleId;
 
   @override
   void initState() {
@@ -864,6 +863,43 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     );
   }
 
+  Widget _buildRoleDirectiveAction(PlayerSnapshot currentPlayer, ColorScheme scheme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: CBSpace.x6),
+      child: GestureDetector(
+        onTap: () {
+          HapticService.medium();
+          showThemedDialog<void>(
+            context: context,
+            barrierDismissible: true,
+            child: FullRoleRevealContent(
+              player: currentPlayer,
+              onConfirm: () {
+                HapticService.heavy();
+                ref
+                    .read(activeBridgeProvider)
+                    .actions
+                    .confirmRole(playerId: currentPlayer.id);
+                ref
+                    .read(playerOnboardingProvider.notifier)
+                    .setAwaitingStartConfirmation(true);
+                Navigator.pop(context);
+              },
+            ),
+          );
+        },
+        child: CBMessageBubble(
+          sender: 'SYSTEM DIRECTIVE',
+          message: 'NEW DIRECTIVE: TAP TO VIEW DOSSIER',
+          style: CBMessageStyle.system,
+          color: scheme.tertiary,
+          isSender: false,
+          groupPosition: CBMessageGroupPosition.single,
+        ),
+      ),
+    );
+  }
+
   /// LOUNGE tab — chat feed with input bar.
   Widget _buildLoungeTab({
     required BuildContext context,
@@ -871,6 +907,10 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     required PlayerGameState gameState,
     required dynamic onboarding,
   }) {
+    final myPlayer = gameState.myPlayerSnapshot;
+    final hasRole = myPlayer?.roleId != null && myPlayer?.roleId != 'unassigned';
+    final isRoleConfirmed = gameState.roleConfirmedPlayerIds.contains(myPlayer?.id ?? '');
+
     return Stack(
       children: [
         Positioned.fill(
@@ -878,6 +918,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x6, CBSpace.x6, 120),
             physics: const BouncingScrollPhysics(),
             children: [
+              if (hasRole && !isRoleConfirmed && !onboarding.awaitingStartConfirmation)
+                _buildRoleDirectiveAction(myPlayer!, scheme),
               ..._buildLoungeFeed(gameState, scheme),
             ],
           ),

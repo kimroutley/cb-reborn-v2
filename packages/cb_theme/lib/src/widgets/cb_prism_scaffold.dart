@@ -34,7 +34,7 @@ class CBPrismScaffold extends StatelessWidget {
     this.backgroundAsset,
     this.brandOverlayAsset = 'assets/images/neon_x_brand.png',
     this.showBackgroundRadiance = true,
-    this.showBrandOverlay = true,
+    this.showBrandOverlay = false,
     this.brandOverlayOpacity = 0.06,
     this.brandOverlayHeight = 280,
     this.appBarBottom,

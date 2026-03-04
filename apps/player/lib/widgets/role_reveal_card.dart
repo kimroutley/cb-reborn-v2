@@ -47,20 +47,11 @@ class RoleRevealCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Center(
-              child: Container(
-                padding: const EdgeInsets.all(CBSpace.x1),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                      color: accent.withValues(alpha: 0.3), width: 2),
-                  boxShadow: CBColors.circleGlow(accent, intensity: 0.3),
-                ),
-                child: CBRoleAvatar(
-                  assetPath: 'assets/roles/${player.roleId}.png',
-                  size: 80,
-                  color: accent,
-                  breathing: player.isAlive,
-                ),
+              child: CBRoleAvatar(
+                assetPath: 'assets/roles/${player.roleId}.png',
+                size: 80,
+                color: accent,
+                breathing: player.isAlive,
               ),
             ),
             const SizedBox(height: CBSpace.x6),

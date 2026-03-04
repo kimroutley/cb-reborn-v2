@@ -23,26 +23,31 @@ class CBSideDrawer extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(
-          CBSpace.x3), // Rounded corners for the glass effect
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Blur effect
-        child: Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(
-                alpha: 0.1), // Subtle transparency for glassmorphism
-            border: Border.all(
-              color:
-                  colorScheme.onSurface.withValues(alpha: 0.1), // Light border
-            ),
-            borderRadius: BorderRadius.circular(CBSpace.x3),
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(
+            alpha: 0.15), // Subtle transparency for glassmorphism
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.35), // Vibrant neon border
+          width: 1.5,
+        ),
+        borderRadius: BorderRadius.circular(CBSpace.x3),
+        boxShadow: CBColors.boxGlow(colorScheme.primary, intensity: 0.25), // Neon glow
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(CBSpace.x3),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0), // Strong blur effect
           child: NavigationDrawer(
-            backgroundColor: CBColors
-                .transparent, // Make NavigationDrawer itself transparent
-            indicatorColor:
-                colorScheme.secondaryContainer.withValues(alpha: 0.7),
+            backgroundColor: CBColors.transparent, // Make NavigationDrawer itself transparent
+            indicatorColor: colorScheme.secondary.withValues(alpha: 0.15), // Neon pink indicator tint
+            indicatorShape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(CBSpace.x3),
+              side: BorderSide(
+                color: colorScheme.secondary.withValues(alpha: 0.5), // Neon highlight for selected item
+                width: 1.0,
+              ),
+            ),
             selectedIndex: selectedIndex,
             onDestinationSelected: onDestinationSelected,
             children: [

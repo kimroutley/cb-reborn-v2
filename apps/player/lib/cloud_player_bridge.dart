@@ -423,16 +423,25 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
     // Determine myPlayerId and myPlayerSnapshot after receiving new players list.
     // Public state redacts role (roleId 'hidden') during game; preserve our private role data.
-    final String? updatedMyPlayerId =
-        state.myPlayerId != null && players.any((p) => p.id == state.myPlayerId)
+    // When the players list is empty (Firestore propagation delay), keep existing claim.
+    final String? updatedMyPlayerId = state.myPlayerId != null
+        ? (players.isEmpty || players.any((p) => p.id == state.myPlayerId)
             ? state.myPlayerId
-            : null;
-    final PlayerSnapshot? updatedMyPlayerSnapshot = updatedMyPlayerId != null
-        ? _mergePublicWithPrivatePlayer(
-            players.firstWhere((p) => p.id == updatedMyPlayerId),
-            state.myPlayerSnapshot,
-          )
+            : null)
         : null;
+    final PlayerSnapshot? updatedMyPlayerSnapshot;
+    if (updatedMyPlayerId != null &&
+        players.any((p) => p.id == updatedMyPlayerId)) {
+      updatedMyPlayerSnapshot = _mergePublicWithPrivatePlayer(
+        players.firstWhere((p) => p.id == updatedMyPlayerId),
+        state.myPlayerSnapshot,
+      );
+    } else if (updatedMyPlayerId != null && state.myPlayerSnapshot != null) {
+      // Players list is temporarily empty; keep existing snapshot.
+      updatedMyPlayerSnapshot = state.myPlayerSnapshot;
+    } else {
+      updatedMyPlayerSnapshot = null;
+    }
 
     state = state.copyWith(
       phase: phase,

@@ -78,8 +78,8 @@ const playerDestinations = <PlayerDestinationConfig>[
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.claim,
-    label: 'Claim Reward',
-    icon: Icons.redeem_rounded,
+    label: 'Claim Identity',
+    icon: Icons.fingerprint_rounded,
   ),
   PlayerDestinationConfig(
     destination: PlayerDestination.transition,

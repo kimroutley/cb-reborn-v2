@@ -1449,6 +1449,7 @@ class Game extends _$Game {
 
   void assignRole(String playerId, String roleId) {
     state = GamePlayerController.assignRole(state, playerId, roleId);
+    ref.read(sessionProvider.notifier).unconfirmRole(playerId);
   }
 
   bool autoAssignRoles() {
@@ -1458,6 +1459,7 @@ class Game extends _$Game {
       gameStyle: state.gameStyle,
     );
     state = state.copyWith(players: assignedPlayers);
+    ref.read(sessionProvider.notifier).clearRoleConfirmations();
     _persist();
     return true;
   }
@@ -1471,6 +1473,7 @@ class Game extends _$Game {
               ))
           .toList(),
     );
+    ref.read(sessionProvider.notifier).clearRoleConfirmations();
     _persist();
   }
 

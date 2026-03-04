@@ -69,19 +69,6 @@ class HostNavigationShell extends ConsumerWidget {
         return const HostHallOfFameScreen();
       case HostDestination.saveLoad:
         return const HostSaveLoadScreen();
-      case HostDestination.lounge:
-        return Consumer(builder: (context, ref, child) {
-          final gameState = ref.watch(gameProvider);
-          return CBPrismScaffold(
-            title: 'THE LOUNGE',
-            drawer:
-                const CustomDrawer(currentDestination: HostDestination.lounge),
-            body: Padding(
-              padding: const EdgeInsets.all(CBSpace.x4),
-              child: HostChatView(gameState: gameState),
-            ),
-          );
-        });
     }
   }
 }
