@@ -378,7 +378,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     _gameSub = null;
     _privateSub = null;
     _firebase = null;
-    state = const PlayerGameState(syncMode: SyncMode.cloud);
+    state = const PlayerGameState();
   }
 
   // ─── INBOUND ──────────────────────────────────

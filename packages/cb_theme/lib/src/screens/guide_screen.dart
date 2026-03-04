@@ -24,7 +24,6 @@ class _CBGuideScreenState extends State<CBGuideScreen>
     with SingleTickerProviderStateMixin {
   Role? _selectedRoleForTips;
   String _searchQuery = "";
-  int _activeMainIndex = 0; // 0: Handbook, 1: Operatives, 2: Strategy
   int _activeHandbookCategoryIndex = 0;
 
   // Updated for Sliding Panel UI
@@ -41,68 +40,65 @@ class _CBGuideScreenState extends State<CBGuideScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final isMobile = MediaQuery.sizeOf(context).width < 800;
 
-    return CBPrismScaffold(
-      title: "THE BLACKBOOK",
-      drawer: widget.drawer,
-      bottomNavigationBar: isMobile ? _buildBottomNavigation(scheme, theme) : null,
-      body: Stack(
-        children: [
-          Row(
-            children: [
-              // ── INTEGRATED NAVIGATION RAIL ──
-              if (!isMobile) _buildNavigationRail(scheme, theme),
-
-              // ── CONTENT AREA ──
-              Expanded(
-                child: Column(
+    return DefaultTabController(
+      length: 3,
+      child: CBPrismScaffold(
+        title: "THE BLACKBOOK",
+        drawer: widget.drawer,
+        appBarBottom: TabBar(
+          dividerColor: CBColors.transparent,
+          indicatorColor: scheme.primary,
+          labelColor: scheme.primary,
+          unselectedLabelColor: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+          indicatorSize: TabBarIndicatorSize.tab,
+          tabs: const [
+            Tab(text: 'MANUAL', icon: Icon(Icons.menu_book_rounded)),
+            Tab(text: 'OPERATIVES', icon: Icon(Icons.groups_rounded)),
+            Tab(text: 'INTEL', icon: Icon(Icons.psychology_rounded)),
+          ],
+        ),
+        body: Stack(
+          children: [
+            TabBarView(
+              children: [
+                // Tab 1: Manual
+                Column(
                   children: [
-                    if (isMobile && _activeMainIndex == 0) _buildMobileSubNavigation(scheme),
+                    _buildMobileSubNavigation(scheme),
                     Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: _buildActiveContent(),
+                      child: CBIndexedHandbook(
+                        gameState: widget.gameState,
+                        activeCategoryIndex: _activeHandbookCategoryIndex,
+                        onCategoryChanged: (index) =>
+                            setState(() => _activeHandbookCategoryIndex = index),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
+                // Tab 2: Operatives
+                _buildOperativesTab(),
+                // Tab 3: Intel
+                _buildIntelTab(),
+              ],
+            ),
 
-          // ── SLIDING DETAILS PANEL ──
-          CBSlidingPanel(
-            isOpen: _isPanelOpen,
-            onClose: () => setState(() => _isPanelOpen = false),
-            title: _selectedDossierRole?.name ?? "DATA FILE",
-            width: 450,
-            child: _selectedDossierRole != null
-                ? SingleChildScrollView(
-                    child:
-                        _buildOperativeDetails(context, _selectedDossierRole!),
-                  )
-                : const SizedBox(),
-          ),
-        ],
+            // ── SLIDING DETAILS PANEL ──
+            CBSlidingPanel(
+              isOpen: _isPanelOpen,
+              onClose: () => setState(() => _isPanelOpen = false),
+              title: _selectedDossierRole?.name ?? "DATA FILE",
+              width: 450,
+              child: _selectedDossierRole != null
+                  ? SingleChildScrollView(
+                      child:
+                          _buildOperativeDetails(context, _selectedDossierRole!),
+                    )
+                  : const SizedBox(),
+            ),
+          ],
+        ),
       ),
-    );
-  }
-
-  Widget _buildBottomNavigation(ColorScheme scheme, ThemeData theme) {
-    return NavigationBar(
-      backgroundColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-      indicatorColor: scheme.primary.withValues(alpha: 0.2),
-      selectedIndex: _activeMainIndex,
-      onDestinationSelected: (index) {
-        HapticService.selection();
-        setState(() => _activeMainIndex = index);
-      },
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.menu_book_rounded), label: 'MANUAL'),
-        NavigationDestination(icon: Icon(Icons.groups_rounded), label: 'OPERATIVES'),
-        NavigationDestination(icon: Icon(Icons.psychology_rounded), label: 'INTEL'),
-      ],
     );
   }
 
@@ -148,105 +144,6 @@ class _CBGuideScreenState extends State<CBGuideScreen>
         ),
       ),
     );
-  }
-
-  Widget _buildNavigationRail(ColorScheme scheme, ThemeData theme) {
-    return Container(
-      width: 80,
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        border: Border(
-          right: BorderSide(
-            color: scheme.outlineVariant.withValues(alpha: 0.15),
-          ),
-        ),
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            _RailItem(
-              icon: Icons.menu_book_rounded,
-              label: "MANUAL",
-              isActive: _activeMainIndex == 0,
-              onTap: () => setState(() {
-                _activeMainIndex = 0;
-                HapticService.selection();
-              }),
-            ),
-            _RailItem(
-              icon: Icons.groups_rounded,
-              label: "OPERATIVES",
-              isActive: _activeMainIndex == 1,
-              onTap: () => setState(() {
-                _activeMainIndex = 1;
-                HapticService.selection();
-              }),
-            ),
-            _RailItem(
-              icon: Icons.psychology_rounded,
-              label: "INTEL",
-              isActive: _activeMainIndex == 2,
-              onTap: () => setState(() {
-                _activeMainIndex = 2;
-                HapticService.selection();
-              }),
-            ),
-            if (_activeMainIndex == 0) ...[
-              const SizedBox(height: 20),
-              Divider(
-                color: scheme.outlineVariant.withValues(alpha: 0.1),
-                indent: 20,
-                endIndent: 20,
-              ),
-              const SizedBox(height: 10),
-              // Sub-navigation for Handbook
-              ...List.generate(6, (index) {
-                final icons = [
-                  Icons.nightlife_rounded,
-                  Icons.loop_rounded,
-                  Icons.groups_rounded,
-                  Icons.wine_bar_rounded,
-                  Icons.settings_remote_rounded,
-                  Icons.smartphone_rounded,
-                ];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: _RailItem(
-                    icon: icons[index],
-                    label: "", // Compact for sub-items
-                    isActive: _activeHandbookCategoryIndex == index,
-                    isSubItem: true,
-                    onTap: () => setState(() {
-                      _activeHandbookCategoryIndex = index;
-                      HapticService.light();
-                    }),
-                  ),
-                );
-              }),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActiveContent() {
-    switch (_activeMainIndex) {
-      case 0:
-        return CBIndexedHandbook(
-          gameState: widget.gameState,
-          activeCategoryIndex: _activeHandbookCategoryIndex,
-          onCategoryChanged: (index) =>
-              setState(() => _activeHandbookCategoryIndex = index),
-        );
-      case 1:
-        return CBFadeSlide(child: _buildOperativesTab());
-      case 2:
-        return CBFadeSlide(child: _buildIntelTab());
-      default:
-        return const SizedBox();
-    }
   }
 
   // ── Tab 2: Operatives (Interactive Browser) ──
@@ -990,82 +887,3 @@ class _GuideStrategyGenerator {
   }
 }
 
-class _RailItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-  final bool isSubItem;
-
-  const _RailItem({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-    this.isSubItem = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Correctly resolve colors from theme
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final activeColor = scheme.primary;
-    final inactiveColor = scheme.onSurfaceVariant.withValues(alpha: 0.5);
-
-    return Material(
-      color: CBColors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          // Adjusted padding/margins - make subitems smaller
-          margin: EdgeInsets.symmetric(
-              vertical: isSubItem ? 4 : 8, horizontal: isSubItem ? 16 : 12),
-          padding: EdgeInsets.symmetric(vertical: isSubItem ? 8 : 12),
-          decoration: isActive
-              ? BoxDecoration(
-                  color: activeColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: activeColor.withValues(alpha: 0.5),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: activeColor.withValues(alpha: 0.15),
-                      blurRadius: 10,
-                    ),
-                  ],
-                )
-              : null,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                color: isActive ? activeColor : inactiveColor,
-                size: isSubItem ? 18 : 24,
-                shadows: isActive
-                    ? [Shadow(color: activeColor, blurRadius: 8)]
-                    : null,
-              ),
-              if (label.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: theme.textTheme.labelSmall!.copyWith(
-                    color: isActive ? activeColor : inactiveColor,
-                    fontSize: 10,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
