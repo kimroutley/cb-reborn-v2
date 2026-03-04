@@ -79,6 +79,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 ),
                 const SizedBox(height: CBSpace.x6),
                 const CBBreathingSpinner(),
+                const SizedBox(height: CBSpace.x8),
+                CBGhostButton(
+                  label: 'RETURN TO LOBBY',
+                  icon: Icons.arrow_back_rounded,
+                  onPressed: () {
+                    ref.read(activeBridgeProvider).actions.leave();
+                  },
+                ),
               ],
             ),
           ),
@@ -158,96 +166,211 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final roleColor =
         Color(int.parse(player.roleColorHex.replaceAll('#', '0xff')));
     final isRoleConfirmed = gameState.roleConfirmedPlayerIds.contains(playerId);
+    final isMobile = MediaQuery.sizeOf(context).width < 800;
 
     return Theme(
       data: CBTheme.buildTheme(CBTheme.buildColorScheme(roleColor)),
-      child: CBPrismScaffold(
-        title: 'MISSION TERMINAL',
-        drawer: const CustomDrawer(),
-        body: CBPhaseOverlay(
-          isNight: gameState.phase == 'night',
-          child: Column(
-          children: [
-            BiometricIdentityHeader(
-              player: player,
-              roleColor: roleColor,
-              isMyTurn: canAct,
-            ),
-            Expanded(
-              child: ListView(
-                controller: _scrollController,
-                padding: const EdgeInsets.only(top: CBSpace.x4, bottom: 200),
-                physics: const BouncingScrollPhysics(),
-                children: [
-                  const NotificationsPromptBanner(),
-
-                  // Phase/Day Header
-                  CBFadeSlide(
-                    child: CBFeedSeparator(
-                      label: "${gameState.phase.toUpperCase()} // CYCLE ${gameState.dayCount}",
-                      color: roleColor,
-                    ),
-                  ),
-
-                  // Role Specific Intel Gaps
-                  if (player.roleId == RoleIds.bartender)
-                    _buildBartenderIntel(gameState, roleColor),
-                  
-                  if (player.roleId == RoleIds.clubManager)
-                    _buildClubManagerIntel(gameState, roleColor),
-
-                  const SizedBox(height: CBSpace.x4),
-
-                  // Bulletin Board
-                  const CBFadeSlide(
-                    delay: Duration(milliseconds: 100),
-                    child: CBFeedSeparator(label: 'SECURE CHANNEL'),
-                  ),
-                  
-                  _buildBulletinFeed(gameState, player, scheme),
-
-                  // Private Messages
-                  if (gameState.privateMessages.containsKey(playerId))
-                    ..._buildPrivateMessages(
-                        gameState.privateMessages[playerId]!, scheme, roleColor),
-
-                  // Current Step Narration
-                  if (newStep != null && newStep.readAloudText.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(CBSpace.x5, CBSpace.x6, CBSpace.x5, 0),
-                      child: CBFadeSlide(
-                        delay: const Duration(milliseconds: 200),
-                        child: CBMessageBubble(
-                          sender: 'SYSTEM DIRECTIVE',
-                          message: newStep.readAloudText.toUpperCase(),
-                          avatarAsset: 'assets/roles/${player.roleId}.png',
-                          color: roleColor,
-                          style: CBMessageStyle.standard,
-                          isSender: false,
-                          groupPosition: CBMessageGroupPosition.single,
+      child: DefaultTabController(
+        length: 2,
+        child: CBPrismScaffold(
+          title: 'MISSION TERMINAL',
+          drawer: const CustomDrawer(),
+          appBarBottom: isMobile
+              ? TabBar(
+                  indicatorColor: roleColor,
+                  labelColor: roleColor,
+                  tabs: const [
+                    Tab(text: 'FEED', icon: Icon(Icons.chat_bubble_outline_rounded, size: 18)),
+                    Tab(text: 'INTEL', icon: Icon(Icons.shield_outlined, size: 18)),
+                  ],
+                )
+              : null,
+          body: CBPhaseOverlay(
+            isNight: gameState.phase == 'night',
+            child: Column(
+              children: [
+                BiometricIdentityHeader(
+                  player: player,
+                  roleColor: roleColor,
+                  isMyTurn: canAct,
+                ),
+                Expanded(
+                  child: isMobile
+                      ? TabBarView(
+                          children: [
+                            _buildFeedTab(gameState, player, playerId, newStep, roleColor, scheme),
+                            _buildIntelTab(gameState, player, playerId, roleColor, scheme),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: _buildFeedTab(gameState, player, playerId, newStep, roleColor, scheme),
+                            ),
+                            Expanded(
+                              child: _buildIntelTab(gameState, player, playerId, roleColor, scheme),
+                            ),
+                          ],
                         ),
-                      ),
+                ),
+              ],
+            ),
+          ),
+          bottomNavigationBar: (gameState.phase == 'setup' && !isRoleConfirmed)
+              ? _buildSetupConfirmBar(context, bridge, playerId, roleColor)
+              : canAct
+                  ? _buildGameActionBar(
+                      context,
+                      newStep,
+                      roleColor,
+                      player,
+                      gameState,
+                      playerId,
+                      bridge,
+                    )
+                  : null,
+        ),
+      ),
+    );
+  }
+
+  /// The main bulletin/chat feed with phase header and step narration.
+  Widget _buildFeedTab(
+    PlayerGameState gameState,
+    PlayerSnapshot player,
+    String playerId,
+    StepSnapshot? newStep,
+    Color roleColor,
+    ColorScheme scheme,
+  ) {
+    return ListView(
+      controller: _scrollController,
+      padding: const EdgeInsets.only(top: CBSpace.x4, bottom: 200),
+      physics: const BouncingScrollPhysics(),
+      children: [
+        const NotificationsPromptBanner(),
+
+        // Phase/Day Header
+        CBFadeSlide(
+          child: CBFeedSeparator(
+            label: "${gameState.phase.toUpperCase()} // CYCLE ${gameState.dayCount}",
+            color: roleColor,
+          ),
+        ),
+
+        const SizedBox(height: CBSpace.x4),
+
+        // Bulletin Board
+        const CBFadeSlide(
+          delay: Duration(milliseconds: 100),
+          child: CBFeedSeparator(label: 'SECURE CHANNEL'),
+        ),
+
+        _buildBulletinFeed(gameState, player, scheme),
+
+        // Current Step Narration
+        if (newStep != null && newStep.readAloudText.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(CBSpace.x5, CBSpace.x6, CBSpace.x5, 0),
+            child: CBFadeSlide(
+              delay: const Duration(milliseconds: 200),
+              child: CBMessageBubble(
+                sender: 'SYSTEM DIRECTIVE',
+                message: newStep.readAloudText.toUpperCase(),
+                avatarAsset: 'assets/roles/${player.roleId}.png',
+                color: roleColor,
+                style: CBMessageStyle.standard,
+                isSender: false,
+                groupPosition: CBMessageGroupPosition.single,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Role-specific intel panels and private messages.
+  Widget _buildIntelTab(
+    PlayerGameState gameState,
+    PlayerSnapshot player,
+    String playerId,
+    Color roleColor,
+    ColorScheme scheme,
+  ) {
+    return ListView(
+      padding: const EdgeInsets.only(top: CBSpace.x4, bottom: 200),
+      physics: const BouncingScrollPhysics(),
+      children: [
+        // Intel header
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.shield_rounded, size: 18, color: roleColor),
+              const SizedBox(width: 12),
+              Text(
+                'CLASSIFIED INTEL',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: roleColor,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.0,
+                      shadows: CBColors.textGlow(roleColor, intensity: 0.3),
                     ),
+              ),
+            ],
+          ),
+        ),
+
+        // Role Specific Intel
+        if (player.roleId == RoleIds.bartender)
+          _buildBartenderIntel(gameState, roleColor),
+
+        if (player.roleId == RoleIds.clubManager)
+          _buildClubManagerIntel(gameState, roleColor),
+
+        // Private Messages
+        if (gameState.privateMessages.containsKey(playerId))
+          ..._buildPrivateMessages(
+              gameState.privateMessages[playerId]!, scheme, roleColor),
+
+        // Fallback when no intel is available
+        if (player.roleId != RoleIds.bartender &&
+            player.roleId != RoleIds.clubManager &&
+            !gameState.privateMessages.containsKey(playerId))
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: CBSpace.x12, horizontal: CBSpace.x6),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(Icons.lock_outline_rounded,
+                      color: scheme.onSurface.withValues(alpha: 0.1), size: 32),
+                  const SizedBox(height: CBSpace.x3),
+                  Text(
+                    'NO CLASSIFIED INTEL',
+                    style: TextStyle(
+                      fontFamily: 'RobotoMono',
+                      color: scheme.onSurface.withValues(alpha: 0.3),
+                      fontSize: 11,
+                      letterSpacing: 2,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: CBSpace.x2),
+                  Text(
+                    'INTEL WILL APPEAR HERE WHEN AVAILABLE.',
+                    style: TextStyle(
+                      color: scheme.onSurface.withValues(alpha: 0.2),
+                      fontSize: 10,
+                      letterSpacing: 0.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-        ),
-        bottomNavigationBar: (gameState.phase == 'setup' && !isRoleConfirmed)
-            ? _buildSetupConfirmBar(context, bridge, playerId, roleColor)
-            : canAct
-                ? _buildGameActionBar(
-                    context,
-                    newStep,
-                    roleColor,
-                    player,
-                    gameState,
-                    playerId,
-                    bridge,
-                  )
-                : null,
-      ),
+          ),
+      ],
     );
   }
 

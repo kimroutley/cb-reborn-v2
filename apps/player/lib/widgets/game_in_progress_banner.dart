@@ -87,7 +87,9 @@ class _GameInProgressBannerState extends ConsumerState<GameInProgressBanner>
               nav.setDestination(
                 phase == 'lobby' || phase == 'setup'
                     ? PlayerDestination.lobby
-                    : PlayerDestination.game,
+                    : state.myPlayerId == null
+                        ? PlayerDestination.claim
+                        : PlayerDestination.game,
               );
             },
             child: Padding(
