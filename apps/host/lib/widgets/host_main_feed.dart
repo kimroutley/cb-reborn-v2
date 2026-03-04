@@ -4,7 +4,6 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../sheets/message_context_sheet.dart';
 import 'game_bottom_controls.dart';
 import '../screens/host_chat_view.dart';
 import 'script_step_panel.dart';
@@ -54,9 +53,8 @@ class HostMainFeed extends ConsumerWidget {
             onConfirm: () {},
             onContinue: () async {
               HapticService.heavy();
-              ref.read(gameProvider.notifier).advanceScript();
+              ref.read(gameProvider.notifier).advancePhase();
             },
-            showInput: !isDayVote,
           ),
         ],
       ],
