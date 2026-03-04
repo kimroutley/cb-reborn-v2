@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_theme/cb_theme.dart';
 
 import '../host_destinations.dart';
 import '../host_navigation.dart';
+import '../widgets/custom_drawer.dart';
 import 'games_night_screen.dart';
 import 'guides_screen.dart';
 import 'host_game_screen.dart';
+import 'host_game_setup_screen.dart';
 import 'host_hall_of_fame_screen.dart';
 import 'host_lobby_screen.dart';
+import 'host_chat_view.dart';
 import 'home_screen.dart';
 import 'host_save_load_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
+import 'dj_booth_view.dart';
 
 /// Central destination host for the Host app.
 ///
@@ -52,10 +58,30 @@ class HostNavigationShell extends ConsumerWidget {
         return const HostLobbyScreen();
       case HostDestination.game:
         return const HostGameScreen();
+      case HostDestination.gameSetup:
+        return const HostGameSetupScreen();
+      case HostDestination.djBooth:
+        return Consumer(builder: (context, ref, child) {
+          final gameState = ref.watch(gameProvider);
+          return DjBoothView(gameState: gameState);
+        });
       case HostDestination.hallOfFame:
         return const HostHallOfFameScreen();
       case HostDestination.saveLoad:
         return const HostSaveLoadScreen();
+      case HostDestination.lounge:
+        return Consumer(builder: (context, ref, child) {
+          final gameState = ref.watch(gameProvider);
+          return CBPrismScaffold(
+            title: 'THE LOUNGE',
+            drawer:
+                const CustomDrawer(currentDestination: HostDestination.lounge),
+            body: Padding(
+              padding: const EdgeInsets.all(CBSpace.x4),
+              child: HostChatView(gameState: gameState),
+            ),
+          );
+        });
     }
   }
 }

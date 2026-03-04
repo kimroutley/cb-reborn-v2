@@ -19,18 +19,15 @@ class GeminiNarrationService {
   static const _fallbackModel = 'gemini-1.5-flash';
 
   String get _apiKey {
-    // 0. Check for injected API key (highest priority, for testing)
     if (_injectedApiKey != null) return _injectedApiKey!;
-
-    // 1. Check for command-line/environment injection (highest priority)
     const direct = String.fromEnvironment('GEMINI_API_KEY');
     if (direct.isNotEmpty) return direct;
-
     const google = String.fromEnvironment('GOOGLE_API_KEY');
     if (google.isNotEmpty) return google;
-
     return '';
   }
+
+  bool get hasApiKey => _apiKey.isNotEmpty;
 
   Future<String> generateNightNarration({
     required List<String> lastNightReport,
@@ -38,6 +35,7 @@ class GeminiNarrationService {
     int aliveCount = 0,
     String voice = 'nightclub_noir',
     String? variationPrompt,
+    bool forHostOnly = false,
     String model = _fallbackModel,
   }) async {
     if (lastNightReport.isEmpty) {
@@ -61,6 +59,7 @@ class GeminiNarrationService {
       aliveCount: aliveCount,
       voice: voice,
       variationPrompt: variationPrompt,
+      forHostOnly: forHostOnly,
     );
 
     try {
@@ -273,8 +272,24 @@ Show off your unique style now:
     required int aliveCount,
     required String voice,
     String? variationPrompt,
+    bool forHostOnly = false,
   }) {
     final report = lastNightReport.join('\n- ');
+
+    final audienceInstruction = forHostOnly
+        ? '''
+- This output is for the HOST ONLY.
+- Include real player names and role names.
+- Be SPICY, detailed, and slightly antagonistic.
+- Terminology to use: "absolute clown show", "bottled it in the VIP", "neon-soaked catastrophe", "spectacularly poor life choice", "the Dealers are laughing at you".
+- You can include self-deprecating host humor like: "I've seen better deductive reasoning from a broken jukebox".
+'''
+        : '''
+- This output is for the PLAYERS (shared feed).
+- DO NOT use real player names. Use anonymous descriptors like "a patron", "someone", "an operative".
+- DO NOT use role names explicitly if they should be secret.
+- Maintain mystery and a noir, dramatic tone.
+''';
 
     return '''
 You are the narrator for Club Blackout, a neon social-deduction party game set in a high-stakes cyberpunk nightclub.
@@ -291,19 +306,16 @@ LORE-STRICT ALLIANCE NAMES (NON-NEGOTIABLE):
 - "The Party Animals": The innocent patrons (Protagonists).
 - "Wildcards": The neutral/unpredictable elements.
 
+AUDIENCE INSTRUCTIONS:
+$audienceInstruction
+
 HARD CONSTRAINTS:
 1. Length: Exactly 90 to 160 words.
-2. Factual Integrity: Keep names and factual outcomes (deaths, saves, IDs) 100% consistent with source events.
+2. Factual Integrity: Keep factual outcomes (deaths, saves, IDs) 100% consistent with source events.
 3. No Hallucinations: Do not invent new roles, votes, or player actions not in the report.
 4. Tone: High-fidelity, cinematic, nightclub-noir. Adjust tone based on stakes:
    - Early game (High aliveCount): High energy, "The party is just getting started."
    - Late game (Low aliveCount): Gritty, desperate, "The club is nearly empty, the end is near."
-
-VOICE STYLE GUIDE:
-- system_glitch: Stuttering, digital fragments, recursive loops, "C-C-Club... [ERROR]".
-- vixen_whisper: Dangerous, seductive, low-register, intimate but threatening.
-- nightclub_noir: Classic gritty narrator, smoke and mirrors.
-- host_hype: High energy, electric, keeping the crowd moving.
 
 SOURCE EVENTS (lastNightReport):
 - $report

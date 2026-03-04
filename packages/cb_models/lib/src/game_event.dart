@@ -5,9 +5,7 @@ part 'game_event.g.dart';
 
 @freezed
 sealed class GameEvent with _$GameEvent {
-  const factory GameEvent.dayStart({
-    required int day,
-  }) = GameEventDayStart;
+  const factory GameEvent.dayStart({required int day}) = GameEventDayStart;
 
   const factory GameEvent.vote({
     required String voterId,
@@ -27,5 +25,6 @@ sealed class GameEvent with _$GameEvent {
     required int day,
   }) = GameEventKill;
 
-  factory GameEvent.fromJson(Map<String, dynamic> json) => _$GameEventFromJson(json);
+  factory GameEvent.fromJson(Map<String, dynamic> json) =>
+      _$GameEventFromJson(json);
 }

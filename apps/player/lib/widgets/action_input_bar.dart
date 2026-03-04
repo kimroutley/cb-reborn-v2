@@ -34,6 +34,7 @@ class _ActionInputBarState extends State<ActionInputBar> {
   void _handleSend() {
     final text = _chatController.text.trim();
     if (text.isNotEmpty) {
+      HapticService.selection();
       widget.onSendChat(text);
       _chatController.clear();
     }
@@ -41,64 +42,74 @@ class _ActionInputBarState extends State<ActionInputBar> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final isVoting = widget.gameState.currentStep?.isVote ?? false;
     final isNightAction = _isMyNightAction();
-    final isDead = !widget.gameState.players
-        .firstWhere((p) => p.id == widget.playerId,
-            orElse: () => PlayerSnapshot(
-                  id: widget.playerId,
-                  name: '',
-                  roleId: '',
-                  roleName: '',
-                ))
-        .isAlive;
+    final player = widget.gameState.players.firstWhere(
+      (p) => p.id == widget.playerId,
+      orElse: () => PlayerSnapshot(
+        id: widget.playerId,
+        name: '',
+        roleId: '',
+        roleName: '',
+      ),
+    );
+    final isDead = !player.isAlive;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
+        color: scheme.surfaceContainerLow.withValues(alpha: 0.95),
         border: Border(
           top: BorderSide(
-            color: scheme.primary.withValues(alpha: 0.3),
+            color: scheme.outlineVariant.withValues(alpha: 0.2),
+            width: 1.5,
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.shadow.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Action Button (if applicable)
             if (!isDead && (isVoting || isNightAction)) ...[
-              SizedBox(
-                width: double.infinity,
+              CBFadeSlide(
                 child: CBPrimaryButton(
-                  label: isVoting ? 'CAST VOTE' : 'PERFORM ACTION',
+                  label: isVoting ? 'INITIATE VOTE' : 'EXECUTE MISSION',
+                  icon:
+                      isVoting ? Icons.how_to_vote_rounded : Icons.bolt_rounded,
                   onPressed:
                       isVoting ? widget.onVotePressed : widget.onActionPressed,
+                  backgroundColor: isVoting ? scheme.secondary : scheme.primary,
                 ),
               ),
               const SizedBox(height: 12),
             ],
-
-            // Chat Input
             Row(
               children: [
                 Expanded(
                   child: CBTextField(
                     controller: _chatController,
                     hintText: 'SECURE CHANNEL...',
+                    textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _handleSend(),
                   ),
                 ),
                 const SizedBox(width: 8),
                 IconButton(
                   onPressed: _handleSend,
-                  icon: const Icon(Icons.send),
-                  color: scheme.primary,
+                  icon: Icon(Icons.send_rounded, color: scheme.primary),
+                  tooltip: 'Send Transmission',
                   style: IconButton.styleFrom(
                     backgroundColor: scheme.primary.withValues(alpha: 0.1),
-                    shape: const RoundedRectangleBorder(),
+                    padding: const EdgeInsets.all(CBSpace.x3),
                   ),
                 ),
               ],
@@ -113,7 +124,6 @@ class _ActionInputBarState extends State<ActionInputBar> {
     final step = widget.gameState.currentStep;
     if (step == null) return false;
 
-    // Check if step is for my role
     final me = widget.gameState.players.firstWhere(
       (p) => p.id == widget.playerId,
       orElse: () => PlayerSnapshot(
@@ -124,10 +134,6 @@ class _ActionInputBarState extends State<ActionInputBar> {
       ),
     );
 
-    // Simple check: does the step roleId match my roleId?
-    // Or is it a generic action?
-    // Logic from legacy GameScreen needed here.
-    // Usually step.roleId == me.roleId
     if (step.roleId != null && step.roleId == me.roleId) return true;
 
     return false;

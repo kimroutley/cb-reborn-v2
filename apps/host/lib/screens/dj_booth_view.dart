@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 
+import '../host_destinations.dart';
 import 'dashboard_view.dart';
 import '../widgets/dj_booth/turntable_widget.dart';
 import '../widgets/simulation_mode_badge_action.dart';
@@ -19,17 +20,15 @@ class DjBoothView extends ConsumerStatefulWidget {
 class _DjBoothViewState extends ConsumerState<DjBoothView> {
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      drawer: const CustomDrawer(),
-      appBar: AppBar(
-        title: const Text('DJ Booth'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [SimulationModeBadgeAction()],
-      ),
-      body: CBNeonBackground(
-        child: Stack(
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return CBPrismScaffold(
+      title: 'DJ BOOTH',
+      drawer: const CustomDrawer(currentDestination: HostDestination.djBooth),
+      actions: const [SimulationModeBadgeAction()],
+      body: Stack(
           children: [
             Positioned.fill(
               child: Opacity(
@@ -41,10 +40,11 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
               ),
             ),
             Center(
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: CBInsets.panel,
+                physics: const BouncingScrollPhysics(),
                 child: CBPanel(
-                  borderColor: scheme.secondary,
+                  borderColor: scheme.secondary.withValues(alpha: 0.5),
                   padding: CBInsets.panel,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -54,49 +54,43 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
                       Text(
                         'WELCOME TO THE DJ BOOTH',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
+                        style: textTheme.headlineMedium?.copyWith(
                               color: scheme.onSurface,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.6,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2.0,
+                              shadows: CBColors.textGlow(scheme.secondary, intensity: 0.4),
                             ),
                       ),
-                      const SizedBox(height: CBSpace.x2),
+                      const SizedBox(height: CBSpace.x3),
                       Text(
-                        'Under Construction',
+                        'STATION UNDER CONSTRUCTION',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: scheme.onSurfaceVariant
-                                  .withValues(alpha: 0.9),
+                        style: textTheme.labelSmall?.copyWith(
+                              color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.5,
                             ),
                       ),
-                      const SizedBox(height: CBSpace.x10),
+                      const SizedBox(height: CBSpace.x12),
                       CBPrimaryButton(
                         fullWidth: false,
-                        label: 'ACCESS OLD DASHBOARD',
+                        label: 'ACCESS LEGACY DASHBOARD',
                         icon: Icons.dashboard_rounded,
                         onPressed: () {
+                          HapticService.medium();
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => Scaffold(
+                              builder: (context) => CBPrismScaffold(
+                                title: 'LEGACY DASHBOARD',
                                 drawer: const CustomDrawer(),
-                                appBar: AppBar(
-                                  title: const Text('Old Dashboard'),
-                                  backgroundColor: Colors.transparent,
-                                  elevation: 0,
-                                  actions: const [SimulationModeBadgeAction()],
-                                ),
-                                body: CBNeonBackground(
-                                  child: DashboardView(
-                                    gameState: widget.gameState,
-                                    onAction: () {},
-                                    onAddMock: () {},
-                                    eyesOpen: false,
-                                    onToggleEyes: (_) {},
-                                    onBack: () => Navigator.of(context).maybePop(),
-                                  ),
+                                actions: const [SimulationModeBadgeAction()],
+                                body: DashboardView(
+                                  gameState: widget.gameState,
+                                  onAction: () {},
+                                  onAddMock: () {},
+                                  eyesOpen: false,
+                                  onToggleEyes: (_) {},
+                                  onBack: () => Navigator.of(context).maybePop(),
                                 ),
                               ),
                             ),
@@ -110,7 +104,6 @@ class _DjBoothViewState extends ConsumerState<DjBoothView> {
             ),
           ],
         ),
-      ),
     );
   }
 }

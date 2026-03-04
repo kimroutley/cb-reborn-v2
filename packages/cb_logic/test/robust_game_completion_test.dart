@@ -131,6 +131,7 @@ void main() {
         game.assignRole(state.players.last.id, criticalRoles[i]);
       }
 
+      game.autoAssignRoles();
       final started = game.startGame();
       expect(started, isTrue, reason: 'Manual high-friction game must start.');
 
@@ -160,6 +161,7 @@ void main() {
           game.setGameStyle(style);
           _addPlayers(game, 11);
 
+          game.autoAssignRoles();
           final started = game.startGame();
           expect(started, isTrue,
               reason: 'Game must start for $style run ${i + 1}.');

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../cb_theme.dart';
 
 /// Report card showing a list of events or results.
 class CBReportCard extends StatelessWidget {
@@ -16,59 +17,78 @@ class CBReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accentColor = color ?? theme.colorScheme.primary;
+    final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final accentColor = color ?? scheme.primary;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accentColor, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: accentColor.withValues(alpha: 0.2),
-            blurRadius: 8,
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            title.toUpperCase(),
-            style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-              color: accentColor,
-              shadows: [
-                Shadow(
-                  color: accentColor.withValues(alpha: 0.4),
-                  blurRadius: 8,
-                )
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...lines.map(
-            (line) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '// ',
-                    style: theme.textTheme.bodySmall!.copyWith(
+    return CBFadeSlide(
+      child: CBGlassTile(
+        borderColor: accentColor.withValues(alpha: 0.5),
+        padding: const EdgeInsets.all(CBSpace.x6),
+        isPrismatic: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(CBSpace.x2),
+                  decoration: BoxDecoration(
+                    color: accentColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.analytics_rounded,
+                      color: accentColor, size: 20),
+                ),
+                const SizedBox(width: CBSpace.x3),
+                Expanded(
+                  child: Text(
+                    title.toUpperCase(),
+                    style: textTheme.headlineSmall!.copyWith(
                       color: accentColor,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                      shadows: CBColors.textGlow(accentColor, intensity: 0.4),
                     ),
                   ),
-                  Expanded(
-                      child: Text(line, style: theme.textTheme.bodySmall!)),
-                ],
+                ),
+              ],
+            ),
+            const SizedBox(height: CBSpace.x6),
+            ...lines.map(
+              (line) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '> ',
+                      style: textTheme.bodySmall!.copyWith(
+                        color: accentColor,
+                        fontWeight: FontWeight.w900,
+                        fontFamily: 'RobotoMono',
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        line.toUpperCase(),
+                        style: textTheme.bodySmall!.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.8),
+                          height: 1.4,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

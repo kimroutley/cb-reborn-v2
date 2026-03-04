@@ -23,65 +23,113 @@ class RoleRevealCard extends StatelessWidget {
 
     Color roleColor = scheme.primary;
     if (player.roleColorHex.isNotEmpty) {
-      final hex = player.roleColorHex.replaceAll('#', '');
-      final normalized = hex.length == 6 ? 'FF$hex' : hex;
-      final parsed = int.tryParse(normalized, radix: 16);
-      if (parsed != null) roleColor = Color(parsed);
+      roleColor = CBColors.fromHex(player.roleColorHex);
     }
 
     String statusText = 'ACTIVE';
-    Color statusColor = scheme.primary;
+    Color statusColor = scheme.tertiary;
     if (!player.isAlive) {
-      statusText = 'ELIMINATED';
-      statusColor = scheme.secondary;
+      statusText = 'DE-ACTIVATED';
+      statusColor = scheme.error;
     } else if (player.silencedDay == dayCount && phase == 'day') {
       statusText = 'SILENCED';
-      statusColor = scheme.error;
+      statusColor = CBColors.alertOrange;
     }
 
     final accent = player.isAlive ? roleColor : scheme.error;
 
-    return CBPanel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CBRoleAvatar(
-                assetPath: 'assets/roles/${player.roleId}.png',
-                size: 56,
-                color: accent,
-                breathing: player.isAlive,
+    return CBFadeSlide(
+      child: CBGlassTile(
+        borderColor: accent.withValues(alpha: 0.4),
+        padding: const EdgeInsets.all(CBSpace.x6),
+        isPrismatic: player.isAlive,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(CBSpace.x1),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                      color: accent.withValues(alpha: 0.3), width: 2),
+                  boxShadow: CBColors.circleGlow(accent, intensity: 0.3),
+                ),
+                child: CBRoleAvatar(
+                  assetPath: 'assets/roles/${player.roleId}.png',
+                  size: 80,
+                  color: accent,
+                  breathing: player.isAlive,
+                ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            player.roleName,
-            style: textTheme.headlineSmall,
-          ),
-          Text(
-            player.alliance.toString().toUpperCase(),
-            style: textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              CBBadge(text: 'ID: ${player.id.toUpperCase()}', color: roleColor),
-              const SizedBox(width: 8),
-              CBBadge(text: statusText, color: statusColor),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            player.roleDescription,
-            style: textTheme.bodySmall!.copyWith(
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.9),
-              height: 1.5,
             ),
-          ),
-        ],
+            const SizedBox(height: CBSpace.x6),
+            Text(
+              player.roleName.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+                color: scheme.onSurface,
+                shadows: CBColors.textGlow(accent, intensity: 0.4),
+              ),
+            ),
+            const SizedBox(height: CBSpace.x1),
+            Text(
+              player.alliance.toString().toUpperCase(),
+              textAlign: TextAlign.center,
+              style: textTheme.labelSmall?.copyWith(
+                color: accent.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(height: CBSpace.x6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CBBadge(
+                  text: 'ID: ${player.id.toUpperCase()}',
+                  color: scheme.onSurface.withValues(alpha: 0.4),
+                  icon: Icons.fingerprint_rounded,
+                ),
+                const SizedBox(width: 12),
+                CBBadge(
+                  text: statusText,
+                  color: statusColor,
+                  icon: player.isAlive
+                      ? Icons.verified_user_rounded
+                      : Icons.cancel_rounded,
+                ),
+              ],
+            ),
+            const SizedBox(height: CBSpace.x6),
+            CBPanel(
+              borderColor: accent.withValues(alpha: 0.2),
+              padding: const EdgeInsets.all(CBSpace.x4),
+              child: Column(
+                children: [
+                  CBSectionHeader(
+                    title: 'ROLE INTEL',
+                    icon: Icons.info_outline_rounded,
+                    color: accent,
+                  ),
+                  const SizedBox(height: CBSpace.x4),
+                  Text(
+                    player.roleDescription.toUpperCase(),
+                    style: textTheme.bodySmall!.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.8),
+                      height: 1.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,6 @@
 // Export modular widgets
 export 'widgets/chat_bubble.dart';
+export 'widgets/bulletin_feed.dart';
 export 'widgets/glass_tile.dart';
 export 'widgets/phase_interrupt.dart';
 export 'widgets/ghost_lounge_view.dart';
@@ -32,5 +33,9 @@ export 'widgets/cb_profile_editor.dart';
 export 'widgets/handbook_content.dart';
 export 'widgets/cb_about_content.dart';
 export 'widgets/cb_alliance_graph.dart';
+export 'widgets/cb_phase_overlay.dart';
 export 'widgets/cb_phase_timeline.dart';
+export 'widgets/phase_transition_overlay.dart';
 export 'widgets/cb_sliding_panel.dart';
+export 'widgets/cb_mini_tag.dart';
+export 'widgets/cb_day_recap_card.dart';

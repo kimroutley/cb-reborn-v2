@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../layout.dart';
+
 /// Status overlay card (ELIMINATED, SILENCED, etc.).
 class CBStatusOverlay extends StatelessWidget {
   final IconData icon;
@@ -26,7 +28,7 @@ class CBStatusOverlay extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(CBRadius.md),
         border: Border.all(color: accentColor, width: 2),
         boxShadow: [
           BoxShadow(

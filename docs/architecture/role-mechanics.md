@@ -10,7 +10,7 @@ This document serves as the master specification for night actions and role beha
 | **4** | **Bartender** | `selectTwoPlayers` | "COMPARE TWO PATRONS" | "They are [SAME/DIFF]." | None | "Bartender mixed [A] & [B]" | **INTEL**: Compares alliances of two targets. | |
 | **5** | **Manager** | `selectPlayer` | "CHECK FILES" | "[Name] is [ROLE]." | None | "Manager file-checked [Name]" | **INTEL**: Reveals exact role name. | |
 | **6** | **Messy Bitch** | `selectPlayer` | "SPREAD A RUMOR" | "You leaked info on [Name]." | "Juicy rumors about [Name]..." | "MB spread rumor on [Name]" | **TEASER**: Adds a public narrative hint. | |
-| **7** | **Lightweight** | `selectPlayer` | "MAKE NAME TABOO" | "You banned [Name]'s name." | "A name is now FORBIDDEN." | "LW banned [Name]'s name" | **TEASER**: Public warning; flavor mechanic. | |
+| **7** | **Lightweight** | `selectPlayer` | "SELECT TABOO TARGET" | "You can no longer vote for [Name]." | "Lightweight lost a voting option." | "LW blocked vote for [Name]" | **RESTRICTION**: Cumulative voting ban on selected targets. | |
 | **8** | **Dealer** | `selectPlayer` | "ELIMINATE PATRON" | "Target acquired." | None | "Dealer target: [Name]" | **KILL**: Standard lethal elimination. | |
 | **9** | **Attack Dog** | `selectPlayer` | "SICK THE DOG" | "Dog released on [Target]." | "Dog found prey." | "Dog attacked [Name]" | **REVENGE**: Lethal one-time kill. | |
 | **10** | **MB Kill** | `selectPlayer` | "SETTLE A SCORE" | "Score settled with [Name]." | "Score settled." | "MB killed [Name]" | **KILL**: One-time lethal MB action. | |
@@ -31,4 +31,4 @@ This document serves as the master specification for night actions and role beha
 ## Change Log & Notes for Improvements
 
 - *Add your notes here or in the specific table rows above.*
-- ...
+- **2024-03-20**: Overhauled Lightweight. Replaced "Taboo Name" with "Cumulative Voting Restriction". Selected targets are now stored in `blockedVoteTargets` and prevented in UI/Backend.

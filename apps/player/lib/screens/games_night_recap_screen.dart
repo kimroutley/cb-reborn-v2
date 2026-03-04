@@ -20,21 +20,13 @@ class GamesNightRecapScreen extends StatelessWidget {
     final sortedGames = List<GameRecord>.from(games)
       ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
+    return CBPrismScaffold(
+      title: 'SESSION RECAP',
       drawer: const CustomDrawer(),
-      appBar: AppBar(
-        title: Text(
-          'SESSION RECAP',
-          style: Theme.of(context).textTheme.titleLarge!,
-        ),
-        centerTitle: true,
-      ),
-      body: CBNeonBackground(
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x5, vertical: CBSpace.x6),
+        physics: const BouncingScrollPhysics(),
+        child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Session Header
@@ -47,29 +39,36 @@ class GamesNightRecapScreen extends StatelessWidget {
                       Row(
                         children: [
                           Icon(Icons.calendar_today, color: scheme.primary),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: CBSpace.x3),
                           Expanded(
                             child: Text(
                               session.sessionName.toUpperCase(),
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: CBSpace.x2),
                       Text(
                         DateFormat('MMM dd, yyyy').format(session.startedAt),
                         style: Theme.of(context)
                             .textTheme
                             .bodySmall
-                            ?.copyWith(color: scheme.primary),
+                            ?.copyWith(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: CBSpace.x4),
                       _buildStatsSummary(context, scheme),
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: CBSpace.x8),
 
                 // Games List
                 CBSectionHeader(
@@ -77,37 +76,32 @@ class GamesNightRecapScreen extends StatelessWidget {
                   icon: Icons.sports_esports,
                   count: sortedGames.length,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: CBSpace.x4),
 
                 if (sortedGames.isEmpty)
                   CBPanel(
                     child: Text(
-                      "No games recorded for this session.",
+                      "NO GAMES RECORDED FOR THIS SESSION.",
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: scheme.onSurface.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
                           ),
                     ),
                   )
                 else
                   ...sortedGames.asMap().entries.map((entry) {
-                    // Since we sorted descending, the game number should probably be calculated based on original index or total - index?
-                    // Or just use the original list index.
-                    // If we want "Game 1" to be the first game, we should use the index from the sorted list if we want it reversed?
-                    // Let's just say "Game X" where X corresponds to the order played.
-                    // sortedGames is latest first. So index 0 is Game N.
                     final index = entry.key;
                     final game = entry.value;
                     final gameNumber = games.length - index;
                     return _buildGameTile(context, gameNumber, game, scheme);
                   }),
 
-                const SizedBox(height: 48),
+                const SizedBox(height: CBSpace.x12),
               ],
             ),
           ),
-        ),
-      ),
-    );
+        );
   }
 
   Widget _buildStatsSummary(BuildContext context, ColorScheme scheme) {
@@ -125,7 +119,7 @@ class GamesNightRecapScreen extends StatelessWidget {
             scheme,
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: CBSpace.x4),
         Expanded(
           child: _buildStatCard(
             context,
@@ -146,22 +140,23 @@ class GamesNightRecapScreen extends StatelessWidget {
     Color color,
     ColorScheme scheme,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-        boxShadow: CBColors.boxGlow(color, intensity: 0.2),
-      ),
+    return CBPanel(
+      borderColor: color.withValues(alpha: 0.4),
+      padding: const EdgeInsets.all(CBSpace.x3),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value.toString(), style: CBTypography.h2.copyWith(color: color)),
-          const SizedBox(height: 4),
+          Text(value.toString(), style: CBTypography.h2.copyWith(
+            color: color,
+            shadows: CBColors.textGlow(color, intensity: 0.4),
+          )),
+          const SizedBox(height: CBSpace.x1),
           Text(
             label,
             style: CBTypography.micro.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
             ),
             textAlign: TextAlign.center,
           ),
@@ -178,12 +173,12 @@ class GamesNightRecapScreen extends StatelessWidget {
     final duration = game.endedAt.difference(game.startedAt);
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
-    final durationStr = "${minutes}m ${seconds}s";
+    final durationStr = "${minutes}M ${seconds}S";
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: CBSpace.x3),
       child: CBGlassTile(
-        borderColor: winColor,
+        borderColor: winColor.withValues(alpha: 0.4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -191,34 +186,45 @@ class GamesNightRecapScreen extends StatelessWidget {
               children: [
                 Icon(isPartyWin ? Icons.celebration : Icons.security,
                     color: winColor),
-                const SizedBox(width: 10),
+                const SizedBox(width: CBSpace.x3),
                 Expanded(
                   child: Text(
-                    'GAME • ${game.dayCount} ROUNDS',
-                    style: Theme.of(context).textTheme.titleMedium,
+                    'GAME $number • ${game.dayCount} ROUNDS',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: CBSpace.x2),
             Text(
               'WINNER: $winnerName • $durationStr',
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
-                  ?.copyWith(color: winColor),
+                  ?.copyWith(
+                    color: winColor,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: CBSpace.x4),
             Text("ROSTER (${game.playerCount})",
                 style: CBTypography.labelSmall
-                    .copyWith(color: scheme.onSurface.withValues(alpha: 0.6))),
-            const SizedBox(height: 8),
+                    .copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.5),
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                    )),
+            const SizedBox(height: CBSpace.x2),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: CBSpace.x2,
+              runSpacing: CBSpace.x2,
               children: game.roster
                   .map((p) => CBBadge(
-                      text: p.name,
+                      text: p.name.toUpperCase(),
                       color: p.alive
                           ? scheme.primary
                           : scheme.error.withValues(alpha: 0.7)))

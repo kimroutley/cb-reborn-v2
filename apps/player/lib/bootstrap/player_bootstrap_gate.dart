@@ -4,6 +4,7 @@ import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_player/cloud_player_bridge.dart';
 import 'package:cb_player/join_link_state.dart';
+import 'package:cb_player/player_bridge.dart';
 import 'package:cb_player/player_session_cache.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -143,24 +144,46 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
     final cache = ref.read(playerSessionCacheRepositoryProvider);
     final entry = await cache.loadSession();
     if (entry == null) {
+      if (kDebugMode) {
+        debugPrint('[Bootstrap] No cache restored');
+      }
       return;
     }
-
-    if (entry.mode != CachedSyncMode.cloud) {
-      await cache.clear();
-      return;
-    }
-
-    ref.read(cloudPlayerBridgeProvider.notifier).restoreFromCache(entry);
 
     final qp = <String, String>{
       'code': entry.joinCode,
-      'mode': 'cloud',
       'autoconnect': '1',
     };
-    ref.read(pendingJoinUrlProvider.notifier).setValue(
-          Uri(path: '/join', queryParameters: qp).toString(),
-        );
+
+    if (entry.mode == CachedSyncMode.cloud) {
+      if (kDebugMode) {
+        debugPrint('[Bootstrap] Restored cloud session code=${entry.joinCode}');
+      }
+      ref.read(cloudPlayerBridgeProvider.notifier).restoreFromCache(entry);
+      qp['mode'] = 'cloud';
+      ref.read(pendingJoinUrlProvider.notifier).setValue(
+            Uri(path: '/join', queryParameters: qp).toString(),
+          );
+      return;
+    }
+
+    if (entry.mode == CachedSyncMode.local) {
+      if (kDebugMode) {
+        debugPrint(
+            '[Bootstrap] Restored local session code=${entry.joinCode} host=${entry.hostAddress}');
+      }
+      ref.read(playerBridgeProvider.notifier).restoreFromCache(entry);
+      qp['mode'] = 'local';
+      if (entry.hostAddress != null && entry.hostAddress!.isNotEmpty) {
+        qp['host'] = entry.hostAddress!;
+      }
+      ref.read(pendingJoinUrlProvider.notifier).setValue(
+            Uri(path: '/join', queryParameters: qp).toString(),
+          );
+      return;
+    }
+
+    await cache.clear();
   }
 
   Future<void> _warmCriticalAssets() async {
@@ -202,61 +225,65 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
 
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      body: CBNeonBackground(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 380),
-              child: CBPanel(
-                borderColor: scheme.primary.withValues(alpha: 0.5),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const CBBreathingLoader(size: 54),
-                    const SizedBox(height: 20),
-                    Text(
-                      'LOADING PLAYER CLIENT',
-                      textAlign: TextAlign.center,
-                      style: textTheme.labelLarge?.copyWith(
-                        color: scheme.primary,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                      ),
+    return CBPrismScaffold(
+      title: 'INITIALIZING',
+      showAppBar: false,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(CBSpace.x6),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: CBGlassTile(
+              isPrismatic: true,
+              borderColor: scheme.primary.withValues(alpha: 0.5),
+              padding: const EdgeInsets.all(CBSpace.x8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CBBreathingSpinner(size: 64),
+                  const SizedBox(height: CBSpace.x8),
+                  Text(
+                    'CONNECTING TO HUB',
+                    textAlign: TextAlign.center,
+                    style: textTheme.labelLarge?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.0,
+                      shadows: CBColors.textGlow(scheme.primary),
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _status,
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.9),
-                      ),
+                  ),
+                  const SizedBox(height: CBSpace.x3),
+                  Text(
+                    _status.toUpperCase(),
+                    textAlign: TextAlign.center,
+                    style: textTheme.labelSmall?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
                     ),
-                    const SizedBox(height: 16),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(99),
-                      child: LinearProgressIndicator(
-                        value: _progress,
-                        minHeight: 8,
-                        backgroundColor:
-                            scheme.onSurface.withValues(alpha: 0.15),
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(scheme.primary),
-                      ),
+                  ),
+                  const SizedBox(height: CBSpace.x8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(CBRadius.pill),
+                    child: LinearProgressIndicator(
+                      value: _progress,
+                      minHeight: 8,
+                      backgroundColor: scheme.onSurface.withValues(alpha: 0.1),
+                      valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _progressLabel,
-                      textAlign: TextAlign.center,
-                      style: textTheme.labelMedium?.copyWith(
-                        color: scheme.primary.withValues(alpha: 0.95),
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.4,
-                      ),
+                  ),
+                  const SizedBox(height: CBSpace.x4),
+                  Text(
+                    _progressLabel,
+                    textAlign: TextAlign.center,
+                    style: textTheme.labelSmall?.copyWith(
+                      color: scheme.primary.withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'RobotoMono',
+                      letterSpacing: 1.0,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -16,7 +16,7 @@ class ReconnectionOverlay extends StatelessWidget {
     if (!isReconnecting) return const SizedBox.shrink();
 
     return Container(
-      color: Colors.black.withValues(alpha: 0.8),
+      color: CBColors.voidBlack.withValues(alpha: 0.8),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cb_logic/cb_logic.dart';
@@ -111,81 +111,83 @@ class GodModePanel extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final roleColor = CBColors.fromHex(player.role.colorHex);
 
-    return Container(
+    return CBPanel(
       margin: const EdgeInsets.only(bottom: CBSpace.x3),
-      child: CBPanel(
-        borderColor:
-            (player.isAlive ? roleColor : scheme.error).withValues(alpha: 0.4),
-        child: InkWell(
-          onTap: () => _showTacticalMenu(context, player),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          player.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall!
-                              .copyWith(
-                                color:
-                                    player.isAlive ? roleColor : scheme.error,
-                                fontWeight: FontWeight.bold,
+      borderColor:
+          (player.isAlive ? roleColor : scheme.error).withValues(alpha: 0.4),
+      child: InkWell(
+        onTap: () => _showTacticalMenu(context, player),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        player.name,
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall!
+                            .copyWith(
+                              color:
+                                  player.isAlive ? roleColor : scheme.error,
+                              fontWeight: FontWeight.bold,
+                              shadows: CBColors.textGlow(
+                                player.isAlive ? roleColor : scheme.error,
+                                intensity: 0.4,
                               ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          player.role.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall!
-                              .copyWith(
-                                color:
-                                    (player.isAlive ? roleColor : scheme.error)
-                                        .withValues(alpha: 0.7),
-                              ),
-                        ),
-                      ],
-                    ),
+                            ),
+                      ),
+                      const SizedBox(height: CBSpace.x2),
+                      Text(
+                        player.role.name,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall!
+                            .copyWith(
+                              color:
+                                  (player.isAlive ? roleColor : scheme.error)
+                                      .withValues(alpha: 0.7),
+                            ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  if (!player.isAlive)
-                    CBBadge(text: "DEAD", color: scheme.error),
-                  if (player.isSinBinned)
-                    Padding(
-                      padding: const EdgeInsets.only(left: CBSpace.x2),
-                      child:
-                          CBBadge(text: "SIN BINNED", color: scheme.secondary),
-                    ),
-                  if (player.isShadowBanned)
-                    Padding(
-                      padding: const EdgeInsets.only(left: CBSpace.x2),
-                      child: CBBadge(
-                          text: "SHADOW BANNED", color: scheme.tertiary),
-                    ),
-                  if (player.isMuted)
-                    Padding(
-                      padding: const EdgeInsets.only(left: CBSpace.x2),
-                      child: CBBadge(text: "MUTED", color: scheme.primary),
-                    ),
-                  const Spacer(),
-                  Text("TAP FOR TACTICAL MENU",
-                      style: CBTypography.nano.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.6),
-                      )),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            const SizedBox(height: CBSpace.x3),
+            Row(
+              children: [
+                if (!player.isAlive)
+                  CBBadge(text: "DEAD", color: scheme.error),
+                if (player.isSinBinned)
+                  Padding(
+                    padding: const EdgeInsets.only(left: CBSpace.x2),
+                    child:
+                        CBBadge(text: "SIN BINNED", color: scheme.secondary),
+                  ),
+                if (player.isShadowBanned)
+                  Padding(
+                    padding: const EdgeInsets.only(left: CBSpace.x2),
+                    child: CBBadge(
+                        text: "SHADOW BANNED", color: scheme.tertiary),
+                  ),
+                if (player.isMuted)
+                  Padding(
+                    padding: const EdgeInsets.only(left: CBSpace.x2),
+                    child: CBBadge(text: "MUTED", color: scheme.primary),
+                  ),
+                const Spacer(),
+                Text("TAP FOR TACTICAL MENU",
+                    style: CBTypography.nano.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.6),
+                    )),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -348,7 +350,7 @@ class GodModePanel extends ConsumerWidget {
                   shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
                 ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           CBTextField(
             decoration: const InputDecoration(
               labelText: 'Announcement',
@@ -357,7 +359,7 @@ class GodModePanel extends ConsumerWidget {
             maxLines: 3,
             onChanged: (value) => message = value,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -365,7 +367,7 @@ class GodModePanel extends ConsumerWidget {
                 label: 'CANCEL',
                 onPressed: () => Navigator.pop(context),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               CBPrimaryButton(
                 fullWidth: false,
                 label: 'SEND',

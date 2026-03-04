@@ -8,7 +8,8 @@ class HostOnboardingScreen extends ConsumerStatefulWidget {
   const HostOnboardingScreen({super.key});
 
   @override
-  ConsumerState<HostOnboardingScreen> createState() => _HostOnboardingScreenState();
+  ConsumerState<HostOnboardingScreen> createState() =>
+      _HostOnboardingScreenState();
 }
 
 class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
@@ -50,11 +51,14 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              Icon(
-                Icons.admin_panel_settings_rounded,
-                size: 80,
-                color: scheme.primary,
-                shadows: CBColors.iconGlow(scheme.primary),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(CBRadius.md),
+                child: Image.asset(
+                  'assets/images/neon_x_brand.png',
+                  width: 96,
+                  height: 96,
+                  fit: BoxFit.cover,
+                ),
               ),
               const SizedBox(height: 32),
               Text(
@@ -142,7 +146,8 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
                       color: scheme.primary,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 1.0,
-                      shadows: CBColors.textGlow(scheme.primary, intensity: 0.4),
+                      shadows:
+                          CBColors.textGlow(scheme.primary, intensity: 0.4),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -158,7 +163,7 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
                 ],
               ),
             ),
-             const SizedBox(height: 48),
+            const SizedBox(height: 48),
             CBGhostButton(
               label: 'BACK TO LOGIN',
               icon: Icons.arrow_back_rounded,

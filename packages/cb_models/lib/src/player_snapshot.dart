@@ -4,6 +4,7 @@ import 'enums.dart';
 class PlayerSnapshot {
   final String id;
   final String name;
+  final String? authUid;
   final String roleId;
   final String roleName;
   final String roleDescription;
@@ -14,6 +15,7 @@ class PlayerSnapshot {
   final int? silencedDay;
   final String? medicChoice;
   final int lives;
+  final bool isBot;
   final int drinksOwed;
   final String? currentBetTargetId;
   final List<String> penalties;
@@ -23,11 +25,12 @@ class PlayerSnapshot {
   final bool secondWindPendingConversion;
   final String? creepTargetId;
   final bool whoreDeflectionUsed;
-  final List<String> tabooNames;
+  final List<String> blockedVoteTargets;
 
   const PlayerSnapshot({
     required this.id,
     required this.name,
+    this.authUid,
     required this.roleId,
     required this.roleName,
     this.roleDescription = '',
@@ -38,6 +41,7 @@ class PlayerSnapshot {
     this.silencedDay,
     this.medicChoice,
     this.lives = 1,
+    this.isBot = false,
     this.drinksOwed = 0,
     this.currentBetTargetId,
     this.penalties = const [],
@@ -47,13 +51,14 @@ class PlayerSnapshot {
     this.secondWindPendingConversion = false,
     this.creepTargetId,
     this.whoreDeflectionUsed = false,
-    this.tabooNames = const [],
+    this.blockedVoteTargets = const [],
   });
 
   factory PlayerSnapshot.fromMap(Map<String, dynamic> map) {
     return PlayerSnapshot(
       id: map['id'] as String? ?? '',
       name: map['name'] as String? ?? '',
+      authUid: map['authUid'] as String?,
       roleId: map['roleId'] as String? ?? '',
       roleName: map['roleName'] as String? ?? '',
       roleDescription: map['roleDescription'] as String? ?? '',
@@ -64,6 +69,7 @@ class PlayerSnapshot {
       silencedDay: map['silencedDay'] as int?,
       medicChoice: map['medicChoice'] as String?,
       lives: map['lives'] as int? ?? 1,
+      isBot: map['isBot'] as bool? ?? false,
       drinksOwed: map['drinksOwed'] as int? ?? 0,
       currentBetTargetId: map['currentBetTargetId'] as String?,
       penalties:
@@ -78,8 +84,8 @@ class PlayerSnapshot {
           map['secondWindPendingConversion'] as bool? ?? false,
       creepTargetId: map['creepTargetId'] as String?,
       whoreDeflectionUsed: map['whoreDeflectionUsed'] as bool? ?? false,
-      tabooNames:
-          (map['tabooNames'] as List<dynamic>?)
+      blockedVoteTargets:
+          (map['blockedVoteTargets'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const <String>[],

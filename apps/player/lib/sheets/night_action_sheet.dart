@@ -16,82 +16,128 @@ class NightActionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-    final accent = scheme.tertiary; // Was matrixGreen
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
+    final accent = scheme.tertiary;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header
+        const CBBottomSheetHandle(),
         Padding(
-          padding: CBInsets.screen,
-          child: Text(
-            'YOUR ACTION',
-            style: textTheme.labelLarge!.copyWith(
-              color: accent,
-            ),
+          padding: const EdgeInsets.fromLTRB(CBSpace.x5, CBSpace.x2, CBSpace.x5, CBSpace.x4),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(CBSpace.x2),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.bolt_rounded, color: accent, size: 20),
+              ),
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: Text(
+                  'MISSION ACTION',
+                  style: textTheme.headlineSmall!.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    shadows: CBColors.textGlow(accent, intensity: 0.4),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
 
-        // Content
         if (step.actionType == 'binaryChoice')
           Padding(
-            padding: CBInsets.screen,
+            padding: const EdgeInsets.fromLTRB(CBSpace.x5, 0, CBSpace.x5, CBSpace.x8),
             child: Column(
               children: step.options.map((option) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: CBSpace.x3),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: CBGhostButton(
-                      label: option,
-                      color: scheme.primary, // Was electricCyan
-                      onPressed: () => onAction(option),
-                    ),
+                  child: CBPrimaryButton(
+                    label: option.toUpperCase(),
+                    backgroundColor: scheme.primary.withValues(alpha: 0.15),
+                    foregroundColor: scheme.primary,
+                    onPressed: () {
+                      HapticService.medium();
+                      onAction(option);
+                    },
                   ),
                 );
               }).toList(),
             ),
           )
         else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: CBInsets.screen,
-            itemCount: players.length,
-            separatorBuilder: (_, __) => const SizedBox(height: CBSpace.x2),
-            itemBuilder: (context, index) {
-              final player = players[index];
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(CBSpace.x5, 0, CBSpace.x5, CBSpace.x8),
+              itemCount: players.length,
+              separatorBuilder: (_, __) => const SizedBox(height: CBSpace.x3),
+              itemBuilder: (context, index) {
+                final player = players[index];
 
-              return CBPanel(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: CBSpace.x4,
-                  vertical: CBSpace.x3,
-                ),
-                borderColor: accent.withValues(alpha: 0.3),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        player.name.toUpperCase(),
-                        style: textTheme.bodyLarge!,
+                return CBGlassTile(
+                  padding: const EdgeInsets.all(CBSpace.x4),
+                  borderColor: scheme.outlineVariant.withValues(alpha: 0.2),
+                  onTap: () {
+                    HapticService.heavy();
+                    onAction(player.id);
+                  },
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: scheme.onSurface.withValues(alpha: 0.05),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.2)),
+                        ),
+                        child: Center(
+                          child: Text(
+                            player.name.characters.first.toUpperCase(),
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: scheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: 112,
-                      child: CBGhostButton(
+                      const SizedBox(width: CBSpace.x4),
+                      Expanded(
+                        child: Text(
+                          player.name.toUpperCase(),
+                          style: textTheme.titleMedium!.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            fontFamily: 'RobotoMono',
+                          ),
+                        ),
+                      ),
+                      CBGhostButton(
                         label: 'SELECT',
                         color: accent,
-                        onPressed: () => onAction(player.id),
+                        onPressed: () {
+                          HapticService.heavy();
+                          onAction(player.id);
+                        },
+                        fullWidth: false,
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
-        const SizedBox(height: CBSpace.x4),
       ],
     );
   }

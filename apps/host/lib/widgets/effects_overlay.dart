@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_models/cb_models.dart';
+import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -85,7 +86,7 @@ class EffectsOverlay extends ConsumerWidget {
                         vertical: 12, horizontal: 20),
                     decoration: BoxDecoration(
                       color: scheme.surfaceContainerLow.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(CBRadius.md),
                       border: Border.all(
                         color: scheme.primary.withValues(alpha: 0.35),
                       ),

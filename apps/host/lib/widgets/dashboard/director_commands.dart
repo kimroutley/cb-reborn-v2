@@ -18,43 +18,48 @@ class DirectorCommands extends ConsumerWidget {
     final textTheme = theme.textTheme;
 
     return CBPanel(
-      borderColor: scheme.primary.withValues(alpha: 0.5),
+      borderColor: scheme.primary.withValues(alpha: 0.4),
+      padding: const EdgeInsets.all(CBSpace.x5),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CBSectionHeader(
             title: 'DIRECTOR COMMANDS',
             color: scheme.primary,
             icon: Icons.movie_filter_rounded,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x4),
           Text(
-            '// INJECT NARRATIVE EVENTS & ANNOUNCEMENTS INTO THE FEED.',
+            'INJECT NARRATIVE EVENTS & ANNOUNCEMENTS INTO THE MISSION FEED.',
             style: textTheme.labelSmall!.copyWith(
-              color: scheme.primary.withValues(alpha: 0.6),
-              fontSize: 8,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w800,
+              color: scheme.onSurface.withValues(alpha: 0.4),
+              fontSize: 9,
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.w900,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
+          const SizedBox(height: CBSpace.x5),
+          Row(
             children: [
-              _DirectorActionButton(
-                label: 'RANDOM RUMOR',
-                icon: Icons.campaign_rounded,
-                color: scheme.secondary,
-                description: 'Inject flavor rumor mill',
-                onPressed: () => _flashRandomRumour(context, ref),
+              Expanded(
+                child: _DirectorActionButton(
+                  label: 'RUMOUR',
+                  icon: Icons.campaign_rounded,
+                  color: scheme.secondary,
+                  description: 'FLAVOR INJECTION',
+                  onPressed: () => _flashRandomRumour(context, ref),
+                ),
               ),
-              _DirectorActionButton(
-                label: 'VOICE OF GOD',
-                icon: Icons.record_voice_over_rounded,
-                color: scheme.primary,
-                description: 'Direct global broadcast',
-                onPressed: () => _voiceOfGod(context, ref),
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: _DirectorActionButton(
+                  label: 'BROADCAST',
+                  icon: Icons.record_voice_over_rounded,
+                  color: scheme.primary,
+                  description: 'VOICE OF GOD',
+                  onPressed: () => _voiceOfGod(context, ref),
+                ),
               ),
             ],
           ),
@@ -77,7 +82,7 @@ class DirectorCommands extends ConsumerWidget {
           type: 'event',
         );
 
-    showThemedSnackBar(context, 'RUMOR DISPATCHED TO ALL NODES', accentColor: Theme.of(context).colorScheme.secondary);
+    showThemedSnackBar(context, 'RUMOUR DISPATCHED TO ALL NODES.', accentColor: Theme.of(context).colorScheme.secondary);
   }
 
   void _voiceOfGod(BuildContext context, WidgetRef ref) {
@@ -90,52 +95,63 @@ class DirectorCommands extends ConsumerWidget {
       accentColor: scheme.primary,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'PROTOCOL: VOICE OF GOD',
-            style: textTheme.labelLarge!.copyWith(
+            'VOICE OF GOD PROTOCOL',
+            style: textTheme.headlineSmall!.copyWith(
               color: scheme.primary,
-              letterSpacing: 1.6,
+              letterSpacing: 2.0,
               fontWeight: FontWeight.w900,
               shadows: CBColors.textGlow(scheme.primary, intensity: 0.5),
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: CBSpace.x4),
           Text(
-            'Transmit a high-priority global announcement to all patrons.',
-            style: textTheme.bodySmall!.copyWith(color: scheme.onSurface.withValues(alpha: 0.6)),
+            'TRANSMIT A HIGH-PRIORITY GLOBAL ANNOUNCEMENT TO ALL PATRONS.',
+            style: textTheme.bodySmall!.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           CBTextField(
             hintText: 'ENTER ANNOUNCEMENT PAYLOAD...',
             maxLines: 4,
             onChanged: (value) => message = value,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              CBGhostButton(
-                label: 'ABORT',
-                onPressed: () => Navigator.pop(context),
-              ),
-              const SizedBox(width: 12),
-              CBPrimaryButton(
-                fullWidth: false,
-                label: 'BROADCAST',
-                onPressed: () {
-                  if (message.isNotEmpty) {
-                    ref.read(gameProvider.notifier).dispatchBulletin(
-                          title: 'HOST ANNOUNCEMENT',
-                          content: message,
-                          type: 'urgent',
-                        );
+              Expanded(
+                child: CBGhostButton(
+                  label: 'ABORT',
+                  onPressed: () {
+                    HapticService.light();
                     Navigator.pop(context);
-                    showThemedSnackBar(
-                        context, 'GLOBAL ANNOUNCEMENT TRANSMITTED', accentColor: scheme.primary);
-                  }
-                },
+                  },
+                ),
+              ),
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: CBPrimaryButton(
+                  label: 'BROADCAST',
+                  onPressed: () {
+                    if (message.isNotEmpty) {
+                      HapticService.heavy();
+                      ref.read(gameProvider.notifier).dispatchBulletin(
+                            title: 'HOST ANNOUNCEMENT',
+                            content: message,
+                            type: 'urgent',
+                          );
+                      Navigator.pop(context);
+                      showThemedSnackBar(
+                          context, 'GLOBAL ANNOUNCEMENT TRANSMITTED.', accentColor: scheme.primary);
+                    }
+                  },
+                ),
               ),
             ],
           )
@@ -171,33 +187,37 @@ class _DirectorActionButton extends StatelessWidget {
         onPressed();
       },
       borderColor: color.withValues(alpha: 0.4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: SizedBox(
-        width: 150,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 24, shadows: CBColors.iconGlow(color, intensity: 0.3)),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: textTheme.labelSmall!.copyWith(
-                color: color,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.0,
-              ),
+      padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: CBSpace.x4),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(CBSpace.x2),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
             ),
-            const SizedBox(height: 4),
-            Text(
-              description.toUpperCase(),
-              style: textTheme.labelSmall!.copyWith(
-                color: color.withValues(alpha: 0.5),
-                fontSize: 8,
-                letterSpacing: 0.5,
-              ),
+            child: Icon(icon, color: color, size: 24, shadows: CBColors.iconGlow(color, intensity: 0.3)),
+          ),
+          const SizedBox(height: CBSpace.x3),
+          Text(
+            label.toUpperCase(),
+            style: textTheme.labelLarge!.copyWith(
+              color: color,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.0,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: CBSpace.x1),
+          Text(
+            description.toUpperCase(),
+            style: textTheme.labelSmall!.copyWith(
+              color: color.withValues(alpha: 0.5),
+              fontSize: 8,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

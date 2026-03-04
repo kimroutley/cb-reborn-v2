@@ -1,14 +1,19 @@
+import 'dart:async';
+
 import 'package:cb_comms/cb_comms_player.dart';
+import 'package:cb_models/cb_models.dart';
+import 'package:cb_logic/cb_logic.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../player_bridge.dart';
 import '../profile_edit_guard.dart';
 import '../widgets/custom_drawer.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({
     super.key,
     this.repository,
@@ -28,8 +33,6 @@ class ProfileScreen extends ConsumerWidget {
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
-
-enum _FeedbackTone { info, success, error }
 
 enum _ProfileLayoutMode { wallet, edit }
 
@@ -51,19 +54,6 @@ class _WalletAwardSnapshot {
   final List<RoleAwardDefinition> inProgress;
   final int totalTracked;
   final int unlockedCount;
-}
-
-class _NoStretchScrollBehavior extends MaterialScrollBehavior {
-  const _NoStretchScrollBehavior();
-
-  @override
-  Widget buildOverscrollIndicator(
-    BuildContext context,
-    Widget child,
-    ScrollableDetails details,
-  ) {
-    return child;
-  }
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
@@ -157,204 +147,94 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
-  void _syncDirtyFlag() {
-    if (!mounted) {
-      return;
-    }
-    final dirty = _hasChanges;
-
-    void writeDirtyFlag() {
-      if (!mounted) {
-        return;
-      }
-      if (ref.read(playerProfileDirtyProvider) == dirty) {
-        return;
-      }
-      ref.read(playerProfileDirtyProvider.notifier).setDirty(dirty);
-    }
-
-    final phase = WidgetsBinding.instance.schedulerPhase;
-    if (phase == SchedulerPhase.idle ||
-        phase == SchedulerPhase.postFrameCallbacks) {
-      writeDirtyFlag();
-      return;
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      writeDirtyFlag();
-    });
-  }
-
   void _onInputChanged() {
     _normalizePublicIdField();
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     if (_usernameError != null || _publicIdError != null) {
       setState(() {
         _usernameError = null;
         _publicIdError = null;
       });
-      _syncDirtyFlag();
-      return;
+    } else {
+      setState(() {});
     }
-    setState(() {});
     _syncDirtyFlag();
   }
 
-  void _dismissProfileFieldFocus() {
-    _usernameFocusNode.unfocus();
-    _publicIdFocusNode.unfocus();
-    FocusManager.instance.primaryFocus?.unfocus();
-  }
+  void _syncDirtyFlag() {
+    if (!mounted) return;
+    final dirty = _hasChanges;
+    if (ref.read(playerProfileDirtyProvider) == dirty) return;
 
-  bool get _isWidgetTestBinding {
-    return WidgetsBinding.instance.runtimeType
-        .toString()
-        .contains('TestWidgetsFlutterBinding');
-  }
-
-  Widget _wrapScrollSemanticsForTest(Widget child) {
-    if (_isWidgetTestBinding) {
-      return ExcludeSemantics(child: child);
-    }
-    return child;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.read(playerProfileDirtyProvider.notifier).setDirty(dirty);
+    });
   }
 
   void _normalizePublicIdField() {
     final normalized =
         ProfileFormValidation.sanitizePublicPlayerId(_publicIdController.text);
-    if (_publicIdController.text == normalized) {
-      return;
-    }
+    if (_publicIdController.text == normalized) return;
+
     _publicIdController.value = TextEditingValue(
       text: normalized,
       selection: TextSelection.collapsed(offset: normalized.length),
     );
   }
 
-  Stream<Map<String, dynamic>?> _profileStreamForUid(String uid) {
-    final override = widget.profileStreamFactory;
-    if (override != null) {
-      return override(uid);
-    }
-    return _profileRepository.watchProfile(uid);
-  }
-
-  Stream<User?>? _authChangesStream() {
-    final override = widget.authStateChangesResolver;
-    if (override != null) {
-      return override();
-    }
-    try {
-      return FirebaseAuth.instance.authStateChanges();
-    } catch (_) {
-      return null;
-    }
-  }
-
   void _startAuthListener() {
-    final stream = _authChangesStream();
-    if (stream == null) {
-      return;
-    }
     _authSubscription?.cancel();
-    _authSubscription = stream.listen((_) {
-      if (!mounted) {
-        return;
-      }
+    _authSubscription = FirebaseAuth.instance.authStateChanges().listen((_) {
+      if (!mounted) return;
       _ensureProfileListener();
-      if (!_loadingProfile) {
-        setState(() => _loadingProfile = true);
-      }
-      unawaited(_loadProfile());
+      setState(() => _loadingProfile = true);
+      _loadProfile();
     });
   }
 
   void _ensureProfileListener() {
-    final user = _user;
-    final uid = user?.uid;
-
+    final uid = _user?.uid;
     if (uid == null) {
       _listeningUid = null;
       _profileSubscription?.cancel();
       _profileSubscription = null;
-      _queuedRemoteProfile = null;
-      _remoteUpdatePending = false;
       return;
     }
 
-    if (_listeningUid == uid && _profileSubscription != null) {
-      return;
-    }
+    if (_listeningUid == uid && _profileSubscription != null) return;
 
     _listeningUid = uid;
     _profileSubscription?.cancel();
-    _profileSubscription = _profileStreamForUid(uid).listen(
+    _profileSubscription = _profileRepository.watchProfile(uid).listen(
       (profileData) {
-        if (!mounted || _listeningUid != uid) {
-          return;
-        }
-
+        if (!mounted || _listeningUid != uid) return;
         if (_saving || _hasChanges || _isApplyingRemoteUpdate) {
           _queuedRemoteProfile = profileData;
-          if (!_remoteUpdatePending) {
-            setState(() {
-              _remoteUpdatePending = true;
-            });
-          }
+          setState(() => _remoteUpdatePending = true);
           return;
         }
-
-        _applyProfileData(profileData, user!);
-      },
-      onError: (_) {
-        if (!mounted) {
-          return;
-        }
-        _showFeedback(
-          'Live profile sync temporarily unavailable.',
-          tone: _FeedbackTone.error,
-        );
+        _applyProfileData(profileData, _user!);
       },
     );
-  }
-
-  void _applyQueuedRemoteProfileIfAny() {
-    final user = _user;
-    final queued = _queuedRemoteProfile;
-    if (user == null || queued == null || _saving || _hasChanges) {
-      return;
-    }
-    _queuedRemoteProfile = null;
-    _applyProfileData(queued, user);
   }
 
   void _applyProfileData(Map<String, dynamic>? profile, User user) {
     _isApplyingRemoteUpdate = true;
     try {
-      final username =
-          (profile?['username'] as String?)?.trim() ?? user.displayName?.trim();
+      final username = (profile?['username'] as String?)?.trim() ?? user.displayName?.trim();
       final publicId = (profile?['publicPlayerId'] as String?)?.trim();
       final avatar = (profile?['avatarEmoji'] as String?)?.trim();
       final preferredStyle = (profile?['preferredStyle'] as String?)?.trim();
 
-      _dismissProfileFieldFocus();
       setState(() {
         _usernameController.text = username ?? '';
-        _publicIdController.text = publicId == null
-            ? ''
-            : ProfileFormValidation.sanitizePublicPlayerId(publicId);
-        _selectedAvatar = clubAvatarEmojis.contains(avatar)
-            ? avatar!
-            : clubAvatarEmojis.first;
-        _selectedPreferredStyle =
-            _preferredStyles.contains(preferredStyle?.toLowerCase())
+        _publicIdController.text = publicId ?? '';
+        _selectedAvatar = clubAvatarEmojis.contains(avatar) ? avatar! : clubAvatarEmojis.first;
+        _selectedPreferredStyle = _preferredStyles.contains(preferredStyle?.toLowerCase())
                 ? preferredStyle!.toLowerCase()
                 : _preferredStyles.first;
         _createdAt = _dateFromFirestore(profile?['createdAt']);
-        _updatedAt =
-            _dateFromFirestore(profile?['updatedAt']) ?? DateTime.now();
+        _updatedAt = _dateFromFirestore(profile?['updatedAt']) ?? DateTime.now();
         _remoteUpdatePending = false;
       });
       _captureInitialSnapshot();
@@ -363,555 +243,423 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  Future<void> _handleAttemptPop() async {
-    if (!_hasChanges) {
-      return;
-    }
-    final discard = await _confirmDiscardChanges();
-    if (!discard || !mounted) {
-      return;
-    }
-    _discardChanges();
-    setState(() => _allowImmediatePop = true);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      Navigator.of(context).maybePop();
-    });
-  }
-
-  Future<bool> _confirmDiscardChanges() async {
-    if (!_hasChanges) {
-      return true;
-    }
-    return showCBDiscardChangesDialog(
-      context,
-      message: 'You have unsaved profile edits. Leave without saving?',
-    );
-  }
-
   void _captureInitialSnapshot() {
     _initialUsername = _usernameController.text.trim();
-    _initialPublicId =
-        ProfileFormValidation.sanitizePublicPlayerId(_publicIdController.text);
+    _initialPublicId = _publicIdController.text.trim();
     _initialAvatar = _selectedAvatar;
     _initialPreferredStyle = _selectedPreferredStyle;
     _syncDirtyFlag();
   }
 
+  void _discardChanges() {
+    _usernameController.text = _initialUsername;
+    _publicIdController.text = _initialPublicId;
+    _selectedAvatar = _initialAvatar;
+    _selectedPreferredStyle = _initialPreferredStyle;
+    _usernameError = null;
+    _publicIdError = null;
+    _syncDirtyFlag();
+    if (mounted) setState(() {});
+  }
+
   DateTime? _dateFromFirestore(dynamic value) {
-    if (value is Timestamp) {
-      return value.toDate();
-    }
-    if (value is DateTime) {
-      return value;
-    }
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
     return null;
   }
 
   String _formatDateTime(DateTime? value) {
-    if (value == null) {
-      return 'Unknown';
-    }
+    if (value == null) return 'UNKNOWN';
     final local = value.toLocal();
     String two(int n) => n.toString().padLeft(2, '0');
     return '${local.year}-${two(local.month)}-${two(local.day)} '
         '${two(local.hour)}:${two(local.minute)}';
   }
 
-  String _styleLabel(String value) {
-    if (value == 'auto') {
-      return 'Auto';
+  Future<void> _loadProfile() async {
+    final uid = _user?.uid;
+    if (uid == null) {
+      if (mounted) setState(() => _loadingProfile = false);
+      return;
     }
-    return value[0].toUpperCase() + value.substring(1);
-  }
 
-  Set<String> _resolvePlayerKeys({
-    required User user,
-    required String username,
-    required String publicId,
-  }) {
-    final keys = <String>{
-      user.uid,
-      username.trim(),
-      publicId.trim(),
-      user.displayName?.trim() ?? '',
-    };
-    final bridgePlayerId = ref.read(playerBridgeProvider).myPlayerId;
-    if (bridgePlayerId != null) {
-      keys.add(bridgePlayerId.trim());
+    try {
+      final profile = await _profileRepository.loadProfile(uid);
+      if (mounted) {
+        _applyProfileData(profile, _user!);
+        await _refreshWalletAwards();
+      }
+    } finally {
+      if (mounted) setState(() => _loadingProfile = false);
     }
-    keys.removeWhere((value) => value.isEmpty);
-    return keys;
   }
 
   Future<void> _refreshWalletAwards() async {
     final user = _user;
-    if (user == null || !mounted) {
-      return;
-    }
+    if (user == null || !mounted) return;
 
-    setState(() {
-      _loadingAwards = true;
-    });
-
+    setState(() => _loadingAwards = true);
     try {
       final service = PersistenceService.instance;
-      await service.rebuildRoleAwardProgresses();
+      await service.roleAwards.rebuildRoleAwardProgresses();
       final allProgress = service.roleAwards.loadRoleAwardProgresses();
-      final playerKeys = _resolvePlayerKeys(
-        user: user,
-        username: _usernameController.text,
-        publicId: _publicIdController.text,
-      );
 
-      final progressByAward = <String, PlayerRoleAwardProgress>{};
-      for (final progress in allProgress) {
-        if (!playerKeys.contains(progress.playerKey)) {
-          continue;
-        }
-        final existing = progressByAward[progress.awardId];
-        if (existing == null) {
-          progressByAward[progress.awardId] = progress;
-          continue;
-        }
-        if (progress.isUnlocked && !existing.isUnlocked) {
-          progressByAward[progress.awardId] = progress;
-          continue;
-        }
-        if (progress.progressValue > existing.progressValue) {
-          progressByAward[progress.awardId] = progress;
-        }
-      }
+      final playerKeys = {
+        user.uid,
+        _usernameController.text.trim(),
+        _publicIdController.text.trim(),
+      };
 
       final unlocked = <RoleAwardDefinition>[];
       final inProgress = <RoleAwardDefinition>[];
-      for (final entry in progressByAward.entries) {
-        final definition = roleAwardDefinitionById(entry.key);
-        if (definition == null) {
-          continue;
-        }
-        if (entry.value.isUnlocked) {
-          unlocked.add(definition);
+
+      for (final progress in allProgress) {
+        if (!playerKeys.contains(progress.playerKey)) continue;
+        final def = roleAwardDefinitionById(progress.awardId);
+        if (def == null) continue;
+
+        if (progress.isUnlocked) {
+          unlocked.add(def);
         } else {
-          inProgress.add(definition);
+          inProgress.add(def);
         }
       }
 
-      unlocked.sort((a, b) => a.tier.index.compareTo(b.tier.index));
-      inProgress.sort((a, b) => a.tier.index.compareTo(b.tier.index));
-
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _awardSnapshot = _WalletAwardSnapshot(
-          unlocked: unlocked.take(6).toList(growable: false),
-          inProgress: inProgress.take(4).toList(growable: false),
-          totalTracked: progressByAward.length,
-          unlockedCount: unlocked.length,
-        );
-      });
-    } catch (_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _awardSnapshot = const _WalletAwardSnapshot.empty();
-      });
-    } finally {
       if (mounted) {
         setState(() {
-          _loadingAwards = false;
+          _awardSnapshot = _WalletAwardSnapshot(
+            unlocked: unlocked..sort((a,b) => a.tier.index.compareTo(b.tier.index)),
+            inProgress: inProgress..sort((a,b) => a.tier.index.compareTo(b.tier.index)),
+            totalTracked: unlocked.length + inProgress.length,
+            unlockedCount: unlocked.length,
+          );
         });
       }
-    }
-  }
-
-  Widget _buildWalletView(ThemeData theme, ColorScheme scheme) {
-    final user = _user;
-    final publicId = ProfileFormValidation.sanitizePublicPlayerId(
-      _publicIdController.text,
-    );
-
-    return _wrapScrollSemanticsForTest(ScrollConfiguration(
-      behavior: const _NoStretchScrollBehavior(),
-      child: SingleChildScrollView(
-        padding: CBInsets.screen,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CBSectionHeader(
-              title: 'DIGITAL WALLET',
-              icon: Icons.account_balance_wallet_rounded,
-              color: scheme.primary,
-            ),
-            const SizedBox(height: CBSpace.x4),
-            CBGlassTile(
-              isPrismatic: true,
-              borderRadius: BorderRadius.circular(16),
-              borderColor: scheme.primary.withValues(alpha: 0.45),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        _selectedAvatar,
-                        style: const TextStyle(fontSize: 28),
-                      ),
-                      const SizedBox(width: CBSpace.x3),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              (_usernameController.text.trim().isEmpty
-                                      ? 'UNSET USERNAME'
-                                      : _usernameController.text.trim())
-                                  .toUpperCase(),
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                            Text(
-                              publicId.isEmpty
-                                  ? 'ID: NOT ISSUED'
-                                  : 'ID: ${publicId.toUpperCase()}',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      CBBadge(
-                        text:
-                            _styleLabel(_selectedPreferredStyle).toUpperCase(),
-                        color: scheme.secondary,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: CBSpace.x4),
-                  Text(
-                    'ACCOLADES PRINTED',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: CBSpace.x2),
-                  if (_loadingAwards)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: LinearProgressIndicator(minHeight: 3),
-                    )
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ..._awardSnapshot.unlocked.map(
-                          (award) => CBBadge(
-                            text: award.title.toUpperCase(),
-                            color: scheme.primary,
-                          ),
-                        ),
-                        ..._awardSnapshot.inProgress.map(
-                          (award) => CBBadge(
-                            text: '${award.title.toUpperCase()} • INKING',
-                            color: scheme.tertiary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  const SizedBox(height: CBSpace.x3),
-                  Text(
-                    'UNLOCKED ${_awardSnapshot.unlockedCount} / ${_awardSnapshot.totalTracked}',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: CBSpace.x4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CBGhostButton(
-                          label: 'EDIT PROFILE',
-                          icon: Icons.edit_rounded,
-                          onPressed: () {
-                            setState(() {
-                              _layoutMode = _ProfileLayoutMode.edit;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: CBSpace.x2),
-                      Expanded(
-                        child: CBGhostButton(
-                          label: 'REFRESH WALLET',
-                          icon: Icons.refresh_rounded,
-                          onPressed: _refreshWalletAwards,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: CBSpace.x4),
-            CBPanel(
-              borderColor: scheme.secondary.withValues(alpha: 0.35),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ISSUER DETAILS',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.secondary,
-                      letterSpacing: 1.2,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: CBSpace.x4),
-                  CBProfileReadonlyRow(label: 'UID', value: user?.uid ?? 'N/A'),
-                  const SizedBox(height: CBSpace.x3),
-                  CBProfileReadonlyRow(
-                    label: 'EMAIL',
-                    value: user?.email ?? 'No email on account',
-                  ),
-                  const SizedBox(height: CBSpace.x3),
-                  CBProfileReadonlyRow(
-                    label: 'CREATED',
-                    value: _formatDateTime(_createdAt),
-                  ),
-                  const SizedBox(height: CBSpace.x3),
-                  CBProfileReadonlyRow(
-                    label: 'LAST UPDATE',
-                    value: _formatDateTime(_updatedAt),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    ));
-  }
-
-  Future<void> _loadProfile() async {
-    _ensureProfileListener();
-    final user = _user;
-    if (user == null) {
-      if (mounted) {
-        setState(() => _loadingProfile = false);
-      }
-      _syncDirtyFlag();
-      return;
-    }
-
-    try {
-      final profile = await _profileRepository.loadProfile(user.uid);
-      if (!mounted) {
-        return;
-      }
-
-      _applyProfileData(profile, user);
-      await _refreshWalletAwards();
-    } catch (_) {
-      _showFeedback(
-        'Could not load profile right now. Showing local defaults.',
-        tone: _FeedbackTone.error,
-      );
     } finally {
-      if (mounted) {
-        setState(() => _loadingProfile = false);
-      }
-      _syncDirtyFlag();
+      if (mounted) setState(() => _loadingAwards = false);
     }
   }
 
   Future<void> _saveProfile() async {
     final user = _user;
-    if (user == null) {
-      _showFeedback(
-        'Sign in required to edit your profile.',
-        tone: _FeedbackTone.error,
-      );
-      return;
-    }
-
-    if (!_hasChanges) {
-      _showFeedback('No profile changes to save.');
-      return;
-    }
+    if (user == null) return;
 
     final username = _usernameController.text.trim();
     final usernameValidation = ProfileFormValidation.validateUsername(username);
     final rawPublicId = _publicIdController.text;
-    final normalizedPublicId =
-        ProfileFormValidation.sanitizePublicPlayerId(rawPublicId);
-    final publicIdValidation =
-        ProfileFormValidation.validatePublicPlayerId(rawPublicId);
 
-    if (usernameValidation != null || publicIdValidation != null) {
-      setState(() {
-        _usernameError = usernameValidation;
-        _publicIdError = publicIdValidation;
-      });
-      _syncDirtyFlag();
+    if (usernameValidation != null) {
+      setState(() => _usernameError = usernameValidation);
       return;
     }
 
-    setState(() {
-      _saving = true;
-      _usernameError = null;
-      _publicIdError = null;
-    });
-
+    setState(() => _saving = true);
     try {
       if (username != _initialUsername) {
-        final usernameAvailable = await _profileRepository.isUsernameAvailable(
-          username,
-          excludingUid: user.uid,
-        );
-        if (!usernameAvailable) {
-          setState(() {
-            _usernameError = 'That username is already in use.';
-          });
+        final available = await _profileRepository.isUsernameAvailable(username, excludingUid: user.uid);
+        if (!available) {
+          setState(() => _usernameError = 'USERNAME ALREADY IN USE.');
           return;
         }
       }
-
-      if (normalizedPublicId.isNotEmpty &&
-          normalizedPublicId != _initialPublicId) {
-        final publicIdAvailable =
-            await _profileRepository.isPublicPlayerIdAvailable(
-          normalizedPublicId,
-          excludingUid: user.uid,
-        );
-        if (!publicIdAvailable) {
-          setState(() {
-            _publicIdError = 'That public player ID is already in use.';
-          });
-          return;
-        }
-      }
-
-      final preferredStyleToSave =
-          _selectedPreferredStyle == 'auto' ? null : _selectedPreferredStyle;
 
       await _profileRepository.upsertBasicProfile(
         uid: user.uid,
         username: username,
         email: user.email,
         isHost: false,
-        publicPlayerId: normalizedPublicId.isEmpty ? null : normalizedPublicId,
+        publicPlayerId: rawPublicId.isEmpty ? null : rawPublicId,
         avatarEmoji: _selectedAvatar,
-        preferredStyle: preferredStyleToSave,
+        preferredStyle: _selectedPreferredStyle == 'auto' ? null : _selectedPreferredStyle,
       );
 
-      try {
-        await user.updateDisplayName(username);
-      } catch (_) {
-        // Keep profile write even if display-name update fails.
-      }
+      await user.updateDisplayName(username);
 
-      setState(() {
-        _updatedAt = DateTime.now();
-        _layoutMode = _ProfileLayoutMode.wallet;
-      });
-      _dismissProfileFieldFocus();
+      setState(() => _layoutMode = _ProfileLayoutMode.wallet);
       _captureInitialSnapshot();
-      _applyQueuedRemoteProfileIfAny();
       await _refreshWalletAwards();
-      _showFeedback('Profile saved.', tone: _FeedbackTone.success);
+      if (mounted) showThemedSnackBar(context, 'PROFILE ARCHIVED.', accentColor: Theme.of(context).colorScheme.primary);
     } catch (_) {
-      _showFeedback(
-        'Could not save profile right now.',
-        tone: _FeedbackTone.error,
-      );
+      if (mounted) showThemedSnackBar(context, 'UPLINK ERROR: COULD NOT SAVE.', accentColor: Theme.of(context).colorScheme.error);
     } finally {
-      if (mounted) {
-        setState(() => _saving = false);
-      }
-      _applyQueuedRemoteProfileIfAny();
-      _syncDirtyFlag();
+      if (mounted) setState(() => _saving = false);
     }
-  }
-
-  void _discardChanges() {
-    _usernameController.text = _initialUsername;
-    _publicIdController.text = _initialPublicId;
-    setState(() {
-      _selectedAvatar = _initialAvatar;
-      _selectedPreferredStyle = _initialPreferredStyle;
-      _usernameError = null;
-      _publicIdError = null;
-      _layoutMode = _ProfileLayoutMode.wallet;
-    });
-    _dismissProfileFieldFocus();
-    _syncDirtyFlag();
-    _applyQueuedRemoteProfileIfAny();
-    unawaited(_refreshWalletAwards());
-  }
-
-  void _showFeedback(String message,
-      {_FeedbackTone tone = _FeedbackTone.info}) {
-    if (!mounted) {
-      return;
-    }
-    final scheme = Theme.of(context).colorScheme;
-    final (Color iconColor, IconData icon) = switch (tone) {
-      _FeedbackTone.success => (scheme.primary, Icons.check_circle_outline),
-      _FeedbackTone.error => (scheme.error, Icons.error_outline),
-      _FeedbackTone.info => (scheme.secondary, Icons.info_outline),
-    };
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: scheme.surfaceContainerHigh,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: iconColor.withValues(alpha: 0.65),
-            ),
-          ),
-          content: Row(
-            children: [
-              Icon(icon, color: iconColor, size: 18),
-              const SizedBox(width: CBSpace.x2),
-              Expanded(child: Text(message)),
-            ],
-          ),
-        ),
-      );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final user = _user;
-    final normalizedPublicId =
-        ProfileFormValidation.sanitizePublicPlayerId(_publicIdController.text);
+    final textTheme = theme.textTheme;
 
-    return PopScope(
-      canPop: _allowImmediatePop || !_hasChanges,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop || _allowImmediatePop || !_hasChanges) {
-          return;
-        }
-      },
-      bridgePlayerId: ref.watch(playerBridgeProvider).myPlayerId,
+    return CBPrismScaffold(
+      title: 'OPERATIVE PROFILE',
+      drawer: const CustomDrawer(),
+      body: PopScope(
+        canPop: !_hasChanges || _allowImmediatePop,
+        onPopInvokedWithResult: (didPop, _) async {
+          if (didPop || !_hasChanges) return;
+          final confirmed = await showCBDiscardChangesDialog(context, message: 'ABORT PROFILE EDITS?');
+          if (confirmed && mounted) {
+            setState(() => _allowImmediatePop = true);
+            Navigator.of(context).maybePop();
+          }
+        },
+        child: _loadingProfile
+          ? const Center(child: CBBreathingLoader())
+          : _layoutMode == _ProfileLayoutMode.wallet
+            ? _buildWalletView(theme, scheme)
+            : _buildEditView(theme, scheme),
+      ),
+    );
+  }
+
+  Widget _buildWalletView(ThemeData theme, ColorScheme scheme) {
+    final user = _user;
+    final textTheme = theme.textTheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: CBSpace.x5, vertical: CBSpace.x6),
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CBSectionHeader(
+            title: 'DIGITAL WALLET',
+            icon: Icons.account_balance_wallet_rounded,
+            color: scheme.primary,
+          ),
+          const SizedBox(height: CBSpace.x4),
+          CBGlassTile(
+            isPrismatic: true,
+            borderColor: scheme.primary.withValues(alpha: 0.45),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(_selectedAvatar, style: const TextStyle(fontSize: 32)),
+                    const SizedBox(width: CBSpace.x4),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (_usernameController.text.trim().isEmpty ? 'UNSET MONIKER' : _usernameController.text.trim()).toUpperCase(),
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.2,
+                              shadows: CBColors.textGlow(scheme.primary, intensity: 0.3),
+                            ),
+                          ),
+                          Text(
+                            _publicIdController.text.isEmpty ? 'ID: NOT ISSUED' : 'ID: ${_publicIdController.text.toUpperCase()}',
+                            style: textTheme.labelSmall?.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.5),
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    CBBadge(
+                      text: _selectedPreferredStyle.toUpperCase(),
+                      color: scheme.secondary,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: CBSpace.x6),
+                Text(
+                  'ACCOLADES PRINTED',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(height: CBSpace.x3),
+                if (_loadingAwards)
+                  const LinearProgressIndicator(minHeight: 2)
+                else
+                  Wrap(
+                    spacing: CBSpace.x2,
+                    runSpacing: CBSpace.x2,
+                    children: [
+                      ..._awardSnapshot.unlocked.map((a) => CBBadge(text: a.title.toUpperCase(), color: scheme.primary)),
+                      ..._awardSnapshot.inProgress.map((a) => CBBadge(text: '${a.title.toUpperCase()} • INKING', color: scheme.tertiary)),
+                      if (_awardSnapshot.totalTracked == 0)
+                        Text('NO ACTIVE CONTRACTS.', style: textTheme.bodySmall?.copyWith(color: scheme.onSurface.withValues(alpha: 0.4), fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                const SizedBox(height: CBSpace.x6),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CBGhostButton(
+                        label: 'EDIT PROFILE',
+                        icon: Icons.edit_rounded,
+                        onPressed: () {
+                          HapticService.selection();
+                          setState(() => _layoutMode = _ProfileLayoutMode.edit);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: CBSpace.x3),
+                    Expanded(
+                      child: CBGhostButton(
+                        label: 'SYNC DATA',
+                        icon: Icons.refresh_rounded,
+                        onPressed: () {
+                          HapticService.light();
+                          _refreshWalletAwards();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: CBSpace.x8),
+          CBSectionHeader(title: 'ISSUER DETAILS', icon: Icons.verified_user_rounded, color: scheme.secondary),
+          const SizedBox(height: CBSpace.x4),
+          CBPanel(
+            borderColor: scheme.secondary.withValues(alpha: 0.3),
+            child: Column(
+              children: [
+                _buildReadonlyRow('UID', user?.uid ?? 'N/A', scheme),
+                const SizedBox(height: CBSpace.x3),
+                _buildReadonlyRow('EMAIL', user?.email ?? 'ANONYMOUS', scheme),
+                const SizedBox(height: CBSpace.x3),
+                _buildReadonlyRow('ISSUED', _formatDateTime(_createdAt), scheme),
+                const SizedBox(height: CBSpace.x3),
+                _buildReadonlyRow('UPDATED', _formatDateTime(_updatedAt), scheme),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadonlyRow(String label, String value, ColorScheme scheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: scheme.onSurface.withValues(alpha: 0.4), fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+        Text(value.toUpperCase(), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurface.withValues(alpha: 0.8), fontWeight: FontWeight.w700, fontFamily: 'RobotoMono')),
+      ],
+    );
+  }
+
+  Widget _buildEditView(ThemeData theme, ColorScheme scheme) {
+    final avatarChoices = clubAvatarEmojis.take(20).toList();
+    final textTheme = theme.textTheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(CBSpace.x6),
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CBPanel(
+            borderColor: scheme.primary.withValues(alpha: 0.4),
+            padding: CBInsets.panel,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('MODERATION TERMINAL', style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.5, shadows: CBColors.textGlow(scheme.primary))),
+                const SizedBox(height: CBSpace.x6),
+                CBTextField(
+                  controller: _usernameController,
+                  focusNode: _usernameFocusNode,
+                  hintText: 'MONIKER',
+                  errorText: _usernameError,
+                  prefixIcon: Icons.person_outline_rounded,
+                ),
+                const SizedBox(height: CBSpace.x4),
+                CBTextField(
+                  controller: _publicIdController,
+                  focusNode: _publicIdFocusNode,
+                  hintText: 'PUBLIC ID (OPTIONAL)',
+                  errorText: _publicIdError,
+                  prefixIcon: Icons.alternate_email_rounded,
+                  monospace: true,
+                ),
+                const SizedBox(height: CBSpace.x8),
+                Text('SELECT AVATAR', style: textTheme.labelSmall?.copyWith(color: scheme.primary, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                const SizedBox(height: CBSpace.x3),
+                Wrap(
+                  spacing: CBSpace.x2,
+                  runSpacing: CBSpace.x2,
+                  alignment: WrapAlignment.center,
+                  children: avatarChoices.map((emoji) {
+                    final selected = emoji == _selectedAvatar;
+                    return CBProfileAvatarChip(
+                      emoji: emoji,
+                      selected: selected,
+                      onTap: () {
+                        HapticService.selection();
+                        setState(() => _selectedAvatar = emoji);
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: CBSpace.x10),
+                CBPrimaryButton(
+                  label: _saving ? 'ARCHIVING...' : 'SAVE CHANGES',
+                  onPressed: _saving ? null : () {
+                    HapticService.heavy();
+                    _saveProfile();
+                  },
+                ),
+                const SizedBox(height: CBSpace.x3),
+                CBGhostButton(
+                  label: 'ABORT CHANGES',
+                  color: scheme.error,
+                  onPressed: () {
+                    HapticService.light();
+                    _discardChanges();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CBProfileAvatarChip extends StatelessWidget {
+  const CBProfileAvatarChip({
+    super.key,
+    required this.emoji,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(CBRadius.pill),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: CBSpace.x2),
+        decoration: BoxDecoration(
+          color: selected ? scheme.primary.withValues(alpha: 0.2) : scheme.surface.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(CBRadius.pill),
+          border: Border.all(color: selected ? scheme.primary : scheme.outline.withValues(alpha: 0.3)),
+        ),
+        child: Text(emoji, style: const TextStyle(fontSize: 20)),
+      ),
     );
   }
 }

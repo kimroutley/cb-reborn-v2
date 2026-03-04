@@ -112,6 +112,10 @@ class PlayerSessionCacheRepository {
 
       // Drop stale snapshots to avoid restoring very old sessions.
       if (DateTime.now().difference(entry.savedAt) > _maxEntryAge) {
+        if (kDebugMode) {
+          debugPrint(
+              '[SessionCache] Dropped stale entry savedAt=${entry.savedAt}');
+        }
         await clear();
         return null;
       }
@@ -137,6 +141,9 @@ class PlayerSessionCacheRepository {
       return;
     }
     await prefs.remove(_entryKey);
+    if (kDebugMode) {
+      debugPrint('[SessionCache] Cleared');
+    }
   }
 }
 

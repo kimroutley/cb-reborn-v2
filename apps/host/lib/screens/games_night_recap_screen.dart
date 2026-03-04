@@ -138,11 +138,10 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
+    return CBPrismScaffold(
+      title: 'SESSION RECAP',
       drawer: const CustomDrawer(),
-      body: CBNeonBackground(
-        showOverlay: false,
-        child: Stack(
+      body: Stack(
           children: [
             // ── ANIMATED BACKGROUND ──
             _buildDynamicBackground(scheme),
@@ -182,17 +181,17 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
             // ── TOP INDICATORS ──
             SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x5, CBSpace.x4, 0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildProgressBar(scheme),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: CBSpace.x4),
                     Row(
                       children: [
                         const CBConnectionDot(
                             isConnected: true, label: "SESSION RECAP"),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: CBSpace.x2),
                         const SimulationModeBadgeAction(),
                         const Spacer(),
                         IconButton(
@@ -207,7 +206,6 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -332,14 +330,14 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Widget _buildIntroSlide(ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.auto_awesome,
               color: scheme.tertiary,
               size: 80),
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
           Text(
             widget.session.sessionName.toUpperCase(),
             textAlign: TextAlign.center,
@@ -351,17 +349,17 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                 .copyWith(
                     shadows: CBColors.textGlow(scheme.tertiary)),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           Text(
             "WHAT A NIGHT.",
             style: textTheme.labelSmall!.copyWith(
                 letterSpacing: 4,
                 color: scheme.onSurface.withValues(alpha: 0.5)),
           ),
-          const SizedBox(height: 64),
+          const SizedBox(height: CBSpace.x16),
           _buildStatRow(
               Icons.videogame_asset, "${_recap.totalGames} GAMES PLAYED"),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           _buildStatRow(Icons.timer,
               "${_recap.totalDuration.inHours}H ${_recap.totalDuration.inMinutes % 60}M DURATION"),
         ],
@@ -375,12 +373,12 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
     return CBGlassTile(
       isPrismatic: true,
       borderColor: scheme.onSurface.withValues(alpha: 0.2),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6, vertical: CBSpace.x4),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: scheme.onSurface.withValues(alpha: 0.7), size: 20),
-          const SizedBox(width: 16),
+          const SizedBox(width: CBSpace.x4),
           Text(label,
               style: textTheme.labelSmall!.copyWith(
                   color: scheme.onSurface, fontWeight: FontWeight.bold)),
@@ -392,7 +390,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Widget _buildRosterSlide(ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -403,10 +401,10 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                   .copyWith(
                       shadows: CBColors.textGlow(
                           scheme.primary))),
-          const SizedBox(height: 48),
+          const SizedBox(height: CBSpace.x12),
           Wrap(
-            spacing: 12,
-            runSpacing: 12,
+            spacing: CBSpace.x3,
+            runSpacing: CBSpace.x3,
             alignment: WrapAlignment.center,
             children: widget.session.playerNames.map((name) {
               return CBBadge(
@@ -414,7 +412,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                   color: scheme.primary); // Previously CBColors.neonBlue
             }).toList(),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: CBSpace.x12),
           Text("${_recap.uniquePlayers} LEGENDS ENTERED.\nSOME NEVER LEFT.",
               textAlign: TextAlign.center,
               style: textTheme.labelSmall!.copyWith(
@@ -429,7 +427,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -437,9 +435,9 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
               style: textTheme.displayLarge!
                   .copyWith(color: scheme.onSurface)
                   .copyWith(shadows: CBColors.textGlow(color))),
-          const SizedBox(height: 48),
+          const SizedBox(height: CBSpace.x12),
           Container(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(CBSpace.x8),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: color, width: 3),
@@ -447,11 +445,11 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
             ),
             child: Icon(icon, size: 80, color: color),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: CBSpace.x12),
           Text(award.playerName.toUpperCase(),
               style: textTheme.displayMedium!
                   .copyWith(color: scheme.onSurface, fontSize: 36)),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           Text(award.description.toUpperCase(),
               textAlign: TextAlign.center,
               style: textTheme.labelSmall!.copyWith(
@@ -465,14 +463,15 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Widget _buildSpicySlide(ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text("SPICIEST MOMENT",
               style: textTheme.headlineMedium!.copyWith(
-                  color: scheme.error)), // Previously CBColors.bloodOrange
-          const SizedBox(height: 48),
+                  color: scheme.error,
+                  shadows: CBColors.textGlow(scheme.error, intensity: 0.5))), // Previously CBColors.bloodOrange
+          const SizedBox(height: CBSpace.x12),
           CBPanel(
             borderColor: scheme.error,
             child: Column(
@@ -488,6 +487,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                         style: textTheme.headlineSmall!.copyWith(
                           color: scheme.error,
                           fontWeight: FontWeight.bold,
+                          shadows: CBColors.textGlow(scheme.error, intensity: 0.4),
                         ),
                       ),
                     ),
@@ -511,7 +511,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
   Widget _buildSummarySlide(ColorScheme scheme) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(CBSpace.x10),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -521,7 +521,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                       color: scheme.tertiary) // Previously CBColors.matrixGreen
                   .copyWith(
                       shadows: CBColors.textGlow(scheme.tertiary))),
-          const SizedBox(height: 48),
+          const SizedBox(height: CBSpace.x12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -531,7 +531,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
                   scheme.primary), // Previously CBColors.neonBlue
             ],
           ),
-          const SizedBox(height: 64),
+          const SizedBox(height: CBSpace.x16),
           CBPrimaryButton(
             label: "CLOSE RECAP",
             onPressed: () => Navigator.pop(context),
@@ -548,7 +548,7 @@ class _GamesNightRecapScreenState extends State<GamesNightRecapScreen>
         Text("$value",
             style:
                 textTheme.displayLarge!.copyWith(color: color, fontSize: 64)),
-        const SizedBox(height: 8),
+        const SizedBox(height: CBSpace.x2),
         Text(label,
             style: textTheme.labelSmall!
                 .copyWith(color: color.withValues(alpha: 0.5))),

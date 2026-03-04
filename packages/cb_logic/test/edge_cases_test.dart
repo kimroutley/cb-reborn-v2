@@ -306,6 +306,7 @@ void main() {
       _addMockPlayers(game, 6);
       expect(container.read(gameProvider).phase, GamePhase.lobby);
 
+      game.autoAssignRoles();
       game.startGame();
       expect(container.read(gameProvider).phase, GamePhase.setup);
 
@@ -333,6 +334,7 @@ void main() {
       final game = container.read(gameProvider.notifier);
 
       _addMockPlayers(game, 6);
+      game.autoAssignRoles();
       game.startGame();
       final setupState = container.read(gameProvider);
       expect(setupState.phase, GamePhase.setup);
@@ -399,6 +401,7 @@ void main() {
       final game = container.read(gameProvider.notifier);
 
       _addMockPlayers(game, 6);
+      game.autoAssignRoles();
       game.startGame();
 
       final playerId = container.read(gameProvider).players.first.id;
@@ -419,6 +422,7 @@ void main() {
       final game = container.read(gameProvider.notifier);
 
       _addMockPlayers(game, 6);
+      game.autoAssignRoles();
       game.startGame();
 
       final state = container.read(gameProvider);
@@ -447,6 +451,7 @@ void main() {
 
       // Simple setup: add players and start game
       _addMockPlayers(game, 5);
+      game.autoAssignRoles();
       game.startGame();
 
       var state = container.read(gameProvider);

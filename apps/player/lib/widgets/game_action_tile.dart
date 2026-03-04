@@ -35,12 +35,19 @@ class _GameActionTileState extends State<GameActionTile> {
     if (widget.step.isVote ||
         widget.step.actionType == ScriptActionType.selectPlayer.name ||
         isMultiSelect) {
+
+      // Pass Lightweight's blocked vote targets if it's a vote step
+      final disabledIds = widget.step.isVote
+          ? widget.player.blockedVoteTargets
+          : const <String>[];
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PlayerSelectionScreen(
             players: widget.gameState.players.where((p) => p.isAlive).toList(),
             step: widget.step,
+            disabledIds: disabledIds,
             onPlayerSelected: (targetId) {
               if (widget.step.isVote) {
                 widget.bridge
@@ -182,7 +189,7 @@ class _GameActionTileState extends State<GameActionTile> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.transparent,
+                      CBColors.transparent,
                       widget.roleColor.withValues(alpha: 0.5)
                     ],
                   ),
@@ -203,7 +210,7 @@ class _GameActionTileState extends State<GameActionTile> {
                   gradient: LinearGradient(
                     colors: [
                       widget.roleColor.withValues(alpha: 0.5),
-                      Colors.transparent
+                      CBColors.transparent
                     ],
                   ),
                 ),

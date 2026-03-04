@@ -27,22 +27,18 @@ class LightweightAction implements NightActionStrategy {
 
       if (targetId != null) {
         final target = context.getPlayer(targetId);
-        final tabooName = target.name;
 
-        for (final player in context.players.where((p) => p.isAlive)) {
-          if (player.tabooNames.contains(tabooName)) {
-            continue;
-          }
-
-          context.updatePlayer(
-            player.copyWith(tabooNames: [...player.tabooNames, tabooName]),
-          );
-        }
+        // Update ONLY the Lightweight player's blocked list
+        context.updatePlayer(
+          lightweight.copyWith(
+            blockedVoteTargets: [...lightweight.blockedVoteTargets, targetId],
+          ),
+        );
 
         context.addPrivateMessage(
-            lightweight.id, 'You banned ${target.name}\'s name.');
-        context.addReport('LW banned ${target.name}\'s name.');
-        context.addTeaser('A name is now FORBIDDEN.');
+            lightweight.id, 'You can no longer vote for ${target.name}.');
+        context.addReport('LW blocked vote target: ${target.name}.');
+        context.addTeaser('Lightweight lost a voting option.');
       }
     }
   }

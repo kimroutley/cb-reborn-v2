@@ -18,116 +18,151 @@ class VoteSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
     final accent = scheme.secondary;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header
+        const CBBottomSheetHandle(),
         Padding(
-          padding: CBInsets.screen,
+          padding: const EdgeInsets.fromLTRB(
+              CBSpace.x5, CBSpace.x2, CBSpace.x5, CBSpace.x4),
           child: Row(
             children: [
+              Container(
+                padding: const EdgeInsets.all(CBSpace.x2),
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.how_to_vote_rounded, color: accent, size: 20),
+              ),
+              const SizedBox(width: CBSpace.x3),
               Text(
-                'CAST VOTE',
-                style: textTheme.labelLarge!.copyWith(
+                'CAST YOUR VOTE',
+                style: textTheme.headlineSmall!.copyWith(
                   color: accent,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                  shadows: CBColors.textGlow(accent, intensity: 0.4),
                 ),
               ),
               const Spacer(),
               CBGhostButton(
-                label: 'SKIP VOTE',
-                onPressed: onSkip,
-                color: scheme.onSurface.withValues(alpha: 0.6),
+                label: 'SKIP',
+                onPressed: () {
+                  HapticService.light();
+                  onSkip();
+                },
+                color: scheme.onSurface.withValues(alpha: 0.4),
+                fullWidth: false,
               ),
             ],
           ),
         ),
-
-        // Tally Section
         if (voteTally.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.symmetric(
-                horizontal: CBSpace.x4, vertical: CBSpace.x2),
-            padding: const EdgeInsets.all(CBSpace.x3),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: accent.withValues(alpha: 0.3),
-              ),
-              color: accent.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(CBRadius.sm),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CBBadge(text: 'LIVE TALLY', color: accent),
-                const SizedBox(height: CBSpace.x2),
-                Wrap(
-                  spacing: CBSpace.x3,
-                  runSpacing: CBSpace.x2,
-                  children: _sortedTally().map((entry) {
-                    final name = _playerNameById(entry.key);
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '$name: ',
-                          style: textTheme.bodySmall!.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.7),
-                          ),
-                        ),
-                        Text(
-                          '${entry.value}',
-                          style: textTheme.labelMedium!.copyWith(
-                            color: accent,
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-
-        // Player List
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: CBInsets.screen,
-          itemCount: players.length,
-          separatorBuilder: (_, __) => const SizedBox(height: CBSpace.x2),
-          itemBuilder: (context, index) {
-            final player = players[index];
-            return CBPanel(
-              padding: const EdgeInsets.symmetric(
-                horizontal: CBSpace.x4,
-                vertical: CBSpace.x3,
-              ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x5),
+            child: CBGlassTile(
+              padding: const EdgeInsets.all(CBSpace.x4),
               borderColor: accent.withValues(alpha: 0.3),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Text(
-                      player.name.toUpperCase(),
-                      style: textTheme.bodyLarge!,
+                  Text(
+                    'LIVE TALLY PREVIEW',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: accent.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
                     ),
                   ),
-                  SizedBox(
-                    width: 112,
-                    child: CBPrimaryButton(
-                      label: 'VOTE',
-                      onPressed: () => onVote(player.id),
-                    ),
+                  const SizedBox(height: CBSpace.x3),
+                  Wrap(
+                    spacing: CBSpace.x2,
+                    runSpacing: CBSpace.x2,
+                    children: _sortedTally().map((entry) {
+                      final name = _playerNameById(entry.key);
+                      return CBMiniTag(
+                        text: '$name: ${entry.value}',
+                        color: accent,
+                      );
+                    }).toList(),
                   ),
                 ],
               ),
-            );
-          },
-        ),
+            ),
+          ),
         const SizedBox(height: CBSpace.x4),
+        Flexible(
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+                CBSpace.x5, 0, CBSpace.x5, CBSpace.x8),
+            itemCount: players.length,
+            separatorBuilder: (_, __) => const SizedBox(height: CBSpace.x3),
+            itemBuilder: (context, index) {
+              final player = players[index];
+              return CBGlassTile(
+                padding: const EdgeInsets.all(CBSpace.x4),
+                borderColor: scheme.outlineVariant.withValues(alpha: 0.2),
+                onTap: () {
+                  HapticService.heavy();
+                  onVote(player.id);
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: scheme.onSurface.withValues(alpha: 0.05),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color:
+                                scheme.outlineVariant.withValues(alpha: 0.2)),
+                      ),
+                      child: Center(
+                        child: Text(
+                          player.name.characters.first.toUpperCase(),
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: scheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: CBSpace.x4),
+                    Expanded(
+                      child: Text(
+                        player.name.toUpperCase(),
+                        style: textTheme.titleMedium!.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                          fontFamily: 'RobotoMono',
+                        ),
+                      ),
+                    ),
+                    CBPrimaryButton(
+                      label: 'VOTE',
+                      onPressed: () {
+                        HapticService.heavy();
+                        onVote(player.id);
+                      },
+                      fullWidth: false,
+                      backgroundColor: accent.withValues(alpha: 0.8),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ],
     );
   }
@@ -139,7 +174,7 @@ class VoteSheet extends StatelessWidget {
   }
 
   String _playerNameById(String id) {
-    if (id == 'skip') return 'SKIP';
+    if (id == 'skip' || id == 'abstain') return 'SKIP';
     return players
         .firstWhere(
           (p) => p.id == id,

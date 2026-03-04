@@ -9,7 +9,7 @@ import '../host_navigation.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import '../widgets/host_main_feed.dart';
-import '../widgets/nerve_center_sheet.dart';
+import 'dashboard_view.dart';
 import 'end_game_view.dart';
 import 'stats_view.dart';
 
@@ -21,6 +21,7 @@ class HostGameScreen extends ConsumerWidget {
     final gameState = ref.watch(gameProvider);
     final controller = ref.read(gameProvider.notifier);
     final nav = ref.read(hostNavigationProvider.notifier);
+    final scheme = Theme.of(context).colorScheme;
 
     final isEndGame = gameState.phase == GamePhase.endGame;
 
@@ -32,6 +33,10 @@ class HostGameScreen extends ConsumerWidget {
           controller: controller,
           onReturnToLobby: () {
             controller.returnToLobby();
+            nav.setDestination(HostDestination.lobby);
+          },
+          onRematchWithPlayers: () {
+            controller.returnToLobbyWithPlayers();
             nav.setDestination(HostDestination.lobby);
           },
         ),
@@ -57,20 +62,60 @@ class HostGameScreen extends ConsumerWidget {
         ),
         const SimulationModeBadgeAction(),
       ],
-      body: Stack(
+      body: CBPhaseOverlay(
+        isNight: gameState.phase == GamePhase.night,
+        child: Row(
         children: [
-          // Main Chat Feed (The sleek Player Aesthetic focus)
-          HostMainFeed(
-            gameState: gameState,
-          ),
-
-          // Sliding Nerve Center (Dashboard / God Mode)
-          NerveCenterSheet(
-            gameState: gameState,
-            controller: controller,
-            onBack: () => nav.setDestination(HostDestination.lobby),
+          Expanded(child: HostMainFeed(gameState: gameState)),
+          Expanded(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.radar_rounded,
+                          size: 18, color: scheme.primary),
+                      const SizedBox(width: 12),
+                      Text(
+                        'NERVE CENTRE DASHBOARD',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelLarge
+                            ?.copyWith(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2.0,
+                              shadows: CBColors.textGlow(scheme.primary,
+                                  intensity: 0.3),
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: DashboardView(
+                      gameState: gameState,
+                      onAction: controller.advancePhase,
+                      onAddMock: controller.addBot,
+                      eyesOpen: gameState.eyesOpen,
+                      onToggleEyes: controller.toggleEyes,
+                      onBack: () =>
+                          nav.setDestination(HostDestination.lobby),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
+      ),
       ),
     );
   }

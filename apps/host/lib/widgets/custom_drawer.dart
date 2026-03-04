@@ -50,6 +50,7 @@ class CustomDrawer extends ConsumerWidget {
     const gameplayGroup = <HostDestination>{
       HostDestination.lobby,
       HostDestination.game,
+      HostDestination.lounge,
       HostDestination.guides,
     };
     const statsAndAwardsGroup = <HostDestination>{

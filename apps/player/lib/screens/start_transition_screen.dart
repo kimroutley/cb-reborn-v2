@@ -15,7 +15,7 @@ class StartTransitionScreen extends StatelessWidget {
       showAppBar: false,
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(CBSpace.x8),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
             child: Column(

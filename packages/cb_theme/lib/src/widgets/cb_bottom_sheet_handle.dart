@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../layout.dart';
+
 /// Standard bottom-sheet handle (used when you need a handle inside a custom sheet,
 /// e.g. a [DraggableScrollableSheet]).
 class CBBottomSheetHandle extends StatelessWidget {
@@ -21,7 +23,7 @@ class CBBottomSheetHandle extends StatelessWidget {
         margin: margin,
         decoration: BoxDecoration(
           color: scheme.onSurface.withValues(alpha: 0.18),
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(CBRadius.pill),
         ),
       ),
     );

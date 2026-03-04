@@ -308,19 +308,128 @@ class _CBGuideScreenState extends State<CBGuideScreen>
               ),
             ),
           ),
+
+          if (role.lore.isNotEmpty) ...[
+            const SizedBox(height: 48),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 450),
+              child: CBSectionHeader(
+                title: 'OPERATIVE DOSSIER',
+                icon: Icons.fingerprint_rounded,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 16),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 500),
+              child: CBPanel(
+                borderColor: color.withValues(alpha: 0.1),
+                child: Text(
+                  role.lore,
+                  style: textTheme.bodyMedium!.copyWith(
+                    height: 1.6,
+                    fontStyle: FontStyle.italic,
+                    color: scheme.onSurface.withValues(alpha: 0.8),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+
+          if (role.detailedAbility.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 550),
+              child: CBSectionHeader(
+                title: 'ABILITY PROTOCOL',
+                icon: Icons.terminal_rounded,
+                color: scheme.tertiary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 600),
+              child: CBPanel(
+                borderColor: scheme.tertiary.withValues(alpha: 0.3),
+                child: Text(
+                  role.detailedAbility,
+                  style: textTheme.bodyMedium!.copyWith(
+                    height: 1.6,
+                    fontFamily: 'Roboto Mono',
+                    fontSize: 13,
+                    color: scheme.onSurface.withValues(alpha: 0.9),
+                  ),
+                ),
+              ),
+            ),
+          ],
+
+          if (role.synergies.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 650),
+              child: CBSectionHeader(
+                title: 'FIELD SYNERGIES',
+                icon: Icons.link_rounded,
+                color: scheme.primary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 700),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: role.synergies.map((id) {
+                  final r = roleCatalogMap[id];
+                  if (r == null) return const SizedBox();
+                  return _buildRoleChip(context, r);
+                }).toList(),
+              ),
+            ),
+          ],
+
+          if (role.counters.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 750),
+              child: CBSectionHeader(
+                title: 'KNOWN COUNTERS',
+                icon: Icons.warning_amber_rounded,
+                color: scheme.error,
+              ),
+            ),
+            const SizedBox(height: 16),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 800),
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: role.counters.map((id) {
+                  final r = roleCatalogMap[id];
+                  if (r == null) return const SizedBox();
+                  return _buildRoleChip(context, r, isCounter: true);
+                }).toList(),
+              ),
+            ),
+          ],
+
           const SizedBox(height: 48),
           Row(
             children: [
               Expanded(
                 child: CBFadeSlide(
-                  delay: const Duration(milliseconds: 500),
+                  delay: const Duration(milliseconds: 900),
                   child: _buildDetailStat(
                       "WAKE PRIORITY", "LVL ${role.nightPriority}", color),
                 ),
               ),
               Expanded(
                 child: CBFadeSlide(
-                  delay: const Duration(milliseconds: 600),
+                  delay: const Duration(milliseconds: 1000),
                   child: _buildDetailStat(
                       "ALLIANCE", _allianceName(role.alliance), color),
                 ),
@@ -329,7 +438,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
           ),
           const SizedBox(height: 32),
           CBFadeSlide(
-            delay: const Duration(milliseconds: 700),
+            delay: const Duration(milliseconds: 1100),
             child: Center(
               child: _buildDetailStat(
                   "MISSION OBJECTIVE", _winConditionFor(role), color),
@@ -337,7 +446,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
           ),
           const SizedBox(height: 64),
           CBFadeSlide(
-            delay: const Duration(milliseconds: 800),
+            delay: const Duration(milliseconds: 1200),
             child: CBPrimaryButton(
               label: "ACKNOWLEDGE DATA",
               backgroundColor: color.withValues(alpha: 0.2),
@@ -350,6 +459,54 @@ class _CBGuideScreenState extends State<CBGuideScreen>
           ),
           const SizedBox(height: 32),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRoleChip(BuildContext context, Role role,
+      {bool isCounter = false}) {
+    final color = CBColors.fromHex(role.colorHex);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return InkWell(
+      onTap: () {
+        HapticService.selection();
+        _showOperativeFile(role);
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isCounter
+              ? scheme.error.withValues(alpha: 0.1)
+              : color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isCounter
+                ? scheme.error.withValues(alpha: 0.3)
+                : color.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CBRoleAvatar(
+              assetPath: role.assetPath,
+              color: color,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              role.name.toUpperCase(),
+              style: theme.textTheme.labelSmall!.copyWith(
+                color: isCounter ? scheme.error : color,
+                fontWeight: FontWeight.bold,
+                fontSize: 10,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -425,11 +582,13 @@ class _CBGuideScreenState extends State<CBGuideScreen>
         const SizedBox(height: 20),
         _buildRoleSelector(),
         const SizedBox(height: 32),
-        
         Text(
           "ALLIANCE NETWORK (MVP LINKING)",
           style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.35),
                 letterSpacing: 3,
                 fontSize: 9,
               ),
@@ -439,25 +598,29 @@ class _CBGuideScreenState extends State<CBGuideScreen>
           roles: roleCatalog,
           activeRoleId: _selectedRoleForTips!.id,
         ),
-        
         const SizedBox(height: 48),
         Text(
           "TACTICAL ANALYSIS",
           style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.35),
                 letterSpacing: 3,
                 fontSize: 9,
               ),
         ),
         const SizedBox(height: 16),
         ...tips.map((tip) => _buildBriefingCard(tip)),
-        
         if (widget.gameState != null) ...[
           const SizedBox(height: 48),
           Text(
             "SCENARIO SIMULATIONS (WHAT IF...)",
             style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.35),
                   letterSpacing: 3,
                   fontSize: 9,
                 ),
@@ -659,7 +822,7 @@ class _GuideStrategyGenerator {
 
     if (state != null) {
       final alive = state.players.where((p) => p.isAlive).toList();
-      
+
       // Dynamic logic based on game context
       if (role.id == RoleIds.allyCat &&
           alive.any((p) => p.role.id == RoleIds.bouncer)) {
@@ -685,7 +848,8 @@ class _GuideStrategyGenerator {
 
     if (player != null) {
       if (player.lives > 1) {
-        tips.add('💎 ASSET: You possess ${player.lives} active lives. Use the extra protection to be a louder voice in the lounge.');
+        tips.add(
+            '💎 ASSET: You possess ${player.lives} active lives. Use the extra protection to be a louder voice in the lounge.');
       }
     }
 
@@ -779,7 +943,7 @@ class _RailItem extends StatelessWidget {
     final inactiveColor = scheme.onSurfaceVariant.withValues(alpha: 0.5);
 
     return Material(
-      color: Colors.transparent,
+      color: CBColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),

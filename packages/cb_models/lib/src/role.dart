@@ -25,6 +25,10 @@ abstract class Role with _$Role {
     @Default(false) bool canRepeat,
     @Default(false) bool isRequired,
     @Default(true) bool isBotFriendly,
+    @Default("") String lore,
+    @Default("") String detailedAbility,
+    @Default([]) List<String> synergies,
+    @Default([]) List<String> counters,
   }) = _Role;
 
   factory Role.fromJson(Map<String, dynamic> json) => _$RoleFromJson(json);

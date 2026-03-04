@@ -1,6 +1,6 @@
 import 'package:cb_models/cb_models.dart';
+import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class StimEffectOverlay extends StatefulWidget {
   final Widget child;
@@ -21,7 +21,7 @@ class _StimEffectOverlayState extends State<StimEffectOverlay>
   // Strobe/Flash Effect
   late AnimationController _flashController;
   late Animation<double> _flashAnimation;
-  Color _flashColor = Colors.transparent;
+  Color _flashColor = CBColors.transparent;
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _StimEffectOverlayState extends State<StimEffectOverlay>
 
   void _triggerStim(String command) {
     // Haptic kick
-    HapticFeedback.heavyImpact();
+    HapticService.heavy();
     final scheme = Theme.of(context).colorScheme;
 
     if (command == 'NEON FLICKER') {

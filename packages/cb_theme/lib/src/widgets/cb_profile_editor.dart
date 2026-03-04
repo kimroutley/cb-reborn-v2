@@ -228,10 +228,14 @@ class CBProfilePreferenceChip extends StatelessWidget {
         child: Text(
           label.toUpperCase(),
           style: theme.textTheme.labelSmall?.copyWith(
-            color: selected ? scheme.tertiary : scheme.onSurface.withValues(alpha: 0.8),
+            color: selected
+                ? scheme.tertiary
+                : scheme.onSurface.withValues(alpha: 0.8),
             fontWeight: FontWeight.w900,
             letterSpacing: 1.0,
-            shadows: selected ? CBColors.textGlow(scheme.tertiary, intensity: 0.4) : null,
+            shadows: selected
+                ? CBColors.textGlow(scheme.tertiary, intensity: 0.4)
+                : null,
           ),
         ),
       ),

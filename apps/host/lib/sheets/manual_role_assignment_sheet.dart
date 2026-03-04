@@ -17,13 +17,13 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
         roleCatalog.where((role) => role.id != 'unassigned').toList();
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: CBInsets.panel,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const CBBottomSheetHandle(),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           Text(
             'ROLE ASSIGNMENT MATRIX',
             style: textTheme.headlineSmall?.copyWith(
@@ -33,7 +33,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
               shadows: CBColors.textGlow(scheme.secondary),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: CBSpace.x2),
           Text(
             'DRAG A ROLE CHIP ONTO A PATRON TO MANUALLY ASSIGN THEIR IDENTITY.',
             style: textTheme.labelSmall?.copyWith(
@@ -42,7 +42,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
               letterSpacing: 1.0,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
 
           // --- ROLE CHIPS (Draggable) ---
           SizedBox(
@@ -55,7 +55,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                 final roleColor = CBColors.fromHex(role.colorHex);
 
                 return Padding(
-                  padding: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.only(right: CBSpace.x3),
                   child: Draggable<String>(
                     data: role.id,
                     feedback: Material(
@@ -73,7 +73,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
 
           // --- PLAYER LIST (Targets) ---
           Flexible(
@@ -86,7 +86,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                 final roleColor = hasRole ? CBColors.fromHex(player.role.colorHex) : scheme.outlineVariant;
 
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: CBSpace.x3),
                   child: DragTarget<String>(
                     onWillAcceptWithDetails: (details) => details.data != player.role.id,
                     onAcceptWithDetails: (details) {
@@ -101,7 +101,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                         borderColor: isHovering
                             ? scheme.secondary
                             : (hasRole ? roleColor : scheme.outline.withValues(alpha: 0.3)),
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(CBSpace.x3),
                         child: Row(
                           children: [
                             CBRoleAvatar(
@@ -109,7 +109,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
                               color: roleColor,
                               size: 40,
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: CBSpace.x4),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +148,7 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           CBPrimaryButton(
             label: 'FINALIZE ROSTER',
             onPressed: () => Navigator.pop(context),
@@ -163,14 +163,14 @@ class ManualRoleAssignmentSheet extends ConsumerWidget {
     return CBGlassTile(
       isPrismatic: true,
       borderColor: color.withValues(alpha: 0.4),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(CBSpace.x3),
       child: SizedBox(
         width: 80,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.badge_rounded, color: color, size: 24, shadows: CBColors.iconGlow(color, intensity: 0.3)),
-            const SizedBox(height: 8),
+            const SizedBox(height: CBSpace.x2),
             Text(
               role.name.toUpperCase(),
               textAlign: TextAlign.center,

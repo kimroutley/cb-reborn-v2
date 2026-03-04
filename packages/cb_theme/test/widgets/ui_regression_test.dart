@@ -53,9 +53,9 @@ void main() {
       ),
     );
 
-    expect(find.text('HANDBOOK'), findsOneWidget);
+    expect(find.text('MANUAL'), findsOneWidget);
     expect(find.text('OPERATIVES'), findsOneWidget);
-    expect(find.text('STRATEGY'), findsOneWidget);
+    expect(find.text('INTEL'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

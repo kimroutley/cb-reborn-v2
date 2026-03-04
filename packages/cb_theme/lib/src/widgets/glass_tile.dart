@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../layout.dart';
+
 /// A versatile glassmorphism tile with an optional prismatic/oilslick effect.
 class CBGlassTile extends StatefulWidget {
   final Widget child;
@@ -68,7 +70,7 @@ class _CBGlassTileState extends State<CBGlassTile>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final effectiveRadius = widget.borderRadius ?? BorderRadius.circular(16);
+    final effectiveRadius = widget.borderRadius ?? BorderRadius.circular(CBRadius.md);
     final effectiveBorderColor = widget.isSelected
         ? scheme.primary
         : (widget.borderColor ?? scheme.onSurface.withValues(alpha: 0.2));

@@ -1,6 +1,5 @@
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:cb_theme/src/widgets/cb_role_avatar.dart';
 
 enum CBMessageStyle {
   standard,
@@ -25,6 +24,7 @@ class CBMessageBubble extends StatelessWidget {
   final String? avatarAsset;
   final bool isSender;
   final CBMessageGroupPosition groupPosition;
+  final VoidCallback? onAvatarTap;
 
   /// Deprecated: Use style instead.
   final bool? isSystemMessage;
@@ -39,6 +39,7 @@ class CBMessageBubble extends StatelessWidget {
     this.avatarAsset,
     this.isSender = false,
     this.groupPosition = CBMessageGroupPosition.single,
+    this.onAvatarTap,
     @Deprecated('Use style: CBMessageStyle.system instead')
     this.isSystemMessage,
   });
@@ -48,7 +49,6 @@ class CBMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final bool isSystem = _effectiveStyle == CBMessageStyle.system;
     final bool isNarrative = _effectiveStyle == CBMessageStyle.narrative;
 
@@ -63,8 +63,10 @@ class CBMessageBubble extends StatelessWidget {
         ? CBMessageStyle.system
         : style;
     final isNarrative = effectiveStyle == CBMessageStyle.narrative;
-    final accentColor =
-        color ?? (isNarrative ? Theme.of(context).colorScheme.secondary : Theme.of(context).colorScheme.outline);
+    final accentColor = color ??
+        (isNarrative
+            ? Theme.of(context).colorScheme.secondary
+            : Theme.of(context).colorScheme.outline);
 
     return Center(
       child: Container(
@@ -72,7 +74,7 @@ class CBMessageBubble extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
           color: accentColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.circular(CBRadius.pill),
           border: isNarrative
               ? Border.all(color: accentColor.withValues(alpha: 0.3))
               : null,
@@ -80,11 +82,11 @@ class CBMessageBubble extends StatelessWidget {
         child: Text(
           message.toUpperCase(),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: accentColor,
-            letterSpacing: 1.0,
-            fontSize: 10,
-            fontWeight: isNarrative ? FontWeight.w700 : FontWeight.w500,
-          ),
+                color: accentColor,
+                letterSpacing: 1.0,
+                fontSize: 10,
+                fontWeight: isNarrative ? FontWeight.w700 : FontWeight.w500,
+              ),
           textAlign: TextAlign.center,
         ),
       ),
@@ -200,10 +202,10 @@ class CBMessageBubble extends StatelessWidget {
                     child: Text(
                       sender.toUpperCase(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: accentColor,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
+                            color: accentColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                 Container(
@@ -212,7 +214,10 @@ class CBMessageBubble extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isSender
                         ? accentColor.withValues(alpha: 0.2)
-                        : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                        : Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.6),
                     borderRadius: borderRadius,
                     border: isSender
                         ? Border.all(color: accentColor.withValues(alpha: 0.5))
@@ -221,9 +226,9 @@ class CBMessageBubble extends StatelessWidget {
                   child: Text(
                     message,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      height: 1.4,
-                    ),
+                          color: Theme.of(context).colorScheme.onSurface,
+                          height: 1.4,
+                        ),
                   ),
                 ),
                 if (groupPosition == CBMessageGroupPosition.bottom ||
@@ -234,9 +239,12 @@ class CBMessageBubble extends StatelessWidget {
                       child: Text(
                         _formatTime(timestamp!),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                          fontSize: 9,
-                        ),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant
+                                  .withValues(alpha: 0.5),
+                              fontSize: 9,
+                            ),
                       ),
                     ),
               ],
@@ -257,18 +265,25 @@ class CBMessageBubble extends StatelessWidget {
   }
 
   Widget _buildAvatar(Color color) {
-    if (avatarAsset == null) {
-      return CircleAvatar(
-        radius: 16,
-        backgroundColor: color.withValues(alpha: 0.2),
-        child: Icon(Icons.person, size: 16, color: color),
+    final avatar = avatarAsset == null
+        ? CircleAvatar(
+            radius: 16,
+            backgroundColor: color.withValues(alpha: 0.2),
+            child: Icon(Icons.person, size: 16, color: color),
+          )
+        : CBRoleAvatar(
+            assetPath: avatarAsset,
+            color: color,
+            size: 32,
+          );
+
+    if (onAvatarTap != null) {
+      return GestureDetector(
+        onTap: onAvatarTap,
+        child: avatar,
       );
     }
-    return CBRoleAvatar(
-      assetPath: avatarAsset,
-      color: color,
-      size: 32,
-    );
+    return avatar;
   }
 
   String _formatTime(DateTime dt) {

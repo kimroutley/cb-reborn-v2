@@ -82,12 +82,10 @@ void main() {
       ),
     );
 
-    // Verify initial state (Phase is displayed)
-    expect(find.text('Phase: NIGHT'), findsOneWidget);
+    await tester.pump();
 
-    // These are the new elements we want to add
-    // Now they should be there
-    expect(find.text('Day: 5'), findsOneWidget);
-    expect(find.text('Players: 2'), findsOneWidget);
+    expect(find.text('NIGHT'), findsOneWidget);
+    expect(find.text('DAY 5'), findsOneWidget);
+    expect(find.text('2 OPERATIVES'), findsOneWidget);
   });
 }

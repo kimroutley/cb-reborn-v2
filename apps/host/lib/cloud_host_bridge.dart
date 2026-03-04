@@ -264,6 +264,12 @@ class CloudHostBridge {
                   ?.map((key, value) => MapEntry(key.toString(), value)) ??
               const <String, dynamic>{};
 
+          // ── VALIDATION ──
+          if (type == null || type.isEmpty) {
+            debugPrint('[CloudHostBridge] IGNORED: Malformed action (no type)');
+            continue;
+          }
+
           if (type == 'dead_pool_bet') {
             final playerId = data['playerId'] as String? ?? '';
             final targetPlayerId =
@@ -314,6 +320,11 @@ class CloudHostBridge {
           final playerId = data['playerId'] as String?;
 
           if (stepId.isNotEmpty) {
+            // Validation: Ensure playerId is present for accountability
+            if (playerId == null || playerId.isEmpty) {
+              debugPrint('[CloudHostBridge] WARNING: Action received without playerId for step $stepId');
+            }
+
             _ref.read(gameProvider.notifier).handleInteraction(
                   stepId: stepId,
                   targetId: targetId ?? '',
@@ -458,10 +469,12 @@ class CloudHostBridge {
               'id': p.id,
               'name': p.name,
               'isAlive': p.isAlive,
+              'isBot': p.isBot,
               'deathDay': p.deathDay,
               'hasRumour': p.hasRumour,
               'drinksOwed': p.drinksOwed,
               'penalties': p.penalties,
+              'lives': p.lives,
               // Hide role info in public doc
               'roleId': isEndGame ? p.role.id : 'hidden',
               'roleName': isEndGame ? p.role.name : 'Unknown',
@@ -500,6 +513,7 @@ class CloudHostBridge {
       'dayReport': game.lastDayReport.isNotEmpty ? game.lastDayReport : null,
       'claimedPlayerIds': session.claimedPlayerIds,
       'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
+      'rematchOffered': game.rematchOffered,
       'gameHistory': game.gameHistory.isNotEmpty ? game.gameHistory : null,
       'updatedAt': DateTime.now().millisecondsSinceEpoch,
     };
@@ -537,7 +551,6 @@ class CloudHostBridge {
         'secondWindPendingConversion': p.secondWindPendingConversion,
         'creepTargetId': p.creepTargetId,
         'whoreDeflectionUsed': p.whoreDeflectionUsed,
-        'tabooNames': p.tabooNames,
         'currentBetTargetId': p.currentBetTargetId,
         'deadPoolTargetId': game.deadPoolBets[p.id],
         'privateMessages': rawPrivateMessages,

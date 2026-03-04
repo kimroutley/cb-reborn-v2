@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +19,8 @@ import 'hall_of_fame_screen.dart';
 import 'stats_screen.dart';
 import 'about_screen.dart';
 import 'settings_screen.dart';
+import '../widgets/game_in_progress_banner.dart';
+import '../widgets/notifications_prompt_banner.dart';
 
 class PlayerHomeShell extends ConsumerStatefulWidget {
   const PlayerHomeShell({
@@ -33,8 +37,6 @@ class PlayerHomeShell extends ConsumerStatefulWidget {
 }
 
 class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
-  bool _handlingSetupTransition = false;
-
   static const Set<PlayerDestination> _sessionBoundDestinations = {
     PlayerDestination.lobby,
     PlayerDestination.claim,
@@ -64,7 +66,6 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
 
     final hasBridgeSession = nextConnected || nextJoinAccepted;
     if (!hasBridgeSession) {
-      _handlingSetupTransition = false;
       onboarding.reset();
 
       final currentDestination = ref.read(playerNavigationProvider);
@@ -89,24 +90,14 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
 
     switch (nextPhase) {
       case 'lobby':
-        _handlingSetupTransition = false;
+      case 'setup':
         onboarding.setAwaitingStartConfirmation(false);
         nav.setDestination(PlayerDestination.lobby);
-        break;
-      case 'setup':
-        if (_handlingSetupTransition) {
-          return;
-        }
-        _handlingSetupTransition = true;
-        onboarding.setAwaitingStartConfirmation(true);
-        nav.setDestination(PlayerDestination.lobby);
-        _showStartConfirmationDialog();
         break;
       case 'night':
       case 'day':
       case 'resolution':
       case 'endGame':
-        _handlingSetupTransition = false;
         onboarding.setAwaitingStartConfirmation(false);
         nav.setDestination(PlayerDestination.game);
         break;
@@ -148,7 +139,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
                         Theme.of(context).colorScheme.secondary),
                   ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: CBSpace.x6),
             Text(
               'THE HOST HAS INITIATED THE SEQUENCE. CONNECT TO THE TERMINAL NOW.',
               textAlign: TextAlign.center,
@@ -160,7 +151,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: CBSpace.x3),
             Text(
               'AUTO-UPLINK IN ${timeoutSeconds}S',
               style: Theme.of(context).textTheme.labelSmall!.copyWith(
@@ -171,7 +162,7 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
                     letterSpacing: 1.2,
                   ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: CBSpace.x8),
             CBPrimaryButton(
               label: 'INITIATE JOIN',
               backgroundColor: Theme.of(context)
@@ -211,8 +202,6 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
           .setAwaitingStartConfirmation(false);
       if (shouldJoin) {
         _beginTransitionToGame();
-      } else {
-        _handlingSetupTransition = false;
       }
     });
   }
@@ -230,7 +219,6 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         return;
       }
       nav.setDestination(PlayerDestination.game);
-      _handlingSetupTransition = false;
     });
   }
 
@@ -278,27 +266,35 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
         break;
     }
 
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 500),
-      transitionBuilder: (Widget child, Animation<double> animation) {
-        return FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.05, 0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            )),
-            child: child,
+    return Column(
+      children: [
+        const GameInProgressBanner(),
+        const NotificationsPromptBanner(),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.05, 0),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  )),
+                  child: child,
+                ),
+              );
+            },
+            child: KeyedSubtree(
+              key: ValueKey(destination),
+              child: activeWidget,
+            ),
           ),
-        );
-      },
-      child: KeyedSubtree(
-        key: ValueKey(destination),
-        child: activeWidget,
-      ),
+        ),
+      ],
     );
   }
 }

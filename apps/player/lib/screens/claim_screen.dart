@@ -41,9 +41,9 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
       drawer: const CustomDrawer(),
       body: Column(
         children: [
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6),
             child: Text(
               'SELECT IDENTITY',
               style: textTheme.headlineMedium!.copyWith(
@@ -54,32 +54,33 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: CBSpace.x2),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6),
             child: Text(
               'CHOOSE YOUR ASSIGNED IDENTITY FROM THE LIST BELOW.',
               textAlign: TextAlign.center,
-              style: textTheme.bodySmall!.copyWith(
-                color: scheme.onSurface.withValues(alpha: 0.6),
+              style: textTheme.labelSmall!.copyWith(
+                color: scheme.onSurface.withValues(alpha: 0.5),
                 letterSpacing: 1.0,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x6),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4),
             child: CBPanel(
               borderColor: scheme.primary.withValues(alpha: 0.32),
               child: Row(
                 children: [
                   Icon(Icons.badge_rounded, size: 18, color: scheme.primary),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: CBSpace.x3),
                   Expanded(
                     child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
+                      duration: CBMotion.transition,
+                      switchInCurve: CBMotion.emphasizedCurve,
+                      switchOutCurve: CBMotion.emphasizedCurve,
                       child: Text(
                         selectedPlayer == null
                             ? 'AVAILABLE IDENTITIES: ${availablePlayers.length}'
@@ -88,8 +89,8 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                             ValueKey('${availablePlayers.length}|$_selectedId'),
                         style: textTheme.labelMedium?.copyWith(
                           color: scheme.onSurface,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
                         ),
                       ),
                     ),
@@ -98,37 +99,39 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
           Expanded(
             child: availablePlayers.isEmpty
                 ? Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(32.0),
+                      padding: const EdgeInsets.all(CBSpace.x8),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const CBBreathingLoader(size: 48),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: CBSpace.x6),
                           Text(
                             gameState.players.isEmpty
                                 ? 'LOADING IDENTITIES...'
-                                : 'WAITING FOR AN OPEN IDENTITY...',
+                                : 'WAITING FOR OPEN IDENTITY...',
                             textAlign: TextAlign.center,
                             style: textTheme.labelLarge!.copyWith(
                               color: scheme.primary,
                               letterSpacing: 1.5,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w900,
+                              shadows: CBColors.textGlow(scheme.primary),
                             ),
                           ),
                           if (gameState.players.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.only(top: 8),
+                              padding: const EdgeInsets.only(top: CBSpace.x3),
                               child: Text(
-                                'Please wait for the Host to add you.',
+                                'PLEASE WAIT FOR THE HOST TO ADD YOU.',
                                 textAlign: TextAlign.center,
-                                style: textTheme.bodyMedium!.copyWith(
+                                style: textTheme.bodySmall!.copyWith(
                                   color:
                                       scheme.onSurface.withValues(alpha: 0.5),
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ),
@@ -137,7 +140,8 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                     ),
                   )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4),
+                    physics: const BouncingScrollPhysics(),
                     itemCount: availablePlayers.length,
                     itemBuilder: (context, index) {
                       final player = availablePlayers[index];
@@ -146,11 +150,11 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                       return CBFadeSlide(
                         delay: Duration(milliseconds: 30 * index),
                         child: Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: CBSpace.x3),
                           child: CBGlassTile(
                             onTap: () {
-                              setState(() => _selectedId = player.id);
                               HapticService.selection();
+                              setState(() => _selectedId = player.id);
                             },
                             isPrismatic: isSelected,
                             isSelected: isSelected,
@@ -165,7 +169,7 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                                       ? scheme.primary
                                       : scheme.onSurface.withValues(alpha: 0.5),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: CBSpace.x4),
                                 Expanded(
                                   child: Text(
                                     player.name.toUpperCase(),
@@ -173,10 +177,8 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                                       color: isSelected
                                           ? scheme.primary
                                           : scheme.onSurface,
-                                      fontWeight: isSelected
-                                          ? FontWeight.w900
-                                          : FontWeight.normal,
-                                      letterSpacing: 1.0,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
                                     ),
                                   ),
                                 ),
@@ -194,9 +196,20 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                     },
                   ),
           ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+          Container(
+            padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x4, CBSpace.x6, CBSpace.x8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  CBColors.transparent,
+                  scheme.scrim.withValues(alpha: 0.5),
+                ],
+              ),
+            ),
+            child: SafeArea(
+              top: false,
               child: CBPrimaryButton(
                 label: _selectedId == null
                     ? 'SELECT AN IDENTITY'
@@ -205,7 +218,7 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                 onPressed: _selectedId == null
                     ? null
                     : () {
-                        HapticService.medium();
+                        HapticService.heavy();
                         activeBridge.actions.claimPlayer(_selectedId!);
                       },
               ),

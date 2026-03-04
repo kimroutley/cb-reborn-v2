@@ -30,3 +30,4 @@ dev_dependencies:
   riverpod_generator: ^4.0.0+1
   cb_comms:
     path: ../cb_comms
+  mocktail: any

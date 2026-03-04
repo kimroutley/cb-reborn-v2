@@ -90,6 +90,7 @@ void main() {
       for (var i = 0; i < 6; i++) {
         game.addPlayer('P$i');
       }
+      game.autoAssignRoles();
       game.startGame();
       final state = container.read(gameProvider);
       expect(state.phase, GamePhase.setup);
@@ -107,6 +108,7 @@ void main() {
       for (var i = 0; i < 12; i++) {
         game.addPlayer('P$i');
       }
+      game.autoAssignRoles();
       game.startGame();
       final state = container.read(gameProvider);
       final dealerCount =
@@ -123,6 +125,7 @@ void main() {
         for (var i = 0; i < 8; i++) {
           g.addPlayer('P$i');
         }
+        g.autoAssignRoles();
         g.startGame();
         final state = c.read(gameProvider);
         final sd = state.players.where((p) => p.role.id == 'seasoned_drinker');
@@ -143,6 +146,7 @@ void main() {
         'setup gate blocks repeated advancePhase without feed emission or script index increment',
         () {
       _addMockPlayers(game, 4);
+      game.autoAssignRoles();
       game.startGame();
 
       final initialState = container.read(gameProvider);
@@ -184,6 +188,7 @@ void main() {
     test('abstain majority skips vote', () {
       game.addPlayer('A');
       game.addPlayer('B');
+      game.autoAssignRoles();
       game.startGame();
       // Just test that handleInteraction doesn't crash with abstain
       game.handleInteraction(
@@ -696,6 +701,7 @@ void main() {
       game.addPlayer('B');
       game.addPlayer('C');
       game.addPlayer('D');
+      game.autoAssignRoles();
       game.startGame();
       game.returnToLobby();
 
@@ -822,6 +828,7 @@ void main() {
   group('Force Kill', () {
     test('forceKillPlayer marks player dead with host_kick reason', () {
       _addMockPlayers(game, 6);
+      game.autoAssignRoles();
       game.startGame();
       final playerId = container.read(gameProvider).players.first.id;
 
@@ -835,6 +842,7 @@ void main() {
 
     test('forceKillPlayer adds to gameHistory', () {
       _addMockPlayers(game, 6);
+      game.autoAssignRoles();
       game.startGame();
       final player = container.read(gameProvider).players.first;
 
@@ -849,6 +857,7 @@ void main() {
   group('Game History', () {
     test('night resolution adds history entries', () {
       _addMockPlayers(game, 6);
+      game.autoAssignRoles();
       game.startGame();
       // Advance through all setup steps to reach night
       while (container.read(gameProvider).phase == GamePhase.setup) {
@@ -982,6 +991,7 @@ void main() {
       addTearDown(container.dispose);
       final game = container.read(gameProvider.notifier);
       _addMockPlayers(game, 7);
+      game.autoAssignRoles();
       game.startGame();
 
       final gs = container.read(gameProvider);
@@ -998,6 +1008,7 @@ void main() {
       addTearDown(container.dispose);
       final game = container.read(gameProvider.notifier);
       _addMockPlayers(game, 7);
+      game.autoAssignRoles();
       game.startGame();
 
       // Advance through setup to night
@@ -1075,6 +1086,7 @@ void main() {
       addTearDown(container.dispose);
       final game = container.read(gameProvider.notifier);
       _addMockPlayers(game, 7);
+      game.autoAssignRoles();
       game.startGame();
 
       // Advance through setup to night
@@ -1109,6 +1121,7 @@ void main() {
   group('Win Condition', () {
     test('PA win when all club staff eliminated', () {
       _addMockPlayers(game, 8);
+      game.autoAssignRoles();
       game.startGame();
 
       final state = container.read(gameProvider);
@@ -1127,6 +1140,7 @@ void main() {
 
     test('Staff win when they equal or outnumber PA', () {
       _addMockPlayers(game, 8);
+      game.autoAssignRoles();
       game.startGame();
 
       final state = container.read(gameProvider);
@@ -1146,6 +1160,7 @@ void main() {
 
     test('game does not end immediately after startGame', () {
       _addMockPlayers(game, 8);
+      game.autoAssignRoles();
       game.startGame();
       final gs = container.read(gameProvider);
       // Game should be in setup phase, NOT ended
@@ -1192,6 +1207,7 @@ void main() {
 
     test('startGame works with 4 players', () {
       _addMockPlayers(game, 4);
+      game.autoAssignRoles();
       game.startGame();
       expect(container.read(gameProvider).phase, GamePhase.setup);
     });
@@ -1201,6 +1217,7 @@ void main() {
   group('Return to Lobby', () {
     test('returnToLobby preserves discussion timer', () {
       _addMockPlayers(game, 6);
+      game.autoAssignRoles();
       game.startGame();
       game.returnToLobby();
 
@@ -1212,6 +1229,7 @@ void main() {
 
     test('returnToLobby clears game state', () {
       _addMockPlayers(game, 6);
+      game.autoAssignRoles();
       game.startGame();
       game.returnToLobby();
 
@@ -1230,6 +1248,7 @@ void main() {
     Game? setupDay(ProviderContainer c) {
       final g = c.read(gameProvider.notifier);
       _addMockPlayers(g, 7);
+      g.autoAssignRoles();
       g.startGame();
       // Skip setup
       while (c.read(gameProvider).phase == GamePhase.setup) {

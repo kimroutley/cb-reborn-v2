@@ -135,7 +135,7 @@ void main() {
     expect(container.read(pendingJoinUrlProvider), isNull);
   });
 
-  testWidgets('bootstrap ignores local cache entries for cloud-only mode',
+  testWidgets('bootstrap restores local cache and seeds local autoconnect URL',
       (tester) async {
     final localBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
@@ -176,9 +176,16 @@ void main() {
 
     await _pumpBootstrapProgress(tester);
 
-    expect(localBridge.restoredEntry, isNull);
+    expect(localBridge.restoredEntry, isNotNull);
     expect(cloudBridge.restoredEntry, isNull);
-    expect(container.read(pendingJoinUrlProvider), isNull);
+
+    final pendingJoin = container.read(pendingJoinUrlProvider);
+    expect(pendingJoin, isNotNull);
+    final uri = Uri.parse(pendingJoin!);
+    expect(uri.queryParameters['mode'], 'local');
+    expect(uri.queryParameters['code'], 'NEON-ABCDEF');
+    expect(uri.queryParameters['host'], 'ws://192.168.1.50');
+    expect(uri.queryParameters['autoconnect'], '1');
   });
 
   testWidgets('bootstrap restores cloud cache and seeds cloud autoconnect URL',

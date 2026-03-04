@@ -5,6 +5,7 @@ import 'enums.dart';
 import 'feed_event.dart';
 import 'game_event.dart';
 import 'player.dart';
+import 'player_voting_stats.dart';
 import 'script/script_step.dart';
 
 part 'game_state.freezed.dart';
@@ -37,6 +38,7 @@ abstract class GameState with _$GameState {
     // Win condition
     Team? winner,
     @Default([]) List<String> endGameReport,
+    @Default(false) bool rematchOffered,
 
     // Per-player private messages (playerId -> messages)
     // Used for role-specific feedback (Bouncer result, Bartender alignment, etc.)
@@ -61,12 +63,16 @@ abstract class GameState with _$GameState {
     @Default(300) int discussionTimerSeconds,
     @Default(SyncMode.local) SyncMode syncMode,
     @Default(GameStyle.chaos) GameStyle gameStyle,
-    @Default(false) bool tieBreaksRandomly,
+    @Default(TieBreakStrategy.peaceful) TieBreakStrategy tieBreakStrategy,
     @Default(true) bool eyesOpen,
 
     // ── GHOST LOUNGE & DEAD POOL ──
     @Default({}) Map<String, String> deadPoolBets, // playerId -> targetPlayerId
     @Default(0) int globalDrinkDebt,
+
+    // Voting stats for humorous awards
+    @Default({})
+    Map<String, PlayerVotingStats> playerStats, // playerId -> stats
   }) = _GameState;
 
   const GameState._();

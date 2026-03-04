@@ -24,7 +24,10 @@ class _TacticalMonitorState extends State<TacticalMonitor>
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
     _glowAnimation =
-        Tween<double>(begin: 0.3, end: 0.7).animate(_pulseController);
+        Tween<double>(begin: 0.3, end: 0.7).animate(CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    ));
   }
 
   @override
@@ -36,14 +39,14 @@ class _TacticalMonitorState extends State<TacticalMonitor>
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x4, CBSpace.x4, 120),
+      physics: const BouncingScrollPhysics(),
       children: [
-        _buildWinPredictions(),
-        const SizedBox(height: 24),
-        _buildHealthRail(),
-        const SizedBox(height: 24),
-        _buildLiveIntel(),
-        const SizedBox(height: 100),
+        CBFadeSlide(child: _buildWinPredictions()),
+        const SizedBox(height: CBSpace.x6),
+        CBFadeSlide(delay: const Duration(milliseconds: 100), child: _buildHealthRail()),
+        const SizedBox(height: CBSpace.x6),
+        CBFadeSlide(delay: const Duration(milliseconds: 200), child: _buildLiveIntel()),
       ],
     );
   }
@@ -62,18 +65,19 @@ class _TacticalMonitorState extends State<TacticalMonitor>
       builder: (context, child) {
         return CBPanel(
           borderColor: scheme.primary.withValues(alpha: 0.4),
+          padding: const EdgeInsets.all(CBSpace.x5),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CBSectionHeader(
-                title: "WIN PREDICTIONS",
-                icon: Icons.analytics,
-                color: scheme.primary.withValues(alpha: _glowAnimation.value),
+                title: "PROBABILITY MATRIX",
+                icon: Icons.analytics_rounded,
+                color: scheme.primary.withValues(alpha: _glowAnimation.value + 0.2),
               ),
+              const SizedBox(height: CBSpace.x6),
+              _buildOddsBar("DEALER CONTROL", staffProb, scheme.secondary),
               const SizedBox(height: CBSpace.x4),
-              _buildOddsBar("CLUB STAFF", staffProb, scheme.secondary),
-              const SizedBox(height: 16),
-              _buildOddsBar("PARTY ANIMALS", paProb, scheme.tertiary),
+              _buildOddsBar("PARTY STABILITY", paProb, scheme.tertiary),
             ],
           ),
         );
@@ -82,51 +86,62 @@ class _TacticalMonitorState extends State<TacticalMonitor>
   }
 
   Widget _buildOddsBar(String team, double probability, Color color) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(team,
-                style: textTheme.labelSmall!
-                    .copyWith(color: color.withValues(alpha: 0.8))),
-            Text("${(probability * 100).round()}%",
+            Text(team.toUpperCase(),
                 style: textTheme.labelSmall!.copyWith(
+                  color: color.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.0,
+                )),
+            Text("${(probability * 100).round()}%",
+                style: textTheme.labelLarge!.copyWith(
                   color: color,
-                  fontWeight: FontWeight.bold,
-                  shadows: CBColors.textGlow(color, intensity: 0.6),
+                  fontWeight: FontWeight.w900,
+                  fontFamily: 'RobotoMono',
+                  shadows: CBColors.textGlow(color, intensity: 0.4),
                 )),
           ],
         ),
         const SizedBox(height: 8),
-        Stack(
-          children: [
-            Container(
-              height: 4,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: scheme.onSurface.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(2),
-              ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: Container(
+            height: 8,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: scheme.onSurface.withValues(alpha: 0.05),
+              border: Border.all(color: color.withValues(alpha: 0.1), width: 1),
             ),
-            FractionallySizedBox(
-              widthFactor: probability,
-              child: Container(
-                height: 4,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(2),
-                  boxShadow: [
-                    BoxShadow(
-                        color: color.withValues(alpha: 0.5), blurRadius: 8),
-                  ],
+            child: Stack(
+              children: [
+                AnimatedFractionallySizedBox(
+                  duration: const Duration(milliseconds: 1000),
+                  curve: Curves.easeOutExpo,
+                  widthFactor: probability,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.7),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
@@ -135,47 +150,64 @@ class _TacticalMonitorState extends State<TacticalMonitor>
   Widget _buildHealthRail() {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
-          child: Text("PLAYER HEALTH RAIL",
+          child: Text("OPERATIVE STATUS RAIL",
               style: textTheme.labelSmall!.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.45),
-                  letterSpacing: 2)),
+                  color: scheme.onSurface.withValues(alpha: 0.4),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                  fontSize: 10)),
         ),
         SizedBox(
           height: 90,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             itemCount: widget.gameState.players.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 20),
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
             itemBuilder: (context, index) {
               final player = widget.gameState.players[index];
+              final roleColor = CBColors.fromHex(player.role.colorHex);
+              final statusColor = _getStatusColor(player);
+
               return Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      CBRoleAvatar(
-                        assetPath: player.role.assetPath,
-                        color: player.isAlive
-                            ? CBColors.fromHex(player.role.colorHex)
-                            : scheme.error,
-                        size: 54,
-                        pulsing:
-                            player.isAlive && player.role.id != 'unassigned',
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: player.isAlive ? roleColor.withValues(alpha: 0.4) : scheme.onSurface.withValues(alpha: 0.1),
+                            width: 1.5
+                          ),
+                        ),
+                        child: CBRoleAvatar(
+                          assetPath: player.role.assetPath,
+                          color: roleColor,
+                          size: 48,
+                          pulsing: player.isAlive && player.role.id != 'unassigned',
+                        ),
                       ),
                       Positioned(
                         right: 0,
                         bottom: 0,
                         child: Container(
-                          width: 16,
-                          height: 16,
+                          width: 14,
+                          height: 14,
                           decoration: BoxDecoration(
-                            color: _getStatusColor(player),
+                            color: statusColor,
                             shape: BoxShape.circle,
                             border: Border.all(color: scheme.surface, width: 2),
+                            boxShadow: CBColors.circleGlow(statusColor, intensity: 0.3),
                           ),
                         ),
                       ),
@@ -183,11 +215,14 @@ class _TacticalMonitorState extends State<TacticalMonitor>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    player.name.toUpperCase(),
+                    player.name.toUpperCase().split(' ').first,
                     style: textTheme.labelSmall!.copyWith(
                         fontSize: 8,
-                        color: scheme.onSurface.withValues(alpha: 0.65),
-                        fontWeight: FontWeight.bold),
+                        color: player.isAlive ? scheme.onSurface.withValues(alpha: 0.7) : scheme.onSurface.withValues(alpha: 0.3),
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                        fontFamily: 'RobotoMono',
+                    ),
                   ),
                 ],
               );
@@ -201,8 +236,8 @@ class _TacticalMonitorState extends State<TacticalMonitor>
   Color _getStatusColor(Player p) {
     final scheme = Theme.of(context).colorScheme;
     if (!p.isAlive) return scheme.error;
-    if (p.isSinBinned) return scheme.secondary;
-    if (p.isShadowBanned) return scheme.tertiary;
+    if (p.isSinBinned) return scheme.error.withValues(alpha: 0.5);
+    if (p.isShadowBanned) return scheme.secondary;
     return scheme.tertiary;
   }
 
@@ -212,21 +247,22 @@ class _TacticalMonitorState extends State<TacticalMonitor>
 
     return CBPanel(
       borderColor: scheme.tertiary.withValues(alpha: 0.4),
+      padding: const EdgeInsets.all(CBSpace.x5),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CBSectionHeader(
-            title: "LIVE INTEL",
-            icon: Icons.security,
+            title: "SESSION METRICS",
+            icon: Icons.security_rounded,
             color: scheme.tertiary,
           ),
-          const SizedBox(height: CBSpace.x4),
+          const SizedBox(height: CBSpace.x6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildIntelStat("ALIVE", "$alive", scheme.tertiary),
+              _buildIntelStat("ACTIVE", "$alive", scheme.tertiary),
               _buildIntelStat(
-                  "DAY", "${widget.gameState.dayCount}", scheme.primary),
+                  "CYCLE", "${widget.gameState.dayCount}", scheme.primary),
               _buildIntelStat(
                   "STABILITY",
                   alive == 0
@@ -241,20 +277,24 @@ class _TacticalMonitorState extends State<TacticalMonitor>
   }
 
   Widget _buildIntelStat(String label, String value, Color color) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
+
     return Column(
       children: [
         Text(value,
-            style: textTheme.displayMedium!.copyWith(
+            style: textTheme.headlineMedium!.copyWith(
                 color: color,
-                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                fontFamily: 'RobotoMono',
                 shadows: CBColors.textGlow(color, intensity: 0.4))),
-        const SizedBox(height: 4),
-        Text(label,
+        const SizedBox(height: 6),
+        Text(label.toUpperCase(),
             style: textTheme.labelSmall!.copyWith(
                 fontSize: 9,
-                color: scheme.onSurface.withValues(alpha: 0.45),
+                color: scheme.onSurface.withValues(alpha: 0.4),
+                fontWeight: FontWeight.w900,
                 letterSpacing: 1.5)),
       ],
     );

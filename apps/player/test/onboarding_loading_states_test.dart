@@ -169,17 +169,19 @@ void main() {
         ),
       );
 
+      await tester.pump(const Duration(milliseconds: 500));
+
       await tester.enterText(
         find.byType(CBTextField).first,
         'NEON-ABCDEF',
       );
-      await tester.tap(find.text('INITIATE UPLINK'));
+      await tester.tap(find.text('INITIATE CONNECTION'));
       await tester.pump();
 
       expect(find.text('CONNECTING TO HOST...'), findsOneWidget);
       expect(
           find.text('Hang tight while we sync your invite.'), findsOneWidget);
-      expect(find.text('CONNECTING...'), findsOneWidget);
+      expect(find.text('ESTABLISHING UPLINK...'), findsOneWidget);
 
       joinCompleter.complete();
       await tester.pump();
@@ -262,8 +264,9 @@ void main() {
       await tester.pump();
 
       expect(find.byType(CBBreathingLoader), findsOneWidget);
-      expect(find.text('WAITING FOR AN OPEN IDENTITY...'), findsOneWidget);
-      expect(find.text('Please wait for the Host to add you.'), findsOneWidget);
+      expect(find.text('WAITING FOR OPEN IDENTITY...'), findsOneWidget);
+      expect(
+          find.text('PLEASE WAIT FOR THE HOST TO ADD YOU.'), findsOneWidget);
     },
   );
 }

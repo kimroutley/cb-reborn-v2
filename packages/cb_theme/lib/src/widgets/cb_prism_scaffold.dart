@@ -13,7 +13,11 @@ class CBPrismScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final Widget? drawer;
   final String? backgroundAsset;
+  final String? brandOverlayAsset;
   final bool showBackgroundRadiance;
+  final bool showBrandOverlay;
+  final double brandOverlayOpacity;
+  final double brandOverlayHeight;
   final PreferredSizeWidget? appBarBottom;
 
   const CBPrismScaffold({
@@ -28,7 +32,11 @@ class CBPrismScaffold extends StatelessWidget {
     this.actions,
     this.drawer,
     this.backgroundAsset,
+    this.brandOverlayAsset = 'assets/images/neon_x_brand.png',
     this.showBackgroundRadiance = false,
+    this.showBrandOverlay = true,
+    this.brandOverlayOpacity = 0.06,
+    this.brandOverlayHeight = 280,
     this.appBarBottom,
   });
 
@@ -51,7 +59,28 @@ class CBPrismScaffold extends StatelessWidget {
       body: CBNeonBackground(
         backgroundAsset: backgroundAsset,
         showRadiance: showBackgroundRadiance,
-        child: useSafeArea ? SafeArea(child: body) : body,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (showBrandOverlay && brandOverlayAsset != null)
+              IgnorePointer(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Opacity(
+                    opacity: brandOverlayOpacity,
+                    child: Image.asset(
+                      brandOverlayAsset!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: brandOverlayHeight,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+              ),
+            useSafeArea ? SafeArea(child: body) : body,
+          ],
+        ),
       ),
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,

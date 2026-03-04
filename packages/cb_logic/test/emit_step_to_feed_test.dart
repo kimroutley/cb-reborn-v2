@@ -30,6 +30,7 @@ void main() {
 
     test('emits narrative event when readAloudText is present', () {
       _addMockPlayers(game, 4);
+      game.autoAssignRoles();
       game.startGame();
 
       final state = container.read(gameProvider);
@@ -53,6 +54,7 @@ void main() {
 
     test('emits directive event when instructionText is present', () {
       _addMockPlayers(game, 4);
+      game.autoAssignRoles();
       game.startGame();
 
       final currentStep = container.read(gameProvider).currentStep;
@@ -74,6 +76,7 @@ void main() {
 
     test('emits action event when actionType is interactive', () {
       _addMockPlayers(game, 12);
+      game.autoAssignRoles();
       game.startGame();
 
       bool found = false;
@@ -103,6 +106,7 @@ void main() {
         'emits all three events for a complex step (narrative, directive, and action)',
         () {
       _addMockPlayers(game, 12);
+      game.autoAssignRoles();
       game.startGame();
 
       bool found = false;
@@ -137,6 +141,7 @@ void main() {
     test('timestamp and baseId are consistent across events from the same call',
         () {
       _addMockPlayers(game, 12);
+      game.autoAssignRoles();
       game.startGame();
 
       bool found = false;
@@ -172,6 +177,7 @@ void main() {
     test('emitCurrentStepNarrationVariationToFeed adds AI narrative event',
         () async {
       _addMockPlayers(game, 6);
+      game.autoAssignRoles();
       game.startGame();
 
       final before = container.read(gameProvider);

@@ -260,7 +260,8 @@ class _CBIndexedHandbookState extends State<CBIndexedHandbook> {
                   if (index == 0 && widget.gameState != null) ...[
                     const SizedBox(height: 16),
                     CBAllianceGraph(
-                      roles: widget.gameState!.players.map((p) => p.role).toList(),
+                      roles:
+                          widget.gameState!.players.map((p) => p.role).toList(),
                     ),
                     const SizedBox(height: 24),
                     CBPhaseTimeline(currentPhase: widget.gameState!.phase),

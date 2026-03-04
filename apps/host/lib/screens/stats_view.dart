@@ -59,7 +59,7 @@ class _StatsViewState extends State<StatsView> {
       children: [
         // TACTICAL HEADER for Stats
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x2),
           child: Row(
             children: [
               CBBadge(text: 'ANALYTICS ENGINE', color: scheme.primary),
@@ -70,7 +70,7 @@ class _StatsViewState extends State<StatsView> {
                   icon: const Icon(Icons.dashboard_customize_rounded, size: 16),
                   label: const Text('Command'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: CBSpace.x2),
               ],
               if (_records.isNotEmpty)
                 CBGhostButton(
@@ -99,14 +99,14 @@ class _StatsViewState extends State<StatsView> {
         children: [
           Icon(Icons.bar_chart,
               size: 80, color: scheme.surfaceContainerHighest),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           Text(
             'NO GAME RECORDS',
             style: textTheme.displaySmall!.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: CBSpace.x2),
           Text(
             'Complete a game to see stats here.',
             style: textTheme.bodySmall!.copyWith(
@@ -120,7 +120,7 @@ class _StatsViewState extends State<StatsView> {
 
   Widget _buildContent(ColorScheme scheme) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: CBInsets.screen,
       itemCount: _records.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
@@ -147,7 +147,7 @@ class _StatsViewState extends State<StatsView> {
                 scheme.primary,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: CBSpace.x3),
             Expanded(
               child: _buildQuickStatTile(
                 context,
@@ -159,17 +159,17 @@ class _StatsViewState extends State<StatsView> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: CBSpace.x6),
         if (widget.gameState.phase != GamePhase.lobby) ...[
           _buildLiveIntel(scheme),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
         ],
         _buildStatsCard(scheme),
-        const SizedBox(height: 24),
+        const SizedBox(height: CBSpace.x6),
         _buildGamesNightSessions(scheme),
-        const SizedBox(height: 24),
+        const SizedBox(height: CBSpace.x6),
         CBSectionHeader(title: 'GAME HISTORY', count: _records.length),
-        const SizedBox(height: 12),
+        const SizedBox(height: CBSpace.x3),
       ],
     );
   }
@@ -187,18 +187,19 @@ class _StatsViewState extends State<StatsView> {
     return CBGlassTile(
       borderColor: color.withValues(alpha: 0.2),
       borderRadius: BorderRadius.circular(CBRadius.md),
-      padding: const EdgeInsets.all(16),
+      padding: CBInsets.screen,
       isPrismatic: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 20),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x3),
           Text(
             value,
             style: textTheme.headlineSmall!.copyWith(
               color: scheme.onSurface,
               fontWeight: FontWeight.bold,
+              shadows: CBColors.textGlow(scheme.onSurface, intensity: 0.3),
             ),
           ),
           Text(
@@ -223,29 +224,29 @@ class _StatsViewState extends State<StatsView> {
     final neutrals = alive.length - staff - animals;
 
     return CBPanel(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(CBSpace.x5),
       borderColor: scheme.secondary.withValues(alpha: 0.5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CBBadge(text: 'LIVE GAME INTEL', color: scheme.secondary),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           Row(
             children: [
               Expanded(
                   child: _statBox('ALIVE', '${alive.length}',
                       scheme.tertiary)), // Migrated from CBColors.matrixGreen
-              const SizedBox(width: 8),
+              const SizedBox(width: CBSpace.x2),
               Expanded(child: _statBox('STAFF', '$staff', scheme.secondary)),
-              const SizedBox(width: 8),
+              const SizedBox(width: CBSpace.x2),
               Expanded(child: _statBox('ANIMALS', '$animals', scheme.primary)),
-              const SizedBox(width: 8),
+              const SizedBox(width: CBSpace.x2),
               Expanded(
                   child: _statBox('NEUTRALS', '$neutrals',
                       scheme.error)), // Migrated from CBColors.alertOrange
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           Text(
             'CORE STABILITY: ${(alive.length / players.length * 100).round()}%',
             style: textTheme.labelSmall!.copyWith(
@@ -263,7 +264,7 @@ class _StatsViewState extends State<StatsView> {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: CBSpace.x2, horizontal: CBSpace.x3),
       decoration: BoxDecoration(
         border: Border.all(color: accentColor.withValues(alpha: 0.3)),
         color: accentColor.withValues(alpha: 0.05),
@@ -302,24 +303,24 @@ class _StatsViewState extends State<StatsView> {
     final neutralPct = total > 0 ? (neutralWins / total * 100).round() : 0;
 
     return CBPanel(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(CBSpace.x5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CBBadge(text: 'AGGREGATE STATS', color: scheme.primary),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
 
           // Top row — totals
           Row(
             children: [
               Expanded(child: _statBox('GAMES', '$total', scheme.primary)),
-              const SizedBox(width: 8),
+              const SizedBox(width: CBSpace.x2),
               Expanded(
                   child: _statBox(
                       'AVG PLAYERS',
                       _stats.averagePlayerCount.toStringAsFixed(1),
                       scheme.secondary)),
-              const SizedBox(width: 8),
+              const SizedBox(width: CBSpace.x2),
               Expanded(
                   child: _statBox(
                       'AVG DAYS',
@@ -327,7 +328,7 @@ class _StatsViewState extends State<StatsView> {
                       scheme.error)), // Migrated from CBColors.alertOrange
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: CBSpace.x5),
 
           // Win rate bars
           Text(
@@ -337,7 +338,7 @@ class _StatsViewState extends State<StatsView> {
               letterSpacing: 2,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: CBSpace.x2),
           _winBar('CLUB STAFF', staffPct, scheme.secondary),
           const SizedBox(height: 6),
           _winBar('PARTY ANIMALS', paPct,
@@ -348,7 +349,7 @@ class _StatsViewState extends State<StatsView> {
 
           // Top roles
           if (_stats.roleFrequency.isNotEmpty) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: CBSpace.x5),
             Text(
               'TOP ROLES',
               style: textTheme.labelSmall!.copyWith(
@@ -356,9 +357,9 @@ class _StatsViewState extends State<StatsView> {
                 letterSpacing: 2,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: CBSpace.x2),
             Wrap(
-              spacing: 8,
+              spacing: CBSpace.x2,
               runSpacing: 6,
               children: _topRoles(scheme),
             ),
@@ -406,7 +407,7 @@ class _StatsViewState extends State<StatsView> {
             ],
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: CBSpace.x2),
         SizedBox(
           width: 36,
           child: Text(
@@ -445,7 +446,7 @@ class _StatsViewState extends State<StatsView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CBSectionHeader(title: 'GAMES NIGHT SESSIONS', count: _sessions.length),
-        const SizedBox(height: 12),
+        const SizedBox(height: CBSpace.x3),
         ..._sessions.map((session) {
           final games = session.gameIds
               .map((id) => recordsById[id])
@@ -457,10 +458,10 @@ class _StatsViewState extends State<StatsView> {
             direction: DismissDirection.endToStart,
             background: Container(
               alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.only(right: CBSpace.x4),
               decoration: BoxDecoration(
                 color: scheme.error, // Migrated from CBColors.bloodOrange
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(CBRadius.xs),
               ),
               child: Icon(Icons.delete,
                   color: scheme.onSurface), // Migrated from CBColors.voidBlack
@@ -489,9 +490,9 @@ class _StatsViewState extends State<StatsView> {
         : '${DateFormat('MMM dd, yyyy').format(session.startedAt)} (Active)';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: CBSpace.x3),
       child: CBPanel(
-        padding: const EdgeInsets.all(16),
+        padding: CBInsets.screen,
         borderColor: session.isActive
             ? scheme.tertiary // Migrated from CBColors.matrixGreen
             : scheme.outline.withValues(alpha: 0.2),
@@ -502,7 +503,7 @@ class _StatsViewState extends State<StatsView> {
               children: [
                 if (session.isActive)
                   Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: CBSpace.x2),
                     child: CBBadge(
                         text: 'ACTIVE',
                         color: scheme
@@ -516,6 +517,10 @@ class _StatsViewState extends State<StatsView> {
                           ? scheme
                               .tertiary // Migrated from CBColors.matrixGreen
                           : scheme.onSurface,
+                      shadows: CBColors.textGlow(
+                        session.isActive ? scheme.tertiary : scheme.onSurface,
+                        intensity: 0.3,
+                      ),
                     ),
                   ),
                 ),
@@ -536,14 +541,14 @@ class _StatsViewState extends State<StatsView> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: CBSpace.x2),
             Text(
               dateRange,
               style: textTheme.labelSmall!.copyWith(
                 color: scheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: CBSpace.x2),
             Text(
               '${games.length} game${games.length == 1 ? '' : 's'} • ${session.playerNames.length} player${session.playerNames.length == 1 ? '' : 's'}',
               style: textTheme.bodySmall!.copyWith(
@@ -582,7 +587,7 @@ class _StatsViewState extends State<StatsView> {
       ),
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
+        padding: const EdgeInsets.only(right: CBSpace.x6),
         color:
             scheme.error.withValues(alpha: 0.8), // Migrated from CBColors.dead
         child: Icon(Icons.delete_forever, color: scheme.onSurface),
@@ -592,8 +597,8 @@ class _StatsViewState extends State<StatsView> {
         await _loadData();
       },
       child: CBPanel(
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 12),
+        padding: CBInsets.screen,
+        margin: const EdgeInsets.only(bottom: CBSpace.x3),
         borderColor: winnerColor.withValues(alpha: 0.3),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -611,15 +616,15 @@ class _StatsViewState extends State<StatsView> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: CBSpace.x3),
             Row(
               children: [
                 _miniStat(
                     Icons.people_outline, '${record.playerCount}', scheme),
-                const SizedBox(width: 20),
+                const SizedBox(width: CBSpace.x5),
                 _miniStat(
                     Icons.wb_sunny_outlined, '${record.dayCount} days', scheme),
-                const SizedBox(width: 20),
+                const SizedBox(width: CBSpace.x5),
                 _miniStat(Icons.casino_outlined,
                     '${record.rolesInPlay.length} roles', scheme),
               ],
@@ -627,7 +632,7 @@ class _StatsViewState extends State<StatsView> {
             if (record.roster.isNotEmpty) ...[
               const SizedBox(height: 10),
               Wrap(
-                spacing: 8,
+                spacing: CBSpace.x2,
                 runSpacing: 6,
                 children: record.roster.map((snap) {
                   final color = snap.alive
@@ -697,11 +702,11 @@ class _StatsViewState extends State<StatsView> {
                   ),
                 ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           const Text(
             'Delete all game history? This cannot be undone.',
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -709,7 +714,7 @@ class _StatsViewState extends State<StatsView> {
                 label: 'CANCEL',
                 onPressed: () => Navigator.of(context).pop(false),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               CBPrimaryButton(
                 fullWidth: false,
                 label: 'DELETE ALL',
@@ -746,7 +751,7 @@ class _StatsViewState extends State<StatsView> {
                   shadows: CBColors.textGlow(scheme.error, intensity: 0.55),
                 ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -754,7 +759,7 @@ class _StatsViewState extends State<StatsView> {
                   height: 1.3,
                 ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -762,7 +767,7 @@ class _StatsViewState extends State<StatsView> {
                 label: 'CANCEL',
                 onPressed: () => Navigator.of(context).pop(false),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               CBPrimaryButton(
                 fullWidth: false,
                 label: 'DELETE',

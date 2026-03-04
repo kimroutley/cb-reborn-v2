@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class _FakeBox extends Fake implements Box<String> {
   @override
@@ -32,6 +31,9 @@ void main() {
 
   testWidgets('HostNavigationShell reacts to destination provider changes',
       (WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     final container = ProviderContainer();
     addTearDown(container.dispose);
 
@@ -55,10 +57,10 @@ void main() {
         .read(hostNavigationProvider.notifier)
         .setDestination(HostDestination.lobby);
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.textContaining('BROADCASTING ON CODE'), findsAtLeastNWidgets(1));
-    expect(find.text('JOIN BEACON'), findsOneWidget);
-    expect(find.textContaining('CLOUD LINK:'), findsOneWidget);
-    expect(find.byType(QrImageView), findsOneWidget);
+    expect(find.text('OPERATIVES'), findsAtLeastNWidgets(1));
+    expect(find.text('RECRUIT'), findsAtLeastNWidgets(1));
+    expect(find.textContaining('PROTOCOL:'), findsAtLeastNWidgets(1));
+    expect(find.text('CONTINUE TO SETUP'), findsOneWidget);
 
     // Allow debounced persistence timer from sync mode bootstrap to settle.
     await tester.pump(const Duration(milliseconds: 600));

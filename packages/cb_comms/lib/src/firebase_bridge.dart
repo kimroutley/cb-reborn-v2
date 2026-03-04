@@ -80,6 +80,49 @@ class FirebaseBridge {
     }
   }
 
+  /// Player: Send a chat/bulletin message for host processing.
+  Future<void> sendChat({
+    required String playerId,
+    required String title,
+    required String message,
+    String? roleId,
+  }) async {
+    try {
+      await _sendActionEnvelope(
+        type: 'chat',
+        stepId: 'chat',
+        playerId: playerId,
+        payload: <String, dynamic>{
+          'title': title,
+          'content': message,
+          if (roleId != null) 'roleId': roleId,
+        },
+      );
+    } catch (e) {
+      debugPrint('[FirebaseBridge] Failed to send chat: $e');
+      rethrow;
+    }
+  }
+
+  /// Player: Store push subscription metadata under private state.
+  Future<void> setPushSubscription(
+    String playerId,
+    Map<String, dynamic> subscription,
+  ) async {
+    try {
+      await playerPrivateDoc(playerId).set(
+        <String, dynamic>{
+          'pushSubscription': subscription,
+          'pushSubscriptionUpdatedAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    } catch (e) {
+      debugPrint('[FirebaseBridge] Failed to set push subscription: $e');
+      rethrow;
+    }
+  }
+
   /// Player: Subscribe to public game state.
   Stream<DocumentSnapshot<Map<String, dynamic>>> subscribeToGame() {
     return gameDoc.snapshots();

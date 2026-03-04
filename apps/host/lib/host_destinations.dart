@@ -4,7 +4,9 @@ import 'package:cb_models/cb_models.dart';
 enum HostDestination {
   home,
   lobby,
+  gameSetup,
   game,
+  djBooth,
   guides,
   gamesNight,
   hallOfFame,
@@ -12,6 +14,7 @@ enum HostDestination {
   settings,
   profile,
   about,
+  lounge,
 }
 
 class HostDestinationConfig extends AbstractDestinationConfig<HostDestination> {
@@ -39,9 +42,24 @@ const hostDestinations = <HostDestinationConfig>[
     icon: Icons.casino_rounded,
   ),
   HostDestinationConfig(
+    destination: HostDestination.gameSetup,
+    label: 'Game Setup',
+    icon: Icons.tune_rounded,
+  ),
+  HostDestinationConfig(
+    destination: HostDestination.djBooth,
+    label: 'DJ Booth',
+    icon: Icons.queue_music_rounded,
+  ),
+  HostDestinationConfig(
     destination: HostDestination.profile,
     label: 'Profile',
     icon: Icons.person_rounded,
+  ),
+  HostDestinationConfig(
+    destination: HostDestination.lounge,
+    label: 'The Lounge',
+    icon: Icons.chat_bubble_outline_rounded,
   ),
   HostDestinationConfig(
     destination: HostDestination.settings,

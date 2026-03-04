@@ -2,6 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../colors.dart';
+import '../layout.dart';
+
 /// A glowing panel for grouping related content.
 class CBPanel extends StatelessWidget {
   final Widget child;
@@ -15,7 +18,7 @@ class CBPanel extends StatelessWidget {
     required this.child,
     this.borderColor,
     this.borderWidth = 1,
-    this.padding = const EdgeInsets.all(16),
+    this.padding = CBInsets.screen,
     this.margin = EdgeInsets.zero,
   });
 
@@ -24,7 +27,7 @@ class CBPanel extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final color = borderColor ?? theme.colorScheme.primary;
-    final panelRadius = BorderRadius.circular(16);
+    final panelRadius = BorderRadius.circular(CBRadius.md);
 
     return Container(
       width: double.infinity,
@@ -44,7 +47,7 @@ class CBPanel extends StatelessWidget {
                   scheme.onSurface.withValues(alpha: 0.06),
                   scheme.primary.withValues(alpha: 0.11),
                   scheme.secondary.withValues(alpha: 0.09),
-                  Colors.transparent,
+                  CBColors.transparent,
                 ],
                 stops: const [0.0, 0.22, 0.56, 1.0],
               ),

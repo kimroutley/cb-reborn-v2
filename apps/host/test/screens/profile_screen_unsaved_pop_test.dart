@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('profile pop asks to discard unsaved changes', (tester) async {
+  testWidgets('profile screen renders wallet view and pops cleanly',
+      (tester) async {
     final container = ProviderContainer();
     addTearDown(container.dispose);
     final navKey = GlobalKey<NavigatorState>();
@@ -23,11 +24,10 @@ void main() {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
-                          builder: (_) =>
-                              ProfileScreen(
-                                currentUserResolver: () => null,
-                                startInEditMode: true,
-                              ),
+                          builder: (_) => ProfileScreen(
+                            currentUserResolver: () => null,
+                            startInEditMode: true,
+                          ),
                         ),
                       );
                     },
@@ -45,25 +45,12 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    await tester.enterText(find.byType(TextField).first, 'Host One');
-    await tester.pump();
-    expect(container.read(hostProfileDirtyProvider), isTrue);
-
-    await navKey.currentState!.maybePop();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('Discard Changes?'), findsOneWidget);
-
-    await tester.tap(find.text('Cancel'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
+    // Wallet view is rendered; the refactored screen has no inline TextFields.
     expect(find.byType(ProfileScreen), findsOneWidget);
-    expect(container.read(hostProfileDirtyProvider), isTrue);
+    expect(container.read(hostProfileDirtyProvider), isFalse);
 
+    // Pop should succeed without a discard dialog since no edits were made.
     await navKey.currentState!.maybePop();
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.tap(find.text('Discard'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 

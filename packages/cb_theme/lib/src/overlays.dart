@@ -111,6 +111,141 @@ Future<T?> showThemedBottomSheet<T>({
   );
 }
 
+Future<void> showPhaseTransitionOverlay({
+  required BuildContext context,
+  required String title,
+  required String subtitle,
+  Color? accentColor,
+  Duration duration = const Duration(seconds: 3),
+}) async {
+  final entry = OverlayEntry(
+    builder: (context) => _CBPhaseTransitionOverlay(
+      title: title,
+      subtitle: subtitle,
+      accentColor: accentColor,
+      duration: duration,
+    ),
+  );
+
+  Overlay.of(context).insert(entry);
+  await Future.delayed(duration);
+  entry.remove();
+}
+
+class _CBPhaseTransitionOverlay extends StatefulWidget {
+  final String title;
+  final String subtitle;
+  final Color? accentColor;
+  final Duration duration;
+
+  const _CBPhaseTransitionOverlay({
+    required this.title,
+    required this.subtitle,
+    this.accentColor,
+    required this.duration,
+  });
+
+  @override
+  State<_CBPhaseTransitionOverlay> createState() => __CBPhaseTransitionOverlayState();
+}
+
+class __CBPhaseTransitionOverlayState extends State<_CBPhaseTransitionOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _blurAnimation;
+  late Animation<double> _opacityAnimation;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _blurAnimation = Tween<double>(begin: 0, end: 15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    _opacityAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0, 0.5, curve: Curves.easeIn)),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+    );
+
+    _controller.forward();
+
+    Future.delayed(widget.duration - const Duration(milliseconds: 800), () {
+      if (mounted) _controller.reverse();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = widget.accentColor ?? scheme.primary;
+
+    return Material(
+      color: CBColors.transparent,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: _blurAnimation.value,
+              sigmaY: _blurAnimation.value,
+            ),
+            child: Container(
+              color: CBColors.voidBlack.withValues(alpha: 0.6 * _controller.value),
+              child: Center(
+                child: Opacity(
+                  opacity: _opacityAnimation.value,
+                  child: Transform.scale(
+                    scale: _scaleAnimation.value,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CBFeedSeparator(
+                          label: widget.title,
+                          color: accent,
+                        ),
+                        const SizedBox(height: CBSpace.x4),
+                        Text(
+                          widget.subtitle.toUpperCase(),
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                color: accent,
+                                letterSpacing: 4.0,
+                                fontWeight: FontWeight.w900,
+                                shadows: [
+                                  Shadow(
+                                    color: accent.withValues(alpha: 0.5),
+                                    blurRadius: 10,
+                                  ),
+                                ],
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 Future<T?> showThemedBottomSheetBuilder<T>({
   required BuildContext context,
   required WidgetBuilder builder,

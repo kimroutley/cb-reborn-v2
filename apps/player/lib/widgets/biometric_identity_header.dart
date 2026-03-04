@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:cb_player/player_bridge.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 /// A "Hold to Reveal" role identity header for secure, dramatic role checking.
 class BiometricIdentityHeader extends StatefulWidget {
@@ -24,10 +23,11 @@ class BiometricIdentityHeader extends StatefulWidget {
 }
 
 class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool _isRevealed = false;
   late AnimationController _revealController;
   late Animation<double> _revealAnimation;
+  late AnimationController _scanController;
 
   @override
   void initState() {
@@ -40,18 +40,35 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
       parent: _revealController,
       curve: Curves.easeInOut,
     );
+    _scanController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
+    if (widget.isMyTurn) _scanController.repeat();
+  }
+
+  @override
+  void didUpdateWidget(BiometricIdentityHeader old) {
+    super.didUpdateWidget(old);
+    if (widget.isMyTurn && !_scanController.isAnimating) {
+      _scanController.repeat();
+    } else if (!widget.isMyTurn && _scanController.isAnimating) {
+      _scanController.stop();
+      _scanController.reset();
+    }
   }
 
   @override
   void dispose() {
     _revealController.dispose();
+    _scanController.dispose();
     super.dispose();
   }
 
   void _handleLongPressStart(LongPressStartDetails details) {
     if (!_isRevealed) {
       _revealController.forward();
-      HapticFeedback.lightImpact();
+      HapticService.light();
     }
   }
 
@@ -60,7 +77,7 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
       _revealController.reverse();
     } else {
       setState(() => _isRevealed = true);
-      HapticFeedback.heavyImpact();
+      HapticService.heavy();
     }
   }
 
@@ -96,37 +113,78 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
             ),
             child: Row(
               children: [
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CBRoleAvatar(
-                      assetPath: _isRevealed
-                          ? 'assets/roles/${widget.player.roleId}.png'
-                          : null,
-                      color: widget.roleColor,
-                      size: 54,
-                      pulsing: widget.isMyTurn,
-                      breathing: _isRevealed,
-                    ),
-                    if (!_isRevealed)
-                      AnimatedBuilder(
-                        animation: _revealAnimation,
-                        builder: (context, child) {
-                          return SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: CircularProgressIndicator(
-                              value: _revealAnimation.value,
-                              strokeWidth: 3,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  widget.roleColor),
-                              backgroundColor:
-                                  widget.roleColor.withValues(alpha: 0.1),
-                            ),
-                          );
-                        },
+                SizedBox(
+                  width: 60,
+                  height: 60,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      CBRoleAvatar(
+                        assetPath: _isRevealed
+                            ? 'assets/roles/${widget.player.roleId}.png'
+                            : null,
+                        color: widget.roleColor,
+                        size: 54,
+                        pulsing: widget.isMyTurn,
+                        breathing: _isRevealed,
                       ),
-                  ],
+                      if (!_isRevealed)
+                        AnimatedBuilder(
+                          animation: _revealAnimation,
+                          builder: (context, child) {
+                            return SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: CircularProgressIndicator(
+                                value: _revealAnimation.value,
+                                strokeWidth: 3,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    widget.roleColor),
+                                backgroundColor:
+                                    widget.roleColor.withValues(alpha: 0.1),
+                              ),
+                            );
+                          },
+                        ),
+                      if (widget.isMyTurn)
+                        AnimatedBuilder(
+                          animation: _scanController,
+                          builder: (context, _) {
+                            final yOffset =
+                                -27.0 + (_scanController.value * 54.0);
+                            return Positioned(
+                              top: yOffset + 3,
+                              left: 0,
+                              right: 0,
+                              child: Container(
+                                height: 2,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      widget.roleColor
+                                          .withValues(alpha: 0.0),
+                                      widget.roleColor
+                                          .withValues(alpha: 0.8),
+                                      widget.roleColor
+                                          .withValues(alpha: 0.0),
+                                    ],
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: widget.roleColor
+                                          .withValues(alpha: 0.6),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 20),
                 Expanded(

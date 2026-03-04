@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../layout.dart';
+
 /// Countdown timer widget for timed phases.
 class CBCountdownTimer extends StatefulWidget {
   /// Key for the root container, used in tests to locate the widget reliably.
@@ -74,7 +76,7 @@ class _CBCountdownTimerState extends State<CBCountdownTimer> {
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(CBRadius.md),
         border: Border.all(color: displayColor, width: 2),
         boxShadow: [
           BoxShadow(

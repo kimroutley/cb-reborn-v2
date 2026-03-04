@@ -23,233 +23,194 @@ class RosterTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final scheme = theme.colorScheme;
+    final roleColor = CBColors.fromHex(player.role.colorHex);
     final allianceColor = switch (player.alliance) {
-      Team.clubStaff => scheme.primary,
-      Team.partyAnimals => scheme.secondary,
+      Team.clubStaff => scheme.secondary,
+      Team.partyAnimals => scheme.primary,
       Team.neutral => scheme.tertiary,
       Team.unknown => scheme.onSurface.withValues(alpha: 0.4),
     };
     final allianceLabel = switch (player.alliance) {
       Team.clubStaff => 'STAFF',
-      Team.partyAnimals => 'PA',
-      Team.neutral => 'NEU',
-      Team.unknown => 'UNK',
+      Team.partyAnimals => 'PARTY',
+      Team.neutral => 'NEUTRAL',
+      Team.unknown => 'UNKNOWN',
     };
     final isDead = !player.isAlive;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: isDead ? scheme.error.withValues(alpha: 0.1) : scheme.surface,
-        borderRadius: BorderRadius.zero,
-        border: Border.all(
-          color: isDead
-              ? scheme.error.withValues(alpha: 0.3)
-              : allianceColor.withValues(alpha: 0.3),
-        ),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 20,
-            height: 20,
-            child: isDead
-                ? Icon(Icons.cancel, size: 20, color: scheme.error)
-                : Image.asset(
-                    player.role.assetPath,
-                    width: 20,
-                    height: 20,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.circle,
-                      size: 12,
-                      color: allianceColor,
+    return CBFadeSlide(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: CBSpace.x2),
+        child: CBGlassTile(
+          padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x3),
+          borderColor: isDead ? scheme.error.withValues(alpha: 0.4) : allianceColor.withValues(alpha: 0.3),
+          isPrismatic: player.isAlive && !player.isSinBinned,
+          child: Row(
+            children: [
+              CBRoleAvatar(
+                assetPath: player.role.id == 'unassigned' ? null : player.role.assetPath,
+                color: isDead ? scheme.error : roleColor,
+                size: 44,
+                pulsing: player.isAlive && !player.isSinBinned,
+              ),
+              const SizedBox(width: CBSpace.x4),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      player.name.toUpperCase(),
+                      style: textTheme.titleMedium!.copyWith(
+                        color: isDead ? scheme.onSurface.withValues(alpha: 0.4) : scheme.onSurface,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                        fontFamily: 'RobotoMono',
+                        decoration: isDead ? TextDecoration.lineThrough : null,
+                        shadows: isDead ? null : CBColors.textGlow(roleColor, intensity: 0.3),
+                      ),
                     ),
-                  ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              player.name,
-              style: textTheme.bodyLarge!.copyWith(
-                color: isDead ? scheme.error : null,
-                fontWeight: FontWeight.w700,
-                decoration: isDead ? TextDecoration.lineThrough : null,
-              ),
-            ),
-          ),
-          Text(
-            player.role.name.toUpperCase(),
-            style: textTheme.labelSmall!.copyWith(
-              color: allianceColor.withValues(alpha: isDead ? 0.4 : 0.8),
-            ),
-          ),
-          // Status badges
-          if (player.hasRumour && player.isAlive) ...[
-            const SizedBox(width: 4),
-            MiniTag(text: 'R', color: scheme.secondary, tooltip: 'Rumour'),
-          ],
-          if (player.alibiDay != null && player.isAlive) ...[
-            const SizedBox(width: 4),
-            MiniTag(text: 'A', color: scheme.tertiary, tooltip: 'Alibi'),
-          ],
-          if (player.creepTargetId != null && player.isAlive) ...[
-            const SizedBox(width: 4),
-            MiniTag(text: 'C', color: scheme.secondary, tooltip: 'Creep'),
-          ],
-          if (player.clingerPartnerId != null && player.isAlive) ...[
-            const SizedBox(width: 4),
-            MiniTag(text: 'L', color: scheme.primary, tooltip: 'Clinger'),
-          ],
-          if (hasPendingDramaSwap && player.isAlive) ...[
-            const SizedBox(width: 4),
-            MiniTag(
-              text: 'DQ',
-              color: scheme.secondary,
-              tooltip: 'Pending Drama Queen swap',
-            ),
-          ],
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: allianceColor.withValues(alpha: 0.15),
-            ),
-            child: Text(
-              allianceLabel,
-              style: textTheme.labelSmall!.copyWith(
-                color: allianceColor,
-                fontSize: 9,
-              ),
-            ),
-          ),
-          if (isClaimed) ...[
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-              decoration: BoxDecoration(
-                color: scheme.tertiary.withValues(alpha: 0.15),
-              ),
-              child: Text(
-                'CLAIMED',
-                style: textTheme.labelSmall!.copyWith(
-                  color: scheme.tertiary,
-                  fontSize: 8,
+                    const SizedBox(height: CBSpace.x1),
+                    Row(
+                      children: [
+                        CBMiniTag(
+                          text: player.role.name.toUpperCase(),
+                          color: isDead ? scheme.error : roleColor,
+                        ),
+                        if (player.isAlive) ...[
+                          if (player.hasRumour) ...[
+                            const SizedBox(width: 6),
+                            CBBadge(text: 'RUMOUR', color: scheme.secondary, icon: Icons.campaign_rounded),
+                          ],
+                          if (player.alibiDay != null) ...[
+                            const SizedBox(width: 6),
+                            CBBadge(text: 'ALIBI', color: scheme.tertiary, icon: Icons.fingerprint_rounded),
+                          ],
+                          if (hasPendingDramaSwap) ...[
+                            const SizedBox(width: 6),
+                            CBBadge(text: 'DRAMA', color: scheme.secondary, icon: Icons.swap_horiz_rounded),
+                          ],
+                        ],
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(width: 4),
-            GestureDetector(
-              onTap: () {
-                ref.read(sessionProvider.notifier).releasePlayer(player.id);
-                Navigator.pop(context);
-              },
-              child: Icon(Icons.link_off, size: 16, color: scheme.error),
-            ),
-          ],
-          if (showKill && !isDead) ...[
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () {
-                showThemedDialog(
-                  context: context,
-                  accentColor: scheme.error,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'FORCE ELIMINATE',
-                        style: textTheme.headlineSmall?.copyWith(
-                          color: theme.colorScheme.error,
-                          letterSpacing: 1.6,
-                          fontWeight: FontWeight.bold,
-                          shadows: CBColors.textGlow(
-                            theme.colorScheme.error,
-                            intensity: 0.6,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Are you sure you want to eliminate ${player.name}?',
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.75),
-                          height: 1.3,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          CBGhostButton(
-                            label: 'CANCEL',
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                          const SizedBox(width: 12),
-                          CBPrimaryButton(
-                            fullWidth: false,
-                            label: 'ELIMINATE',
-                            backgroundColor: theme.colorScheme.error,
-                            onPressed: () {
-                              ref
-                                  .read(gameProvider.notifier)
-                                  .forceKillPlayer(player.id);
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ],
-                      )
-                    ],
+              const SizedBox(width: CBSpace.x3),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  CBBadge(
+                    text: allianceLabel,
+                    color: allianceColor,
                   ),
-                );
-              },
-              child: Icon(Icons.dangerous,
-                  size: 18, color: theme.colorScheme.error),
-            ),
-          ],
-        ],
+                  if (isClaimed) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'CLAIMED',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: scheme.tertiary,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            fontSize: 8,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () {
+                            HapticService.heavy();
+                            ref.read(sessionProvider.notifier).releasePlayer(player.id);
+                          },
+                          child: Icon(Icons.link_off_rounded, size: 16, color: scheme.error.withValues(alpha: 0.7)),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (showKill && !isDead) ...[
+                    const SizedBox(height: CBSpace.x2),
+                    IconButton(
+                      icon: Icon(Icons.dangerous_rounded,
+                          color: scheme.error.withValues(alpha: 0.8), size: 24),
+                      onPressed: () => _confirmElimination(context, ref),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
-}
 
-class MiniTag extends StatelessWidget {
-  final String text;
-  final Color color;
-  final String tooltip;
+  void _confirmElimination(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
 
-  const MiniTag({
-    super.key,
-    required this.text,
-    required this.color,
-    required this.tooltip,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Tooltip(
-      message: tooltip,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.18),
-          border: Border.all(color: color.withValues(alpha: 0.45)),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          text,
-          style: textTheme.labelSmall?.copyWith(
-            color: color,
-            fontSize: 9,
-            fontWeight: FontWeight.w800,
+    showThemedDialog(
+      context: context,
+      accentColor: scheme.error,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'TERMINATION PROTOCOL',
+            textAlign: TextAlign.center,
+            style: textTheme.headlineSmall?.copyWith(
+              color: scheme.error,
+              letterSpacing: 2.0,
+              fontWeight: FontWeight.w900,
+              shadows: CBColors.textGlow(scheme.error, intensity: 0.6),
+            ),
           ),
-        ),
+          const SizedBox(height: CBSpace.x6),
+          Text(
+            'CONFIRM FORCED ELIMINATION OF OPERATIVE ${player.name.toUpperCase()}? THIS ACTION IS IRREVERSIBLE.',
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.8),
+              height: 1.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: CBSpace.x8),
+          Row(
+            children: [
+              Expanded(
+                child: CBGhostButton(
+                  label: 'ABORT',
+                  onPressed: () {
+                    HapticService.light();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ),
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: CBPrimaryButton(
+                  label: 'EXECUTE',
+                  backgroundColor: scheme.error,
+                  onPressed: () {
+                    HapticService.heavy();
+                    ref
+                        .read(gameProvider.notifier)
+                        .forceKillPlayer(player.id);
+                    Navigator.of(context).pop();
+                    showThemedSnackBar(context, 'OPERATIVE ${player.name.toUpperCase()} TERMINATED.',
+                        accentColor: scheme.error);
+                  },
+                ),
+              ),
+            ],
+          )
+        ],
       ),
     );
   }

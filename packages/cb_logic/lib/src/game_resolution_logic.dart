@@ -189,16 +189,46 @@ class GameResolutionLogic {
   static DayResolution resolveDayVote(
     List<Player> players,
     Map<String, int> tally,
+    Map<String, String> votesByVoter,
     int dayCount,
+    TieBreakStrategy strategy,
   ) {
-    if (tally.isEmpty) {
-      return DayResolution(players: players, report: ['No votes were cast.']);
-    }
-
     final events = <GameEvent>[];
     final report = <String>[];
 
-    // 1. Identify valid targets (Filter out Alibis)
+    // 1. Log individual votes
+    for (final entry in votesByVoter.entries) {
+      final voterId = entry.key;
+      final targetId = entry.value;
+      events.add(GameEvent.vote(
+        voterId: voterId,
+        targetId: targetId,
+        day: dayCount,
+      ));
+
+      final voter = players
+          .cast<Player?>()
+          .firstWhere((p) => p?.id == voterId, orElse: () => null);
+      final target = targetId == 'abstain'
+          ? null
+          : players
+              .cast<Player?>()
+              .firstWhere((p) => p?.id == targetId, orElse: () => null);
+
+      if (voter != null) {
+        final targetName = target?.name ?? 'ABSTAIN';
+        report.add('${voter.name} cast a vote against $targetName.');
+      }
+    }
+
+    if (tally.isEmpty) {
+      return DayResolution(
+          players: players,
+          report: [...report, 'No votes were cast.'],
+          events: events);
+    }
+
+    // 2. Identify valid targets (Filter out Alibis)
     final filteredTally = Map<String, int>.from(tally);
     for (final p in players) {
       if (p.alibiDay == dayCount && filteredTally.containsKey(p.id)) {
@@ -212,6 +242,7 @@ class GameResolutionLogic {
       return DayResolution(
         players: players,
         report: [...report, 'The club decided to abstain from exiling anyone.'],
+        events: events,
       );
     }
 
@@ -223,23 +254,80 @@ class GameResolutionLogic {
       return DayResolution(
         players: players,
         report: [...report, 'The club decided to abstain from exiling anyone.'],
+        events: events,
       );
     }
 
     // Check for ties
-    if (sorted.length > 1 && sorted[1].value == top.value) {
-      return DayResolution(
-        players: players,
-        report: [...report, 'The vote ended in a tie. No one was exiled.'],
-      );
+    final tiedIds =
+        sorted.where((e) => e.value == top.value).map((e) => e.key).toList();
+
+    if (tiedIds.length > 1) {
+      switch (strategy) {
+        case TieBreakStrategy.peaceful:
+          return DayResolution(
+            players: players,
+            report: [...report, 'The vote ended in a tie. No one was exiled.'],
+            events: events,
+          );
+        case TieBreakStrategy.random:
+          final victimId = tiedIds[Random().nextInt(tiedIds.length)];
+          return _resolveVictim(players, victimId, dayCount, report, events,
+              'A random tie-break resulted in the exile of {name}.');
+        case TieBreakStrategy.bloodbath:
+          var currentPlayers = List<Player>.from(players);
+          final names = <String>[];
+          for (final victimId in tiedIds) {
+            final res = _resolveVictim(
+                currentPlayers, victimId, dayCount, [], events, '');
+            currentPlayers = res.players;
+            names.add(players.firstWhere((p) => p.id == victimId).name);
+          }
+          return DayResolution(
+            players: currentPlayers,
+            report: [
+              ...report,
+              'BLOODBATH! The tied vote resulted in multiple exiles: ${names.join(", ")}.'
+            ],
+            events: events,
+          );
+        case TieBreakStrategy.silentTreatment:
+          final names = <String>[];
+          final updatedPlayers = players.map((p) {
+            if (tiedIds.contains(p.id)) {
+              names.add(p.name);
+              return p.copyWith(silencedDay: dayCount + 1);
+            }
+            return p;
+          }).toList();
+          return DayResolution(
+            players: updatedPlayers,
+            report: [
+              ...report,
+              'TIE DETECTED. No one exiled, but ${names.join(", ")} have been silenced for the next cycle.'
+            ],
+            events: events,
+          );
+      }
     }
 
-    var victimId = top.key;
+    return _resolveVictim(players, top.key, dayCount, report, events,
+        '{name} was exiled from the club by popular vote.');
+  }
+
+  static DayResolution _resolveVictim(
+    List<Player> players,
+    String victimId,
+    int dayCount,
+    List<String> report,
+    List<GameEvent> events,
+    String reportTemplate,
+  ) {
     var victim = players.firstWhere((p) => p.id == victimId);
-    var reportMsg = '${victim.name} was exiled from the club by popular vote.';
+    var reportMsg = reportTemplate.replaceAll('{name}', victim.name);
     String? whoreWhoUsedDeflectionId;
 
-    // 2. Resolve Whore Deflection
+    // Resolve Whore Deflection
     if (victim.alliance == Team.clubStaff) {
       Player? activeWhore;
       for (final p in players) {

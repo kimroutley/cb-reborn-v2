@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'cb_badge.dart';
-import 'cb_role_avatar.dart';
+import '../../cb_theme.dart';
 
 /// Unified player status tile for the host feed.
 class CBPlayerStatusTile extends StatelessWidget {
@@ -24,82 +23,101 @@ class CBPlayerStatusTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accentColor = roleColor ?? theme.colorScheme.primary;
+    final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final accentColor = roleColor ?? scheme.primary;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: accentColor.withValues(alpha: 0.2), width: 0.5),
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          CBRoleAvatar(assetPath: assetPath, color: accentColor, size: 32),
-          const SizedBox(width: 10),
-
-          // Name + role
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  playerName.toUpperCase(),
-                  style: theme.textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                    shadows: [
-                      Shadow(
-                        color: accentColor.withValues(alpha: 0.4),
-                        blurRadius: 8,
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  roleName.toUpperCase(),
-                  style: theme.textTheme.labelSmall!.copyWith(
-                    color: accentColor,
-                    fontSize: 9,
-                  ),
-                ),
-              ],
+    return CBFadeSlide(
+      child: CBGlassTile(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        borderColor: accentColor.withValues(alpha: 0.3),
+        child: Row(
+          children: [
+            CBRoleAvatar(
+              assetPath: assetPath,
+              color: accentColor,
+              size: 36,
+              breathing: isAlive && statusEffects.isNotEmpty,
             ),
-          ),
-
-          // Status chips
-          if (!isAlive) CBBadge(text: 'DEAD', color: theme.colorScheme.error),
-          if (isAlive && statusEffects.isNotEmpty)
-            ...statusEffects.map(
-              (effect) => Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: CBBadge(
-                  text: effect.toUpperCase(),
-                  color: _statusColor(context, effect),
-                ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    playerName.toUpperCase(),
+                    style: textTheme.labelLarge!.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      fontFamily: 'RobotoMono',
+                      color: isAlive
+                          ? scheme.onSurface
+                          : scheme.onSurface.withValues(alpha: 0.5),
+                      decoration: isAlive ? null : TextDecoration.lineThrough,
+                      shadows: isAlive
+                          ? CBColors.textGlow(accentColor, intensity: 0.3)
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  CBMiniTag(
+                    text: roleName.toUpperCase(),
+                    color: accentColor,
+                  ),
+                ],
               ),
             ),
-        ],
+            if (!isAlive)
+              CBBadge(
+                  text: 'DE-ACTIVATED',
+                  color: scheme.error,
+                  icon: Icons.cancel_rounded)
+            else if (statusEffects.isNotEmpty)
+              Wrap(
+                spacing: 6,
+                children: statusEffects
+                    .map(
+                      (effect) => CBBadge(
+                        text: effect.toUpperCase(),
+                        color: _statusColor(context, effect),
+                        icon: _statusIcon(effect),
+                      ),
+                    )
+                    .toList(),
+              ),
+          ],
+        ),
       ),
     );
+  }
+
+  IconData? _statusIcon(String effect) {
+    return switch (effect.toLowerCase()) {
+      'protected' => Icons.shield_rounded,
+      'silenced' => Icons.voice_over_off_rounded,
+      'id checked' => Icons.badge_rounded,
+      'sighted' => Icons.visibility_rounded,
+      'alibi' => Icons.fingerprint_rounded,
+      'sent home' => Icons.home_rounded,
+      'clinging' => Icons.link_rounded,
+      'paralysed' || 'paralyzed' => Icons.bolt_rounded,
+      _ => null,
+    };
   }
 
   Color _statusColor(BuildContext context, String effect) {
     final scheme = Theme.of(context).colorScheme;
     return switch (effect.toLowerCase()) {
-      'protected' => scheme.error, // Medic (red)
-      'silenced' => Colors.green, // Roofi (green)
-      'id checked' => Colors.blue, // Bouncer (royal blue)
-      'sighted' => Colors.brown, // Club Manager (dark brown)
-      'alibi' => scheme.secondary, // Silver Fox
-      'sent home' => Colors.lightGreen, // Sober (lime green)
-      'clinging' => Colors.yellow, // Clinger (yellow)
-      'paralysed' || 'paralyzed' => Colors.purple,
-      _ => scheme.error,
+      'protected' => scheme.tertiary,
+      'silenced' => CBColors.alertOrange,
+      'id checked' => scheme.primary,
+      'sighted' => scheme.secondary,
+      'alibi' => scheme.primary,
+      'sent home' => scheme.secondary,
+      'clinging' => scheme.tertiary,
+      'paralysed' || 'paralyzed' => scheme.error,
+      _ => scheme.outline,
     };
   }
 }

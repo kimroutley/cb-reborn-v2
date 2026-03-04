@@ -28,6 +28,12 @@ const List<Role> roleCatalog = [
     assetPath: 'assets/roles/dealer.png',
     colorHex: '#FF00FF', // Fuschia - from CB Visuals
     canRepeat: true,
+    lore:
+        "The house always wins. You are the invisible hand steering the night, removing obstacles with surgical precision. The lounge is your hunting ground, and silence is your weapon.",
+    detailedAbility:
+        "Each night, the Dealer team wakes up together. You must unanimously agree on a single victim to eliminate. If even one Dealer disagrees or is blocked (e.g. by the Roofi), the kill may fail or be disrupted.",
+    synergies: [RoleIds.whore, RoleIds.silverFox, RoleIds.roofi],
+    counters: [RoleIds.bouncer, RoleIds.wallflower, RoleIds.minor],
   ),
 
   Role(
@@ -44,6 +50,12 @@ const List<Role> roleCatalog = [
     ability: 'Vote Deflection',
     assetPath: 'assets/roles/whore.png',
     colorHex: '#008080', // Teal - from CB Visuals
+    lore:
+        "Everyone has a price, and you know exactly who can afford to pay. You survive by making yourself indispensable—or by ensuring someone else takes the fall when the heat gets too high.",
+    detailedAbility:
+        "Choose a Scapegoat at night. This is a one-time deflection shield. If the Dealers are about to be voted out during the day, the elimination is redirected to your Scapegoat instead. The Scapegoat dies, and the day ends.",
+    synergies: [RoleIds.dealer, RoleIds.silverFox],
+    counters: [RoleIds.bouncer, RoleIds.medic],
   ),
 
   Role(
@@ -60,6 +72,12 @@ const List<Role> roleCatalog = [
     ability: 'Nightly Alibi',
     assetPath: 'assets/roles/silver_fox.png',
     colorHex: '#808000', // Olive - from CB Visuals
+    lore:
+        "Charming, sophisticated, and utterly untrustworthy. You weave narratives that protect the guilty and confuse the innocent. A well-placed alibi is worth more than a loaded gun.",
+    detailedAbility:
+        "Each night, select a player to grant an Alibi. That player cannot be eliminated by the day vote the following day. You can protect a fellow Dealer to save them from justice, or 'protect' an innocent to gain their trust.",
+    synergies: [RoleIds.dealer, RoleIds.whore],
+    counters: [RoleIds.teaSpiller, RoleIds.predator],
   ),
 
   // ═══════════════════════════════════════════════
@@ -80,6 +98,12 @@ const List<Role> roleCatalog = [
     assetPath: 'assets/roles/party_animal.png',
     colorHex: '#FFDAB9', // Peach - from CB Visuals
     canRepeat: true,
+    lore:
+        "You came for the music, the drinks, and the escape. Now you're trapped in a game of life and death. Your only power is your voice and your vote—use them wisely.",
+    detailedAbility:
+        "You have no special night action. You wake up only when the day begins. Your survival depends on observing patterns, calling out inconsistencies, and building trust with other Party Animals.",
+    synergies: [RoleIds.bouncer, RoleIds.medic],
+    counters: [RoleIds.dealer, RoleIds.messyBitch],
   ),
 
   Role(
@@ -98,6 +122,12 @@ const List<Role> roleCatalog = [
     ability: 'Protect or Revive',
     assetPath: 'assets/roles/medic.png',
     colorHex: '#FF0000', // Red - from CB Visuals
+    lore:
+        "In a club full of poison, you are the antidote. You've seen too many good nights go bad, and you're determined to make sure everyone sees the sunrise.",
+    detailedAbility:
+        "Choose between 'Protect Daily' or 'Revive'. If you choose Protect, you select one player each night to save from murder. If you choose Revive, you have a one-time ability to bring a dead player back to life.",
+    synergies: [RoleIds.bouncer, RoleIds.wallflower],
+    counters: [RoleIds.dealer, RoleIds.roofi],
   ),
 
   Role(
@@ -114,6 +144,12 @@ const List<Role> roleCatalog = [
     ability: 'Check ID',
     assetPath: 'assets/roles/bouncer.png',
     colorHex: '#0000FF', // Blue - from CB Visuals
+    lore:
+        "You check IDs at the door, and you check souls in the lounge. You have an instinct for trouble, and you can smell a Dealer from a mile away.",
+    detailedAbility:
+        "Each night, inspect one player's ID card. The Host will signal whether they are 'Club Staff' (Dealer team) or 'Party Animal' (Innocent). Note: Some roles like the Silver Fox might appear innocent depending on game settings.",
+    synergies: [RoleIds.medic, RoleIds.allyCat],
+    counters: [RoleIds.dealer, RoleIds.whore],
   ),
 
   Role(
@@ -126,10 +162,17 @@ const List<Role> roleCatalog = [
         'Silence Dealers to block their kills, or silence loud "suspects" to prevent them from leading the vote against you the next day.',
     description:
         'Paralyze a player each night. They are silenced the next day. Roofing the only Dealer blocks their kill.',
-    nightPriority: 8, // Changed from 15 to 8 to ensure it blocks Dealers (Priority 10)
+    nightPriority:
+        8, // Changed from 15 to 8 to ensure it blocks Dealers (Priority 10)
     ability: 'Paralyze',
     assetPath: 'assets/roles/roofi.png',
     colorHex: '#008000', // Green - from CB Visuals
+    lore:
+        "You fight fire with fire. If the Dealers want to play dirty, you'll put them to sleep before they can hurt anyone. Sometimes the best defense is a knockout punch.",
+    detailedAbility:
+        "Select a player at night to sedate. They will be silenced for the entire next day, unable to speak or vote. If you target the only active Dealer, their kill is blocked for the night.",
+    synergies: [RoleIds.bouncer, RoleIds.medic],
+    counters: [RoleIds.dealer, RoleIds.messyBitch],
   ),
 
   Role(
@@ -146,6 +189,12 @@ const List<Role> roleCatalog = [
     ability: 'Send Home',
     assetPath: 'assets/roles/sober.png',
     colorHex: '#39FF14', // Fluro Green - from CB Visuals
+    lore:
+        "While everyone else is losing their minds, you're the designated driver of destiny. You pull people out of the chaos before they get themselves killed.",
+    detailedAbility:
+        "Choose a player to send home at the start of the night. They are safe from all night actions (including murder) but cannot perform their own night action. Use this to protect key roles or neutralize threats.",
+    synergies: [RoleIds.bouncer, RoleIds.medic],
+    counters: [RoleIds.dealer, RoleIds.roofi],
   ),
 
   Role(
@@ -163,6 +212,12 @@ const List<Role> roleCatalog = [
     assetPath: 'assets/roles/wallflower.png',
     colorHex: '#FFC0CB', // Pink - from CB Visuals
     isRequired: true,
+    lore:
+        "You blend into the background, unnoticed and underestimated. But while others are busy talking, you are watching. You see things no one else sees—even murder.",
+    detailedAbility:
+        "You can open your eyes during the Dealer's murder phase. If you do, you witness the kill. However, if the Dealers spot you, they might change their target to you. It's a high-risk, high-reward surveillance move.",
+    synergies: [RoleIds.bouncer, RoleIds.medic],
+    counters: [RoleIds.dealer, RoleIds.roofi],
   ),
 
   Role(
@@ -179,6 +234,12 @@ const List<Role> roleCatalog = [
     ability: 'Vantage Point + Nine Lives',
     assetPath: 'assets/roles/ally_cat.png',
     colorHex: '#FFFACD', // Lemon - from CB Visuals
+    lore:
+        "Curiosity hasn't killed you yet, but it's close. You have nine lives and a special connection to the Bouncer. You act as their eyes when they can't see, but your voice is... limited.",
+    detailedAbility:
+        "You wake up whenever the Bouncer wakes up. You see who they check, but not the result. You have 9 lives (immune to 8 kills). You can only communicate by saying 'Meow' during the day.",
+    synergies: [RoleIds.bouncer, RoleIds.seasonedDrinker],
+    counters: [RoleIds.dealer, RoleIds.roofi],
   ),
 
   Role(
@@ -195,6 +256,12 @@ const List<Role> roleCatalog = [
     ability: 'Death Protection',
     assetPath: 'assets/roles/minor.png',
     colorHex: '#FFFFFF', // White - from CB Visuals
+    lore:
+        "You shouldn't even be here. You're young, innocent, and somehow invisible to the darkness. The Dealers can't touch you... at least, not yet.",
+    detailedAbility:
+        "You are immune to Dealer kills until the Bouncer checks your ID. Once checked, your 'innocence' is lost, and you become vulnerable. You can still be eliminated by the day vote at any time.",
+    synergies: [RoleIds.bouncer, RoleIds.medic],
+    counters: [RoleIds.bouncer, RoleIds.dealer],
   ),
 
   Role(
@@ -211,6 +278,12 @@ const List<Role> roleCatalog = [
     ability: 'Dealer Immunity Tank',
     assetPath: 'assets/roles/seasoned_drinker.png',
     colorHex: '#3EB489', // Mint - from CB Visuals
+    lore:
+        "You've been here since the doors opened, and you'll be here when they close. You've built up a tolerance to everything—including poison. It takes more than one shot to take you down.",
+    detailedAbility:
+        "You have extra lives equal to the number of starting Dealers. If the Dealers try to kill you, you lose a life but survive. You only die when all lives are gone or if voted out.",
+    synergies: [RoleIds.medic, RoleIds.allyCat],
+    counters: [RoleIds.dealer, RoleIds.messyBitch],
   ),
 
   Role(
@@ -220,13 +293,19 @@ const List<Role> roleCatalog = [
     type: 'Passive',
     complexity: 5,
     tacticalTip:
-        'The Taboo name is a powerful social weapon. Use the pressure of the Bar Tab to flush out players who aren\'t paying close attention.',
+        'Be careful who you target! Each night you choose someone, you lose the ability to vote for them forever. This accumulates nightly, so save your targets for players you trust completely.',
     description:
-        'After every night, a name becomes taboo. If you speak that name, you die immediately.',
+        'Each night, choose an operative. That operative becomes "taboo" for you, and you can no longer cast a vote against them in any future day vote.',
     nightPriority: 45,
-    ability: 'Memory Loss (Taboo)',
+    ability: 'Cumulative Voting Restriction',
     assetPath: 'assets/roles/lightweight.png',
     colorHex: '#FFA500', // Orange - from CB Visuals
+    lore:
+        "You can't handle your liquor, and you can't handle betrayal. Once you suspect someone, you hold a grudge forever. Your memory is long, but your patience is short.",
+    detailedAbility:
+        "Each night, you must choose a player to 'block' from your own voting pool. You can never vote for that player again for the rest of the game. This accumulates, limiting your voting options over time.",
+    synergies: [RoleIds.bouncer, RoleIds.medic],
+    counters: [RoleIds.messyBitch, RoleIds.dealer],
   ),
 
   Role(
@@ -243,6 +322,12 @@ const List<Role> roleCatalog = [
     ability: 'Death Reveal',
     assetPath: 'assets/roles/tea_spiller.png',
     colorHex: '#FFD700', // Gold - from CB Visuals
+    lore:
+        "You love the drama, and you love the spotlight. If you're going down, you're taking everyone's secrets with you. Your last words will be the most important ones spoken all night.",
+    detailedAbility:
+        "If you are eliminated by the day vote, you immediately reveal the role of one player who voted against you. This information is public and confirmed by the Host.",
+    synergies: [RoleIds.partyAnimal, RoleIds.bouncer],
+    counters: [RoleIds.silverFox, RoleIds.dealer],
   ),
 
   Role(
@@ -259,6 +344,12 @@ const List<Role> roleCatalog = [
     ability: 'Death Retaliation',
     assetPath: 'assets/roles/predator.png',
     colorHex: '#2C3539', // Black_Grey - from CB Visuals
+    lore:
+        "You aren't prey. You never were. If they corner you, you'll show them exactly why they should have been afraid. Revenge is a dish best served immediately.",
+    detailedAbility:
+        "If you are eliminated by the day vote, you choose one of the players who voted for you to die with you. This is a retaliatory strike that happens instantly.",
+    synergies: [RoleIds.partyAnimal, RoleIds.medic],
+    counters: [RoleIds.dealer, RoleIds.messyBitch],
   ),
 
   Role(
@@ -275,6 +366,12 @@ const List<Role> roleCatalog = [
     ability: 'Vendetta Power',
     assetPath: 'assets/roles/drama_queen.png',
     colorHex: '#000080', // Navy - from CB Visuals
+    lore:
+        "The center of attention, for better or worse. You thrive on chaos and confusion. Even in death, you manage to make everything about you.",
+    detailedAbility:
+        "Upon death (by any means), you trigger a 'Card Swap'. You choose two living players and swap their role cards. You learn the new roles, but the players themselves might not realize the swap happened immediately.",
+    synergies: [RoleIds.messyBitch, RoleIds.creep],
+    counters: [RoleIds.bouncer, RoleIds.medic],
   ),
 
   Role(
@@ -291,6 +388,12 @@ const List<Role> roleCatalog = [
     ability: 'Mixology',
     assetPath: 'assets/roles/bartender.png',
     colorHex: '#4B0082', // Indigo - from CB Visuals
+    lore:
+        "You serve the drinks, you hear the stories. You know who's sitting together and who's sitting apart. You can tell who's drinking from the same bottle.",
+    detailedAbility:
+        "Each night, select two players. The Host will signal if they are 'Aligned' (on the same team) or 'Not Aligned' (on different teams). You do not learn their specific roles, only their relationship.",
+    synergies: [RoleIds.bouncer, RoleIds.medic],
+    counters: [RoleIds.dealer, RoleIds.messyBitch],
   ),
 
   // ═══════════════════════════════════════════════
@@ -310,6 +413,12 @@ const List<Role> roleCatalog = [
     ability: 'The Rumour Mill',
     assetPath: 'assets/roles/messy_bitch.png',
     colorHex: '#E6E6FA', // Lavender - from CB Visuals
+    lore:
+        "Some people just want to watch the world burn. You? You brought the matches. The truth is boring. A good rumor is forever.",
+    detailedAbility:
+        "Each night, you start a Rumour about a specific player. This rumour spreads to other players. If, at any point, every living player has heard a rumour (not necessarily the same one), you win instantly and the game ends.",
+    synergies: [RoleIds.dramaQueen, RoleIds.creep],
+    counters: [RoleIds.dealer, RoleIds.bouncer],
   ),
 
   Role(
@@ -326,6 +435,12 @@ const List<Role> roleCatalog = [
     ability: 'Sight Card',
     assetPath: 'assets/roles/club_manager.png',
     colorHex: '#D2B48C', // Taupe - from CB Visuals
+    lore:
+        "This is your club. These are your people. Or at least, they were. Now you're just trying to survive the night without getting caught in the crossfire. You see everything, but you say nothing.",
+    detailedAbility:
+        "Each night, you can look at the role card of one other player. You learn their exact role. Your goal is simply to survive until the end of the game, regardless of who wins.",
+    synergies: [RoleIds.bouncer, RoleIds.wallflower],
+    counters: [RoleIds.dealer, RoleIds.roofi],
   ),
 
   Role(
@@ -342,6 +457,12 @@ const List<Role> roleCatalog = [
     ability: 'Obsession + Attack Dog',
     assetPath: 'assets/roles/clinger.png',
     colorHex: '#FFFF00', // Yellow - from CB Visuals
+    lore:
+        "You're not here for the party. You're here for *them*. If they leave, you leave. If they die, you die. It's romantic... in a twisted, codependent sort of way.",
+    detailedAbility:
+        "At the start of the game, you are linked to another player (your Partner). You must vote with them. If they are eliminated, you are also eliminated. However, if they die at night, you might snap and become an Attack Dog.",
+    synergies: [RoleIds.medic, RoleIds.silverFox],
+    counters: [RoleIds.dealer, RoleIds.teaSpiller],
   ),
 
   Role(
@@ -359,6 +480,12 @@ const List<Role> roleCatalog = [
     ability: 'Conversion Opportunity',
     assetPath: 'assets/roles/second_wind.png',
     colorHex: '#DE3163', // Cherry - from CB Visuals
+    lore:
+        "You've always been a survivor. When life knocks you down, you get back up. But sometimes, getting back up means changing who you are.",
+    detailedAbility:
+        "If the Dealers attempt to kill you at night, you survive. The next morning, you are presented with a choice: join the Dealers (become a Dealer) or remain a Party Animal. If you refuse, they can try to kill you again.",
+    synergies: [RoleIds.medic, RoleIds.dealer],
+    counters: [RoleIds.bouncer, RoleIds.wallflower],
   ),
 
   Role(
@@ -375,6 +502,12 @@ const List<Role> roleCatalog = [
     ability: 'Pretend Role + Inheritance',
     assetPath: 'assets/roles/creep.png',
     colorHex: '#800080', // Purple - from CB Visuals
+    lore:
+        "You have no identity of your own. You're a shadow, a mimic, a void waiting to be filled. You watch, you wait, and when the time is right, you become someone else.",
+    detailedAbility:
+        "On Night 0, choose a player to Mimic. You adopt their team alignment immediately. If that player dies, you inherit their role and ability. Until then, you are just a generic member of their team.",
+    synergies: [RoleIds.dramaQueen, RoleIds.messyBitch],
+    counters: [RoleIds.bouncer, RoleIds.medic],
   ),
 ];
 

@@ -3,20 +3,10 @@ import 'package:json_annotation/json_annotation.dart';
 import 'role_ids.dart';
 
 @JsonEnum()
-enum GamePhase {
-  lobby,
-  setup,
-  night,
-  day,
-  resolution,
-  endGame,
-}
+enum GamePhase { lobby, setup, night, day, resolution, endGame }
 
 @JsonEnum()
-enum SyncMode {
-  local,
-  cloud,
-}
+enum SyncMode { local, cloud }
 
 enum Team {
   @JsonValue("The Dealers")
@@ -83,7 +73,7 @@ extension GameStyleExtension on GameStyle {
           RoleIds.dramaQueen,
           RoleIds.teaSpiller,
           RoleIds.messyBitch,
-          RoleIds.partyAnimal
+          RoleIds.partyAnimal,
         ];
       case GameStyle.defensive:
         return [
@@ -95,7 +85,7 @@ extension GameStyleExtension on GameStyle {
           RoleIds.seasonedDrinker,
           RoleIds.bouncer,
           RoleIds.secondWind,
-          RoleIds.partyAnimal
+          RoleIds.partyAnimal,
         ];
       case GameStyle.reactive:
         return [
@@ -109,12 +99,52 @@ extension GameStyleExtension on GameStyle {
           RoleIds.lightweight,
           RoleIds.clubManager,
           RoleIds.creep,
-          RoleIds.partyAnimal
+          RoleIds.partyAnimal,
         ];
       case GameStyle.manual:
         return []; // Host chooses roles directly.
       case GameStyle.chaos:
         return []; // Empty means all roles
+    }
+  }
+}
+
+@JsonEnum()
+enum TieBreakStrategy {
+  @JsonValue("peaceful")
+  peaceful, // No one exiled on tie
+  @JsonValue("random")
+  random, // Random tied player exiled
+  @JsonValue("bloodbath")
+  bloodbath, // Everyone tied is exiled
+  @JsonValue("silent")
+  silentTreatment, // No one exiled, but all tied are silenced tomorrow
+}
+
+extension TieBreakStrategyExtension on TieBreakStrategy {
+  String get label {
+    switch (this) {
+      case TieBreakStrategy.peaceful:
+        return 'PEACEFUL';
+      case TieBreakStrategy.random:
+        return 'CHAOTIC';
+      case TieBreakStrategy.bloodbath:
+        return 'BLOODBATH';
+      case TieBreakStrategy.silentTreatment:
+        return 'SILENT TREATMENT';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case TieBreakStrategy.peaceful:
+        return 'NO EXILE ON TIE. ROOM STAYS STABLE.';
+      case TieBreakStrategy.random:
+        return 'RANDOM TIED OPERATIVE IS TERMINATED.';
+      case TieBreakStrategy.bloodbath:
+        return 'ALL TIED OPERATIVES ARE TERMINATED.';
+      case TieBreakStrategy.silentTreatment:
+        return 'NO EXILE, BUT TIED OPERATIVES LOSE VOICE.';
     }
   }
 }

@@ -15,37 +15,33 @@ class MiniTag extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Tooltip(
-      message: tooltip,
+      message: tooltip.toUpperCase(),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(CBRadius.xs),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  color.withValues(alpha: 0.4),
-                  color.withValues(alpha: 0.1),
-                ],
-              ),
-              border:
-                  Border.all(color: color.withValues(alpha: 0.7), width: 0.6),
+              color: color.withValues(alpha: 0.15),
+              border: Border.all(color: color.withValues(alpha: 0.5), width: 1.2),
               borderRadius: BorderRadius.circular(CBRadius.xs),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.1),
-                  blurRadius: 3,
-                  spreadRadius: 2,
+                  blurRadius: 4,
                 )
               ],
             ),
             child: Text(
-              text,
-              style: CBTypography.nano.copyWith(color: scheme.onSurface),
+              text.toUpperCase(),
+              style: CBTypography.nano.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+                shadows: CBColors.textGlow(color, intensity: 0.3),
+              ),
             ),
           ),
         ),

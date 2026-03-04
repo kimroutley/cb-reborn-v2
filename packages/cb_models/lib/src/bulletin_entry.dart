@@ -12,6 +12,8 @@ abstract class BulletinEntry with _$BulletinEntry {
     @Default('info') String type, // 'info', 'action', 'result', 'urgent'
     required DateTime timestamp,
     String? roleId,
+    String? targetRoleId,
+    @Default(false) bool isHostOnly,
   }) = _BulletinEntry;
 
   factory BulletinEntry.fromJson(Map<String, dynamic> json) =>

@@ -20,87 +20,104 @@ class PlayerCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final roleColor = CBColors.fromHex(player.role.colorHex);
+    final accent = player.isAlive ? roleColor : scheme.error;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: CBPanel(
-        borderColor:
-            (player.isAlive ? roleColor : scheme.error).withValues(alpha: 0.4),
-        child: InkWell(
-          onTap: onTap,
+    return CBFadeSlide(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: CBSpace.x3),
+        child: CBGlassTile(
+          borderColor: accent.withValues(alpha: 0.4),
+          isPrismatic: player.isAlive && !player.isSinBinned,
+          padding: const EdgeInsets.all(CBSpace.x4),
+          onTap: () {
+            HapticService.selection();
+            onTap?.call();
+          },
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CBRoleAvatar(
                     assetPath: player.role.id == 'unassigned'
                         ? null
                         : player.role.assetPath,
-                    color: player.isAlive ? roleColor : scheme.error,
-                    size: 40,
-                    pulsing: player.isAlive,
+                    color: accent,
+                    size: 48,
+                    pulsing: player.isAlive && !player.isSinBinned,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: CBSpace.x4),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          player.name,
-                          style: textTheme.headlineSmall!.copyWith(
-                            color: player.isAlive ? roleColor : scheme.error,
-                            fontWeight: FontWeight.bold,
+                          player.name.toUpperCase(),
+                          style: textTheme.titleMedium!.copyWith(
+                            color: player.isAlive ? scheme.onSurface : scheme.onSurface.withValues(alpha: 0.5),
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                            fontFamily: 'RobotoMono',
+                            decoration: player.isAlive ? null : TextDecoration.lineThrough,
+                            shadows: player.isAlive ? CBColors.textGlow(roleColor, intensity: 0.3) : null,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          player.role.name.toUpperCase(),
-                          style: textTheme.bodySmall!.copyWith(
-                            color: (player.isAlive ? roleColor : scheme.error)
-                                .withValues(alpha: 0.7),
-                          ),
+                        const SizedBox(height: CBSpace.x1),
+                        CBMiniTag(
+                          text: player.role.name.toUpperCase(),
+                          color: accent,
                         ),
                       ],
                     ),
                   ),
                   if (onDelete != null)
                     IconButton(
-                      icon: Icon(Icons.remove_circle_outline,
-                          color: scheme.error, size: 20),
-                      onPressed: onDelete,
+                      icon: Icon(Icons.remove_circle_outline_rounded,
+                          color: scheme.error.withValues(alpha: 0.6), size: 22),
+                      onPressed: () {
+                        HapticService.heavy();
+                        onDelete?.call();
+                      },
+                      visualDensity: VisualDensity.compact,
                     ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: CBSpace.x4),
               Row(
                 children: [
                   if (!player.isAlive)
-                    CBBadge(text: 'ELIMINATED', color: scheme.error),
-                  if (player.isAlive) ...[
+                    CBBadge(text: 'DE-ACTIVATED', color: scheme.error, icon: Icons.cancel_rounded)
+                  else ...[
                     if (player.isSinBinned)
                       Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
+                        padding: const EdgeInsets.only(right: CBSpace.x2),
                         child: CBBadge(
-                            text: 'SIN BINNED', color: scheme.secondary),
+                            text: 'SIN BIN', color: scheme.error, icon: Icons.timer_rounded),
                       ),
                     if (player.isShadowBanned)
                       Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: CBBadge(text: 'GHOSTED', color: scheme.tertiary),
+                        padding: const EdgeInsets.only(right: CBSpace.x2),
+                        child: CBBadge(text: 'SHADOWED', color: scheme.secondary, icon: Icons.visibility_off_rounded),
                       ),
+                    if (player.isMuted)
+                      Padding(
+                        padding: const EdgeInsets.only(right: CBSpace.x2),
+                        child: CBBadge(text: 'MUTED', color: scheme.secondary, icon: Icons.volume_off_rounded),
+                      ),
+                    const Spacer(),
                     Text(
                       switch (player.alliance) {
                         Team.clubStaff => 'STAFF',
-                        Team.partyAnimals => 'PARTY ANIMAL',
+                        Team.partyAnimals => 'PARTY',
                         Team.neutral => 'NEUTRAL',
                         Team.unknown => 'UNKNOWN',
                       },
                       style: textTheme.labelSmall!.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.6),
-                        fontSize: 10,
-                        letterSpacing: 1.0,
+                        color: scheme.onSurface.withValues(alpha: 0.4),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ],

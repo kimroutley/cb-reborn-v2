@@ -10,7 +10,8 @@ class CBConnectionDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = isConnected ? Colors.green : theme.colorScheme.error;
+    final color =
+        isConnected ? theme.colorScheme.tertiary : theme.colorScheme.error;
     final text = label ?? (isConnected ? 'LIVE' : 'OFFLINE');
 
     return Row(

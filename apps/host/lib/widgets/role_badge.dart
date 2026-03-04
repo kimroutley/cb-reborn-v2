@@ -13,32 +13,30 @@ class RoleBadge extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final theme = Theme.of(context);
-    Color badgeColor = theme.colorScheme.primary;
-    if (role!.colorHex.isNotEmpty) {
-      final hex = role!.colorHex.replaceAll('#', '');
-      badgeColor = Color(int.parse('FF$hex', radix: 16));
-    }
+    final roleColor = CBColors.fromHex(role!.colorHex);
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(
-            role!.assetPath,
-            width: 48,
-            height: 48,
-            errorBuilder: (_, __, ___) => Icon(
-              Icons.person,
-              size: 48,
-              color: badgeColor,
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: roleColor.withValues(alpha: 0.3), width: 1.5),
+            boxShadow: CBColors.circleGlow(roleColor, intensity: 0.2),
           ),
-          const SizedBox(height: 6),
-          CBBadge(text: role!.name, color: badgeColor),
-        ],
-      ),
+          child: CBRoleAvatar(
+            assetPath: role!.assetPath,
+            color: roleColor,
+            size: 48,
+          ),
+        ),
+        const SizedBox(height: 10),
+        CBBadge(
+          text: role!.name.toUpperCase(),
+          color: roleColor,
+        ),
+      ],
     );
   }
 }

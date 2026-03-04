@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../layout.dart';
+
 /// A compact player chip for inline selection in chat action bubbles.
 class CBCompactPlayerChip extends StatelessWidget {
   final String name;
@@ -36,12 +38,12 @@ class CBCompactPlayerChip extends StatelessWidget {
         type: MaterialType.transparency,
         child: InkWell(
           onTap: isDisabled ? null : onTap,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(CBRadius.lg),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: bgColor,
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(CBRadius.lg),
               border: Border.all(color: borderClr, width: 1.5),
               boxShadow: isSelected
                   ? [

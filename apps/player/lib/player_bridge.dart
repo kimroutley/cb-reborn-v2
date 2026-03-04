@@ -63,8 +63,9 @@ class PlayerGameState {
   final String? activeEffect;
   final Map<String, dynamic>? activeEffectPayload;
 
-  // New: Host info
   final String? hostName;
+  final Map<String, PlayerVotingStats> playerStats;
+  final bool rematchOffered;
 
   const PlayerGameState({
     this.phase = 'lobby',
@@ -95,6 +96,8 @@ class PlayerGameState {
     this.activeEffect,
     this.activeEffectPayload,
     this.hostName,
+    this.playerStats = const {},
+    this.rematchOffered = false,
   });
 
   bool get isLobby => phase == 'lobby';
@@ -134,6 +137,8 @@ class PlayerGameState {
       'hostName': hostName,
       'activeEffect': activeEffect,
       'activeEffectPayload': activeEffectPayload,
+      'playerStats': playerStats.map((k, v) => MapEntry(k, v.toJson())),
+      'rematchOffered': rematchOffered,
     };
   }
 
@@ -161,16 +166,27 @@ class PlayerGameState {
         const <BulletinEntry>[];
 
     final currentStepRaw = map['currentStep'];
+
     final currentStep = currentStepRaw is Map<String, dynamic>
         ? StepSnapshot.fromMap(currentStepRaw)
         : null;
+
+    final playerStatsRaw = map['playerStats'] as Map<String, dynamic>?;
+    final playerStats = playerStatsRaw?.map(
+          (k, v) => MapEntry(
+            k,
+            PlayerVotingStats.fromJson(v as Map<String, dynamic>),
+          ),
+        ) ??
+        const {};
 
     return PlayerGameState(
       phase: map['phase'] as String? ?? 'lobby',
       dayCount: map['dayCount'] as int? ?? 0,
       players: players,
       currentStep: currentStep,
-      bulletinBoard: bulletin,
+      bulletinBoard: sanitizePublicBulletinEntries(bulletin,
+          myRoleId: myPlayerSnapshot?.roleId),
       eyesOpen: map['eyesOpen'] as bool? ?? true,
       winner: map['winner'] as String?,
       endGameReport: _toStringList(map['endGameReport']),
@@ -191,6 +207,8 @@ class PlayerGameState {
       hostName: map['hostName'] as String?,
       activeEffect: map['activeEffect'] as String?,
       activeEffectPayload: map['activeEffectPayload'] as Map<String, dynamic>?,
+      playerStats: playerStats,
+      rematchOffered: map['rematchOffered'] as bool? ?? false,
     );
   }
 
@@ -208,6 +226,7 @@ class PlayerGameState {
       'silencedDay': player.silencedDay,
       'medicChoice': player.medicChoice,
       'lives': player.lives,
+      'isBot': player.isBot,
       'drinksOwed': player.drinksOwed,
       'currentBetTargetId': player.currentBetTargetId,
       'penalties': player.penalties,
@@ -217,7 +236,7 @@ class PlayerGameState {
       'secondWindPendingConversion': player.secondWindPendingConversion,
       'creepTargetId': player.creepTargetId,
       'whoreDeflectionUsed': player.whoreDeflectionUsed,
-      'tabooNames': player.tabooNames,
+      'blockedVoteTargets': player.blockedVoteTargets,
     };
   }
 
@@ -261,6 +280,80 @@ class PlayerGameState {
     };
   }
 
+  static const Set<String> _playerHiddenBulletinTypes = {
+    'ghostchat',
+    'ghost_chat',
+    'hostintel',
+    'host_intel',
+    'internal',
+    'debug',
+    'admin',
+  };
+
+  static List<BulletinEntry> sanitizePublicBulletinEntries(
+    List<BulletinEntry> entries, {
+    String? myRoleId,
+  }) {
+    if (entries.isEmpty) {
+      return const <BulletinEntry>[];
+    }
+
+    final out = <BulletinEntry>[];
+    for (final entry in entries) {
+      final safe = _toPlayerSafeBulletin(entry, myRoleId: myRoleId);
+      if (safe != null) {
+        out.add(safe);
+      }
+    }
+    return out;
+  }
+
+  static BulletinEntry? _toPlayerSafeBulletin(BulletinEntry entry,
+      {String? myRoleId}) {
+    // SECURITY: Explicit host-only check
+    if (entry.isHostOnly) {
+      return null;
+    }
+
+    // SECURITY: Role-targeted filtering
+    if (entry.targetRoleId != null && entry.targetRoleId != myRoleId) {
+      return null;
+    }
+
+    final type = entry.type.trim().toLowerCase();
+    if (_playerHiddenBulletinTypes.contains(type)) {
+      return null;
+    }
+
+    final upperTitle = entry.title.toUpperCase();
+    final upperContent = entry.content.toUpperCase();
+    if (upperTitle.contains('HOST ONLY') ||
+        upperTitle.contains('(HOST)') ||
+        upperContent.contains('[HOST ONLY]')) {
+      return null;
+    }
+
+    if (type == 'dayrecap') {
+      final recap = DayRecapCardPayload.tryParse(entry.content);
+      if (recap == null) {
+        return entry;
+      }
+      return entry.copyWith(
+        title: recap.playerTitle.isNotEmpty ? recap.playerTitle : entry.title,
+        content: DayRecapCardPayload(
+          v: recap.v,
+          day: recap.day,
+          playerTitle: recap.playerTitle,
+          playerBullets: recap.playerBullets,
+          hostTitle: '',
+          hostBullets: const [],
+        ).toJsonString(),
+      );
+    }
+
+    return entry;
+  }
+
   PlayerGameState copyWith({
     String? phase,
     int? dayCount,
@@ -290,6 +383,8 @@ class PlayerGameState {
     dynamic myPlayerSnapshot = _undefined,
     dynamic activeEffect = _undefined,
     dynamic activeEffectPayload = _undefined,
+    Map<String, PlayerVotingStats>? playerStats,
+    bool? rematchOffered,
   }) {
     return PlayerGameState(
       phase: phase ?? this.phase,
@@ -334,6 +429,8 @@ class PlayerGameState {
           ? this.activeEffectPayload
           : activeEffectPayload as Map<String, dynamic>?,
       hostName: hostName ?? this.hostName,
+      playerStats: playerStats ?? this.playerStats,
+      rematchOffered: rematchOffered ?? this.rematchOffered,
     );
   }
 }
@@ -351,16 +448,18 @@ class StepSnapshot {
   final bool isOptional;
 
   const StepSnapshot({
-    required this.id,
-    required this.title,
-    required this.readAloudText,
+    required String id,
+    required String title,
+    required String readAloudText,
     this.instructionText = '',
     this.actionType = 'readAloud',
     this.roleId,
     this.options = const [],
     this.timerSeconds,
     this.isOptional = false,
-  });
+  })  : id = id,
+        title = title,
+        readAloudText = readAloudText;
 
   factory StepSnapshot.fromMap(Map<String, dynamic> map) {
     return StepSnapshot(
@@ -751,6 +850,15 @@ class PlayerBridge extends Notifier<PlayerGameState>
         ) ??
         {};
 
+    final playerStatsRaw = payload['playerStats'] as Map<String, dynamic>?;
+    final playerStats = playerStatsRaw?.map(
+          (k, v) => MapEntry(
+            k,
+            PlayerVotingStats.fromJson(v as Map<String, dynamic>),
+          ),
+        ) ??
+        const {};
+
     final phase = payload['phase'] as String? ?? 'lobby';
 
     // Determine myPlayerId and myPlayerSnapshot after receiving new players list
@@ -762,38 +870,44 @@ class PlayerBridge extends Notifier<PlayerGameState>
         ? players.firstWhere((p) => p.id == updatedMyPlayerId)
         : null;
 
-    final nextState = PlayerGameState(
-      phase: phase,
-      dayCount: payload['dayCount'] as int? ?? 0,
-      players: players,
-      currentStep: step,
-      bulletinBoard: bulletin,
-      eyesOpen: eyesOpen,
-      winner: payload['winner'] as String?,
-      endGameReport: _toStringList(payload['endGameReport']),
-      voteTally: tally,
-      votesByVoter: votesByVoter,
-      nightReport: _toStringList(payload['nightReport']),
-      dayReport: _toStringList(payload['dayReport']),
-      privateMessages: privates,
-      claimedPlayerIds: _toStringList(payload['claimedPlayerIds']),
-      roleConfirmedPlayerIds: _toStringList(payload['roleConfirmedPlayerIds']),
-      gameHistory: _toStringList(payload['gameHistory']),
-      deadPoolBets: deadPoolBets,
-      ghostChatMessages: {
-        ...(state.ghostChatMessages),
-        ...(_toStringList(privates[updatedMyPlayerId])
-            .where((m) => m.startsWith('[GHOST] '))
-            .map((m) => m.replaceFirst('[GHOST] ', ''))),
-      }.toList(),
-      isConnected: state.isConnected,
-      joinAccepted: state.joinAccepted,
-      joinError: state.joinError,
-      claimError: state.claimError,
-      myPlayerId: updatedMyPlayerId, // Set updated ID
-      myPlayerSnapshot: updatedMyPlayerSnapshot, // Set updated snapshot
-      hostName: payload['hostName'] as String?,
-    );
+      final winner = payload['winner'] as String?;
+      final rematchOffered = payload['rematchOffered'] as bool? ?? false;
+
+      final nextState = PlayerGameState(
+        phase: phase,
+        dayCount: payload['dayCount'] as int? ?? 0,
+        players: players,
+        currentStep: step,
+        bulletinBoard: PlayerGameState.sanitizePublicBulletinEntries(bulletin,
+            myRoleId: updatedMyPlayerSnapshot?.roleId),
+        eyesOpen: eyesOpen,
+        winner: winner,
+        endGameReport: _toStringList(payload['endGameReport']),
+        voteTally: tally,
+        votesByVoter: votesByVoter,
+        nightReport: _toStringList(payload['nightReport']),
+        dayReport: _toStringList(payload['dayReport']),
+        privateMessages: privates,
+        claimedPlayerIds: _toStringList(payload['claimedPlayerIds']),
+        roleConfirmedPlayerIds: _toStringList(payload['roleConfirmedPlayerIds']),
+        gameHistory: _toStringList(payload['gameHistory']),
+        deadPoolBets: deadPoolBets,
+        ghostChatMessages: {
+          ...(state.ghostChatMessages),
+          ...(_toStringList(privates[updatedMyPlayerId])
+              .where((m) => m.startsWith('[GHOST] '))
+              .map((m) => m.replaceFirst('[GHOST] ', ''))),
+        }.toList(),
+        isConnected: state.isConnected,
+        joinAccepted: state.joinAccepted,
+        joinError: state.joinError,
+        claimError: state.claimError,
+        myPlayerId: updatedMyPlayerId, // Set updated ID
+        myPlayerSnapshot: updatedMyPlayerSnapshot, // Set updated snapshot
+        hostName: payload['hostName'] as String?,
+        playerStats: playerStats,
+        rematchOffered: rematchOffered,
+      );
 
     state = nextState;
     _attemptAutoClaim(nextState);

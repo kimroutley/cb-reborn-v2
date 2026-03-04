@@ -79,35 +79,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       actions: const [SimulationModeBadgeAction()],
       drawer: const CustomDrawer(),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x6),
         child: Column(
           children: [
-            _buildSectionHeader(context, 'AUDIO CONFIG', Icons.volume_up_rounded, scheme.secondary),
+            _buildSectionHeader(context, 'AUDIO CONFIG',
+                Icons.volume_up_rounded, scheme.secondary),
             _buildAudioSettings(context, settings, notifier, scheme),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'AI NARRATION', Icons.auto_awesome_rounded, scheme.tertiary),
+            const SizedBox(height: CBSpace.x6),
+            _buildSectionHeader(context, 'AI NARRATION',
+                Icons.auto_awesome_rounded, scheme.tertiary),
             _buildNarrationSettings(context, settings, notifier, scheme),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'DISPLAY', Icons.monitor_rounded, scheme.primary),
+            const SizedBox(height: CBSpace.x6),
+            _buildSectionHeader(
+                context, 'DISPLAY', Icons.monitor_rounded, scheme.primary),
             _buildDisplaySettings(context, settings, notifier, scheme),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'CLOUD LINK', Icons.cloud_done_rounded, scheme.primary),
+            const SizedBox(height: CBSpace.x6),
+            _buildSectionHeader(context, 'CLOUD LINK', Icons.cloud_done_rounded,
+                scheme.primary),
             _buildCloudAccessSettings(context, scheme),
-            const SizedBox(height: 24),
-            _buildSectionHeader(context, 'DATA MANAGEMENT', Icons.storage_rounded, scheme.error),
+            const SizedBox(height: CBSpace.x6),
+            _buildSectionHeader(context, 'DATA MANAGEMENT',
+                Icons.storage_rounded, scheme.error),
             _buildDataSettings(context, scheme),
-            const SizedBox(height: 32),
+            const SizedBox(height: CBSpace.x8),
             _buildAboutSection(scheme, _packageInfo),
-            const SizedBox(height: 48),
+            const SizedBox(height: CBSpace.x12),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, IconData icon, Color color) {
+  Widget _buildSectionHeader(
+      BuildContext context, String title, IconData icon, Color color) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: CBSpace.x3),
       child: CBSectionHeader(
         title: title,
         icon: icon,
@@ -122,8 +128,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final isAuthenticated = authState.user != null;
     final isLoading = authState.status == AuthStatus.loading;
     final isBusy = linkState.phase == CloudLinkPhase.initializing ||
-      linkState.phase == CloudLinkPhase.publishing ||
-      linkState.phase == CloudLinkPhase.verifying;
+        linkState.phase == CloudLinkPhase.publishing ||
+        linkState.phase == CloudLinkPhase.verifying;
     final isVerified = linkState.isVerified;
     final isDegraded = linkState.phase == CloudLinkPhase.degraded;
     final userIdentity = authState.user?.email?.trim().isNotEmpty == true
@@ -133,17 +139,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             : 'HOST');
 
     final statusLabel = isVerified
-      ? 'LINK VERIFIED'
-      : (isBusy
-        ? 'LINK ESTABLISHING'
-        : (isDegraded
-          ? 'LINK DEGRADED'
-          : (isAuthenticated ? 'LINK OFFLINE' : 'OFFLINE MODE')));
+        ? 'LINK VERIFIED'
+        : (isBusy
+            ? 'LINK ESTABLISHING'
+            : (isDegraded
+                ? 'LINK DEGRADED'
+                : (isAuthenticated ? 'LINK OFFLINE' : 'OFFLINE MODE')));
     final statusColor = isVerified
-      ? scheme.tertiary
-      : (isDegraded
-        ? scheme.error
-        : (isBusy ? scheme.primary : scheme.onSurface));
+        ? scheme.tertiary
+        : (isDegraded
+            ? scheme.error
+            : (isBusy ? scheme.primary : scheme.onSurface));
 
     return CBPanel(
       borderColor: scheme.tertiary.withValues(alpha: 0.35),
@@ -154,9 +160,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               Icon(
                 isAuthenticated ? Icons.link_rounded : Icons.link_off_rounded,
-                color: isAuthenticated ? scheme.tertiary : scheme.onSurface.withValues(alpha: 0.5),
+                color: isAuthenticated
+                    ? scheme.tertiary
+                    : scheme.onSurface.withValues(alpha: 0.5),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +192,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
           if ((linkState.message ?? '').trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: CBSpace.x2),
             Text(
               linkState.message!,
               style: CBTypography.bodySmall.copyWith(
@@ -192,7 +200,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
           ],
-          const SizedBox(height: 20),
+          const SizedBox(height: CBSpace.x5),
           if (!isAuthenticated)
             SizedBox(
               width: double.infinity,
@@ -239,7 +247,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ? null
                         : () async {
                             final controller = ref.read(gameProvider.notifier);
-                            if (ref.read(gameProvider).syncMode != SyncMode.cloud) {
+                            if (ref.read(gameProvider).syncMode !=
+                                SyncMode.cloud) {
                               controller.setSyncMode(SyncMode.cloud);
                             }
                             try {
@@ -261,7 +270,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           },
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: CBSpace.x3),
                 Expanded(
                   child: CBGhostButton(
                     label: 'TERMINATE LINK',
@@ -283,7 +292,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ],
             ),
           if (isAuthenticated) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: CBSpace.x3),
             SizedBox(
               width: double.infinity,
               child: CBGhostButton(
@@ -292,6 +301,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onPressed: isLoading
                     ? null
                     : () async {
+                        final confirmed = await showCBDiscardChangesDialog(
+                          context,
+                          title: 'SIGN OUT',
+                          message:
+                              'Sign out of your host account? Cloud features will go offline.',
+                          confirmLabel: 'SIGN OUT',
+                        );
+
+                        if (!confirmed || !context.mounted) return;
+
                         await ref.read(cloudHostBridgeProvider).stop();
                         await ref.read(authProvider.notifier).signOut();
                         if (!context.mounted) return;
@@ -326,7 +345,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             scheme.secondary,
             (v) => notifier.setMusicVolume(v),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           _buildSlider(
             context,
             'SFX LEVEL',
@@ -368,7 +387,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
           if (settings.geminiNarrationEnabled) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: CBSpace.x6),
             _buildPersonalitySelector(context, settings, notifier, scheme),
           ],
         ],
@@ -398,14 +417,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             letterSpacing: 1.5,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: CBSpace.x3),
         CBGlassTile(
           borderColor: scheme.tertiary.withValues(alpha: 0.4),
           isPrismatic: true,
           padding: EdgeInsets.zero,
           onTap: () => _showPersonalityPicker(context, settings, notifier),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: CBInsets.screen,
             child: Row(
               children: [
                 Expanded(
@@ -420,7 +439,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: CBSpace.x1),
                       Text(
                         currentPersonality.description,
                         style: CBTypography.bodySmall.copyWith(
@@ -435,7 +454,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: CBSpace.x4),
         SizedBox(
           width: double.infinity,
           child: CBGhostButton(
@@ -469,13 +488,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   shadows: CBColors.textGlow(scheme.tertiary, intensity: 0.5),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: CBSpace.x6),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(CBSpace.x5),
                 decoration: BoxDecoration(
                   color: scheme.surfaceContainerHighest.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(CBRadius.md),
                   border:
                       Border.all(color: scheme.tertiary.withValues(alpha: 0.3)),
                 ),
@@ -493,7 +512,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         textAlign: TextAlign.center,
                       ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: CBSpace.x8),
               CBPrimaryButton(
                 label: 'DISMISS',
                 backgroundColor: scheme.tertiary,
@@ -511,10 +530,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     HostSettings settings,
     HostSettingsNotifier notifier,
   ) {
-    showModalBottomSheet(
+    showThemedBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => PersonalityPickerModal(
+      child: PersonalityPickerModal(
         selectedPersonalityId: settings.hostPersonalityId,
         onPersonalitySelected: (id) {
           notifier.setHostPersonalityId(id);
@@ -614,7 +632,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: CBSpace.x2),
           Text(
             versionText,
             style: CBTypography.labelSmall.copyWith(
@@ -679,21 +697,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       type: MaterialType.transparency,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(CBRadius.sm),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: CBSpace.x2, horizontal: CBSpace.x1),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(CBSpace.x3),
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(CBRadius.sm),
                   border: Border.all(color: accentColor.withValues(alpha: 0.3)),
                 ),
                 child: Icon(icon, color: accentColor, size: 20),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: CBSpace.x4),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -737,7 +755,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.warning_amber_rounded, color: scheme.error, size: 48),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           Text(
             'CONFIRM PURGE',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -747,7 +765,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   shadows: CBColors.textGlow(scheme.error, intensity: 0.55),
                 ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x3),
           Text(
             'IRREVERSIBLE ACTION. ALL HALL OF FAME RECORDS WILL BE WIPED.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -756,7 +774,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -764,7 +782,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 label: 'ABORT',
                 onPressed: () => Navigator.pop(context),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               CBPrimaryButton(
                 fullWidth: false,
                 label: 'EXECUTE PURGE',
@@ -789,7 +807,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.restore_page_rounded, color: color, size: 48),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           Text(
             'RESET SESSION',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -799,7 +817,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   shadows: CBColors.textGlow(color, intensity: 0.55),
                 ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x3),
           Text(
             'CLEARS ACTIVE GAME STATE. USE ONLY IF THE SYSTEM IS UNRESPONSIVE.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -811,7 +829,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -819,7 +837,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 label: 'ABORT',
                 onPressed: () => Navigator.pop(context),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               CBPrimaryButton(
                 fullWidth: false,
                 label: 'RESET',

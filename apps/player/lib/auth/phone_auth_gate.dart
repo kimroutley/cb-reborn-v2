@@ -223,10 +223,8 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
           final isSignInLink =
               FirebaseAuth.instance.isSignInWithEmailLink(currentLink);
 
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('PLAYER LOGIN'),
-            ),
+          return CBPrismScaffold(
+            title: 'PLAYER LOGIN',
             body: CBNeonBackground(
               child: Center(
                 child: SingleChildScrollView(
@@ -323,8 +321,10 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
           future: _loadProfile(user),
           builder: (context, profileSnapshot) {
             if (profileSnapshot.connectionState != ConnectionState.done) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+              return CBPrismScaffold(
+                title: '',
+                showAppBar: false,
+                body: const Center(child: CBBreathingSpinner()),
               );
             }
 
@@ -334,10 +334,8 @@ class _PhoneAuthGateState extends State<PhoneAuthGate> {
               return widget.child;
             }
 
-            return Scaffold(
-              appBar: AppBar(
-                title: const Text('CREATE USERNAME'),
-              ),
+            return CBPrismScaffold(
+              title: 'CREATE USERNAME',
               body: CBNeonBackground(
                 child: Center(
                   child: SingleChildScrollView(

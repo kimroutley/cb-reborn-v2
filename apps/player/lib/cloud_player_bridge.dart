@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cb_comms/cb_comms_player.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +9,20 @@ import 'firebase_options.dart';
 import 'player_bridge.dart'; // re-use PlayerGameState, PlayerSnapshot, StepSnapshot, kDayVoteStepId
 import 'player_bridge_actions.dart';
 import 'player_session_cache.dart';
+import 'package:cb_models/cb_models.dart';
+import 'package:cb_player/services/web_push_service.dart';
+
+class BridgeError {
+  final String message;
+  final String code;
+  final Object? originalError;
+
+  const BridgeError({
+    required this.message,
+    required this.code,
+    this.originalError,
+  });
+}
 
 /// Cloud-mode player bridge using Firebase Firestore.
 ///
@@ -15,20 +30,34 @@ import 'player_session_cache.dart';
 /// Subscribes to Firestore docs for game state instead of WebSocket.
 class CloudPlayerBridge extends Notifier<PlayerGameState>
     implements PlayerBridgeActions {
-  static const Duration _initialSnapshotTimeout = Duration(seconds: 12);
+  static const Duration _initialSnapshotTimeout = Duration(seconds: 20);
 
   FirebaseBridge? _firebase;
   StreamSubscription? _gameSub;
   StreamSubscription? _privateSub;
-  String? _pendingClaimName;
   String? _cachedJoinCode;
   String? _cachedPlayerName;
-  Map<String, dynamic>? _cachedPrivateData;
-  bool _isClaimingInProgress = false;
-  // Removed String? _claimedPlayerId; as it's now in PlayerGameState.myPlayerId
+
+  /// Global error stream that the UI can listen to.
+  final _bridgeErrorController = StreamController<BridgeError>.broadcast();
+  Stream<BridgeError> get bridgeErrors => _bridgeErrorController.stream;
 
   @override
   PlayerGameState build() {
+    ref.onDispose(() {
+      _gameSub?.cancel();
+      _privateSub?.cancel();
+      _bridgeErrorController.close();
+    });
+
+    // Listen to push subscription changes and sync to Firestore
+    ref.listen(webPushServiceProvider.select((s) => s.subscriptionPayload),
+        (prev, next) {
+      if (next != null && next != prev) {
+        registerPushSubscription(next);
+      }
+    }); 
+    
     // Return initial state
     return const PlayerGameState();
   }
@@ -87,17 +116,23 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       // Wait for the first public game snapshot before declaring the join
       // successful. This prevents false-positive "connected" UI states when
       // cloud data is unavailable or delayed.
-      await firstSnapshotReady.future.timeout(_initialSnapshotTimeout);
+      await firstSnapshotReady.future.timeout(
+        _initialSnapshotTimeout,
+        onTimeout: () => throw TimeoutException(
+          'Cloud join timed out. Confirm the host lobby is live, your code is correct, and try again.',
+        ),
+      );
 
       state = state.copyWith(isConnected: true, joinAccepted: true);
       _persistSessionCache();
 
       debugPrint('[CloudPlayerBridge] Subscribed to game $code');
-    } on TimeoutException {
+    } on TimeoutException catch (e) {
       await disconnect();
+      final message = e.message ??
+          'Cloud join timed out. Confirm host lobby is live and retry.';
       state = state.copyWith(
-        joinError:
-            'Cloud join timed out. Confirm host lobby is live and retry.',
+        joinError: message,
         isConnected: false,
         joinAccepted: false,
       );
@@ -112,7 +147,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         joinAccepted: false,
       );
       _persistSessionCache();
-      rethrow;
+      throw Exception(state.joinError);
     }
   }
 
@@ -120,7 +155,6 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   Future<void> joinGame(String joinCode, String playerName) async {
     final resolvedName =
         playerName.trim().isEmpty ? 'Player' : playerName.trim();
-    _pendingClaimName = resolvedName;
     _cachedPlayerName = resolvedName;
     await joinWithCode(joinCode);
     await sendJoinRequest(resolvedName);
@@ -130,7 +164,16 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   /// Send a join request (player name → joins subcollection).
   Future<void> sendJoinRequest(String playerName) async {
     if (_firebase == null) return;
-    await _firebase!.sendJoinRequest(playerName);
+    try {
+      await _firebase!.sendJoinRequest(playerName);
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Join request failed. Please retry.',
+        code: 'join_request_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
     debugPrint('[CloudPlayerBridge] Join request sent: $playerName');
   }
 
@@ -164,11 +207,20 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   @override
   Future<void> vote({required String voterId, required String targetId}) async {
     if (_firebase == null) return;
-    await _firebase!.sendAction(
-      stepId: kDayVoteStepId,
-      playerId: voterId,
-      targetId: targetId,
-    );
+    try {
+      await _firebase!.sendAction(
+        stepId: kDayVoteStepId,
+        playerId: voterId,
+        targetId: targetId,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Vote failed to send. Try again.',
+        code: 'vote_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
   }
 
   /// Send a night action or other step action.
@@ -179,17 +231,35 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     String? voterId,
   }) async {
     if (_firebase == null) return;
-    await _firebase!.sendAction(
-      stepId: stepId,
-      playerId: voterId ?? state.myPlayerId ?? '',
-      targetId: targetId,
-    );
+    try {
+      await _firebase!.sendAction(
+        stepId: stepId,
+        playerId: voterId ?? state.myPlayerId ?? '',
+        targetId: targetId,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Action failed to send. Try again.',
+        code: 'interaction_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
   }
 
   @override
   Future<void> confirmRole({required String playerId}) async {
     if (_firebase == null) return;
-    await _firebase!.sendRoleConfirm(playerId: playerId);
+    try {
+      await _firebase!.sendRoleConfirm(playerId: playerId);
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Role confirmation failed. Try again.',
+        code: 'role_confirm_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
   }
 
   @override
@@ -198,10 +268,19 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     required String targetPlayerId,
   }) async {
     if (_firebase == null) return;
-    await _firebase!.sendDeadPoolBet(
-      playerId: playerId,
-      targetPlayerId: targetPlayerId,
-    );
+    try {
+      await _firebase!.sendDeadPoolBet(
+        playerId: playerId,
+        targetPlayerId: targetPlayerId,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Dead-pool bet failed to send. Try again.',
+        code: 'dead_pool_bet_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
   }
 
   @override
@@ -215,10 +294,71 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       return;
     }
     if (_firebase == null) return;
-    await _firebase!.sendGhostChat(
-      playerId: playerId,
-      message: trimmed,
-      playerName: playerName,
+    try {
+      await _firebase!.sendGhostChat(
+        playerId: playerId,
+        message: trimmed,
+        playerName: playerName,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Ghost chat failed to send. Try again.',
+        code: 'ghost_chat_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> sendBulletin({
+    required String title,
+    required String floatContent,
+    String? roleId,
+  }) async {
+    if (_firebase == null) return;
+
+    final myPlayerId = state.myPlayerId?.trim() ?? '';
+    if (myPlayerId.isEmpty) {
+      final error = StateError(
+        'Cannot send chat before claiming a player identity.',
+      );
+      _reportRuntimeError(
+        message: 'Claim your player identity before sending chat.',
+        code: 'chat_identity_missing',
+        originalError: error,
+      );
+      throw error;
+    }
+    try {
+      await _firebase!.sendChat(
+        playerId: myPlayerId,
+        title: title,
+        message: floatContent,
+        roleId: roleId,
+      );
+    } catch (e) {
+      _reportRuntimeError(
+        message: 'Chat failed to send. Try again.',
+        code: 'chat_failed',
+        originalError: e,
+      );
+      rethrow;
+    }
+  }
+
+  void _reportRuntimeError({
+    required String message,
+    required String code,
+    Object? originalError,
+  }) {
+    state = state.copyWith(joinError: message);
+    _bridgeErrorController.add(
+      BridgeError(
+        message: message,
+        code: code,
+        originalError: originalError,
+      ),
     );
   }
 
@@ -238,10 +378,6 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     _gameSub = null;
     _privateSub = null;
     _firebase = null;
-    _pendingClaimName = null;
-    _isClaimingInProgress = false;
-    state = const PlayerGameState(); // Reset to initial state
-    debugPrint('[CloudPlayerBridge] Disconnected');
   }
 
   // ─── INBOUND ──────────────────────────────────
@@ -277,15 +413,25 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         ) ??
         {};
 
+    final bulletinRaw = data['bulletinBoard'] as List<dynamic>?;
+    final bulletinBoard = bulletinRaw
+            ?.map((e) => BulletinEntry.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
     final phase = data['phase'] as String? ?? 'lobby';
 
-    // Determine myPlayerId and myPlayerSnapshot after receiving new players list
+    // Determine myPlayerId and myPlayerSnapshot after receiving new players list.
+    // Public state redacts role (roleId 'hidden') during game; preserve our private role data.
     final String? updatedMyPlayerId =
         state.myPlayerId != null && players.any((p) => p.id == state.myPlayerId)
             ? state.myPlayerId
             : null;
     final PlayerSnapshot? updatedMyPlayerSnapshot = updatedMyPlayerId != null
-        ? players.firstWhere((p) => p.id == updatedMyPlayerId)
+        ? _mergePublicWithPrivatePlayer(
+            players.firstWhere((p) => p.id == updatedMyPlayerId),
+            state.myPlayerSnapshot,
+          )
         : null;
 
     state = state.copyWith(
@@ -304,27 +450,100 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       roleConfirmedPlayerIds: _toStringList(data['roleConfirmedPlayerIds']),
       gameHistory: _toStringList(data['gameHistory']),
       deadPoolBets: deadPoolBets,
+      bulletinBoard: PlayerGameState.sanitizePublicBulletinEntries(
+        bulletinBoard,
+      ),
       ghostChatMessages: state.ghostChatMessages,
       isConnected: true,
       joinAccepted: true,
       joinError: state.joinError,
       claimError: state.claimError,
-      myPlayerId: updatedMyPlayerId, // Set updated ID
-      myPlayerSnapshot: updatedMyPlayerSnapshot, // Set updated snapshot
+      myPlayerId: updatedMyPlayerId,
+      myPlayerSnapshot: updatedMyPlayerSnapshot,
+      rematchOffered: data['rematchOffered'] as bool? ?? false,
     );
 
-    if (_cachedPrivateData != null) {
-      _applyPrivateState(_cachedPrivateData!);
-    } else {
-      _attemptAutoClaim(state);
-      _persistSessionCache();
+    _attemptAutoClaim(state);
+    _persistSessionCache();
+  }
+
+  /// Merge public player snapshot with existing private snapshot.
+  /// Public state redacts role (roleId 'hidden') during game; keep private role when present.
+  PlayerSnapshot _mergePublicWithPrivatePlayer(
+    PlayerSnapshot fromPublic,
+    PlayerSnapshot? existingPrivate,
+  ) {
+    if (existingPrivate == null || fromPublic.id != existingPrivate.id) {
+      return fromPublic;
+    }
+    if (fromPublic.roleId != 'hidden' && fromPublic.roleId.isNotEmpty) {
+      return fromPublic; // End game or already revealed
+    }
+    return PlayerSnapshot(
+      id: fromPublic.id,
+      name: fromPublic.name,
+      authUid: fromPublic.authUid,
+      roleId: existingPrivate.roleId,
+      roleName: existingPrivate.roleName,
+      roleDescription: existingPrivate.roleDescription,
+      roleColorHex: existingPrivate.roleColorHex,
+      alliance: existingPrivate.alliance,
+      isAlive: fromPublic.isAlive,
+      deathDay: fromPublic.deathDay,
+      silencedDay: existingPrivate.silencedDay,
+      medicChoice: existingPrivate.medicChoice,
+      lives: fromPublic.lives,
+      isBot: fromPublic.isBot,
+      drinksOwed: fromPublic.drinksOwed,
+      currentBetTargetId: fromPublic.currentBetTargetId,
+      penalties: fromPublic.penalties,
+      hasRumour: fromPublic.hasRumour,
+      clingerPartnerId: existingPrivate.clingerPartnerId,
+      hasReviveToken: existingPrivate.hasReviveToken,
+      secondWindPendingConversion: existingPrivate.secondWindPendingConversion,
+      creepTargetId: existingPrivate.creepTargetId,
+      whoreDeflectionUsed: existingPrivate.whoreDeflectionUsed,
+      blockedVoteTargets: existingPrivate.blockedVoteTargets,
+    );
+  }
+
+  void _attemptAutoClaim(PlayerGameState gameState) {
+    if (gameState.myPlayerId != null) return;
+
+    // Try authUid matching first (strongest signal).
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final uidMatch = gameState.players.cast<PlayerSnapshot?>().firstWhere(
+            (p) => p?.authUid == uid,
+            orElse: () => null,
+          );
+      if (uidMatch != null) {
+        claimPlayer(uidMatch.id);
+        return;
+      }
+    }
+
+    // Fallback: match by the player name sent during joinGame.
+    final pendingName = _cachedPlayerName?.trim();
+    if (pendingName == null || pendingName.isEmpty) return;
+
+    final claimed = gameState.claimedPlayerIds.toSet();
+    final nameMatch = gameState.players.cast<PlayerSnapshot?>().firstWhere(
+          (p) =>
+              p != null &&
+              !claimed.contains(p.id) &&
+              p.name.trim().toLowerCase() == pendingName.toLowerCase(),
+          orElse: () => null,
+        );
+
+    if (nameMatch != null) {
+      claimPlayer(nameMatch.id);
     }
   }
 
   /// Merge private state (role, alliance, etc.) into the existing
   /// player snapshot for the claimed player.
   void _applyPrivateState(Map<String, dynamic> data) {
-    _cachedPrivateData = data;
     if (state.myPlayerId == null) return;
 
     final updatedPlayers = state.players.map((p) {
@@ -343,6 +562,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         silencedDay: data['silencedDay'] as int? ?? p.silencedDay,
         medicChoice: data['medicChoice'] as String? ?? p.medicChoice,
         lives: data['lives'] as int? ?? p.lives,
+        isBot: p.isBot,
         hasRumour: p.hasRumour,
         clingerPartnerId:
             data['clingerPartnerId'] as String? ?? p.clingerPartnerId,
@@ -353,17 +573,9 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
         creepTargetId: data['creepTargetId'] as String? ?? p.creepTargetId,
         whoreDeflectionUsed:
             data['whoreDeflectionUsed'] as bool? ?? p.whoreDeflectionUsed,
-        tabooNames: _toStringList(data['tabooNames']),
-        currentBetTargetId: data['currentBetTargetId'] as String? ?? p.currentBetTargetId,
+        blockedVoteTargets: _toStringList(data['blockedVoteTargets']),
       );
     }).toList();
-
-    // Merge dead pool bet
-    final deadPoolBets = Map<String, String>.from(state.deadPoolBets);
-    final myDeadPoolTarget = data['deadPoolTargetId'] as String?;
-    if (myDeadPoolTarget != null) {
-      deadPoolBets[state.myPlayerId!] = myDeadPoolTarget;
-    }
 
     // Also merge private messages
     final privateMessages = <String, List<String>>{...state.privateMessages};
@@ -392,7 +604,6 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
 
     state = state.copyWith(
       players: updatedPlayers,
-      deadPoolBets: deadPoolBets,
       privateMessages: privateMessages,
       ghostChatMessages: ghostMessages,
       myPlayerSnapshot: updatedMyPlayerSnapshot,
@@ -403,6 +614,16 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
   List<String> _toStringList(dynamic value) {
     if (value is List) return value.map((e) => e.toString()).toList();
     return [];
+  }
+
+  /// Register a Web Push subscription so the backend can send notifications.
+  /// Call after [PushSubscriptionRegister.getSubscription] returns a map (web only).
+  Future<void> registerPushSubscription(
+    Map<String, dynamic> subscription,
+  ) async {
+    if (_firebase == null || state.myPlayerId == null) return;
+    await _firebase!.setPushSubscription(state.myPlayerId!, subscription);
+    debugPrint('[CloudPlayerBridge] Registered push subscription');
   }
 
   void _persistSessionCache() {
@@ -421,37 +642,6 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     unawaited(
       ref.read(playerSessionCacheRepositoryProvider).saveSession(entry),
     );
-  }
-
-  void _attemptAutoClaim(PlayerGameState nextState) {
-    if (_isClaimingInProgress) return;
-    if (!nextState.joinAccepted || nextState.myPlayerId != null) {
-      return;
-    }
-
-    final pendingName = _pendingClaimName?.trim();
-    if (pendingName == null || pendingName.isEmpty) {
-      return;
-    }
-
-    PlayerSnapshot? candidate;
-    for (final player in nextState.players) {
-      final alreadyClaimed = nextState.claimedPlayerIds.contains(player.id);
-      final sameName =
-          player.name.trim().toLowerCase() == pendingName.toLowerCase();
-      if (!alreadyClaimed && sameName) {
-        candidate = player;
-        break;
-      }
-    }
-
-    if (candidate != null) {
-      _pendingClaimName = null;
-      _isClaimingInProgress = true;
-      claimPlayer(candidate.id).whenComplete(() {
-        _isClaimingInProgress = false;
-      });
-    }
   }
 }
 

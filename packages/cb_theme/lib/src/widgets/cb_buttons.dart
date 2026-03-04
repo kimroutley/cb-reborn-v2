@@ -47,7 +47,7 @@ class CBPrimaryButton extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 18),
-            const SizedBox(width: 8),
+            const SizedBox(width: CBSpace.x2),
           ],
           Text(label.toUpperCase()),
         ],
@@ -107,7 +107,7 @@ class CBGhostButton extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 18),
-            const SizedBox(width: 8),
+            const SizedBox(width: CBSpace.x2),
           ],
           Text(
             label.toUpperCase(),
@@ -165,7 +165,7 @@ class CBTextButton extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 18),
-            const SizedBox(width: 8),
+            const SizedBox(width: CBSpace.x2),
           ],
           Text(
             label.toUpperCase(),

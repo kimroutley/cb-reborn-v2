@@ -281,13 +281,11 @@ void main() {
           true);
     });
 
-    test('Lightweight applies taboo name to all alive players', () {
+    test('Lightweight applies cumulative voting restriction', () {
       final lightweight = _player('Lightweight', _role(RoleIds.lightweight));
       final target = _player('Target', _role(RoleIds.partyAnimal));
       final bystander = _player('Bystander', _role(RoleIds.partyAnimal));
-      final deadPlayer =
-          _player('Dead', _role(RoleIds.partyAnimal)).copyWith(isAlive: false);
-      final players = [lightweight, target, bystander, deadPlayer];
+      final players = [lightweight, target, bystander];
 
       final log = {
         'lightweight_act_${lightweight.id}_1': target.id,
@@ -297,24 +295,16 @@ void main() {
 
       final updatedLightweight =
           result.players.firstWhere((p) => p.id == lightweight.id);
-      final updatedTarget = result.players.firstWhere((p) => p.id == target.id);
-      final updatedBystander =
-          result.players.firstWhere((p) => p.id == bystander.id);
-      final updatedDead =
-          result.players.firstWhere((p) => p.id == deadPlayer.id);
 
-      expect(updatedLightweight.tabooNames, contains(target.name));
-      expect(updatedTarget.tabooNames, contains(target.name));
-      expect(updatedBystander.tabooNames, contains(target.name));
-      expect(updatedDead.tabooNames, isNot(contains(target.name)));
+      expect(updatedLightweight.blockedVoteTargets, contains(target.id));
 
       expect(result.privateMessages[lightweight.id]!.first,
-          contains('banned ${target.name}\'s name'));
+          contains('can no longer vote for ${target.name}'));
       expect(
           result.report
-              .any((s) => s.contains('LW banned ${target.name}\'s name')),
+              .any((s) => s.contains('LW blocked vote target: ${target.name}')),
           true);
-      expect(result.teasers, contains('A name is now FORBIDDEN.'));
+      expect(result.teasers, contains('Lightweight lost a voting option.'));
     });
 
     test('Second Wind survives once', () {

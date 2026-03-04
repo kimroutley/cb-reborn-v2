@@ -3,8 +3,6 @@ import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 
-import '../utils/role_color_extension.dart';
-
 class GameBottomControls extends StatelessWidget {
   const GameBottomControls({
     super.key,
@@ -29,6 +27,7 @@ class GameBottomControls extends StatelessWidget {
 
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     // Determine interactivity
     final isSelection = step!.actionType == ScriptActionType.selectPlayer ||
@@ -46,24 +45,44 @@ class GameBottomControls extends StatelessWidget {
         ? (currentSelection != null && currentSelection.split(',').length >= 2)
         : currentSelection != null;
 
-    // Simulation availability
     final canSimulate = step!.id == 'day_vote' ||
         isSelection ||
         isBinary ||
         step!.actionType == ScriptActionType.optional;
 
-    return Padding(
-      padding: const EdgeInsets.all(12),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, CBSpace.x4),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow.withValues(alpha: 0.8),
+        border: Border(
+          top: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2), width: 1.5),
+        ),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── INPUT AREA ──
-          if (isSelection)
-            _buildPlayerSelectionGrid(context, step!, gameState, controller),
-          if (isBinary)
-            _buildBinaryChoice(context, step!, controller),
-
-          if (isSelection || isBinary) const SizedBox(height: 12),
+          if (isSelection || isBinary) ...[
+            CBFadeSlide(
+              child: Text(
+                'DIRECT INTERVENTION'.toUpperCase(),
+                style: textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.4),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                  fontSize: 9,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: CBSpace.x3),
+            if (isSelection)
+              _buildPlayerSelectionGrid(context, step!, gameState, controller),
+            if (isBinary)
+              _buildBinaryChoice(context, step!, controller),
+            const SizedBox(height: CBSpace.x4),
+          ],
 
           // ── CONTROL BAR ──
           Row(
@@ -71,44 +90,36 @@ class GameBottomControls extends StatelessWidget {
               if (canSimulate)
                 Expanded(
                   child: CBGhostButton(
-                    label: 'AUTO-SIMULATE',
+                    label: 'AUTO-SIM',
+                    icon: Icons.smart_toy_rounded,
                     color: scheme.tertiary,
                     onPressed: () {
+                      HapticService.medium();
                       final count = controller.simulateBotTurns();
                       final msg = count > 0
-                          ? 'SIMULATED $count BOT ACTION${count == 1 ? '' : 'S'}'
-                          : 'NO BOTS AVAILABLE TO ACT';
+                          ? 'SIMULATED $count BOT ACTIONS.'
+                          : 'NO BOTS AVAILABLE TO ACT.';
 
                       showThemedSnackBar(
                         context,
                         msg,
                         accentColor: count > 0 ? scheme.tertiary : scheme.error,
-                        duration: const Duration(seconds: 2),
                       );
                     },
                   ),
                 ),
-              if (canSimulate) const SizedBox(width: 12),
+              if (canSimulate) const SizedBox(width: CBSpace.x3),
 
-              if (isMultiSelect)
-                Expanded(
-                  flex: 2,
-                  child: CBPrimaryButton(
-                    label: 'CONFIRM SELECTION',
-                    icon: Icons.check_circle_outline_rounded,
-                    onPressed: canConfirm ? onConfirm : null,
-                  ),
+              Expanded(
+                flex: 2,
+                child: CBPrimaryButton(
+                  label: isMultiSelect ? 'CONFIRM' : 'PROCEED',
+                  icon: isMultiSelect ? Icons.check_circle_rounded : Icons.arrow_forward_rounded,
+                  onPressed: isMultiSelect 
+                      ? (canConfirm ? onConfirm : null)
+                      : onContinue,
                 ),
-
-              if (!isMultiSelect)
-                Expanded(
-                  flex: 2,
-                  child: CBPrimaryButton(
-                    label: 'PROCEED',
-                    icon: Icons.arrow_forward_rounded,
-                    onPressed: () => onContinue(),
-                  ),
-                ),
+              ),
             ],
           ),
         ],
@@ -118,6 +129,8 @@ class GameBottomControls extends StatelessWidget {
 
   Widget _buildPlayerSelectionGrid(
       BuildContext context, ScriptStep step, GameState gameState, Game controller) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final eligiblePlayers = gameState.players.where((p) => p.isAlive).toList();
     final isMulti = step.actionType == ScriptActionType.selectTwoPlayers ||
                     step.actionType == ScriptActionType.multiSelect;
@@ -131,60 +144,74 @@ class GameBottomControls extends StatelessWidget {
     if (eligiblePlayers.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(CBSpace.x4),
           child: Text(
-            'NO ELIGIBLE TARGETS',
-            style: Theme.of(context).textTheme.labelSmall,
+            'NO ELIGIBLE TARGETS DETECTED.',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.3),
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+            ),
           ),
         ),
       );
     }
 
-    return SizedBox(
-      height: 140, // Fixed height scrollable area for inputs
-      child: SingleChildScrollView(
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          alignment: WrapAlignment.center,
-          children: eligiblePlayers.map((p) {
-            final isSelected = currentPicks.contains(p.id);
-            return CBCompactPlayerChip(
-              name: p.name,
-              assetPath: p.role.assetPath,
-              color: RoleColorExtension(p.role).color,
-              isSelected: isSelected,
-              onTap: () {
-                if (!isMulti) {
-                  // Single select: toggle
-                  controller.handleInteraction(
-                    stepId: step.id,
-                    targetId: isSelected ? null : p.id,
-                  );
-                } else {
-                  // Multi select
-                  final newPicks = List<String>.from(currentPicks);
-                  if (isSelected) {
-                    newPicks.remove(p.id);
+    return Container(
+      height: 160,
+      decoration: BoxDecoration(
+        color: scheme.onSurface.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(CBRadius.sm),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.1)),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(CBRadius.sm),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(CBSpace.x3),
+          physics: const BouncingScrollPhysics(),
+          child: Wrap(
+            spacing: CBSpace.x2,
+            runSpacing: CBSpace.x2,
+            alignment: WrapAlignment.center,
+            children: eligiblePlayers.map((p) {
+              final isSelected = currentPicks.contains(p.id);
+              final roleColor = CBColors.fromHex(p.role.colorHex);
+              return CBCompactPlayerChip(
+                name: p.name,
+                assetPath: p.role.assetPath,
+                color: roleColor,
+                isSelected: isSelected,
+                onTap: () {
+                  if (!isMulti) {
+                    controller.handleInteraction(
+                      stepId: step.id,
+                      targetId: isSelected ? null : p.id,
+                    );
                   } else {
-                    if (newPicks.length < 2) { // Cap at 2 for now, or use step config
-                      newPicks.add(p.id);
+                    final newPicks = List<String>.from(currentPicks);
+                    if (isSelected) {
+                      newPicks.remove(p.id);
+                    } else {
+                      if (newPicks.length < 2) {
+                        newPicks.add(p.id);
+                      }
                     }
+                    controller.handleInteraction(
+                      stepId: step.id,
+                      targetId: newPicks.isEmpty ? null : newPicks.join(','),
+                    );
                   }
-                  controller.handleInteraction(
-                    stepId: step.id,
-                    targetId: newPicks.isEmpty ? null : newPicks.join(','),
-                  );
-                }
-              },
-            );
-          }).toList(),
+                },
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
   }
 
   Widget _buildBinaryChoice(BuildContext context, ScriptStep step, Game controller) {
+    final scheme = Theme.of(context).colorScheme;
     final options = step.instructionText.split('|');
     final left = options.isNotEmpty ? options[0].trim() : 'YES';
     final right = options.length > 1 ? options[1].trim() : 'NO';
@@ -194,24 +221,24 @@ class GameBottomControls extends StatelessWidget {
       children: [
         Expanded(
           child: CBFilterChip(
-            label: left,
+            label: left.toUpperCase(),
             selected: currentVal == left,
             onSelected: () {
                controller.handleInteraction(stepId: step.id, targetId: left);
             },
-            color: Theme.of(context).colorScheme.primary,
+            color: scheme.primary,
             dense: false,
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: CBSpace.x3),
         Expanded(
           child: CBFilterChip(
-            label: right,
+            label: right.toUpperCase(),
             selected: currentVal == right,
             onSelected: () {
                controller.handleInteraction(stepId: step.id, targetId: right);
             },
-            color: Theme.of(context).colorScheme.error,
+            color: scheme.error,
             dense: false,
           ),
         ),

@@ -31,93 +31,135 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
   }
 
   void _sendMessage() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    HapticService.selection();
     ref.read(chatProvider.notifier).sendMessage(
           widget.playerId,
           widget.playerName,
-          _controller.text,
+          text,
         );
     _controller.clear();
     _scrollToBottom();
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
     final messages = ref.watch(chatProvider);
 
-    return Container(
-      height: 300,
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.zero,
-      ),
+    return CBGlassTile(
+      padding: EdgeInsets.zero,
+      borderColor: scheme.primary.withValues(alpha: 0.3),
+      borderRadius:
+          const BorderRadius.vertical(top: Radius.circular(CBRadius.md)),
       child: Column(
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x3),
             child: Row(
               children: [
-                Icon(Icons.chat, size: 20, color: scheme.primary),
-                const SizedBox(width: 8),
-                Text('Chat', style: textTheme.labelLarge!),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.forum_rounded,
+                      size: 18, color: scheme.primary),
+                ),
+                const SizedBox(width: CBSpace.x3),
+                Text(
+                  'MISSION COMS',
+                  style: textTheme.labelLarge!.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    color: scheme.primary,
+                    shadows: CBColors.textGlow(scheme.primary, intensity: 0.3),
+                  ),
+                ),
+                const Spacer(),
+                CBBadge(
+                  text: '${messages.length} TRANSLATIONS',
+                  color: scheme.primary,
+                ),
               ],
             ),
           ),
-          Divider(height: 1, color: scheme.outlineVariant),
+
+          Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  scheme.primary.withValues(alpha: 0.3),
+                  CBColors.transparent
+                ],
+              ),
+            ),
+          ),
 
           // Messages
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(CBSpace.x4),
+              physics: const BouncingScrollPhysics(),
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[index];
-                return _MessageBubble(message: message);
+                return CBFadeSlide(
+                  delay: const Duration(milliseconds: 50),
+                  child: _MessageBubble(
+                    message: message,
+                    isMe: message.playerId == widget.playerId,
+                  ),
+                );
               },
             ),
           ),
 
           // Input
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.fromLTRB(CBSpace.x3, CBSpace.x2, CBSpace.x3, CBSpace.x3),
             decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: scheme.outlineVariant)),
+              border: Border(
+                  top: BorderSide(
+                      color: scheme.outlineVariant.withValues(alpha: 0.15))),
+              color: scheme.surfaceContainerLowest.withValues(alpha: 0.5),
             ),
             child: Row(
               children: [
                 Expanded(
                   child: CBTextField(
                     controller: _controller,
+                    hintText: 'DISPATCH ENCRYPTED SIGNAL...',
                     textStyle: textTheme.bodyMedium!,
                     textInputAction: TextInputAction.send,
-                    decoration: InputDecoration(
-                      hintText: 'Type a message...',
-                      hintStyle: textTheme.bodySmall!,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                    ),
                     onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: CBSpace.x2),
                 IconButton(
                   onPressed: _sendMessage,
-                  icon: Icon(Icons.send, color: scheme.primary),
+                  icon: Icon(Icons.send_rounded, color: scheme.primary),
+                  tooltip: 'Send Signal',
                 ),
               ],
             ),
@@ -130,51 +172,86 @@ class _ChatWidgetState extends ConsumerState<ChatWidget> {
 
 class _MessageBubble extends StatelessWidget {
   final ChatMessage message;
+  final bool isMe;
 
-  const _MessageBubble({required this.message});
+  const _MessageBubble({required this.message, required this.isMe});
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
+
+    if (message.isSystem) {
+      return Center(
+        child: Container(
+          margin: const EdgeInsets.only(bottom: CBSpace.x3),
+          padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: 6),
+          decoration: BoxDecoration(
+            color: scheme.tertiary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(CBRadius.pill),
+            border: Border.all(color: scheme.tertiary.withValues(alpha: 0.2)),
+          ),
+          child: Text(
+            message.message.toUpperCase(),
+            style: textTheme.labelSmall!.copyWith(
+              color: scheme.tertiary,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+              fontSize: 10,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    final accent = isMe ? scheme.primary : scheme.secondary;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.only(bottom: CBSpace.x3),
+      child: Column(
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          if (message.isSystem)
-            Icon(Icons.info_outline, size: 16, color: scheme.tertiary)
-          else
-            Container(
-              width: 6,
-              height: 6,
-              margin: const EdgeInsets.only(top: 6, right: 8),
-              decoration: BoxDecoration(
-                color: scheme.primary,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x2, vertical: CBSpace.x1),
+            child: Text(
+              (isMe ? 'YOU' : message.playerName).toUpperCase(),
+              style: textTheme.labelSmall?.copyWith(
+                color: accent.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w900,
+                fontSize: 9,
+                letterSpacing: 1.0,
               ),
             ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (!message.isSystem)
-                  Text(
-                    message.playerName,
-                    style: textTheme.labelSmall!.copyWith(
-                      color: scheme.primary,
-                    ),
-                  ),
-                Text(
-                  message.message,
-                  style: message.isSystem
-                      ? textTheme.bodySmall!.copyWith(
-                          color: scheme.tertiary,
-                          fontStyle: FontStyle.italic,
-                        )
-                      : textTheme.bodyMedium!,
-                ),
-              ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: 10),
+            decoration: BoxDecoration(
+              color: isMe
+                  ? accent.withValues(alpha: 0.15)
+                  : scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(CBRadius.md),
+                topRight: const Radius.circular(CBRadius.md),
+                bottomLeft: Radius.circular(isMe ? CBRadius.md : 4),
+                bottomRight: Radius.circular(isMe ? 4 : CBRadius.md),
+              ),
+              border: Border.all(
+                color: isMe
+                    ? accent.withValues(alpha: 0.4)
+                    : scheme.outlineVariant.withValues(alpha: 0.2),
+                width: 1.2,
+              ),
+            ),
+            child: Text(
+              message.message,
+              style: textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurface,
+                height: 1.4,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

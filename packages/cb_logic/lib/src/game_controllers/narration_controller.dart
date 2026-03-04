@@ -87,6 +87,7 @@ class GameNarrationController {
     String? personalityId,
     String? voice,
     String? variationPrompt,
+    bool forHostOnly = false,
   }) async {
     if (state.lastNightReport.isEmpty) {
       return null;
@@ -113,6 +114,7 @@ class GameNarrationController {
       aliveCount: state.players.where((p) => p.isAlive).length,
       voice: effectiveVoice,
       variationPrompt: effectivePrompt,
+      forHostOnly: forHostOnly,
     );
   }
 

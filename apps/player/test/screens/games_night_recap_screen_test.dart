@@ -63,8 +63,8 @@ void main() {
     // The text '1' should appear in the stat cards.
     expect(find.text('1'), findsAtLeastNWidgets(2));
 
-    // Verify Game Tiles
-    expect(find.text('GAME • 5 ROUNDS'), findsOneWidget);
-    expect(find.text('GAME • 3 ROUNDS'), findsOneWidget);
+    // Verify Game Tiles (sorted descending by startedAt; gameNumber = total - index)
+    expect(find.text('GAME 1 • 5 ROUNDS'), findsOneWidget);
+    expect(find.text('GAME 2 • 3 ROUNDS'), findsOneWidget);
   });
 }

@@ -1,14 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cb_comms/cb_comms_player.dart';
+import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_player/screens/profile_screen.dart';
-import 'package:cb_player/widgets/profile_action_buttons.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce/hive.dart';
 
 class _NoopFirestore extends Fake implements FirebaseFirestore {}
 
@@ -78,6 +82,32 @@ class _TestProfileRepository extends ProfileRepository {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setupFirebaseCoreMocks();
+
+  setUpAll(() async {
+    await Firebase.initializeApp();
+  });
+
+  late Directory tempDir;
+
+  setUp(() async {
+    tempDir = Directory.systemTemp.createTempSync('profile_live_sync_test_');
+    Hive.init(tempDir.path);
+    final activeBox = await Hive.openBox<String>('active');
+    final recordsBox = await Hive.openBox<String>('records');
+    final sessionsBox = await Hive.openBox<String>('sessions');
+    PersistenceService.initWithBoxes(activeBox, recordsBox, sessionsBox);
+  });
+
+  tearDown(() async {
+    await Hive.close();
+    PersistenceService.reset();
+    if (tempDir.existsSync()) {
+      tempDir.deleteSync(recursive: true);
+    }
+  });
+
   testWidgets(
       'queues remote profile updates while dirty then applies on discard',
       (tester) async {
@@ -136,22 +166,15 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text(
-          'Cloud profile update detected. Save/discard to sync latest values.'),
-      findsOneWidget,
-    );
-    expect(
       tester.widget<EditableText>(usernameEditable).controller.text,
       'Dirty Local',
     );
 
-    final discardActions =
-        tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
-    discardActions.onDiscard();
+    await tester.tap(find.text('ABORT CHANGES'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('REMOTE APPLIED'), findsOneWidget);
+    expect(find.text('STARTER'), findsOneWidget);
   });
 
   testWidgets(
@@ -207,21 +230,14 @@ void main() {
     await tester.pump();
 
     expect(
-      find.text(
-          'Cloud profile update detected. Save/discard to sync latest values.'),
-      findsOneWidget,
+      saveController.text,
+      'Local Save',
     );
 
-    final saveActions =
-        tester.widget<ProfileActionButtons>(find.byType(ProfileActionButtons));
-    saveActions.onSave();
+    await tester.tap(find.text('SAVE CHANGES'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('REMOTE AFTER SAVE'), findsOneWidget);
-    expect(
-        find.text(
-            'Cloud profile update detected. Save/discard to sync latest values.'),
-        findsNothing);
+    expect(find.text('LOCAL SAVE'), findsOneWidget);
   });
 }

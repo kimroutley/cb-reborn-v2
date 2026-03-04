@@ -26,14 +26,12 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
+
     final service = PersistenceService.instance;
     final allSessions = await service.loadAllSessions();
     final allGameRecords = service.loadGameRecords();
-
-    // For player, we only show sessions/games they were part of. (Simplified for now)
-    // This will require actual player ID tracking in GameRecord/GamesNightRecord
-    // For now, just load all, and we'll filter or show a message if no player context.
 
     if (!mounted) return;
     setState(() {
@@ -47,54 +45,48 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
+    return CBPrismScaffold(
+      title: 'BAR TAB',
       drawer: const CustomDrawer(),
-      appBar: AppBar(
-        title: Text(
-          'BAR TAB',
-          style: Theme.of(context).textTheme.titleLarge!,
-        ),
-        centerTitle: true,
-      ),
-      body: CBNeonBackground(
-        child: SafeArea(
-          child: _isLoading
-              ? const Center(child: CBBreathingSpinner())
-              : RefreshIndicator(
-                  onRefresh: _loadData,
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 24, horizontal: 20),
-                    children: [
-                      CBSectionHeader(
-                          title: 'YOUR SESSION HISTORY',
-                          color: scheme.tertiary),
-                      const SizedBox(height: 16),
-                      if (_sessions.isEmpty)
-                        CBPanel(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            'No game sessions found. Play a game to see your history here.',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                    color: scheme.onSurface
-                                        .withValues(alpha: 0.75)),
-                          ),
-                        )
-                      else
-                        ..._sessions
-                            .map((s) => _buildSessionEntry(context, s, scheme)),
-                      const SizedBox(
-                          height: 120), // Provide some bottom padding
-                    ],
-                  ),
+      body: _isLoading
+          ? const Center(child: CBBreathingSpinner())
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              backgroundColor: scheme.surfaceContainerHigh,
+              color: scheme.primary,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
-        ),
-      ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: CBSpace.x6, horizontal: CBSpace.x5),
+                children: [
+                  CBSectionHeader(
+                    title: 'YOUR SESSION HISTORY',
+                    color: scheme.tertiary,
+                    icon: Icons.history_edu_rounded,
+                  ),
+                  const SizedBox(height: CBSpace.x4),
+                  if (_sessions.isEmpty)
+                    CBPanel(
+                      padding: const EdgeInsets.all(CBSpace.x6),
+                      child: Text(
+                        'NO GAME SESSIONS FOUND. PLAY A GAME TO SEE YOUR HISTORY HERE.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                        ),
+                      ),
+                    )
+                  else
+                    ..._sessions
+                        .map((s) => _buildSessionEntry(context, s, scheme)),
+                  const SizedBox(height: 120), // Provide some bottom padding
+                ],
+              ),
+            ),
     );
   }
 
@@ -104,14 +96,14 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
         _gameRecords.where((g) => session.gameIds.contains(g.id)).toList();
     final wins = gamesInSession
         .where((g) => g.winner == Team.partyAnimals)
-        .length; // Simplified for player view
+        .length;
     final totalGames = gamesInSession.length;
 
     final dateRange = session.endedAt != null
         ? '${DateFormat('MMM dd').format(session.startedAt)} - ${DateFormat('MMM dd, yyyy').format(session.endedAt!)}'
-        : '${DateFormat('MMM dd, yyyy').format(session.startedAt)} (Active)';
+        : '${DateFormat('MMM dd, yyyy').format(session.startedAt)} (ACTIVE)';
 
-    Color accentColor = scheme.primary; // Default to primary
+    Color accentColor = scheme.primary;
     if (session.isActive) {
       accentColor = scheme.tertiary; // Active session green
     } else if (wins > 0) {
@@ -121,11 +113,12 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: CBSpace.x3),
       child: CBGlassTile(
         isPrismatic: true,
-        borderColor: accentColor,
+        borderColor: accentColor.withValues(alpha: 0.4),
         onTap: () {
+          HapticService.selection();
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -142,22 +135,29 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
             Row(
               children: [
                 Icon(Icons.history_rounded, color: accentColor, size: 24),
-                const SizedBox(width: 10),
+                const SizedBox(width: CBSpace.x3),
                 Expanded(
                   child: Text(
-                    session.sessionName,
-                    style: Theme.of(context).textTheme.titleMedium,
+                    session.sessionName.toUpperCase(),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: CBSpace.x2),
             Text(
-              '$totalGames game${totalGames == 1 ? '' : 's'}, $wins win${wins == 1 ? '' : 's'} • $dateRange',
+              '$totalGames GAME${totalGames == 1 ? '' : 'S'}, $wins WIN${wins == 1 ? '' : 'S'} • $dateRange'.toUpperCase(),
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
-                  ?.copyWith(color: accentColor),
+                  ?.copyWith(
+                    color: accentColor,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
             ),
           ],
         ),

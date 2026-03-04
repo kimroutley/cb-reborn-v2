@@ -106,7 +106,7 @@ void main() {
     container.read(gameProvider.notifier).startGame();
     await Future.microtask(() {});
 
-    // 5 + 1 (startGame) = 6
-    expect(mockFirebase.publishCount, 6, reason: 'Should publish on startGame');
+    // startGame no longer triggers an extra publish after tabooNames removal
+    expect(mockFirebase.publishCount, 5, reason: 'Should publish on startGame');
   });
 }

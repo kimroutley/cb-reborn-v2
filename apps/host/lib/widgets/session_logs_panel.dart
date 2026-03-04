@@ -14,19 +14,49 @@ class SessionLogsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Export Action Bar
         Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              CBBadge(
-                  text: "AI SYNC",
-                  color: scheme.primary), // Migrated from CBColors.neonBlue
-              const Spacer(),
-              _buildGeminiButton(context, scheme),
-            ],
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: CBGlassTile(
+            borderColor: scheme.primary.withValues(alpha: 0.3),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(CBSpace.x2),
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.auto_awesome_rounded, color: scheme.primary, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'AI MISSION LOGS',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+                CBGhostButton(
+                  label: 'EXPORT',
+                  icon: Icons.ios_share_rounded,
+                  fullWidth: false,
+                  onPressed: () {
+                    HapticService.selection();
+                    showAIRecapExportMenu(context: context, controller: controller);
+                  },
+                ),
+              ],
+            ),
           ),
         ),
 
@@ -34,62 +64,62 @@ class SessionLogsPanel extends StatelessWidget {
         Expanded(
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
-            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: scheme.surfaceContainerLow.withValues(alpha: 0.65),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
+              color: scheme.surfaceContainerLow.withValues(alpha: 0.3),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(CBRadius.lg)),
               border: Border.all(
-                  color: scheme.primary.withValues(
-                      alpha: 0.2)), // Migrated from CBColors.neonBlue
+                  color: scheme.outlineVariant.withValues(alpha: 0.2),
+                  width: 1.5),
             ),
-            child: ListView.builder(
-              reverse: true,
-              itemCount: gameState.gameHistory.length,
-              itemBuilder: (context, index) {
-                final log = gameState
-                    .gameHistory[gameState.gameHistory.length - 1 - index];
-                final logColor = _getLogColor(log, scheme);
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "> ",
-                        style: CBTypography.code.copyWith(
-                          color: logColor,
-                          fontSize: 12,
-                          shadows: CBColors.textGlow(logColor, intensity: 0.4),
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          log.toUpperCase(),
-                          style: CBTypography.code.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.7),
-                            fontSize: 12,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(CBRadius.lg - 2)),
+              child: ListView.separated(
+                reverse: true,
+                padding: const EdgeInsets.all(CBSpace.x5),
+                physics: const BouncingScrollPhysics(),
+                itemCount: gameState.gameHistory.length,
+                separatorBuilder: (context, index) => Divider(
+                  color: scheme.outlineVariant.withValues(alpha: 0.1),
+                  height: 12,
+                ),
+                itemBuilder: (context, index) {
+                  final log = gameState
+                      .gameHistory[gameState.gameHistory.length - 1 - index];
+                  final logColor = _getLogColor(log, scheme);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '> ',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: logColor.withValues(alpha: 0.6),
+                            fontWeight: FontWeight.w900,
+                            fontFamily: 'RobotoMono',
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                        Expanded(
+                          child: Text(
+                            log.toUpperCase(),
+                            style: textTheme.labelSmall?.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.8),
+                              fontFamily: 'RobotoMono',
+                              fontSize: 10,
+                              letterSpacing: 0.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildGeminiButton(BuildContext context, ColorScheme scheme) {
-    return IconButton(
-      icon: Icon(Icons.auto_awesome,
-          color: scheme.primary), // Migrated from CBColors.neonBlue
-      onPressed: () =>
-          showAIRecapExportMenu(context: context, controller: controller),
-      tooltip: "Export to Gemini",
     );
   }
 
@@ -98,19 +128,17 @@ class SessionLogsPanel extends StatelessWidget {
     if (logUpper.contains('DEAD') ||
         logUpper.contains('KILLED') ||
         logUpper.contains('ELIMINATED')) {
-      return scheme.error; // Migrated from CBColors.dead
+      return scheme.error;
     } else if (logUpper.contains('VOTE') || logUpper.contains('VOTED')) {
-      return scheme.secondary; // Migrated from CBColors.hotPink
+      return scheme.secondary;
     } else if (logUpper.contains('ABILITY') || logUpper.contains('USED')) {
-      return scheme
-          .secondary; // Migrated from CBColors.neonPurple (using secondary for general actions/abilities)
+      return scheme.secondary;
     } else if (logUpper.contains('DAY') ||
         logUpper.contains('NIGHT') ||
         logUpper.contains('PHASE')) {
-      return scheme.primary; // Migrated from CBColors.neonBlue
+      return scheme.primary;
     } else {
-      return scheme
-          .tertiary; // Migrated from CBColors.matrixGreen (default/success)
+      return scheme.tertiary;
     }
   }
 }

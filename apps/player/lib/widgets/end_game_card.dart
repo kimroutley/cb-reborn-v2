@@ -43,74 +43,106 @@ class EndGameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
+
     // Determine victory status
     final isVictory = isPlayerVictory(winner: winner, player: player);
     final winnerStaff = winner == 'clubStaff';
     final winnerAnimals = winner == 'partyAnimals';
 
-    final resultText = isVictory ? 'VICTORY' : 'DEFEAT';
-    final resultColor = isVictory ? scheme.primary : scheme.secondary;
+    final resultText = isVictory ? 'VICTORY' : 'MISSION FAILED';
+    final resultColor = isVictory ? scheme.tertiary : scheme.error;
 
     String winnerName = 'UNKNOWN';
     if (winnerStaff) winnerName = 'CLUB STAFF';
     if (winnerAnimals) winnerName = 'PARTY ANIMALS';
     if (winner == 'neutral') winnerName = 'NEUTRAL';
 
-    return CBPanel(
-      borderColor: resultColor,
-      borderWidth: 2,
-      padding: const EdgeInsets.all(24),
-      margin: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(
-            isVictory ? Icons.emoji_events : Icons.cancel,
-            size: 64,
-            color: resultColor,
-          ),
-          const SizedBox(height: 16),
-          CBBadge(text: resultText, color: resultColor),
-          const SizedBox(height: 8),
-          Text(
-            '$winnerName WIN',
-            style: textTheme.displaySmall!.copyWith(
-              color: scheme.onSurface,
+    return CBFadeSlide(
+      child: CBGlassTile(
+        borderColor: resultColor.withValues(alpha: 0.5),
+        padding: const EdgeInsets.all(CBSpace.x6),
+        isPrismatic: isVictory,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(CBSpace.x4),
+              decoration: BoxDecoration(
+                color: resultColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+                border: Border.all(color: resultColor.withValues(alpha: 0.3), width: 2),
+                boxShadow: CBColors.circleGlow(resultColor, intensity: 0.4),
+              ),
+              child: Icon(
+                isVictory ? Icons.emoji_events_rounded : Icons.gavel_rounded,
+                size: 56,
+                color: resultColor,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          if (report.isNotEmpty) ...[
-            for (final line in report)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  line,
-                  textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium!,
+            const SizedBox(height: CBSpace.x6),
+            CBBadge(text: resultText, color: resultColor),
+            const SizedBox(height: CBSpace.x3),
+            Text(
+              '$winnerName CONTROL VERIFIED',
+              style: textTheme.headlineSmall!.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+                shadows: CBColors.textGlow(scheme.onSurface, intensity: 0.3),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: CBSpace.x6),
+            if (report.isNotEmpty) ...[
+              CBPanel(
+                borderColor: resultColor.withValues(alpha: 0.2),
+                padding: const EdgeInsets.all(CBSpace.x4),
+                child: Column(
+                  children: report.map((line) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('> ', style: TextStyle(color: resultColor, fontWeight: FontWeight.bold, fontFamily: 'RobotoMono')),
+                        Expanded(
+                          child: Text(
+                            line.toUpperCase(),
+                            style: textTheme.bodySmall!.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w600,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )).toList(),
                 ),
               ),
-            const SizedBox(height: 16),
-          ],
-          if (player != null) ...[
-            CBBadge(
-              text:
-                  'You were ${player!.roleName.toUpperCase()} (${player!.isClubStaff ? "Club Staff" : "Party Animals"})',
-              color: resultColor,
-            ),
-          ],
-          if (onReturnToHub != null) ...[
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: CBPrimaryButton(
-                label: 'RETURN TO HUB',
-                onPressed: onReturnToHub,
+              const SizedBox(height: CBSpace.x6),
+            ],
+            if (player != null)
+              CBMiniTag(
+                text: 'IDENTITY: ${player!.roleName.toUpperCase()} // ${player!.isClubStaff ? "STAFF" : "PARTY"}',
+                color: isVictory ? scheme.primary : scheme.secondary,
               ),
-            ),
+            if (onReturnToHub != null) ...[
+              const SizedBox(height: CBSpace.x8),
+              CBPrimaryButton(
+                label: 'RETURN TO HUB',
+                onPressed: () {
+                  HapticService.medium();
+                  onReturnToHub!();
+                },
+                backgroundColor: resultColor,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

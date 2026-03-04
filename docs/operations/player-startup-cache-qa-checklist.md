@@ -148,3 +148,53 @@ Release candidate is ready when:
 1. All T1-T8 pass in local mode.
 2. All T1-T8 pass in cloud mode.
 3. No critical or high-severity regressions remain open.
+
+---
+
+## Runbook (manual execution)
+
+Use this runbook for a structured manual pass. Run once per mode (local, then cloud).
+
+### Setup
+
+1. **Build:** From repo root, `flutter build apk` (or your target) for the player app. Note build version and commit.
+2. **Device:** Note device model, OS version, and that you can force-close and relaunch the app.
+3. **Local mode:** Host app running and reachable (e.g. same network); note host URL (e.g. `ws://192.168.1.x`).
+4. **Cloud mode:** Firebase project configured; join code from a live host lobby.
+
+### Execution order
+
+| Step | Test | Action |
+|------|------|--------|
+| 1 | T1 | Uninstall or clear app data; launch → confirm auth/home, no auto-connect. |
+| 2 | T2 | Join (local or cloud), claim player; force-close; relaunch → confirm loader, restore, reconnect. |
+| 3 | T3 | Same as T2, then disable network, relaunch; re-enable network → confirm cached UI then live state. |
+| 4 | T4 | After a good T2 run, sign out; close and relaunch → confirm no restore. |
+| 5 | T5 | Join and claim; use in-app leave; force-close and relaunch → confirm no restore. |
+| 6 | T6 | Join and claim; set device time +20h; relaunch → confirm no restore (then set time back). |
+| 7 | T7 | **Local only:** Join via host address; force-close; relaunch → confirm host field prefilled and same endpoint used. |
+| 8 | T8 | **Cloud only:** Join cloud game; force-close; relaunch → confirm cloud reconnect and state rehydrated. |
+| 9 | Regression | Claim flow, join rejection UI, no leaks; run `flutter test apps/player` and `flutter analyze apps/player`. |
+
+### Evidence template (per test)
+
+```text
+T#: [PASS|FAIL]
+Mode: local | cloud
+Device: <model> / <OS>
+Build: <version> / <commit>
+Notes: <one line or "None">
+Attachment: <screenshot or recording path if FAIL>
+```
+
+---
+
+## Evidence logging (for automation or debug)
+
+To support evidence capture and debugging:
+
+- **Bootstrap:** `PlayerBootstrapGate` runs `_restoreCachedSession()`; when a cache entry is restored (cloud or local), the app sets `pendingJoinUrlProvider`. You can add a single debug log here, e.g. `debugPrint('[Bootstrap] Restored ${entry.mode.name} session code=${entry.joinCode}')`, and when no entry is restored, `debugPrint('[Bootstrap] No cache restored')`. This helps confirm T1 (no log for restore) vs T2/T7/T8 (one log line per restore).
+- **Cache clear:** Sign-out and leave both call `PlayerSessionCacheRepository.clear()`. Optional: `debugPrint('[SessionCache] Cleared')` in `clear()` when running in debug/profile so logs show T4/T5 behavior.
+- **Stale expiry:** In `PlayerSessionCacheRepository.loadSession()`, when entry is dropped due to age, the code already calls `clear()` and returns null; optional `debugPrint('[SessionCache] Dropped stale entry age=${entry.savedAt}')` for T6 evidence.
+
+These logs are optional; the runbook and evidence template above work with or without them. For CI, the unit tests in `apps/player/test/player_startup_cache_checklist_test.dart` (and related cache tests) cover T1, T4, T5, T6, and the bootstrap restore behavior for T7/T8; T2 and T3 remain manual.

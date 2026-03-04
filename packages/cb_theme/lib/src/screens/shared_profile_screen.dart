@@ -11,11 +11,6 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
-
-
-
-
 class SharedProfileScreen extends ConsumerStatefulWidget {
   const SharedProfileScreen({
     super.key,
@@ -24,11 +19,10 @@ class SharedProfileScreen extends ConsumerStatefulWidget {
     this.profileStreamFactory,
     this.authStateChangesResolver,
     this.startInEditMode = false,
-
     this.drawer,
     this.onDirtyChanged,
     this.bridgePlayerId,
-});
+  });
 
   final ProfileRepository? repository;
   final User? Function()? currentUserResolver;
@@ -39,7 +33,6 @@ class SharedProfileScreen extends ConsumerStatefulWidget {
   final Widget? drawer;
   final ValueChanged<bool>? onDirtyChanged;
   final String? bridgePlayerId;
-
 
   @override
   ConsumerState<SharedProfileScreen> createState() => _ProfileScreenState();

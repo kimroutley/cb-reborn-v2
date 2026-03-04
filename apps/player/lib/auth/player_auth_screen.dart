@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_comms/cb_comms_player.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'auth_provider.dart';
+import '../player_destinations.dart';
+import '../player_navigation.dart';
 
 class PlayerAuthScreen extends ConsumerWidget {
-  const PlayerAuthScreen({super.key, this.onSignedIn});
+  const PlayerAuthScreen({super.key, this.onSignedIn, this.isEmbedded = false});
 
   final VoidCallback? onSignedIn;
+  final bool isEmbedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -29,16 +31,16 @@ class PlayerAuthScreen extends ConsumerWidget {
         ? 'Please wait while we validate your invite.'
         : 'Preparing your identity and restoring session state.';
 
-    return Scaffold(
+    return CBPrismScaffold(
+      title: '',
+      showAppBar: false,
       body: Stack(
         children: [
-          CBNeonBackground(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              child: _buildUIForState(context, ref, authState, scheme),
-            ),
+          AnimatedSwitcher(
+            duration: CBMotion.transition,
+            switchInCurve: CBMotion.emphasizedCurve,
+            switchOutCurve: CBMotion.emphasizedCurve,
+            child: _buildUIForState(context, ref, authState, scheme),
           ),
           if (isLoading)
             _AuthLoadingDialog(
@@ -89,14 +91,15 @@ class _AuthBootScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const CBBreathingLoader(size: 50),
-            const SizedBox(height: 16),
+            const SizedBox(height: CBSpace.x4),
             Text(
               'SYNCING SESSION...',
               textAlign: TextAlign.center,
               style: textTheme.labelLarge?.copyWith(
                 color: scheme.primary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
                 letterSpacing: 1.1,
+                shadows: CBColors.textGlow(scheme.primary, intensity: 0.4),
               ),
             ),
           ],
@@ -123,9 +126,9 @@ class _AuthLoadingDialog extends StatelessWidget {
     return AbsorbPointer(
       absorbing: true,
       child: Container(
-        color: Colors.black.withValues(alpha: 0.58),
+        color: scheme.scrim.withValues(alpha: 0.6),
         alignment: Alignment.center,
-        padding: const EdgeInsets.all(24),
+        padding: CBInsets.panel,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 360),
           child: CBPanel(
@@ -134,21 +137,24 @@ class _AuthLoadingDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const CBBreathingLoader(size: 56),
-                const SizedBox(height: 20),
+                const SizedBox(height: CBSpace.x5),
                 Text(
                   title,
                   textAlign: TextAlign.center,
                   style: textTheme.labelLarge!.copyWith(
                     color: scheme.primary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                     letterSpacing: 1.2,
+                    shadows: CBColors.textGlow(scheme.primary, intensity: 0.4),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: CBSpace.x2),
                 Text(
                   subtitle,
                   textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.8),
+                  ),
                 ),
               ],
             ),
@@ -172,7 +178,8 @@ class _AuthSplash extends ConsumerWidget {
 
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6, vertical: CBSpace.x12),
+        physics: const BouncingScrollPhysics(),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -181,37 +188,35 @@ class _AuthSplash extends ConsumerWidget {
               key: const ValueKey('auth_logo'),
               beginOffset: const Offset(0, -0.1),
               child: Container(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(CBSpace.x8),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      scheme.primary.withAlpha(51),
-                      scheme.primary.withAlpha(0),
+                      scheme.primary.withValues(alpha: 0.2),
+                      scheme.primary.withValues(alpha: 0.0),
                     ],
                   ),
                   border: Border.all(
-                      color: scheme.primary.withAlpha(128), width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: scheme.primary.withAlpha(51),
-                      blurRadius: 40,
-                      spreadRadius: 10,
-                    ),
-                  ],
+                      color: scheme.primary.withValues(alpha: 0.5), width: 2),
+                  boxShadow: CBColors.circleGlow(scheme.primary, intensity: 0.4),
                 ),
                 child: Hero(
                   tag: 'auth_icon',
-                  child: CBRoleAvatar(
-                    color: scheme.primary,
-                    size: 80,
-                    pulsing: true,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(CBRadius.md),
+                    child: Image.asset(
+                      'assets/images/neon_x_brand.png',
+                      width: 88,
+                      height: 88,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
             ),
 
-            const SizedBox(height: 48),
+            const SizedBox(height: CBSpace.x12),
 
             // ── HYPE / BLURB SECTION ──
             CBFadeSlide(
@@ -231,17 +236,18 @@ class _AuthSplash extends ConsumerWidget {
                         fontWeight: FontWeight.w900,
                         letterSpacing: 6,
                         height: 0.9,
-                        color: Colors.white, // Masked
+                        color: scheme.onSurface, // Masked by ShaderMask
+                        shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: CBSpace.x4),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: 6),
                     decoration: BoxDecoration(
                         color: scheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(99),
+                        borderRadius: BorderRadius.circular(CBRadius.pill),
                         border: Border.all(
                             color: scheme.primary.withValues(alpha: 0.3))),
                     child: Text(
@@ -253,16 +259,17 @@ class _AuthSplash extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: CBSpace.x8),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4),
                     child: Text(
-                      "Tonight is the night. The music is loud, the lights are low, and everyone has a secret.\n\nCan you survive until the lights come on?",
+                      "TONIGHT IS THE NIGHT. THE MUSIC IS LOUD, THE LIGHTS ARE LOW, AND EVERYONE HAS A SECRET.\n\nCAN YOU SURVIVE UNTIL THE LIGHTS COME ON?",
                       textAlign: TextAlign.center,
                       style: textTheme.bodyLarge?.copyWith(
-                        color: scheme.onSurfaceVariant,
+                        color: scheme.onSurface.withValues(alpha: 0.7),
                         height: 1.6,
                         letterSpacing: 0.5,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -270,53 +277,88 @@ class _AuthSplash extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 64),
+            const SizedBox(height: CBSpace.x16),
 
             // ── LOGIN SECTION ──
             CBFadeSlide(
               delay: const Duration(milliseconds: 400),
               child: CBPanel(
+                borderColor: scheme.primary.withValues(alpha: 0.5),
+                padding: CBInsets.panel,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
                       'GUEST LIST CHECK',
-                      style: textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Show your invite to the Bouncer.',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurface.withAlpha(153),
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        shadows: CBColors.textGlow(scheme.primary, intensity: 0.4),
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: CBSpace.x2),
+                    Text(
+                      'SHOW YOUR INVITE TO THE BOUNCER.',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurface.withValues(alpha: 0.4),
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: CBSpace.x8),
 
                     // Enhanced Google Button
                     _buildGoogleButton(context, notifier, scheme),
 
+                    const SizedBox(height: CBSpace.x6),
+
+                    // Just Browsing CTA
+                    TextButton(
+                      onPressed: () {
+                        HapticService.selection();
+                        ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.guides);
+                      },
+                      child: Column(
+                        children: [
+                          Text(
+                            'JUST BROWSING?',
+                            style: textTheme.labelLarge?.copyWith(
+                              color: scheme.secondary,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Read the Blackbook',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                     if (errorMessage != null) ...[
-                      const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                            color: scheme.error.withAlpha(25),
-                            borderRadius: BorderRadius.circular(12),
-                            border:
-                                Border.all(color: scheme.error.withAlpha(102))),
+                      const SizedBox(height: CBSpace.x6),
+                      CBGlassTile(
+                        borderColor: scheme.error.withValues(alpha: 0.5),
+                        padding: CBInsets.screen,
                         child: Row(
                           children: [
                             Icon(Icons.gpp_bad_rounded,
                                 color: scheme.error, size: 24),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: CBSpace.x4),
                             Expanded(
                               child: Text(
                                 'ACCESS DENIED: ${errorMessage!.toUpperCase()}',
                                 style: textTheme.labelSmall?.copyWith(
                                   color: scheme.error,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w900,
                                   height: 1.4,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                             ),
@@ -329,13 +371,14 @@ class _AuthSplash extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 48),
+            const SizedBox(height: CBSpace.x12),
             Text(
               'SECURED BY BLACKOUT-NET',
               style: textTheme.labelSmall?.copyWith(
-                color: scheme.onSurface.withAlpha(51),
+                color: scheme.onSurface.withValues(alpha: 0.2),
                 fontSize: 10,
                 letterSpacing: 2,
+                fontWeight: FontWeight.w900,
               ),
             ),
           ],
@@ -348,19 +391,19 @@ class _AuthSplash extends ConsumerWidget {
       BuildContext context, AuthNotifier notifier, ColorScheme scheme) {
     return InkWell(
       onTap: () {
-        HapticFeedback.heavyImpact();
+        HapticService.heavy();
         notifier.signInWithGoogle();
       },
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(CBRadius.md),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: CBSpace.x5),
         decoration: BoxDecoration(
-          color: scheme.surface.withAlpha(204),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: scheme.primary.withAlpha(153)),
+          color: scheme.surface.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(CBRadius.md),
+          border: Border.all(color: scheme.primary.withValues(alpha: 0.6)),
           boxShadow: [
             BoxShadow(
-              color: scheme.primary.withAlpha(38),
+              color: scheme.primary.withValues(alpha: 0.15),
               blurRadius: 12,
               spreadRadius: 2,
             ),
@@ -375,14 +418,14 @@ class _AuthSplash extends ConsumerWidget {
               errorBuilder: (context, error, stackTrace) =>
                   Icon(Icons.login, color: scheme.primary, size: 24),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: CBSpace.x4),
             Text(
               'SHOW VIP PASS (GOOGLE)',
               style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                     letterSpacing: 1.5,
                     fontSize: 14,
                     color: scheme.onSurface,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                   ),
             ),
           ],
@@ -427,121 +470,149 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
 
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(CBSpace.x8),
+        physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            Hero(
-              tag: 'auth_icon',
-              child:
-                  Icon(Icons.badge_rounded, color: scheme.secondary, size: 80),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'PRINT YOUR ID CARD',
-              textAlign: TextAlign.center,
-              style: textTheme.headlineMedium?.copyWith(
-                color: scheme.secondary,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2,
-                shadows: [
-                  BoxShadow(
-                    color: scheme.secondary.withAlpha(128),
-                    blurRadius: 24,
-                    spreadRadius: 12,
+            CBFadeSlide(
+              child: Hero(
+                tag: 'auth_icon',
+                child: Container(
+                  padding: CBInsets.panel,
+                  decoration: BoxDecoration(
+                    color: scheme.secondary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: scheme.secondary.withValues(alpha: 0.4), width: 2),
+                    boxShadow: CBColors.circleGlow(scheme.secondary, intensity: 0.3),
                   ),
-                ],
+                  child: Icon(Icons.badge_rounded, color: scheme.secondary, size: 64),
+                ),
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'What do they call you on the dance floor?',
-              textAlign: TextAlign.center,
-              style: textTheme.bodyLarge?.copyWith(
-                color: scheme.onSurface.withAlpha(179),
+            const SizedBox(height: CBSpace.x8),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 100),
+              child: Text(
+                'PRINT YOUR ID CARD',
+                textAlign: TextAlign.center,
+                style: textTheme.headlineMedium?.copyWith(
+                  color: scheme.secondary,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                  shadows: CBColors.textGlow(scheme.secondary, intensity: 0.6),
+                ),
               ),
             ),
-            const SizedBox(height: 64),
-            CBPanel(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'NEW PATRON REGISTRATION',
-                    style: textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 16),
-                  CBTextField(
-                    controller: notifier.usernameController,
-                    hintText: 'YOUR MONIKER',
-                    autofocus: true,
-                    textStyle: textTheme.headlineSmall!
-                        .copyWith(color: scheme.onSurface),
-                    decoration: InputDecoration(
-                      prefixIcon:
-                          Icon(Icons.person_outline, color: scheme.secondary),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  CBTextField(
-                    controller: _publicPlayerIdController,
-                    hintText: 'PUBLIC PLAYER ID (OPTIONAL)',
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.alternate_email_rounded,
-                          color: scheme.secondary),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'CHOOSE AVATAR',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.secondary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: avatarChoices.map((emoji) {
-                      final selected = emoji == _selectedAvatar;
-                      return _AvatarEmojiChip(
-                        emoji: emoji,
-                        selected: selected,
-                        onTap: () => setState(() => _selectedAvatar = emoji),
-                      );
-                    }).toList(growable: false),
-                  ),
-                  const SizedBox(height: 32),
-                  CBPrimaryButton(
-                    label: isLoading
-                        ? 'SETTING UP...'
-                        : 'PAY COVER CHARGE & ENTER',
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            HapticFeedback.heavyImpact();
-                            notifier.saveUsername(
-                              publicPlayerId:
-                                  _publicPlayerIdController.text.trim(),
-                              avatarEmoji: _selectedAvatar,
-                            );
-                          },
-                  ),
-                  const SizedBox(height: 16),
-                  CBTextButton(
-                    label: 'WALK AWAY',
-                    onPressed: isLoading ? null : () => notifier.signOut(),
-                  ),
-                  if (authState.error != null) ...[
-                    const SizedBox(height: 20),
+            const SizedBox(height: CBSpace.x3),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 150),
+              child: Text(
+                'WHAT DO THEY CALL YOU ON THE DANCE FLOOR?',
+                textAlign: TextAlign.center,
+                style: textTheme.labelSmall?.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.5),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ),
+            const SizedBox(height: CBSpace.x12),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 200),
+              child: CBPanel(
+                borderColor: scheme.secondary.withValues(alpha: 0.5),
+                padding: CBInsets.panel,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                     Text(
-                      authState.error!,
+                      'NEW PATRON REGISTRATION',
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        shadows: CBColors.textGlow(scheme.secondary, intensity: 0.4),
+                      ),
                       textAlign: TextAlign.center,
-                      style: textTheme.bodySmall?.copyWith(color: scheme.error),
                     ),
+                    const SizedBox(height: CBSpace.x6),
+                    CBTextField(
+                      controller: notifier.usernameController,
+                      hintText: 'YOUR MONIKER',
+                      autofocus: true,
+                      prefixIcon: Icons.person_outline,
+                    ),
+                    const SizedBox(height: CBSpace.x4),
+                    CBTextField(
+                      controller: _publicPlayerIdController,
+                      hintText: 'PUBLIC PLAYER ID (OPTIONAL)',
+                      prefixIcon: Icons.alternate_email_rounded,
+                      monospace: true,
+                    ),
+                    const SizedBox(height: CBSpace.x8),
+                    Text(
+                      'CHOOSE AVATAR',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: scheme.secondary,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        fontSize: 10,
+                      ),
+                    ),
+                    const SizedBox(height: CBSpace.x3),
+                    Wrap(
+                      spacing: CBSpace.x3,
+                      runSpacing: CBSpace.x3,
+                      alignment: WrapAlignment.center,
+                      children: avatarChoices.map((emoji) {
+                        final selected = emoji == _selectedAvatar;
+                        return CBProfileAvatarChip(
+                          emoji: emoji,
+                          selected: selected,
+                          onTap: () {
+                            HapticService.selection();
+                            setState(() => _selectedAvatar = emoji);
+                          },
+                        );
+                      }).toList(growable: false),
+                    ),
+                    const SizedBox(height: CBSpace.x10),
+                    CBPrimaryButton(
+                      label: isLoading
+                          ? 'SETTING UP...'
+                          : 'PAY COVER CHARGE & ENTER',
+                      backgroundColor: scheme.secondary,
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              HapticService.heavy();
+                              notifier.saveUsername(
+                                publicPlayerId:
+                                    _publicPlayerIdController.text.trim(),
+                                avatarEmoji: _selectedAvatar,
+                              );
+                            },
+                    ),
+                    const SizedBox(height: CBSpace.x4),
+                    CBGhostButton(
+                      label: 'WALK AWAY',
+                      onPressed: isLoading ? null : () {
+                        HapticService.light();
+                        notifier.signOut();
+                      },
+                    ),
+                    if (authState.error != null) ...[
+                      const SizedBox(height: CBSpace.x5),
+                      Text(
+                        authState.error!.toUpperCase(),
+                        textAlign: TextAlign.center,
+                        style: textTheme.labelSmall?.copyWith(
+                          color: scheme.error,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],
@@ -551,31 +622,34 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
   }
 }
 
-class _AvatarEmojiChip extends StatelessWidget {
-  const _AvatarEmojiChip({
+class CBProfileAvatarChip extends StatelessWidget {
+  const CBProfileAvatarChip({
+    super.key,
     required this.emoji,
     required this.selected,
     required this.onTap,
+    this.enabled = true,
   });
 
   final String emoji;
   final bool selected;
   final VoidCallback onTap;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(CBRadius.pill),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: CBSpace.x2),
         decoration: BoxDecoration(
           color: selected
               ? scheme.secondary.withValues(alpha: 0.22)
               : scheme.surface.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(CBRadius.pill),
           border: Border.all(
             color: selected
                 ? scheme.secondary

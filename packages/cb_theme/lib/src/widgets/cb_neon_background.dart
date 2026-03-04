@@ -88,7 +88,7 @@ class _CBNeonBackgroundState extends State<CBNeonBackground>
                       colors: [
                         primary.withValues(alpha: 0.18),
                         secondary.withValues(alpha: 0.10),
-                        Colors.black.withValues(alpha: 0.0),
+                        CBColors.voidBlack.withValues(alpha: 0.0),
                       ],
                       stops: const [0.0, 0.55, 1.0],
                     ),

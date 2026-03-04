@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../layout.dart';
 
 /// Dark input field with glassmorphism styling.
 class CBTextField extends StatelessWidget {
@@ -20,6 +21,7 @@ class CBTextField extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final bool monospace;
   final bool hapticOnChange;
+  final IconData? prefixIcon;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final List<TextInputFormatter>? inputFormatters;
@@ -44,6 +46,7 @@ class CBTextField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.none,
     this.monospace = false,
     this.hapticOnChange = false,
+    this.prefixIcon,
     this.onChanged,
     this.onSubmitted,
     this.inputFormatters,
@@ -57,7 +60,7 @@ class CBTextField extends StatelessWidget {
     final scheme = theme.colorScheme;
 
     // Base style for the glass field
-    final borderRadius = BorderRadius.circular(12);
+    final borderRadius = BorderRadius.circular(CBRadius.sm);
     final fillColor = scheme.surfaceContainerHighest.withValues(alpha: 0.15);
     final borderColor = scheme.outlineVariant.withValues(alpha: 0.3);
     final activeColor = scheme.primary;
@@ -68,6 +71,7 @@ class CBTextField extends StatelessWidget {
     final effectiveDecoration = baseDecoration.copyWith(
       hintText: hintText ?? baseDecoration.hintText,
       errorText: errorText ?? baseDecoration.errorText,
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
       filled: true,
       fillColor: fillColor,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

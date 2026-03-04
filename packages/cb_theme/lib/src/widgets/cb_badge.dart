@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 class CBBadge extends StatelessWidget {
   final String text;
   final Color? color;
+  final IconData? icon;
 
   const CBBadge({
     super.key,
     required this.text,
     this.color,
+    this.icon,
   });
 
   @override
@@ -21,9 +23,18 @@ class CBBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
       ),
-      child: Text(
-        text.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(color: badgeColor),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: badgeColor),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            text.toUpperCase(),
+            style: theme.textTheme.labelSmall?.copyWith(color: badgeColor),
+          ),
+        ],
       ),
     );
   }

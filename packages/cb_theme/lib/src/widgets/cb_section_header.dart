@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../layout.dart';
 import 'cb_badge.dart';
 
 /// Section header bar with label + optional count badge.
@@ -26,7 +28,7 @@ class CBSectionHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(CBRadius.xs),
         border: Border.all(color: accentColor.withValues(alpha: 0.3)),
       ),
       child: Row(

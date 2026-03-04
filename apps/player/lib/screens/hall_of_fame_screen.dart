@@ -104,10 +104,10 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
     }
 
     if (service != null) {
-      await service.rebuildRoleAwardProgresses();
+      await service.roleAwards.rebuildRoleAwardProgresses();
     }
-    final allProgress =
-        service?.roleAwards?.loadRoleAwardProgresses() ?? const <PlayerRoleAwardProgress>[];
+    final allProgress = service?.roleAwards.loadRoleAwardProgresses() ??
+        const <PlayerRoleAwardProgress>[];
     final unlockedCounts = <String, int>{};
     final unlockedAwardIds = <String>{};
     for (final progress in allProgress) {
@@ -123,7 +123,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
           (unlockedCounts[definition.roleId] ?? 0) + 1;
     }
 
-    final recentUnlocks = service?.loadRecentRoleAwardUnlocks(limit: 10) ??
+    final recentUnlocks = service?.roleAwards.loadRecentRoleAwardUnlocks(limit: 10) ??
         const <PlayerRoleAwardProgress>[];
 
     setState(() {
@@ -196,7 +196,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.only(
-                    top: 16, bottom: 32, left: 16, right: 16),
+                    top: CBSpace.x4, bottom: CBSpace.x8, left: CBSpace.x4, right: CBSpace.x4),
                 children: [
                   if (_stats.isEmpty)
                     CBGlassTile(
@@ -214,18 +214,18 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                     ...List.generate(
                       _stats.length,
                       (index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: CBSpace.x3),
                         child: _buildProfileCard(_stats[index], index, scheme),
                       ),
                     ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: CBSpace.x3),
                   CBSectionHeader(
                     title: 'ROLE AWARDS',
                     icon: Icons.emoji_events_rounded,
                     color: scheme.primary,
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: CBSpace.x3),
                     child: Text(
                       'Role ladders finalized: ${awardCoverage.rolesWithDefinitions}/${awardCoverage.totalRoles} • Recent unlocks: $_recentUnlockCount',
                       style: textTheme.labelSmall?.copyWith(
@@ -237,7 +237,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                   ),
                   if (!_persistenceReady)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(bottom: CBSpace.x3),
                       child: Text(
                         'Career records are not initialized yet. Showing award catalog only.',
                         style: textTheme.bodySmall?.copyWith(
@@ -247,9 +247,9 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                       ),
                     ),
                   _buildRoleAwardFilters(scheme, visibleRoles.length),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: CBSpace.x4),
                   ...visibleRoles.map((role) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: CBSpace.x3),
                         child: _buildRoleAwardCard(role, scheme),
                       )),
                 ],
@@ -275,7 +275,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                   color: scheme.primary,
                 ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           Row(
             children: [
               Expanded(
@@ -304,7 +304,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               Expanded(
                 child: DropdownButtonFormField<RoleAwardTier?>(
                   initialValue: _selectedAwardTier,
@@ -333,7 +333,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x3),
           Text(
             'SHOWING $visibleRoleCount OF ${roleCatalog.length} ROLES.',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -386,7 +386,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                 color: roleColor,
                 size: 32,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,7 +414,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                 CBBadge(text: '$unlockCount', color: roleColor),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x3),
           Text(
             descriptor,
             style: textTheme.labelSmall?.copyWith(
@@ -460,7 +460,7 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
                 Icon(rankIcon, color: rankColor, size: 24, shadows: [
                   Shadow(color: rankColor.withValues(alpha: 0.5), blurRadius: 8)
                 ]),
-              if (rankIcon != null) const SizedBox(width: 12),
+              if (rankIcon != null) const SizedBox(width: CBSpace.x3),
               Expanded(
                 child: Text(
                   '#${index + 1} ${stat.playerName.toUpperCase()}',
@@ -476,13 +476,13 @@ class _HallOfFameScreenState extends ConsumerState<HallOfFameScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
           Row(
             children: [
               _buildCompactStat('GAMES', '${stat.gamesPlayed}', scheme),
-              const SizedBox(width: 24),
+              const SizedBox(width: CBSpace.x6),
               _buildCompactStat('WINS', '${stat.gamesWon}', scheme),
-              const SizedBox(width: 24),
+              const SizedBox(width: CBSpace.x6),
               Expanded(
                 child: _buildCompactStat(
                     'MAIN', stat.mostPlayedRole.toUpperCase(), scheme),

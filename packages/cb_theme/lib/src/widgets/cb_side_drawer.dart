@@ -24,20 +24,25 @@ class CBSideDrawer extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(CBSpace.x3), // Rounded corners for the glass effect
+      borderRadius: BorderRadius.circular(
+          CBSpace.x3), // Rounded corners for the glass effect
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Blur effect
         child: Container(
           decoration: BoxDecoration(
-            color: colorScheme.surface.withValues(alpha: 0.1), // Subtle transparency for glassmorphism
+            color: colorScheme.surface.withValues(
+                alpha: 0.1), // Subtle transparency for glassmorphism
             border: Border.all(
-              color: colorScheme.onSurface.withValues(alpha: 0.1), // Light border
+              color:
+                  colorScheme.onSurface.withValues(alpha: 0.1), // Light border
             ),
             borderRadius: BorderRadius.circular(CBSpace.x3),
           ),
           child: NavigationDrawer(
-            backgroundColor: Colors.transparent, // Make NavigationDrawer itself transparent
-            indicatorColor: colorScheme.secondaryContainer.withValues(alpha: 0.7),
+            backgroundColor: CBColors
+                .transparent, // Make NavigationDrawer itself transparent
+            indicatorColor:
+                colorScheme.secondaryContainer.withValues(alpha: 0.7),
             selectedIndex: selectedIndex,
             onDestinationSelected: onDestinationSelected,
             children: [

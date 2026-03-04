@@ -237,6 +237,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
               'ESTABLISH LINK',
               style: textTheme.headlineMedium!.copyWith(
                 color: scheme.onSurface,
+                shadows: CBColors.textGlow(scheme.primary, intensity: 0.3),
               ),
             ),
             const Spacer(),

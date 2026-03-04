@@ -122,7 +122,7 @@ class CBAboutContent extends StatelessWidget {
                 )
               : Theme(
                   data: Theme.of(context).copyWith(
-                    dividerColor: Colors.transparent,
+                    dividerColor: CBColors.transparent,
                   ),
                   child: ExpansionTile(
                     tilePadding: EdgeInsets.zero,

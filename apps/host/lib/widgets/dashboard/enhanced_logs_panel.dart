@@ -22,128 +22,149 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
     final filteredLogs = _filterLogs(widget.logs);
 
     return CBPanel(
-      borderColor: scheme.primary.withValues(alpha: 0.5),
+      borderColor: scheme.primary.withValues(alpha: 0.4),
+      padding: const EdgeInsets.all(CBSpace.x5),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CBSectionHeader(
-            title: 'SESSION AUDIT LOGS',
+            title: 'SESSION AUDIT STREAM',
             icon: Icons.history_edu_rounded,
             color: scheme.primary,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x4),
           Text(
-            '// REAL-TIME STREAM OF ENCRYPTED SESSION DATA.',
+            'ENCRYPTED DATA LOGS FOR REAL-TIME OPERATIONS MONITORING.',
             style: textTheme.labelSmall!.copyWith(
-              color: scheme.primary.withValues(alpha: 0.6),
-              fontSize: 8,
-              letterSpacing: 1.2,
+              color: scheme.onSurface.withValues(alpha: 0.4),
+              letterSpacing: 1.5,
               fontWeight: FontWeight.w800,
+              fontSize: 9,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: CBSpace.x5),
 
           // Filter chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: ['ALL', 'SYSTEM', 'ACTION', 'HOST'].map((filter) {
-              final color = switch (filter) {
-                'SYSTEM' => scheme.secondary,
-                'ACTION' => scheme.tertiary,
-                'HOST' => scheme.error,
-                _ => scheme.primary,
-              };
-              final icon = switch (filter) {
-                'SYSTEM' => Icons.memory_rounded,
-                'ACTION' => Icons.bolt_rounded,
-                'HOST' => Icons.admin_panel_settings_rounded,
-                _ => Icons.all_inclusive_rounded,
-              };
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: ['ALL', 'SYSTEM', 'ACTION', 'HOST'].map((filter) {
+                final color = switch (filter) {
+                  'SYSTEM' => scheme.secondary,
+                  'ACTION' => scheme.tertiary,
+                  'HOST' => scheme.error,
+                  _ => scheme.primary,
+                };
+                final icon = switch (filter) {
+                  'SYSTEM' => Icons.memory_rounded,
+                  'ACTION' => Icons.bolt_rounded,
+                  'HOST' => Icons.admin_panel_settings_rounded,
+                  _ => Icons.all_inclusive_rounded,
+                };
 
-              return CBFilterChip(
-                label: filter,
-                icon: icon,
-                color: color,
-                selected: _logFilter == filter,
-                onSelected: () => setState(() => _logFilter = filter),
-              );
-            }).toList(),
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: CBFilterChip(
+                    label: filter,
+                    icon: icon,
+                    color: color,
+                    selected: _logFilter == filter,
+                    onSelected: () {
+                      HapticService.selection();
+                      setState(() => _logFilter = filter);
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
 
           // Search field
           CBTextField(
-            hintText: 'SEARCH AUDIT STREAM...',
-            decoration: InputDecoration(
-              prefixIcon:
-                  Icon(Icons.search_rounded, color: scheme.primary, size: 18),
-            ),
+            hintText: 'FILTER AUDIT LOGS...',
+            prefixIcon: Icons.search_rounded,
+            monospace: true,
             onChanged: (value) {
               setState(() => _searchQuery = value);
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x4),
 
           // Log list
           CBGlassTile(
             padding: EdgeInsets.zero,
-            borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
+            borderColor: scheme.outlineVariant.withValues(alpha: 0.2),
             child: Container(
-              height: 250,
+              height: 300,
               decoration: BoxDecoration(
-                color: scheme.surface.withValues(alpha: 0.2),
+                color: scheme.surfaceContainerLowest.withValues(alpha: 0.2),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: ListView.builder(
-                  reverse: true,
-                  padding: const EdgeInsets.all(12),
-                  itemCount: filteredLogs.length,
-                  itemBuilder: (context, index) {
-                    final log = filteredLogs[filteredLogs.length - 1 - index];
-                    final isHost = log.contains('[HOST]');
-                    final isSystem = log.contains('──') ||
-                        log.contains('NIGHT') ||
-                        log.contains('DAY');
-
-                    final logColor = isHost
-                        ? scheme.error
-                        : isSystem
-                            ? scheme.secondary
-                            : scheme.onSurface.withValues(alpha: 0.8);
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '# ',
-                            style: textTheme.labelSmall!.copyWith(
-                              color: logColor.withValues(alpha: 0.5),
-                              fontWeight: FontWeight.w900,
-                            ),
+                borderRadius: BorderRadius.circular(CBRadius.md),
+                child: filteredLogs.isEmpty
+                    ? Center(
+                        child: Text(
+                          'NO MATCHING TRANSMISSIONS',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.2),
+                            letterSpacing: 2.0,
+                            fontWeight: FontWeight.w900,
                           ),
-                          Expanded(
-                            child: Text(
-                              log.toUpperCase(),
-                              style: textTheme.labelSmall!.copyWith(
-                                color: logColor,
-                                fontSize: 9,
-                                letterSpacing: 0.5,
-                                fontFamily: 'RobotoMono',
-                                fontWeight: (isHost || isSystem)
-                                    ? FontWeight.w800
-                                    : FontWeight.w400,
-                              ),
+                        ),
+                      )
+                    : ListView.builder(
+                        reverse: true,
+                        padding: const EdgeInsets.all(CBSpace.x4),
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: filteredLogs.length,
+                        itemBuilder: (context, index) {
+                          final log = filteredLogs[filteredLogs.length - 1 - index];
+                          final isHost = log.contains('[HOST]');
+                          final isSystem = log.contains('──') ||
+                              log.contains('NIGHT') ||
+                              log.contains('DAY');
+
+                          final logColor = isHost
+                              ? scheme.error
+                              : isSystem
+                                  ? scheme.secondary
+                                  : scheme.onSurface.withValues(alpha: 0.7);
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '# ',
+                                  style: textTheme.labelSmall!.copyWith(
+                                    color: logColor.withValues(alpha: 0.3),
+                                    fontWeight: FontWeight.w900,
+                                    fontFamily: 'RobotoMono',
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    log.toUpperCase(),
+                                    style: textTheme.labelSmall!.copyWith(
+                                      color: logColor,
+                                      fontSize: 10,
+                                      letterSpacing: 0.5,
+                                      fontFamily: 'RobotoMono',
+                                      fontWeight: (isHost || isSystem)
+                                          ? FontWeight.w800
+                                          : FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             ),
           ),
@@ -155,7 +176,6 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
   List<String> _filterLogs(List<String> logs) {
     var filtered = logs;
 
-    // Apply category filter
     if (_logFilter != 'ALL') {
       filtered = filtered.where((log) {
         switch (_logFilter) {
@@ -164,7 +184,7 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
                 log.contains('NIGHT') ||
                 log.contains('DAY');
           case 'ACTION':
-            return !log.contains('──') && !log.contains('[HOST]');
+            return !log.contains('──') && !log.contains('[HOST]') && !log.contains('NIGHT') && !log.contains('DAY');
           case 'HOST':
             return log.contains('[HOST]');
           default:
@@ -173,7 +193,6 @@ class _EnhancedLogsPanelState extends State<EnhancedLogsPanel> {
       }).toList();
     }
 
-    // Apply search filter
     if (_searchQuery.isNotEmpty) {
       filtered = filtered
           .where(

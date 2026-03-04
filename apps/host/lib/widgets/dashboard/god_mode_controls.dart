@@ -36,42 +36,45 @@ class GodModeControls extends ConsumerWidget {
     }
 
     return CBPanel(
-      borderColor: scheme.secondary.withValues(alpha: 0.6),
+      borderColor: scheme.secondary.withValues(alpha: 0.4),
+      padding: const EdgeInsets.all(CBSpace.x5),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CBSectionHeader(
             title: 'GOD MODE PROTOCOLS',
             color: scheme.secondary,
             icon: Icons.bolt_rounded,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x4),
           Text(
-            '// AUTHORIZED HOST INTERVENTIONS ONLY. USE WITH EXTREME PREJUDICE.',
+            'AUTHORIZED HOST INTERVENTIONS ONLY. USE WITH EXTREME PREJUDICE.',
             style: textTheme.labelSmall!.copyWith(
-              color: scheme.secondary.withValues(alpha: 0.6),
-              fontSize: 8,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w800,
+              color: scheme.onSurface.withValues(alpha: 0.4),
+              fontSize: 9,
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.w900,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: CBSpace.x5),
           if (alivePlayers.isEmpty)
             Center(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(CBSpace.x6),
                 child: Text(
                   'NO ACTIVE TARGETS DETECTED',
                   style: textTheme.labelSmall!.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.3),
+                    color: scheme.onSurface.withValues(alpha: 0.2),
                     letterSpacing: 2.0,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
             )
           else
             ...alivePlayers.map((player) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: CBSpace.x3),
                   child: _buildPlayerControlTile(
                     context,
                     ref,
@@ -100,73 +103,105 @@ class GodModeControls extends ConsumerWidget {
       padding: EdgeInsets.zero,
       borderColor: roleColor.withValues(alpha: 0.3),
       child: Theme(
-        data: theme.copyWith(dividerColor: Colors.transparent),
+        data: theme.copyWith(
+          dividerColor: scheme.surface.withValues(alpha: 0.0),
+          hoverColor: scheme.surface.withValues(alpha: 0.0),
+          splashColor: roleColor.withValues(alpha: 0.1),
+        ),
         child: ExpansionTile(
           iconColor: roleColor,
-          collapsedIconColor: roleColor.withValues(alpha: 0.7),
-          leading: CBRoleAvatar(
-            assetPath: player.role.assetPath,
-            color: roleColor,
-            size: 36,
-            pulsing: player.isAlive && !player.isSinBinned,
+          collapsedIconColor: roleColor.withValues(alpha: 0.5),
+          tilePadding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x1),
+          leading: Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: roleColor.withValues(alpha: 0.3), width: 1.5),
+            ),
+            child: CBRoleAvatar(
+              assetPath: player.role.assetPath,
+              color: roleColor,
+              size: 40,
+              pulsing: player.isAlive && !player.isSinBinned,
+            ),
           ),
           title: Row(
             children: [
               Expanded(
                 child: Text(
                   player.name.toUpperCase(),
-                  style: textTheme.labelLarge!.copyWith(
+                  style: textTheme.titleMedium!.copyWith(
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.2,
+                    fontFamily: 'RobotoMono',
+                    color: scheme.onSurface,
                     shadows: CBColors.textGlow(roleColor, intensity: 0.3),
                   ),
                 ),
               ),
               if (hasPendingDramaSwap)
-                CBBadge(
-                  text: 'PENDING SWAP',
-                  color: scheme.secondary,
+                Padding(
+                  padding: const EdgeInsets.only(left: CBSpace.x2),
+                  child: CBBadge(
+                    text: 'DRAMA',
+                    color: scheme.secondary,
+                    icon: Icons.swap_horiz_rounded,
+                  ),
                 ),
             ],
           ),
           subtitle: Text(
-            '// ${player.role.name.toUpperCase()}',
+            player.role.name.toUpperCase(),
             style: textTheme.labelSmall!.copyWith(
               color: roleColor.withValues(alpha: 0.6),
-              fontSize: 9,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
               letterSpacing: 1.0,
             ),
           ),
           children: [
             Container(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+              padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, CBSpace.x5),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Divider(height: 1, color: Colors.white12),
-                  const SizedBox(height: 16),
+                  Container(
+                    height: 1,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          roleColor.withValues(alpha: 0.0),
+                          roleColor.withValues(alpha: 0.2),
+                          roleColor.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: CBSpace.x4),
                   Text(
                     'AVAILABLE INTERVENTIONS',
                     style: textTheme.labelSmall!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.4),
-                      fontSize: 8,
+                      color: scheme.onSurface.withValues(alpha: 0.3),
+                      fontSize: 9,
                       letterSpacing: 1.5,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w900,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: CBSpace.x4),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
                     children: [
                       _ActionChip(
-                        label: 'ELIMINATE',
-                        icon: Icons.close_rounded,
+                        label: 'TERMINATE',
+                        icon: Icons.cancel_rounded,
                         color: scheme.error,
                         onTap: () => _confirmKill(context, ref, player),
                       ),
                       _ActionChip(
-                        label: player.isMuted ? 'UNMUTE' : 'MUTE',
+                        label: player.isMuted ? 'RESTORE VOICE' : 'SILENCE',
                         icon: player.isMuted
                             ? Icons.volume_up_rounded
                             : Icons.volume_off_rounded,
@@ -175,7 +210,7 @@ class GodModeControls extends ConsumerWidget {
                       ),
                       _ActionChip(
                         label:
-                            player.hasHostShield ? 'DISPELS SHIELD' : 'SHIELD',
+                            player.hasHostShield ? 'DISPEL SHIELD' : 'DEPLOY SHIELD',
                         icon: Icons.shield_rounded,
                         color: scheme.primary,
                         onTap: () => _grantShield(context, ref, player),
@@ -183,17 +218,17 @@ class GodModeControls extends ConsumerWidget {
                       _ActionChip(
                         label: player.isSinBinned ? 'RELEASE' : 'SIN BIN',
                         icon: Icons.timer_rounded,
-                        color: CBColors.coolGrey,
+                        color: scheme.outline,
                         onTap: () => _toggleSinBin(context, ref, player),
                       ),
                       _ActionChip(
-                        label: player.isShadowBanned ? 'UNBAN' : 'SHADOW BAN',
+                        label: player.isShadowBanned ? 'LIFT SHADOW' : 'SHADOW BAN',
                         icon: Icons.visibility_off_rounded,
                         color: scheme.secondary,
                         onTap: () => _toggleShadowBan(context, ref, player),
                       ),
                       _ActionChip(
-                        label: 'EJECT',
+                        label: 'EJECT NODE',
                         icon: Icons.person_remove_rounded,
                         color: scheme.error,
                         onTap: () => _kickPlayer(context, ref, player),
@@ -217,44 +252,53 @@ class GodModeControls extends ConsumerWidget {
       accentColor: scheme.error,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'PROTOCOL: TERMINATION',
-            style: textTheme.labelLarge!.copyWith(
+            'TERMINATION PROTOCOL',
+            style: textTheme.headlineSmall!.copyWith(
               color: scheme.error,
-              letterSpacing: 1.6,
+              letterSpacing: 2.0,
               fontWeight: FontWeight.w900,
-              shadows: CBColors.textGlow(scheme.error, intensity: 0.5),
+              shadows: CBColors.textGlow(scheme.error, intensity: 0.6),
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x6),
           Text(
-            'Force eliminate ${player.name.toUpperCase()}? This bypasses all protections and triggers global death effects.',
+            'FORCE ELIMINATION OF OPERATIVE ${player.name.toUpperCase()}? THIS BYPASSES ALL PROTECTIONS AND TRIGGERS GLOBAL DEATH EFFECTS.',
             style: textTheme.bodyMedium!.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.8),
-              height: 1.4,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              CBGhostButton(
-                label: 'ABORT',
-                onPressed: () => Navigator.pop(context),
+              Expanded(
+                child: CBGhostButton(
+                  label: 'ABORT',
+                  onPressed: () {
+                    HapticService.light();
+                    Navigator.pop(context);
+                  },
+                ),
               ),
-              const SizedBox(width: 12),
-              CBPrimaryButton(
-                fullWidth: false,
-                label: 'EXECUTE',
-                backgroundColor: scheme.error,
-                onPressed: () {
-                  ref.read(gameProvider.notifier).forceKillPlayer(player.id);
-                  Navigator.pop(context);
-                  showThemedSnackBar(context, '${player.name} ELIMINATED',
-                      accentColor: scheme.error);
-                },
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: CBPrimaryButton(
+                  label: 'EXECUTE',
+                  backgroundColor: scheme.error,
+                  onPressed: () {
+                    HapticService.heavy();
+                    ref.read(gameProvider.notifier).forceKillPlayer(player.id);
+                    Navigator.pop(context);
+                    showThemedSnackBar(context, 'OPERATIVE ${player.name.toUpperCase()} TERMINATED.',
+                        accentColor: scheme.error);
+                  },
+                ),
               ),
             ],
           )
@@ -265,11 +309,12 @@ class GodModeControls extends ConsumerWidget {
 
   void _toggleMute(BuildContext context, WidgetRef ref, Player player) {
     final scheme = Theme.of(context).colorScheme;
+    HapticService.medium();
     ref
         .read(gameProvider.notifier)
         .togglePlayerMute(player.id, !player.isMuted);
     showThemedSnackBar(context,
-        '${player.name.toUpperCase()} ${player.isMuted ? 'UNMUTED' : 'MUTED'}',
+        'OPERATIVE ${player.name.toUpperCase()} ${player.isMuted ? 'UNMUTED' : 'MUTED'}.',
         accentColor: scheme.secondary);
   }
 
@@ -277,127 +322,145 @@ class GodModeControls extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    HapticService.selection();
     showThemedDialog(
       context: context,
       accentColor: scheme.primary,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'PROTOCOL: AEGIS SHIELD',
-            style: textTheme.labelLarge!.copyWith(
+            'AEGIS SHIELD PROTOCOL',
+            style: textTheme.headlineSmall!.copyWith(
               color: scheme.primary,
-              letterSpacing: 1.6,
+              letterSpacing: 2.0,
               fontWeight: FontWeight.w900,
               shadows: CBColors.textGlow(scheme.primary, intensity: 0.5),
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x4),
           Text(
-            'Grant high-priority immunity to ${player.name.toUpperCase()}.',
+            'GRANT HIGH-PRIORITY IMMUNITY TO OPERATIVE ${player.name.toUpperCase()}.',
             style: textTheme.bodyMedium!.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.8),
+              fontWeight: FontWeight.w600,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           DropdownButtonFormField<int>(
             initialValue: 1,
-            decoration: const InputDecoration(
-              labelText: 'DURATION (NIGHTS)',
+            dropdownColor: scheme.surfaceContainerHigh,
+            style: textTheme.bodyLarge?.copyWith(color: scheme.primary, fontWeight: FontWeight.w900, fontFamily: 'RobotoMono'),
+            decoration: InputDecoration(
+              labelText: 'SHIELD DURATION',
+              labelStyle: TextStyle(color: scheme.primary, fontWeight: FontWeight.w900, letterSpacing: 1.0),
               isDense: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(CBRadius.xs), borderSide: BorderSide(color: scheme.primary)),
             ),
             items: const [
-              DropdownMenuItem(value: 1, child: Text('1 NIGHT')),
-              DropdownMenuItem(value: 2, child: Text('2 NIGHTS')),
-              DropdownMenuItem(value: 3, child: Text('3 NIGHTS')),
+              DropdownMenuItem(value: 1, child: Text('1 NIGHT CYCLE')),
+              DropdownMenuItem(value: 2, child: Text('2 NIGHT CYCLES')),
+              DropdownMenuItem(value: 3, child: Text('3 NIGHT CYCLES')),
             ],
             onChanged: (days) {
               if (days == null) return;
+              HapticService.heavy();
               Navigator.pop(context);
               ref.read(gameProvider.notifier).grantHostShield(player.id, days);
               showThemedSnackBar(
                 context,
-                'SHIELD GRANTED TO ${player.name.toUpperCase()} ($days NIGHTS)',
+                'AEGIS SHIELD DEPLOYED TO ${player.name.toUpperCase()} FOR $days CYCLES.',
                 accentColor: scheme.primary,
               );
             },
           ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              CBGhostButton(
-                label: 'ABORT',
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          )
+          const SizedBox(height: CBSpace.x6),
+          CBGhostButton(
+            label: 'ABORT',
+            onPressed: () {
+              HapticService.light();
+              Navigator.pop(context);
+            },
+          ),
         ],
       ),
     );
   }
 
   void _toggleSinBin(BuildContext context, WidgetRef ref, Player player) {
+    HapticService.medium();
     ref.read(gameProvider.notifier).setSinBin(player.id, !player.isSinBinned);
     showThemedSnackBar(context,
-        '${player.name.toUpperCase()} ${player.isSinBinned ? 'RELEASED' : 'SENT TO SIN BIN'}',
-        accentColor: CBColors.coolGrey);
+        'OPERATIVE ${player.name.toUpperCase()} ${player.isSinBinned ? 'RELEASED' : 'QUARANTINED'}.',
+        accentColor: Theme.of(context).colorScheme.outline);
   }
 
   void _toggleShadowBan(BuildContext context, WidgetRef ref, Player player) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    HapticService.selection();
     showThemedDialog(
       context: context,
       accentColor: scheme.secondary,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             player.isShadowBanned
-                ? 'PROTOCOL: LIFT BAN'
-                : 'PROTOCOL: SHADOW BAN',
-            style: textTheme.labelLarge!.copyWith(
+                ? 'LIFT SHADOW PROTOCOL'
+                : 'INITIATE SHADOW BAN',
+            style: textTheme.headlineSmall!.copyWith(
               color: scheme.secondary,
-              letterSpacing: 1.6,
+              letterSpacing: 2.0,
               fontWeight: FontWeight.w900,
               shadows: CBColors.textGlow(scheme.secondary, intensity: 0.5),
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: CBSpace.x6),
           Text(
             player.isShadowBanned
-                ? 'Restore full transmission rights to ${player.name.toUpperCase()}?'
-                : 'Silence ${player.name.toUpperCase()}? Their actions will be silently discarded while they believe they are active.',
+                ? 'RESTORE FULL TRANSMISSION RIGHTS TO OPERATIVE ${player.name.toUpperCase()}?'
+                : 'RESTRICT TRANSMISSIONS FROM OPERATIVE ${player.name.toUpperCase()}? THEIR ACTIONS WILL BE SILENTLY DISCARDED.',
             style: textTheme.bodyMedium!.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.8),
-              height: 1.4,
+              height: 1.5,
+              fontWeight: FontWeight.w600,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              CBGhostButton(
-                label: 'ABORT',
-                onPressed: () => Navigator.pop(context),
+              Expanded(
+                child: CBGhostButton(
+                  label: 'ABORT',
+                  onPressed: () {
+                    HapticService.light();
+                    Navigator.pop(context);
+                  },
+                ),
               ),
-              const SizedBox(width: 12),
-              CBPrimaryButton(
-                fullWidth: false,
-                label: player.isShadowBanned ? 'RESTORE' : 'EXECUTE',
-                backgroundColor: scheme.secondary,
-                onPressed: () {
-                  ref
-                      .read(gameProvider.notifier)
-                      .setShadowBan(player.id, !player.isShadowBanned);
-                  Navigator.pop(context);
-                  showThemedSnackBar(context,
-                      '${player.name.toUpperCase()} ${player.isShadowBanned ? 'UNBANNED' : 'SHADOW BANNED'}',
-                      accentColor: scheme.secondary);
-                },
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: CBPrimaryButton(
+                  label: player.isShadowBanned ? 'RESTORE' : 'EXECUTE',
+                  backgroundColor: scheme.secondary,
+                  onPressed: () {
+                    HapticService.heavy();
+                    ref
+                        .read(gameProvider.notifier)
+                        .setShadowBan(player.id, !player.isShadowBanned);
+                    Navigator.pop(context);
+                    showThemedSnackBar(context,
+                        'OPERATIVE ${player.name.toUpperCase()} ${player.isShadowBanned ? 'UNBANNED' : 'SHADOW BANNED'}.',
+                        accentColor: scheme.secondary);
+                  },
+                ),
               ),
             ],
           )
@@ -410,55 +473,65 @@ class GodModeControls extends ConsumerWidget {
     String reason = '';
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    HapticService.selection();
     showThemedDialog(
       context: context,
       accentColor: scheme.error,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'PROTOCOL: NODE EJECTION',
-            style: textTheme.labelLarge!.copyWith(
+            'NODE EJECTION PROTOCOL',
+            style: textTheme.headlineSmall!.copyWith(
               color: scheme.error,
-              letterSpacing: 1.6,
+              letterSpacing: 2.0,
               fontWeight: FontWeight.w900,
-              shadows: CBColors.textGlow(scheme.error, intensity: 0.5),
+              shadows: CBColors.textGlow(scheme.error, intensity: 0.6),
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x4),
           Text(
-            'Permanently eject ${player.name.toUpperCase()} from the club network?',
+            'PERMANENTLY DISCONNECT OPERATIVE ${player.name.toUpperCase()} FROM THE CLUB NETWORK?',
             style: textTheme.bodyMedium!.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.8),
+              fontWeight: FontWeight.w600,
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           CBTextField(
-            hintText: 'REASON FOR EJECTION (OPTIONAL)',
+            hintText: 'SPECIFY EJECTION REASON (OPTIONAL)',
             onChanged: (value) => reason = value,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              CBGhostButton(
-                label: 'ABORT',
-                onPressed: () => Navigator.pop(context),
+              Expanded(
+                child: CBGhostButton(
+                  label: 'ABORT',
+                  onPressed: () {
+                    HapticService.light();
+                    Navigator.pop(context);
+                  },
+                ),
               ),
-              const SizedBox(width: 12),
-              CBPrimaryButton(
-                fullWidth: false,
-                label: 'EJECT',
-                backgroundColor: scheme.error,
-                onPressed: () {
-                  ref.read(gameProvider.notifier).kickPlayer(player.id,
-                      reason.isEmpty ? 'No reason provided' : reason);
-                  Navigator.pop(context);
-                  showThemedSnackBar(
-                      context, '${player.name.toUpperCase()} EJECTED',
-                      accentColor: scheme.error);
-                },
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: CBPrimaryButton(
+                  label: 'EJECT',
+                  backgroundColor: scheme.error,
+                  onPressed: () {
+                    HapticService.heavy();
+                    ref.read(gameProvider.notifier).kickPlayer(player.id,
+                        reason.isEmpty ? 'Violated club protocol' : reason);
+                    Navigator.pop(context);
+                    showThemedSnackBar(
+                        context, 'OPERATIVE ${player.name.toUpperCase()} EJECTED FROM SYSTEM.',
+                        accentColor: scheme.error);
+                  },
+                ),
               ),
             ],
           )
@@ -488,28 +561,25 @@ class _ActionChip extends StatelessWidget {
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
-        onTap: () {
-          HapticService.selection();
-          onTap();
-        },
-        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(CBRadius.sm),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: 10),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withValues(alpha: 0.3)),
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(CBRadius.sm),
+            border: Border.all(color: color.withValues(alpha: 0.4), width: 1.2),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: color),
-              const SizedBox(width: 8),
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 10),
               Text(
                 label.toUpperCase(),
                 style: textTheme.labelSmall!.copyWith(
                   color: color,
-                  fontSize: 8,
+                  fontSize: 9,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.0,
                 ),

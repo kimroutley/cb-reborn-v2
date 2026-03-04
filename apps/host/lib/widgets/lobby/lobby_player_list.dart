@@ -1,9 +1,10 @@
 import 'package:cb_logic/cb_logic.dart';
-import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../sheets/single_player_role_sheet.dart';
 
 final userProfileProvider =
     StreamProvider.family<Map<String, dynamic>?, String>((ref, uid) {
@@ -19,273 +20,247 @@ class LobbyPlayerList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final gameState = ref.watch(gameProvider);
     final session = ref.watch(sessionProvider);
     final controller = ref.read(gameProvider.notifier);
+
     final connectedHumans = gameState.players.where((p) => !p.isBot).length;
     final confirmedHumans = session.roleConfirmedPlayerIds
         .where((id) => gameState.players.any((p) => p.id == id && !p.isBot))
         .length;
-    final alivePlayerIds =
-        gameState.players.where((p) => p.isAlive).map((p) => p.id).toSet();
-    final pendingDramaSwapTargetIds = <String>{};
-    for (final dramaQueen in gameState.players.where(
-      (p) => p.role.id == RoleIds.dramaQueen && p.isAlive,
-    )) {
-      final targetAId = dramaQueen.dramaQueenTargetAId;
-      final targetBId = dramaQueen.dramaQueenTargetBId;
-      if (targetAId == null || targetBId == null) continue;
-      if (targetAId == targetBId) continue;
-      if (targetAId == dramaQueen.id || targetBId == dramaQueen.id) continue;
-      if (!alivePlayerIds.contains(targetAId) ||
-          !alivePlayerIds.contains(targetBId)) {
-        continue;
-      }
-      pendingDramaSwapTargetIds
-        ..add(targetAId)
-        ..add(targetBId);
-    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // ── ROSTER METRICS ──
-        CBGlassTile(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          borderColor: confirmedHumans >= connectedHumans && connectedHumans > 0
-              ? scheme.tertiary.withValues(alpha: 0.6)
-              : scheme.secondary.withValues(alpha: 0.4),
-          isPrismatic: confirmedHumans >= connectedHumans && connectedHumans > 0,
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: (confirmedHumans >= connectedHumans && connectedHumans > 0
-                          ? scheme.tertiary
-                          : scheme.secondary)
-                      .withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.sensors_rounded,
-                  size: 22,
-                  color: confirmedHumans >= connectedHumans && connectedHumans > 0
-                      ? scheme.tertiary
-                      : scheme.secondary,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'SECURE ROSTER LINK',
-                      style: textTheme.labelSmall!.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.5),
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2.0,
-                        fontSize: 10,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$confirmedHumans / $connectedHumans UPLINKS VERIFIED',
-                      style: textTheme.titleMedium!.copyWith(
-                        color: confirmedHumans >= connectedHumans && connectedHumans > 0
+        CBFadeSlide(
+          child: CBGlassTile(
+            padding: const EdgeInsets.all(CBSpace.x4),
+            borderColor:
+                confirmedHumans >= connectedHumans && connectedHumans > 0
+                    ? scheme.tertiary.withValues(alpha: 0.5)
+                    : scheme.secondary.withValues(alpha: 0.4),
+            isPrismatic:
+                confirmedHumans >= connectedHumans && connectedHumans > 0,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(CBSpace.x2),
+                  decoration: BoxDecoration(
+                    color: (confirmedHumans >= connectedHumans &&
+                                connectedHumans > 0
                             ? scheme.tertiary
-                            : scheme.secondary,
+                            : scheme.secondary)
+                        .withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.sensors_rounded,
+                    size: 20,
+                    color: confirmedHumans >= connectedHumans &&
+                            connectedHumans > 0
+                        ? scheme.tertiary
+                        : scheme.secondary,
+                  ),
+                ),
+                const SizedBox(width: CBSpace.x4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'SECURE UPLINK STATUS',
+                        style: textTheme.labelSmall!.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.4),
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2.0,
+                          fontSize: 9,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$confirmedHumans / $connectedHumans OPERATIVES VERIFIED',
+                        style: textTheme.titleSmall!.copyWith(
+                          color: confirmedHumans >= connectedHumans &&
+                                  connectedHumans > 0
+                              ? scheme.tertiary
+                              : scheme.secondary,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                          fontFamily: 'RobotoMono',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: CBSpace.x4),
+        const CBFeedSeparator(label: 'UPLINK STREAM'),
+        const SizedBox(height: CBSpace.x2),
+
+        // ── PLAYER JOIN FEED ──
+        if (gameState.players.isEmpty)
+          Expanded(
+            child: Center(
+              child: CBFadeSlide(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CBBreathingSpinner(size: 48),
+                    const SizedBox(height: CBSpace.x6),
+                    Text(
+                      'SCANNING FOR SIGNALS...',
+                      textAlign: TextAlign.center,
+                      style: textTheme.labelLarge!.copyWith(
+                        color: scheme.primary.withValues(alpha: 0.5),
+                        letterSpacing: 2.0,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0,
-                        fontFamily: 'RobotoMono',
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              CBGhostButton(
-                label: 'ADD BOT',
-                icon: Icons.smart_toy_rounded,
-                onPressed: () {
-                  HapticService.light();
-                  controller.addBot();
-                },
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
-        const CBFeedSeparator(label: 'ROSTER FEED'),
-        const SizedBox(height: 12),
-
-        // ── PLAYER JOIN FEED ──
-        if (gameState.players.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: CBGlassTile(
-              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CBBreathingLoader(
-                    size: 64,
-                    color: scheme.tertiary,
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'SIGNAL SEARCHING...',
-                    textAlign: TextAlign.center,
-                    style: textTheme.titleMedium!.copyWith(
-                      color: scheme.tertiary,
-                      letterSpacing: 3.0,
-                      fontWeight: FontWeight.w900,
-                      shadows:
-                          CBColors.textGlow(scheme.tertiary, intensity: 0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: scheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: scheme.primary.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Text(
-                      'CHANNEL: ${session.joinCode}',
-                      style: textTheme.labelSmall!.copyWith(
-                        color: scheme.primary,
-                        fontFamily: 'RobotoMono',
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           )
         else
           Expanded(
-            child: CBGlassTile(
-              child: ListView(
-                children: gameState.players.asMap().entries.map((entry) {
-                  final idx = entry.key;
-                  final player = entry.value;
-                  final profileAsync = player.authUid != null
-                      ? ref.watch(userProfileProvider(player.authUid!))
-                      : null;
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: CBSpace.x8),
+              itemCount: gameState.players.length,
+              itemBuilder: (context, idx) {
+                final player = gameState.players[idx];
+                final profileAsync = player.authUid != null
+                    ? ref.watch(userProfileProvider(player.authUid!))
+                    : null;
 
-                  final profile = profileAsync?.maybeWhen(
-                    data: (data) => data,
-                    orElse: () => null,
-                  );
-                  final profileUsername = (profile?['username'] as String?)?.trim();
-                  final emailMasked = (profile?['emailMasked'] as String?)?.trim();
-                  final displayName =
-                      (profileUsername != null && profileUsername.isNotEmpty)
-                          ? profileUsername
-                          : player.name;
-                  final descriptor = (emailMasked != null && emailMasked.isNotEmpty)
-                      ? '$displayName ($emailMasked)'
-                      : displayName;
-                  final hasPendingDramaSwap =
-                      pendingDramaSwapTargetIds.contains(player.id);
+                final profile = profileAsync?.maybeWhen(
+                  data: (data) => data,
+                  orElse: () => null,
+                );
+                final profileUsername =
+                    (profile?['username'] as String?)?.trim();
+                final displayName =
+                    (profileUsername != null && profileUsername.isNotEmpty)
+                        ? profileUsername
+                        : player.name;
 
-                  return CBFadeSlide(
-                    key: ValueKey('host_lobby_join_${player.id}'),
-                    delay: Duration(milliseconds: 30 * idx.clamp(0, 10)),
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                final isConfirmed =
+                    session.roleConfirmedPlayerIds.contains(player.id);
+
+                return CBFadeSlide(
+                  delay: Duration(milliseconds: 40 * idx.clamp(0, 15)),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: CBSpace.x3),
+                    child: CBGlassTile(
+                      borderColor: isConfirmed
+                          ? scheme.tertiary.withValues(alpha: 0.4)
+                          : scheme.outlineVariant.withValues(alpha: 0.2),
+                      padding: const EdgeInsets.all(CBSpace.x3),
+                      child: Row(
                         children: [
-                          CBMessageBubble(
-                            sender: "SECURITY",
-                            message: player.isBot
-                                ? "${player.name.toUpperCase()} (BOT) DEPLOYED TO SECTOR."
-                                : "${descriptor.toUpperCase()} HAS PASSED BIOMETRIC CHECK.",
-                            color: scheme.tertiary,
-                            avatarAsset: player.isBot
-                                ? 'assets/roles/bot_avatar.png'
-                                : 'assets/roles/security.png',
+                          CBRoleAvatar(
+                            color:
+                                isConfirmed ? scheme.tertiary : scheme.primary,
+                            size: 40,
+                            icon: player.isBot
+                                ? Icons.smart_toy_rounded
+                                : Icons.person_rounded,
+                            pulsing: !isConfirmed,
                           ),
-                          const SizedBox(height: 8),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 48),
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
+                          const SizedBox(width: CBSpace.x4),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                if (hasPendingDramaSwap)
-                                  _LobbyActionIcon(
-                                    icon: Icons.swap_horiz_rounded,
-                                    tooltip: 'PENDING SWAP',
-                                    color: scheme.secondary,
-                                    onTap: () {},
+                                Text(
+                                  displayName.toUpperCase(),
+                                  style: textTheme.labelLarge!.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.2,
+                                    fontFamily: 'RobotoMono',
+                                    color: isConfirmed
+                                        ? scheme.tertiary
+                                        : scheme.onSurface,
                                   ),
-                                _LobbyActionIcon(
-                                  icon: Icons.edit_rounded,
-                                  tooltip: 'RENAME IDENTITY',
-                                  color: scheme.primary,
-                                  onTap: () async {
-                                    final renamed = await _showRenamePlayerDialog(
-                                      context,
-                                      initialName: player.name,
-                                    );
-                                    if (renamed == null || renamed.trim().isEmpty) {
-                                      return;
-                                    }
-                                    controller.updatePlayerName(
-                                        player.id, renamed.trim());
-                                  },
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                if (gameState.players.length > 1)
-                                  _LobbyActionIcon(
-                                    icon: Icons.merge_type_rounded,
-                                    tooltip: 'MERGE NODE',
-                                    color: scheme.secondary,
-                                    onTap: () async {
-                                      final targetId = await _showMergePlayerDialog(
-                                        context,
-                                        players: gameState.players,
-                                        sourcePlayer: player,
-                                      );
-                                      if (targetId == null) {
-                                        return;
-                                      }
-                                      controller.mergePlayers(
-                                        sourceId: player.id,
-                                        targetId: targetId,
-                                      );
-                                    },
+                                const SizedBox(height: 2),
+                                Text(
+                                  player.isBot
+                                      ? 'BOT EMULATION ACTIVE'
+                                      : (isConfirmed
+                                          ? 'BIOMETRICS VERIFIED'
+                                          : 'AWAITING UPLINK...'),
+                                  style: textTheme.labelSmall!.copyWith(
+                                    color: (isConfirmed
+                                            ? scheme.tertiary
+                                            : scheme.onSurface)
+                                        .withValues(alpha: 0.4),
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.0,
                                   ),
-                                _LobbyActionIcon(
-                                  icon: Icons.close_rounded,
-                                  tooltip: 'EJECT PATRON',
-                                  color: scheme.error,
-                                  onTap: () {
-                                    HapticService.heavy();
-                                    controller.removePlayer(player.id);
-                                  },
                                 ),
                               ],
                             ),
                           ),
+                          const SizedBox(width: CBSpace.x2),
+                          _LobbyActionIcon(
+                            icon: Icons.assignment_ind_rounded,
+                            tooltip: 'ASSIGN ROLE',
+                            color: scheme.tertiary,
+                            onTap: () {
+                              HapticService.selection();
+                              showThemedBottomSheet(
+                                context: context,
+                                child: SinglePlayerRoleSheet(
+                                  playerId: player.id,
+                                  playerName: player.name,
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(width: CBSpace.x2),
+                          _LobbyActionIcon(
+                            icon: Icons.edit_note_rounded,
+                            tooltip: 'RENAME',
+                            color: scheme.primary,
+                            onTap: () async {
+                              final renamed = await _showRenamePlayerDialog(
+                                context,
+                                initialName: player.name,
+                              );
+                              if (renamed != null &&
+                                  renamed.trim().isNotEmpty) {
+                                controller.updatePlayerName(
+                                    player.id, renamed.trim());
+                              }
+                            },
+                          ),
+                          const SizedBox(width: CBSpace.x2),
+                          _LobbyActionIcon(
+                            icon: Icons.close_rounded,
+                            tooltip: 'EJECT',
+                            color: scheme.error,
+                            onTap: () {
+                              HapticService.heavy();
+                              controller.removePlayer(player.id);
+                            },
+                          ),
                         ],
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
+                  ),
+                );
+              },
             ),
           ),
       ],
@@ -301,99 +276,45 @@ class LobbyPlayerList extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     return showThemedDialog<String>(
       context: context,
+      accentColor: scheme.primary,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'PROTOCOL: IDENTITY UPDATE',
-            style: textTheme.labelLarge!.copyWith(
+            'IDENTITY UPDATE',
+            style: textTheme.headlineSmall!.copyWith(
               color: scheme.primary,
               fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
+              letterSpacing: 2.0,
+              shadows: CBColors.textGlow(scheme.primary),
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           CBTextField(
             controller: controller,
             autofocus: true,
-            hintText: 'New Identity Handle',
+            hintText: 'ENTER NEW IDENTIFIER',
+            monospace: true,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: CBSpace.x8),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              CBGhostButton(
-                label: 'ABORT',
-                onPressed: () => Navigator.pop(context),
+              Expanded(
+                child: CBGhostButton(
+                  label: 'ABORT',
+                  onPressed: () => Navigator.pop(context),
+                ),
               ),
-              const SizedBox(width: 12),
-              CBPrimaryButton(
-                label: 'CONFIRM',
-                onPressed: () => Navigator.pop(context, controller.text),
-                fullWidth: false,
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: CBPrimaryButton(
+                  label: 'CONFIRM',
+                  onPressed: () => Navigator.pop(context, controller.text),
+                ),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<String?> _showMergePlayerDialog(
-    BuildContext context, {
-    required List<Player> players,
-    required Player sourcePlayer,
-  }) async {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final choices = players.where((p) => p.id != sourcePlayer.id).toList();
-    return showThemedDialog<String>(
-      context: context,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'PROTOCOL: NEURAL MERGE',
-            style: textTheme.labelLarge!.copyWith(
-              color: scheme.secondary,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Merging ${sourcePlayer.name.toUpperCase()} into another node...',
-            style: textTheme.bodySmall!
-                .copyWith(color: scheme.onSurface.withValues(alpha: 0.6)),
-          ),
-          const SizedBox(height: 24),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 300),
-            child: SingleChildScrollView(
-              child: Column(
-                children: choices
-                    .map(
-                      (choice) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: CBPrimaryButton(
-                          label: choice.name,
-                          backgroundColor:
-                              scheme.secondary.withValues(alpha: 0.2),
-                          foregroundColor: scheme.secondary,
-                          onPressed: () => Navigator.pop(context, choice.id),
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          CBGhostButton(
-            label: 'CANCEL',
-            onPressed: () => Navigator.pop(context),
           ),
         ],
       ),
@@ -419,21 +340,21 @@ class _LobbyActionIcon extends StatelessWidget {
     return Material(
       type: MaterialType.transparency,
       child: Tooltip(
-        message: tooltip,
+        message: tooltip.toUpperCase(),
         child: InkWell(
           onTap: () {
             HapticService.selection();
             onTap();
           },
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(CBRadius.xs),
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(CBSpace.x2),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(CBRadius.xs),
               border: Border.all(
                 color: color.withValues(alpha: 0.3),
-                width: 1,
+                width: 1.2,
               ),
             ),
             child: Icon(

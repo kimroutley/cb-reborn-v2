@@ -21,48 +21,59 @@ class HomeMenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final scheme = theme.colorScheme;
     final color = accentColor ?? scheme.primary;
 
     return CBFadeSlide(
-      delay: Duration(milliseconds: 90 * index),
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(CBRadius.md),
-          onTap: () {
-            HapticService.selection();
-            onTap();
-          },
-          child: CBPanel(
-            padding: const EdgeInsets.all(CBSpace.x4),
-            borderColor: color.withValues(alpha: 0.5),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 48, color: color),
-                const SizedBox(height: CBSpace.x4),
-                Text(
-                  title.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: textTheme.labelLarge!.copyWith(
-                    color: color,
-                  ),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: CBSpace.x2),
-                  Text(
-                    subtitle!,
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodySmall!.copyWith(
-                      color: scheme.onSurfaceVariant.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ],
-              ],
+      delay: Duration(milliseconds: 100 * index),
+      child: CBGlassTile(
+        onTap: () {
+          HapticService.selection();
+          onTap();
+        },
+        borderColor: color.withValues(alpha: 0.4),
+        padding: const EdgeInsets.all(CBSpace.x6),
+        isPrismatic: index == 0, // Make the first item pop
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(CBSpace.x4),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+                boxShadow: CBColors.circleGlow(color, intensity: 0.3),
+              ),
+              child: Icon(icon, size: 40, color: color, shadows: CBColors.iconGlow(color)),
             ),
-          ),
+            const SizedBox(height: CBSpace.x5),
+            Text(
+              title.toUpperCase(),
+              textAlign: TextAlign.center,
+              style: textTheme.labelLarge!.copyWith(
+                color: color,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+                shadows: CBColors.textGlow(color, intensity: 0.4),
+              ),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: CBSpace.x2),
+              Text(
+                subtitle!.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: textTheme.labelSmall!.copyWith(
+                  color: scheme.onSurface.withValues(alpha: 0.4),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 9,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );

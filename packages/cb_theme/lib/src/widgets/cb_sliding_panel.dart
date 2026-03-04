@@ -36,7 +36,7 @@ class CBSlidingPanel extends StatelessWidget {
                 curve: curve,
                 opacity: isOpen ? 1 : 0,
                 child: Container(
-                  color: Colors.black
+                  color: CBColors.voidBlack
                       .withValues(alpha: 0.5), // Valid Flutter 3.27+ syntax
                 ),
               ),

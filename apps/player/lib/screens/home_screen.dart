@@ -12,9 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/custom_drawer.dart';
+import '../player_destinations.dart';
+import '../player_navigation.dart';
 
+/// Connection is cloud-only; local/WebSocket mode is not offered.
 enum PlayerSyncMode {
-  local,
   cloud,
 }
 
@@ -81,11 +83,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? _lastHandledJoinUrl;
   DateTime? _lastHandledJoinAt;
 
-  // Connection State
-  PlayerSyncMode _mode = PlayerSyncMode.cloud; // Default to cloud
+  // Connection State (cloud-only)
   final TextEditingController _joinCodeController = TextEditingController();
-  final TextEditingController _hostIpController =
-      TextEditingController(text: 'ws://192.168.1.'); // Default local IP hint
   String? _connectionError;
   bool _isConnecting = false;
 
@@ -131,7 +130,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _linkSub?.cancel();
     _resumeRetryTimer?.cancel();
     _joinCodeController.dispose();
-    _hostIpController.dispose();
     super.dispose();
   }
 
@@ -140,30 +138,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (uri == null) return false;
 
     final code = uri.queryParameters['code'];
-    final mode = uri.queryParameters['mode']; // Added for sync mode
-    final host = uri.queryParameters['host']; // Added for local host
     final autoConnect = uri.queryParameters['autoconnect'] == '1';
-    final legacyLocalAutoconnect = mode == 'local' && autoConnect;
 
     if (code != null) {
       _joinCodeController.text = _normalizeJoinCode(code);
     }
 
-    // Legacy compatibility: old local autoconnect links are coerced to cloud.
-    // Player is cloud-first and these links should reconnect through Firestore.
-    if (legacyLocalAutoconnect) {
-      setState(() => _mode = PlayerSyncMode.cloud);
-    } else if (mode == 'local') {
-      setState(() {
-        _mode = PlayerSyncMode.local;
-        if (host != null) {
-          _hostIpController.text = host;
-        }
-      });
-    } else {
-      setState(() => _mode = PlayerSyncMode.cloud);
-    }
-
+    // All join URLs use cloud; legacy mode=local links are ignored for mode and use cloud.
     return autoConnect;
   }
 
@@ -269,39 +250,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final playerName = await _resolveJoinIdentity();
     final code = _joinCodeController.text;
 
-    if (_mode == PlayerSyncMode.local) {
-      final host = _hostIpController.text.trim();
-      if (host.isEmpty) {
-        throw 'HOST IP/ADDRESS CANNOT BE EMPTY';
-      }
-      final normalizedHost = host.toLowerCase();
-      if (!normalizedHost.startsWith('ws://') &&
-          !normalizedHost.startsWith('wss://')) {
-        throw 'LOCAL HOST MUST START WITH WS:// OR WSS:// (E.G. WS://192.168.1.100)';
-      }
-      await ref
-          .read(cloudPlayerBridgeProvider.notifier)
-          .disconnect()
-          .timeout(_connectAttemptTimeout);
-      await ref
-          .read(playerBridgeProvider.notifier)
-          .connect(host)
-          .timeout(_connectAttemptTimeout);
-      await ref
-          .read(playerBridgeProvider.notifier)
-          .joinGame(code, playerName)
-          .timeout(_connectAttemptTimeout);
-    } else {
-      // Cloud mode
-      await ref
-          .read(playerBridgeProvider.notifier)
-          .disconnect()
-          .timeout(_connectAttemptTimeout);
-      await ref
-          .read(cloudPlayerBridgeProvider.notifier)
-          .joinGame(code, playerName)
-          .timeout(_connectAttemptTimeout);
-    }
+    await ref
+        .read(playerBridgeProvider.notifier)
+        .disconnect()
+        .timeout(_connectAttemptTimeout);
+    await ref
+        .read(cloudPlayerBridgeProvider.notifier)
+        .joinGame(code, playerName)
+        .timeout(_connectAttemptTimeout);
   }
 
   void _connectFromButton() {
@@ -347,7 +303,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       });
     } catch (e) {
       setState(() {
-        _connectionError = e.toString();
+        _connectionError = e.toString().toUpperCase();
       });
     } finally {
       if (success) {
@@ -384,70 +340,103 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6, vertical: CBSpace.x12),
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'CONNECT TO HOST',
-                      textAlign: TextAlign.center,
-                      style: textTheme.displayMedium!.copyWith(
-                        color: scheme.primary,
-                        letterSpacing: 4,
-                        fontWeight: FontWeight.w900,
-                        shadows: CBColors.textGlow(scheme.primary),
+                    CBFadeSlide(
+                      child: Text(
+                        'CONNECT TO HOST',
+                        textAlign: TextAlign.center,
+                        style: textTheme.displayMedium!.copyWith(
+                          color: scheme.primary,
+                          letterSpacing: 4,
+                          fontWeight: FontWeight.w900,
+                          shadows: CBColors.textGlow(scheme.primary),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 48),
-                    CBPanel(
-                      borderColor: scheme.primary.withValues(alpha: 0.4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildSyncModeSelector(context),
-                          const SizedBox(height: 24),
-                          CBTextField(
-                            controller: _joinCodeController,
-                            hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
-                            textCapitalization: TextCapitalization.characters,
-                          ),
-                          if (_mode == PlayerSyncMode.local) ...[
-                            const SizedBox(height: 16),
+                    const SizedBox(height: CBSpace.x12),
+                    CBFadeSlide(
+                      delay: const Duration(milliseconds: 200),
+                      child: CBPanel(
+                        borderColor: scheme.primary.withValues(alpha: 0.4),
+                        padding: CBInsets.panel,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
                             CBTextField(
-                              controller: _hostIpController,
-                              hintText:
-                                  'HOST IP ADDRESS (E.G. WS://192.168.1.100)',
-                              keyboardType: TextInputType.url,
+                              controller: _joinCodeController,
+                              hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
+                              textCapitalization: TextCapitalization.characters,
+                              prefixIcon: Icons.qr_code_rounded,
                             ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'LOCAL MODE TIP: HOST + PLAYER MUST BE ON THE SAME NETWORK AND THE HOST APP MUST BE RUNNING. IF YOU ARE UNSURE, USE CLOUD MODE.',
-                              textAlign: TextAlign.center,
-                              style: textTheme.bodySmall!.copyWith(
-                                color: scheme.primary.withValues(alpha: 0.9),
-                                fontWeight: FontWeight.w600,
+                            const SizedBox(height: CBSpace.x8),
+                            CBPrimaryButton(
+                              label: _isConnecting
+                                  ? 'ESTABLISHING UPLINK...'
+                                  : 'INITIATE CONNECTION',
+                              onPressed:
+                                  _isConnecting ? null : () {
+                                    HapticService.heavy();
+                                    _connectFromButton();
+                                  },
+                            ),
+                            if (_connectionError != null) ...[
+                              const SizedBox(height: CBSpace.x6),
+                              CBGlassTile(
+                                borderColor: scheme.error.withValues(alpha: 0.5),
+                                padding: CBInsets.screen,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.gpp_bad_rounded,
+                                        color: scheme.error, size: 24),
+                                    const SizedBox(width: CBSpace.x4),
+                                    Expanded(
+                                      child: Text(
+                                        'UPLINK FAILED: ${_connectionError!.toUpperCase()}',
+                                        style: textTheme.labelSmall?.copyWith(
+                                          color: scheme.error,
+                                          fontWeight: FontWeight.w900,
+                                          height: 1.4,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: CBSpace.x8),
+                            TextButton(
+                              onPressed: () {
+                                HapticService.selection();
+                                ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.guides);
+                              },
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'JUST BROWSING?',
+                                    style: textTheme.labelLarge?.copyWith(
+                                      color: scheme.secondary,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.0,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Read the Blackbook',
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: scheme.onSurface.withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
-                          const SizedBox(height: 24),
-                          CBPrimaryButton(
-                            label: _isConnecting
-                                ? 'CONNECTING...'
-                                : 'INITIATE UPLINK',
-                            onPressed:
-                                _isConnecting ? null : _connectFromButton,
-                          ),
-                          if (_connectionError != null) ...[
-                            const SizedBox(height: 16),
-                            Text(
-                              _connectionError!,
-                              textAlign: TextAlign.center,
-                              style: textTheme.bodySmall!
-                                  .copyWith(color: scheme.error),
-                            ),
-                          ],
-                        ],
+                        ),
                       ),
                     ),
                   ],
@@ -465,40 +454,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildSyncModeSelector(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        Expanded(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48),
-            child: CBFilterChip(
-              label: 'CLOUD',
-              icon: Icons.cloud,
-              selected: _mode == PlayerSyncMode.cloud,
-              onSelected: () => setState(() => _mode = PlayerSyncMode.cloud),
-              color: _mode == PlayerSyncMode.cloud ? scheme.primary : null,
-              dense: false,
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48),
-            child: CBFilterChip(
-              label: 'LOCAL',
-              icon: Icons.wifi,
-              selected: _mode == PlayerSyncMode.local,
-              onSelected: () => setState(() => _mode = PlayerSyncMode.local),
-              color: _mode == PlayerSyncMode.local ? scheme.primary : null,
-              dense: false,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _LoadingDialogOverlay extends StatelessWidget {
@@ -512,16 +467,15 @@ class _LoadingDialogOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return AbsorbPointer(
       absorbing: true,
       child: Container(
-        color: Colors.black.withValues(alpha: 0.55),
+        color: scheme.scrim.withValues(alpha: 0.6),
         alignment: Alignment.center,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(CBSpace.x6),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 360),
           child: CBPanel(
@@ -530,21 +484,24 @@ class _LoadingDialogOverlay extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const CBBreathingLoader(size: 54),
-                const SizedBox(height: 20),
+                const SizedBox(height: CBSpace.x5),
                 Text(
                   title,
                   textAlign: TextAlign.center,
                   style: textTheme.labelLarge!.copyWith(
                     color: scheme.primary,
                     letterSpacing: 1.3,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
+                    shadows: CBColors.textGlow(scheme.primary, intensity: 0.4),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: CBSpace.x2),
                 Text(
                   subtitle,
                   textAlign: TextAlign.center,
-                  style: textTheme.bodyMedium,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.8),
+                  ),
                 ),
               ],
             ),

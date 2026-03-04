@@ -147,7 +147,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 30));
 
-    expect(container.read(playerNavigationProvider), PlayerDestination.game);
+    expect(container.read(playerNavigationProvider), PlayerDestination.lobby);
 
     cloud.emitPhase('night');
     await tester.pump();

@@ -61,26 +61,26 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding:
-                      const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                      const EdgeInsets.symmetric(vertical: CBSpace.x6, horizontal: CBSpace.x5),
                   children: [
                     CBSectionHeader(
                       title: 'ACTIVE SESSION',
                       icon: Icons.play_circle_outline_rounded,
                       color: scheme.tertiary,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: CBSpace.x3),
                     _buildActiveSessionPanel(context, activeSession, scheme),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: CBSpace.x8),
                     CBSectionHeader(
                       title: 'RECENT SESSIONS',
                       icon: Icons.history_rounded,
                       color: scheme.primary,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: CBSpace.x3),
                     if (_sessions.isEmpty)
                       CBPanel(
-                        padding: const EdgeInsets.all(16),
-                        borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
+        padding: const EdgeInsets.all(CBSpace.x4),
+        borderColor: scheme.outlineVariant.withValues(alpha: 0.3),
                         child: Text(
                           'No sessions yet. Start a Games Night to begin tracking rounds.',
                           textAlign: TextAlign.center,
@@ -111,7 +111,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
 
     if (session == null || !session.isActive) {
       return CBPanel(
-        padding: const EdgeInsets.all(16),
+        padding: CBInsets.screen,
         borderColor: scheme.outline.withValues(alpha: 0.3),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,14 +123,14 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                 letterSpacing: 1.6,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: CBSpace.x3),
             Text(
               'Start a Games Night to connect multiple rounds and unlock the recap.',
               style: textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: CBSpace.x4),
             Align(
               alignment: Alignment.centerRight,
               child: CBPrimaryButton(
@@ -155,7 +155,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
     final date = DateFormat('MMM dd, yyyy').format(session.startedAt);
 
     return CBPanel(
-      padding: const EdgeInsets.all(16),
+      padding: CBInsets.screen,
       borderColor: scheme.tertiary.withValues(alpha: 0.55),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +163,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
           Row(
             children: [
               CBBadge(text: 'ACTIVE', color: scheme.tertiary),
-              const SizedBox(width: 10),
+              const SizedBox(width: CBSpace.x3),
               Expanded(
                 child: Text(
                   session.sessionName,
@@ -175,7 +175,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: CBSpace.x3),
           Text(
             'STARTED $date',
             style: textTheme.labelSmall?.copyWith(
@@ -183,14 +183,14 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
               letterSpacing: 1.2,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: CBSpace.x3),
           Text(
             '${session.gameIds.length} game${session.gameIds.length == 1 ? '' : 's'} • ${session.playerNames.length} player${session.playerNames.length == 1 ? '' : 's'}',
             style: textTheme.bodySmall?.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: CBSpace.x4),
           Row(
             children: [
               Expanded(
@@ -206,7 +206,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: CBSpace.x3),
           Row(
             children: [
               Expanded(
@@ -222,7 +222,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               Expanded(
                 child: CBGhostButton(
                   label: 'VIEW RECAP',
@@ -271,11 +271,11 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x5),
+        margin: const EdgeInsets.only(bottom: CBSpace.x3),
         decoration: BoxDecoration(
           color: scheme.error.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(CBRadius.sm),
         ),
         child: Icon(Icons.delete_forever,
             color: scheme.onSurface), // Updated to use scheme.onSurface
@@ -299,8 +299,8 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
         }
       },
       child: CBPanel(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: CBSpace.x3),
+        padding: CBInsets.screen,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -315,7 +315,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                         session.sessionName,
                         style: textTheme.headlineSmall,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: CBSpace.x2),
                       Text(
                         '${session.gameIds.length} games • $date',
                         style: textTheme.bodySmall?.copyWith(
@@ -372,7 +372,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
               shadows: CBColors.textGlow(color, intensity: 0.6),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: CBSpace.x3),
           Text(
             'Lock this Games Night and finalize the recap?',
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -380,7 +380,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
               height: 1.3,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: CBSpace.x6),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -388,7 +388,7 @@ class _GamesNightScreenState extends ConsumerState<GamesNightScreen> {
                 label: 'CANCEL',
                 onPressed: () => Navigator.of(context).pop(false),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: CBSpace.x3),
               CBPrimaryButton(
                 label: 'END',
                 backgroundColor: color, // Passed color

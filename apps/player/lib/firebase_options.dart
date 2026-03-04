@@ -48,12 +48,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyD5fWFTb5-rUJfKqoQ7WDB3FR3OV1zVsoI',
-    appId: '1:453725556263:web:21b2ed7318c266fb73c802',
+    appId: '1:453725556263:web:345963a4efda886173c802',
     messagingSenderId: '453725556263',
     projectId: 'cb-reborn',
     authDomain: 'cb-reborn.firebaseapp.com',
     storageBucket: 'cb-reborn.firebasestorage.app',
-    measurementId: 'G-70JGZ2B60Z',
+    measurementId: 'G-6Q5XTDL5VF',
   );
 
   static const FirebaseOptions android = FirebaseOptions(

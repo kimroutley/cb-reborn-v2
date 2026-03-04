@@ -10,129 +10,192 @@ class RoleDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
     final accent = CBColors.fromHex(role.colorHex);
-    final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(role.name),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: const [SimulationModeBadgeAction()],
-      ),
-      body: CBNeonBackground(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+    return CBPrismScaffold(
+      title: 'OPERATIVE DOSSIER',
+      actions: const [SimulationModeBadgeAction()],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x6, CBSpace.x6, 120),
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CBPanel(
-              borderColor: accent.withValues(alpha: 0.4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              role.name.toUpperCase(),
-                              style: textTheme.headlineSmall!.copyWith(
-                                color: accent,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${role.type.toUpperCase()} • ${role.alliance.name.toUpperCase()}',
-                              style: textTheme.labelMedium!.copyWith(
-                                color: accent.withValues(alpha: 0.7),
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-                          ],
+            CBFadeSlide(
+              child: CBGlassTile(
+                borderColor: accent.withValues(alpha: 0.4),
+                isPrismatic: true,
+                padding: const EdgeInsets.all(CBSpace.x6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(CBSpace.x1),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: accent.withValues(alpha: 0.3), width: 2),
+                            boxShadow: CBColors.circleGlow(accent, intensity: 0.3),
+                          ),
+                          child: CBRoleAvatar(
+                            assetPath: role.assetPath,
+                            color: accent,
+                            size: 64,
+                            breathing: true,
+                          ),
                         ),
-                      ),
-                      CBRoleAvatar(
-                        assetPath: role.assetPath,
-                        color: accent,
-                        size: 48,
-                        breathing: true,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  CBBadge(
-                    text: 'OPERATIVE CLASS: ${role.type}',
-                    color: accent,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    role.description,
-                    style: textTheme.bodyMedium?.copyWith(height: 1.55),
-                  ),
-                  const SizedBox(height: 12),
-                  if ((role.ability ?? '').isNotEmpty) ...[
-                    Text(
-                      'ABILITY',
-                      style: textTheme.labelLarge?.copyWith(
-                        color: accent,
-                        letterSpacing: 2.0,
-                      ),
+                        const SizedBox(width: CBSpace.x5),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                role.name.toUpperCase(),
+                                style: textTheme.headlineSmall!.copyWith(
+                                  color: scheme.onSurface,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 2.0,
+                                  shadows: CBColors.textGlow(accent, intensity: 0.4),
+                                ),
+                              ),
+                              const SizedBox(height: CBSpace.x1),
+                              Text(
+                                '${role.type.toUpperCase()} // ${role.alliance.name.toUpperCase()}',
+                                style: textTheme.labelSmall!.copyWith(
+                                  color: accent.withValues(alpha: 0.7),
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.5,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      role.ability!,
-                      style: textTheme.bodyMedium,
+                    const SizedBox(height: CBSpace.x6),
+                    Row(
+                      children: [
+                        CBBadge(
+                          text: 'PRIORITY: ${role.nightPriority}',
+                          color: accent,
+                          icon: Icons.speed_rounded,
+                        ),
+                        const SizedBox(width: 12),
+                        CBBadge(
+                          text: 'COMPLEXITY: ${role.complexity}/5',
+                          color: scheme.onSurface.withValues(alpha: 0.4),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: CBSpace.x6),
+                    Container(
+                      padding: const EdgeInsets.all(CBSpace.x4),
+                      decoration: BoxDecoration(
+                        color: scheme.onSurface.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(CBRadius.sm),
+                        border: Border.all(color: accent.withValues(alpha: 0.1)),
+                      ),
+                      child: Text(
+                        role.description.toUpperCase(),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.8),
+                          height: 1.6,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ],
-                ],
+                ),
               ),
             ),
-            const SizedBox(height: 18),
-            if (role.tacticalTip.isNotEmpty) ...[
-              CBSectionHeader(
-                title: 'HOST NOTES',
-                icon: Icons.visibility,
-                color: Theme.of(context).colorScheme.primary,
+            
+            const SizedBox(height: CBSpace.x6),
+
+            if (role.ability != null && role.ability!.isNotEmpty) ...[
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 100),
+                child: CBSectionHeader(
+                  title: 'PRIMARY ABILITY',
+                  icon: Icons.bolt_rounded,
+                  color: accent,
+                ),
               ),
-              const SizedBox(height: 12),
-              CBPanel(
-                borderColor: accent.withValues(alpha: 0.4),
+              const SizedBox(height: CBSpace.x3),
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 150),
+                child: CBPanel(
+                  borderColor: accent.withValues(alpha: 0.3),
+                  child: Text(
+                    role.ability!.toUpperCase(),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurface,
+                      height: 1.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: CBSpace.x6),
+            ],
+
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 200),
+              child: CBSectionHeader(
+                title: 'TACTICAL ADVISORY',
+                icon: Icons.visibility_rounded,
+                color: scheme.primary,
+              ),
+            ),
+            const SizedBox(height: CBSpace.x3),
+            CBFadeSlide(
+              delay: const Duration(milliseconds: 250),
+              child: CBPanel(
+                borderColor: scheme.primary.withValues(alpha: 0.3),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      role.tacticalTip,
-                      style: textTheme.bodyMedium?.copyWith(
-                        height: 1.5,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.7),
+                      role.tacticalTip.toUpperCase(),
+                      style: textTheme.bodySmall?.copyWith(
+                        height: 1.6,
+                        color: scheme.onSurface.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
                       ),
                     ),
                     if (role.hasBinaryChoiceAtStart &&
                         role.choices.isNotEmpty) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: CBSpace.x5),
                       Text(
-                        'STARTING CHOICE',
-                        style: textTheme.labelLarge?.copyWith(
-                          color: accent,
-                          letterSpacing: 2.0,
+                        'INITIALIZATION OPTIONS',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'At the start of the game, this player will choose between: ${role.choices.join(' or ')}.',
-                        style: textTheme.bodyMedium,
+                      const SizedBox(height: CBSpace.x2),
+                      Wrap(
+                        spacing: 8,
+                        children: role.choices.map((choice) => CBMiniTag(
+                          text: choice.toUpperCase(),
+                          color: scheme.primary,
+                        )).toList(),
                       ),
                     ]
                   ],
                 ),
               ),
-            ],
+            ),
           ],
         ),
       ),

@@ -1,13 +1,22 @@
+// ignore_for_file: unused_field, unused_element, unused_local_variable
+
+import 'dart:async';
+
 import 'package:cb_comms/cb_comms.dart';
+import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_models/cb_models.dart';
 import 'package:cb_theme/cb_theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../profile_edit_guard.dart';
+import '../host_destinations.dart';
 import '../widgets/custom_drawer.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({
     super.key,
     this.repository,
@@ -307,7 +316,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     try {
       final service = PersistenceService.instance;
-      await service.rebuildRoleAwardProgresses();
+      await service.roleAwards.rebuildRoleAwardProgresses();
       final allProgress = service.roleAwards.loadRoleAwardProgresses();
       final playerKeys = _resolvePlayerKeys(
         user: user,
@@ -769,7 +778,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (didPop || _allowImmediatePop || !_hasChanges) {
           return;
         }
+        _handleAttemptPop();
       },
+      child: CBPrismScaffold(
+        title: 'PROFILE',
+        drawer: const CustomDrawer(currentDestination: HostDestination.profile),
+        body: _buildWalletView(theme, scheme),
+      ),
     );
   }
 }

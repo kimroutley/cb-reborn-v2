@@ -76,3 +76,12 @@ build_log_*.txt
 # Local agent skill cache (extension-generated)
 .agents/skills/*
 .claude/skills/*
+node_modules
+
+# IDE / editor / temp
+.cursor/
+.vs/
+tmpclaude-*/
+dart_setup.log
+nul
+*.code-workspace

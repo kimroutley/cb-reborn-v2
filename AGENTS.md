@@ -31,4 +31,5 @@ This repository is a complex **Flutter Monorepo** with strict architectural and 
 *   **[`STYLE_GUIDE.md`](./STYLE_GUIDE.md)**: **MUST READ**. The "Design Bible" for the Radiant Neon aesthetic.
 *   **[`AGENT_CONTEXT.md`](./AGENT_CONTEXT.md)**: Deep technical context & known issues.
 *   **[`PROJECT_DEVELOPER_HANDBOOK.md`](./PROJECT_DEVELOPER_HANDBOOK.md)**: Project vision, features, and high-level workflow.
+*   **[`docs/COMMUNICATION_AND_PUSH.md`](./docs/COMMUNICATION_AND_PUSH.md)**: Host–player communication architecture and push notification event catalog.
 *   **[`README.md`](./README.md)**: General overview and installation.

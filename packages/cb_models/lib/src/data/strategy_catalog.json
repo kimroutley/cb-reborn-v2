@@ -105,11 +105,11 @@
   },
   "lightweight": {
     "roleId": "lightweight",
-    "overview": "You generate taboo names each day. If you say ANY of those names, you die instantly. The taboo list is visible to all players.",
-    "earlyGame": "Carefully avoid your taboo names in discussion. This role is extremely challenging and requires constant vigilance.",
-    "lateGame": "As more players die, your taboo list may become easier to avoid. Stay focused and read carefully before speaking.",
-    "counters": [],
-    "synergies": []
+    "overview": "You are a Party Animal with a strategic voting restriction. Each night you choose an operative to 'taboo', losing the ability to vote for them in all future rounds.",
+    "earlyGame": "STRATEGIC PACIFISM: Your goal is to build trust by blocking yourself from voting against players you believe are town. Each choice is permanent. If you accidentally block a Dealer, you've lost your primary weapon against them. Target players who are 'confirmed' or highly likely to be on your team.",
+    "lateGame": "Your voting power will diminish as your taboo list grows. This is your biggest weakness. In the final rounds, ensure you still have the ability to vote for at least one suspect. Use your early-game 'sacrifice' of voting rights as a social proof of your identity.",
+    "counters": ["whore", "silver_fox"],
+    "synergies": ["bouncer", "medic", "bartender"]
   },
   "tea_spiller": {
     "roleId": "tea_spiller",
@@ -162,7 +162,7 @@
   "clinger": {
     "roleId": "clinger",
     "overview": "You are obsessed with another player (your choice at game start). You MUST vote with them, and if they die, you die too. However, they can 'free' you as an Attack Dog, giving you independence and a kill.",
-    "earlyGame": "Choose your partner wisely - pick someone likely to survive and whose judgment you trust. Your votes are locked to theirs.",
+    "earlyGame": "Choose your partner wisely - pick someone pick someone likely to survive and whose judgment you trust. Your votes are locked to theirs.",
     "lateGame": "If freed as Attack Dog, use your kill strategically. If still clingy, protect your partner at all costs.",
     "counters": ["dealer"],
     "synergies": []

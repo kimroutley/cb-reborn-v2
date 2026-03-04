@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../layout.dart';
+
 /// A lightweight, neon-friendly filter chip (no avatar) for small toggles.
 class CBFilterChip extends StatelessWidget {
   final String label;
@@ -41,7 +43,7 @@ class CBFilterChip extends StatelessWidget {
           HapticFeedback.selectionClick();
           onSelected();
         },
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(CBRadius.pill),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
@@ -50,7 +52,7 @@ class CBFilterChip extends StatelessWidget {
               : const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
           decoration: BoxDecoration(
             color: bg,
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(CBRadius.pill),
             border: Border.all(color: border, width: 1.5),
             boxShadow: selected
                 ? [

@@ -17,7 +17,7 @@ class CBRotaryDial extends StatefulWidget {
     this.minValue = 0,
     this.maxValue = 100,
     this.label = '',
-    this.color = CBColors.electricCyan,
+    this.color = CBColors.radiantTurquoise,
   });
 
   @override
@@ -72,35 +72,55 @@ class _CBRotaryDialState extends State<CBRotaryDial> {
       final size = Size.square(constraints.maxWidth);
       final theme = Theme.of(context);
       final scheme = theme.colorScheme;
+      final textTheme = theme.textTheme;
 
-      final labelStyle = CBTypography.micro.copyWith(
-        color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
+      final labelStyle = textTheme.labelSmall?.copyWith(
+        color: scheme.onSurface.withValues(alpha: 0.4),
+        fontWeight: FontWeight.w900,
+        letterSpacing: 2.0,
+        fontSize: 10,
       );
-      final valueStyle = CBTypography.heroNumber.copyWith(
+      final valueStyle = textTheme.displayLarge?.copyWith(
         color: scheme.onSurface,
         fontWeight: FontWeight.w900,
+        fontFamily: 'RobotoMono',
+        fontSize: 48,
         shadows: CBColors.textGlow(widget.color, intensity: 0.5),
       );
-      final maxStyle = theme.textTheme.labelLarge!.copyWith(
-        color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
-        fontWeight: FontWeight.w700,
+      final maxStyle = textTheme.labelSmall?.copyWith(
+        color: scheme.onSurface.withValues(alpha: 0.3),
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.0,
+        fontFamily: 'RobotoMono',
       );
 
       return GestureDetector(
         onPanUpdate: (details) => _handlePanUpdate(details, size),
-        child: CustomPaint(
-          size: size,
-          painter: _DialPainter(
-            angle: _currentAngle,
-            label: widget.label,
-            color: widget.color,
-            value: widget.value,
-            maxValue: widget.maxValue,
-            onSurface: scheme.onSurface,
-            outline: scheme.outlineVariant.withValues(alpha: 0.55),
-            labelStyle: labelStyle,
-            valueStyle: valueStyle,
-            maxStyle: maxStyle,
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withValues(alpha: 0.05),
+                blurRadius: 32,
+                spreadRadius: 4,
+              ),
+            ],
+          ),
+          child: CustomPaint(
+            size: size,
+            painter: _DialPainter(
+              angle: _currentAngle,
+              label: widget.label,
+              color: widget.color,
+              value: widget.value,
+              maxValue: widget.maxValue,
+              onSurface: scheme.onSurface,
+              outline: scheme.outlineVariant.withValues(alpha: 0.2),
+              labelStyle: labelStyle ?? const TextStyle(),
+              valueStyle: valueStyle ?? const TextStyle(),
+              maxStyle: maxStyle ?? const TextStyle(),
+            ),
           ),
         ),
       );
@@ -136,12 +156,12 @@ class _DialPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 * 0.8;
-    const strokeWidth = 8.0;
+    final radius = size.width / 2 * 0.85;
+    const strokeWidth = 10.0;
 
     // Background track
     final trackPaint = Paint()
-      ..color = outline.withValues(alpha: 0.4)
+      ..color = outline
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
@@ -150,7 +170,7 @@ class _DialPainter extends CustomPainter {
     // Active track
     final activePaint = Paint()
       ..shader = SweepGradient(
-        colors: [color.withValues(alpha: 0.2), color],
+        colors: [color.withValues(alpha: 0.1), color],
         startAngle: -pi / 2,
         endAngle: angle,
         stops: const [0.0, 1.0],
@@ -158,6 +178,7 @@ class _DialPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
+
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -pi / 2,
@@ -166,49 +187,57 @@ class _DialPainter extends CustomPainter {
       activePaint,
     );
 
+    // Glow for active track
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth + 4
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2,
+      angle + pi / 2,
+      false,
+      glowPaint,
+    );
+
     // Thumb (handle)
     final thumbOffset =
         center + Offset(cos(angle) * radius, sin(angle) * radius);
-    final thumbPaint = Paint()..color = onSurface;
-    final glowPaint = Paint()
-      ..color = color.withValues(alpha: 0.7)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10.0);
 
-    canvas.drawCircle(thumbOffset, 12, glowPaint);
-    canvas.drawCircle(thumbOffset, 10, thumbPaint);
-    canvas.drawCircle(
-        thumbOffset, 8, Paint()..color = color.withValues(alpha: 0.8));
+    final thumbShadowPaint = Paint()
+      ..color = color.withValues(alpha: 0.6)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12.0);
+    canvas.drawCircle(thumbOffset, 14, thumbShadowPaint);
 
-    // Central Label
+    final thumbOuterPaint = Paint()..color = onSurface;
+    canvas.drawCircle(thumbOffset, 12, thumbOuterPaint);
+
+    final thumbInnerPaint = Paint()..color = color;
+    canvas.drawCircle(thumbOffset, 8, thumbInnerPaint);
+
+    // Central text
     final textPainter = TextPainter(
       textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
     );
 
-    // Label text
-    textPainter.text = TextSpan(
-      text: label.toUpperCase(),
-      style: labelStyle,
-    );
+    // Label
+    textPainter.text = TextSpan(text: label.toUpperCase(), style: labelStyle);
     textPainter.layout(minWidth: 0, maxWidth: size.width);
-    textPainter.paint(canvas, center - Offset(textPainter.width / 2, 20));
+    textPainter.paint(canvas, center - Offset(textPainter.width / 2, 45));
 
-    // Value text
-    textPainter.text = TextSpan(
-      text: value.toStringAsFixed(0),
-      style: valueStyle,
-    );
+    // Value
+    textPainter.text = TextSpan(text: value.toStringAsFixed(0), style: valueStyle);
     textPainter.layout(minWidth: 0, maxWidth: size.width);
-    textPainter.paint(canvas,
-        center - Offset(textPainter.width / 2, textPainter.height / 2 - 10));
+    textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
 
-    // Max value text
-    textPainter.text = TextSpan(
-      text: '/ ${maxValue.toStringAsFixed(0)}',
-      style: maxStyle,
-    );
+    // Max
+    textPainter.text = TextSpan(text: '/ ${maxValue.toStringAsFixed(0)}', style: maxStyle);
     textPainter.layout(minWidth: 0, maxWidth: size.width);
-    textPainter.paint(canvas, center + Offset(-textPainter.width / 2, 25));
+    textPainter.paint(canvas, center + Offset(-textPainter.width / 2, 35));
   }
 
   @override

@@ -1,15 +1,17 @@
 import 'package:cb_host/widgets/personality_picker_modal.dart';
 import 'package:cb_models/cb_models.dart';
+import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('PersonalityPickerModal renders list of personalities', (tester) async {
+  testWidgets('PersonalityPickerModal renders list of personalities',
+      (tester) async {
     const selectedId = 'the_cynic';
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData.dark(), // Mock theme
+        theme: ThemeData.dark(),
         home: Scaffold(
           body: PersonalityPickerModal(
             selectedPersonalityId: selectedId,
@@ -19,20 +21,18 @@ void main() {
       ),
     );
 
-    // Verify title
-    expect(find.text('SELECT HOST PERSONALITY'), findsOneWidget);
+    expect(find.text('HOST PERSONALITY PROTOCOL'), findsOneWidget);
 
-    // Verify all personalities are listed
-    expect(find.byType(ListTile), findsNWidgets(hostPersonalities.length));
+    expect(find.byType(CBGlassTile), findsNWidgets(hostPersonalities.length));
 
     for (final p in hostPersonalities) {
-      expect(find.text(p.name), findsOneWidget);
-      expect(find.text(p.description), findsOneWidget);
+      expect(find.text(p.name.toUpperCase()), findsOneWidget);
+      expect(find.text(p.description.toUpperCase()), findsOneWidget);
     }
   });
 
-  testWidgets('PersonalityPickerModal highlights selected personality', (tester) async {
-    // Assuming 'the_cynic' is the first personality or one of them.
+  testWidgets('PersonalityPickerModal highlights selected personality',
+      (tester) async {
     final p = hostPersonalities.first;
     final selectedId = p.id;
 
@@ -48,30 +48,30 @@ void main() {
       ),
     );
 
-    final tileFinder = find.widgetWithText(ListTile, p.name);
+    final tileFinder =
+        find.widgetWithText(CBGlassTile, p.name.toUpperCase());
     expect(tileFinder, findsOneWidget);
 
-    // Verify check icon is present in the selected tile
     final iconFinder = find.descendant(
       of: tileFinder,
-      matching: find.byIcon(Icons.check_circle),
+      matching: find.byIcon(Icons.verified_user_rounded),
     );
     expect(iconFinder, findsOneWidget);
 
-    // Verify other tiles do not have check icon
     final otherP = hostPersonalities.lastWhere((x) => x.id != selectedId);
-    final otherTileFinder = find.widgetWithText(ListTile, otherP.name);
+    final otherTileFinder =
+        find.widgetWithText(CBGlassTile, otherP.name.toUpperCase());
 
     final otherIconFinder = find.descendant(
       of: otherTileFinder,
-      matching: find.byIcon(Icons.check_circle),
+      matching: find.byIcon(Icons.verified_user_rounded),
     );
     expect(otherIconFinder, findsNothing);
   });
 
-  testWidgets('PersonalityPickerModal triggers callback on selection', (tester) async {
+  testWidgets('PersonalityPickerModal triggers callback on selection',
+      (tester) async {
     String? selectedId;
-    // Select one that is NOT the initially selected one
     final initialP = hostPersonalities.first;
     final targetP = hostPersonalities[1];
 
@@ -87,7 +87,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text(targetP.name));
+    await tester.tap(find.text(targetP.name.toUpperCase()));
     await tester.pump();
 
     expect(selectedId, targetP.id);

@@ -3,66 +3,69 @@ import 'package:flutter/material.dart';
 
 Future<String?> showStartSessionDialog(BuildContext context) async {
   final controller = TextEditingController();
-  final scheme = Theme.of(context).colorScheme;
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
+  final textTheme = theme.textTheme;
+
   return showThemedDialog<String>(
     context: context,
+    accentColor: scheme.tertiary,
     child: Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'START GAMES NIGHT',
-          style: CBTypography.headlineSmall.copyWith(
-            color: scheme.tertiary, // Migrated from CBColors.matrixGreen
+          'INITIATE GAMES NIGHT',
+          style: textTheme.headlineSmall!.copyWith(
+            color: scheme.tertiary,
             letterSpacing: 2.0,
-            fontWeight: FontWeight.bold,
-            shadows: CBColors.textGlow(
-                scheme.tertiary), // Migrated from CBColors.matrixGreen
+            fontWeight: FontWeight.w900,
+            shadows: CBColors.textGlow(scheme.tertiary, intensity: 0.5),
           ),
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Text(
-          'CONNECT MULTIPLE ROUNDS FOR A FULL RECAP',
-          style: CBTypography.labelSmall.copyWith(
+          'CONNECT MULTIPLE MISSION CYCLES FOR A COMPREHENSIVE RECAP.',
+          style: textTheme.labelSmall!.copyWith(
             color: scheme.onSurface.withValues(alpha: 0.5),
-            letterSpacing: 1.2,
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.w800,
+            fontSize: 9,
           ),
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
         CBTextField(
           controller: controller,
           autofocus: true,
-          textStyle: CBTypography.bodyLarge.copyWith(color: scheme.onSurface),
-          decoration: InputDecoration(
-            labelText: 'SESSION NAME',
-            labelStyle: CBTypography.bodyMedium.copyWith(
-                color: scheme.tertiary.withValues(
-                    alpha: 0.7)), // Migrated from CBColors.matrixGreen
-            hintText: 'e.g. SATURDAY NIGHT FEVER',
-            hintStyle: CBTypography.bodyMedium
-                .copyWith(color: scheme.onSurface.withValues(alpha: 0.2)),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                  color: scheme.tertiary), // Migrated from CBColors.matrixGreen
-            ),
-          ),
+          hintText: 'E.G. NEON NOIR PROTOCOL',
+          monospace: true,
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 40),
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            CBGhostButton(
-              label: 'ABORT',
-              onPressed: () => Navigator.pop(context),
+            Expanded(
+              child: CBGhostButton(
+                label: 'ABORT',
+                onPressed: () {
+                  HapticService.light();
+                  Navigator.pop(context);
+                },
+              ),
             ),
             const SizedBox(width: 12),
-            CBPrimaryButton(
-              label: 'INITIALIZE',
-              onPressed: () {
-                if (controller.text.isNotEmpty) {
-                  Navigator.pop(context, controller.text);
-                }
-              },
+            Expanded(
+              child: CBPrimaryButton(
+                label: 'INITIALIZE',
+                backgroundColor: scheme.tertiary,
+                onPressed: () {
+                  if (controller.text.trim().isNotEmpty) {
+                    HapticService.heavy();
+                    Navigator.pop(context, controller.text.trim());
+                  }
+                },
+              ),
             ),
           ],
         )
@@ -75,45 +78,65 @@ Future<bool?> showConfirmationDialog(
   BuildContext context, {
   required String title,
   required String content,
-  String confirmLabel = 'OK',
-  String cancelLabel = 'CANCEL',
+  String confirmLabel = 'CONFIRM',
+  String cancelLabel = 'ABORT',
   Color? confirmColor,
 }) {
-  final scheme = Theme.of(context).colorScheme;
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
+  final textTheme = theme.textTheme;
+  final accent = confirmColor ?? scheme.secondary;
+
   return showThemedDialog<bool>(
     context: context,
+    accentColor: accent,
     child: Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          title,
-          style: CBTypography.headlineSmall.copyWith(
-            color: confirmColor ?? scheme.secondary,
-            letterSpacing: 1.5,
-            fontWeight: FontWeight.bold,
+          title.toUpperCase(),
+          style: textTheme.headlineSmall!.copyWith(
+            color: accent,
+            letterSpacing: 2.0,
+            fontWeight: FontWeight.w900,
+            shadows: CBColors.textGlow(accent, intensity: 0.4),
           ),
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Text(
-          content,
-          style: CBTypography.body.copyWith(
-            color: scheme.onSurface.withValues(alpha: 0.7),
+          content.toUpperCase(),
+          style: textTheme.bodyMedium!.copyWith(
+            color: scheme.onSurface.withValues(alpha: 0.8),
+            height: 1.5,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 40),
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            CBGhostButton(
-              label: cancelLabel,
-              onPressed: () => Navigator.pop(context, false),
+            Expanded(
+              child: CBGhostButton(
+                label: cancelLabel,
+                onPressed: () {
+                  HapticService.light();
+                  Navigator.pop(context, false);
+                },
+              ),
             ),
             const SizedBox(width: 12),
-            CBPrimaryButton(
-              label: confirmLabel,
-              backgroundColor: confirmColor,
-              onPressed: () => Navigator.pop(context, true),
+            Expanded(
+              child: CBPrimaryButton(
+                label: confirmLabel,
+                backgroundColor: accent,
+                onPressed: () {
+                  HapticService.medium();
+                  Navigator.pop(context, true);
+                },
+              ),
             ),
           ],
         )
