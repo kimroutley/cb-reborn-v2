@@ -82,6 +82,7 @@ node_modules
 .cursor/
 .vs/
 tmpclaude-*/
+tmpclaude-*
 dart_setup.log
 nul
 *.code-workspace
