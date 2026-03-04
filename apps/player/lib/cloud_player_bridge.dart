@@ -378,6 +378,7 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     _gameSub = null;
     _privateSub = null;
     _firebase = null;
+    state = const PlayerGameState(syncMode: SyncMode.cloud);
   }
 
   // ─── INBOUND ──────────────────────────────────
@@ -498,6 +499,9 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       roleColorHex: existingPrivate.roleColorHex,
       alliance: existingPrivate.alliance,
       isAlive: fromPublic.isAlive,
+      isSinBinned: fromPublic.isSinBinned,
+      isMuted: fromPublic.isMuted,
+      isShadowBanned: fromPublic.isShadowBanned,
       deathDay: fromPublic.deathDay,
       silencedDay: existingPrivate.silencedDay,
       medicChoice: existingPrivate.medicChoice,

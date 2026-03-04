@@ -11,6 +11,9 @@ class PlayerSnapshot {
   final String roleColorHex;
   final String alliance;
   final bool isAlive;
+  final bool isSinBinned;
+  final bool isMuted;
+  final bool isShadowBanned;
   final int? deathDay;
   final int? silencedDay;
   final String? medicChoice;
@@ -37,6 +40,9 @@ class PlayerSnapshot {
     this.roleColorHex = '#888888',
     this.alliance = 'unknown',
     this.isAlive = true,
+    this.isSinBinned = false,
+    this.isMuted = false,
+    this.isShadowBanned = false,
     this.deathDay,
     this.silencedDay,
     this.medicChoice,
@@ -65,6 +71,9 @@ class PlayerSnapshot {
       roleColorHex: map['roleColorHex'] as String? ?? '#888888',
       alliance: map['alliance'] as String? ?? 'unknown',
       isAlive: map['isAlive'] as bool? ?? true,
+      isSinBinned: map['isSinBinned'] as bool? ?? false,
+      isMuted: map['isMuted'] as bool? ?? false,
+      isShadowBanned: map['isShadowBanned'] as bool? ?? false,
       deathDay: map['deathDay'] as int?,
       silencedDay: map['silencedDay'] as int?,
       medicChoice: map['medicChoice'] as String?,

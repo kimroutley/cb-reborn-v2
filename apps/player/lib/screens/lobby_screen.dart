@@ -11,6 +11,7 @@ import '../player_onboarding_provider.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/full_role_reveal_content.dart';
 import '../widgets/notifications_prompt_banner.dart';
+import '../widgets/privacy_reveal_button.dart';
 
 class LobbyScreen extends ConsumerStatefulWidget {
   const LobbyScreen({super.key});
@@ -752,23 +753,7 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
 
         const SizedBox(height: CBSpace.x6),
 
-        if (hasRole &&
-            !isRoleConfirmed &&
-            !onboarding.awaitingStartConfirmation)
-          FullRoleRevealContent(
-            player: myPlayer!,
-            onConfirm: () {
-              HapticService.heavy();
-              ref
-                  .read(activeBridgeProvider)
-                  .actions
-                  .confirmRole(playerId: myPlayer.id);
-              ref
-                  .read(playerOnboardingProvider.notifier)
-                  .setAwaitingStartConfirmation(true);
-            },
-          )
-        else if (!onboarding.awaitingStartConfirmation) ...[
+        if (!onboarding.awaitingStartConfirmation) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -934,6 +919,12 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
               onSend: _sendMessage,
               roleColor: scheme.primary,
             ),
+          ),
+        
+        if (isRoleConfirmed && myPlayer != null)
+          PrivacyRevealButton(
+            player: myPlayer,
+            bottomOffset: onboarding.awaitingStartConfirmation ? CBSpace.x6 : 80,
           ),
       ],
     );

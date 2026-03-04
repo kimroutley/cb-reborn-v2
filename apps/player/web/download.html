@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Download Club Blackout</title>
+    <!-- Simple nice dark theme to match your app -->
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            text-align: center; 
+            margin-top: 50px; 
+            background-color: #0b0f19; /* CB theme dark background */
+            color: #ffffff; 
+            padding: 20px;
+        }
+        .spinner {
+            margin: 40px auto;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00e5ff; /* CB theme accent color */
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .message {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 24px;
+        }
+        .manual-links {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+        .btn {
+            background-color: #1a2235;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="spinner"></div>
+    <div class="message">Taking you to the app store...</div>
+
+    <div class="manual-links" id="fallback" style="display: none;">
+        <p>If you aren't redirected automatically, tap below:</p>
+        <a href="#" id="apple-link" class="btn">App Store</a>
+        <a href="#" id="google-link" class="btn">Google Play</a>
+    </div>
+
+    <script>
+        // --- 1. SET YOUR ACTUAL STORE LINKS HERE ---
+        // Android is typically your bundle ID
+        var androidLink = "https://play.google.com/store/apps/details?id=com.clubblackout.cb_player";
+        
+        // For iOS, you need your Apple App ID (looks like 'id1234567890'). 
+        // Update this link once your app is live or in TestFlight:
+        var iosLink = "https://apps.apple.com/app/idYOUR_APPLE_APP_ID"; 
+        
+        // If they open this on a laptop/desktop, where should it go?
+        // Could be your main website or just stay on this page.
+        var fallbackLink = "https://clubblackout.com"; // Adjust as needed
+
+        // Fill in the fallback buttons just in case the redirect gets blocked
+        document.getElementById('apple-link').href = iosLink;
+        document.getElementById('google-link').href = androidLink;
+
+        // --- 2. DETECT PLATFORM AND REDIRECT ---
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+        setTimeout(function() {
+            if (/android/i.test(userAgent)) {
+                // It's an Android device
+                window.location.replace(androidLink);
+            } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                // It's an iOS device
+                window.location.replace(iosLink);
+            } else {
+                // It's a desktop or something else
+                window.location.replace(fallbackLink);
+            }
+            
+            // Show the fallback links after a short delay in case redirect failed
+            setTimeout(function() {
+                document.getElementById('fallback').style.display = 'flex';
+                document.querySelector('.spinner').style.display = 'none';
+                document.querySelector('.message').innerText = "Looks like something blocked the redirect.";
+            }, 2000);
+            
+        }, 500); // 500ms delay to ensure the spinner shows and it feels "smooth"
+    </script>
+</body>
+</html>

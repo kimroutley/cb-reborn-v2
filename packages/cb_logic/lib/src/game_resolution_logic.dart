@@ -327,6 +327,16 @@ class GameResolutionLogic {
     var reportMsg = reportTemplate.replaceAll('{name}', victim.name);
     String? whoreWhoUsedDeflectionId;
 
+    // GOD MODE: Host Shield overrides everything
+    if (victim.hasHostShield && victim.hostShieldExpiresDay != null && victim.hostShieldExpiresDay! > dayCount) {
+      reportMsg = 'A divine intervention occurred. ${victim.name}\'s exile was mysteriously blocked.';
+      return DayResolution(
+        players: players,
+        report: [...report, reportMsg],
+        events: events,
+      );
+    }
+
     // Resolve Whore Deflection
     if (victim.alliance == Team.clubStaff) {
       Player? activeWhore;

@@ -145,5 +145,4 @@ class HostGameScreen extends ConsumerWidget {
       ],
     );
   }
-  }
 }

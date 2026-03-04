@@ -888,6 +888,15 @@ class Game extends _$Game {
     String? voterId,
     String? actorId,
   }) {
+    // God Mode Enforcement: Ignore inputs from banned/binned players
+    final idToCheck = voterId ?? actorId ?? _extractActorId(stepId);
+    if (idToCheck != null) {
+      final player = _findPlayerById(idToCheck);
+      if (player != null && (player.isSinBinned || player.isShadowBanned)) {
+        return; // Silently drop input
+      }
+    }
+
     // Safety check: Ensure the interaction matches the current step in the queue.
     // We only enforce this if a queue exists (standard game flow).
     final currentQueue = state.scriptQueue;
@@ -939,7 +948,7 @@ class Game extends _$Game {
       final voterMatches = state.players.where((p) => p.id == voterId);
       if (voterMatches.isNotEmpty) {
         final voter = voterMatches.first;
-        if (voter.silencedDay == state.dayCount || voter.isSinBinned) {
+        if (voter.silencedDay == state.dayCount) {
           return;
         }
 
@@ -1281,7 +1290,7 @@ class Game extends _$Game {
       return;
     }
     final sender = senderMatches.first;
-    if (sender.isAlive) {
+    if (sender.isAlive || sender.isMuted || sender.isSinBinned) {
       return;
     }
 

@@ -39,3 +39,4 @@ export 'widgets/phase_transition_overlay.dart';
 export 'widgets/cb_sliding_panel.dart';
 export 'widgets/cb_mini_tag.dart';
 export 'widgets/cb_day_recap_card.dart';
+export 'widgets/cb_info_banner.dart';

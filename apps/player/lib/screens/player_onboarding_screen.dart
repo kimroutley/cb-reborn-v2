@@ -2,6 +2,9 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flutter/foundation.dart';
+import 'package:web/web.dart' as web;
+
 import '../auth/player_auth_screen.dart';
 import 'connect_screen.dart';
 
@@ -161,6 +164,30 @@ class _PlayerOnboardingScreenState
                   backgroundColor: scheme.secondary,
                 ),
               ),
+              if (kIsWeb) ...[
+                const SizedBox(height: CBSpace.x4),
+                CBFadeSlide(
+                  delay: const Duration(milliseconds: 400),
+                  child: TextButton.icon(
+                    icon: Icon(Icons.system_update_rounded, size: 16, color: scheme.onSurfaceVariant),
+                    label: Text(
+                      'FORCE UPDATE / CLEAR CACHE',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    onPressed: () {
+                      HapticService.light();
+                      web.window.location.reload();
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: CBSpace.x6),
             ],
           ),

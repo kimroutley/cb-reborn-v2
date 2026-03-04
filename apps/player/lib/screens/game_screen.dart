@@ -12,6 +12,8 @@ import '../widgets/game_action_tile.dart';
 import '../widgets/ghost_lounge_content.dart';
 import '../widgets/mission_alert_overlay.dart';
 import '../widgets/notifications_prompt_banner.dart';
+import '../widgets/full_role_reveal_content.dart';
+import '../widgets/privacy_reveal_button.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -195,40 +197,78 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   isMyTurn: canAct,
                 ),
                 Expanded(
-                  child: isMobile
-                      ? TabBarView(
-                          children: [
-                            _buildFeedTab(gameState, player, playerId, newStep, roleColor, scheme),
-                            _buildIntelTab(gameState, player, playerId, roleColor, scheme),
-                          ],
-                        )
-                      : Row(
-                          children: [
-                            Expanded(
-                              child: _buildFeedTab(gameState, player, playerId, newStep, roleColor, scheme),
+                  child: Stack(
+                    children: [
+                      isMobile
+                          ? TabBarView(
+                              children: [
+                                _buildFeedTab(gameState, player, playerId, newStep, roleColor, scheme, isRoleConfirmed),
+                                _buildIntelTab(gameState, player, playerId, roleColor, scheme),
+                              ],
+                            )
+                          : Row(
+                              children: [
+                                Expanded(
+                                  child: _buildFeedTab(gameState, player, playerId, newStep, roleColor, scheme, isRoleConfirmed),
+                                ),
+                                Expanded(
+                                  child: _buildIntelTab(gameState, player, playerId, roleColor, scheme),
+                                ),
+                              ],
                             ),
-                            Expanded(
-                              child: _buildIntelTab(gameState, player, playerId, roleColor, scheme),
-                            ),
-                          ],
-                        ),
+                      if (isRoleConfirmed)
+                        PrivacyRevealButton(player: player),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          bottomNavigationBar: (gameState.phase == 'setup' && !isRoleConfirmed)
-              ? _buildSetupConfirmBar(context, bridge, playerId, roleColor)
-              : canAct
-                  ? _buildGameActionBar(
-                      context,
-                      newStep,
-                      roleColor,
-                      player,
-                      gameState,
-                      playerId,
-                      bridge,
-                    )
-                  : null,
+          bottomNavigationBar: canAct
+              ? _buildGameActionBar(
+                  context,
+                  newStep,
+                  roleColor,
+                  player,
+                  gameState,
+                  playerId,
+                  bridge,
+                )
+              : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleDirectiveAction(PlayerSnapshot currentPlayer, ColorScheme scheme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: CBSpace.x6),
+      child: GestureDetector(
+        onTap: () {
+          HapticService.medium();
+          showThemedDialog<void>(
+            context: context,
+            barrierDismissible: true,
+            child: FullRoleRevealContent(
+              player: currentPlayer,
+              onConfirm: () {
+                HapticService.heavy();
+                ref
+                    .read(activeBridgeProvider)
+                    .actions
+                    .confirmRole(playerId: currentPlayer.id);
+                Navigator.pop(context);
+              },
+            ),
+          );
+        },
+        child: CBMessageBubble(
+          sender: 'SYSTEM DIRECTIVE',
+          message: 'NEW DIRECTIVE: TAP TO VIEW DOSSIER',
+          style: CBMessageStyle.system,
+          color: scheme.tertiary,
+          isSender: false,
+          groupPosition: CBMessageGroupPosition.single,
         ),
       ),
     );
@@ -242,13 +282,48 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     StepSnapshot? newStep,
     Color roleColor,
     ColorScheme scheme,
+    bool isRoleConfirmed,
   ) {
     return ListView(
       controller: _scrollController,
       padding: const EdgeInsets.only(top: CBSpace.x4, bottom: 200),
       physics: const BouncingScrollPhysics(),
       children: [
+        if (!isRoleConfirmed && player.roleId != 'unassigned')
+          _buildRoleDirectiveAction(player, scheme),
         const NotificationsPromptBanner(),
+
+        // God Mode Status Alerts
+        if (player.isSinBinned)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(CBSpace.x5, 0, CBSpace.x5, CBSpace.x4),
+            child: CBInfoBanner(
+              title: 'SIN BIN ACTIVE',
+              message: 'YOUR ACTIONS WILL BE IGNORED. BEHAVE.',
+              color: scheme.error,
+              icon: Icons.gavel_rounded,
+            ),
+          ),
+        if (player.isMuted)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(CBSpace.x5, 0, CBSpace.x5, CBSpace.x4),
+            child: CBInfoBanner(
+              title: 'COMMS RESTRICTED',
+              message: 'THE HOST HAS MUTED YOUR CHANNELS.',
+              color: scheme.tertiary,
+              icon: Icons.mic_off_rounded,
+            ),
+          ),
+        if (player.isShadowBanned)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(CBSpace.x5, 0, CBSpace.x5, CBSpace.x4),
+            child: CBInfoBanner(
+              title: 'NETWORK INTERFERENCE',
+              message: 'UPLINK DEGRADED. PACKET LOSS DETECTED.',
+              color: scheme.error.withValues(alpha: 0.5),
+              icon: Icons.wifi_off_rounded,
+            ),
+          ),
 
         // Phase/Day Header
         CBFadeSlide(
@@ -565,38 +640,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return widgets;
   }
 
-  Widget _buildSetupConfirmBar(BuildContext context, PlayerBridgeActions bridge,
-      String playerId, Color color) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(CBSpace.x3, CBSpace.x2, CBSpace.x3, CBSpace.x3),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [CBColors.transparent, Theme.of(context).colorScheme.scrim.withValues(alpha: 0.5)],
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: CBFadeSlide(
-          child: CBGlassTile(
-            borderColor: color.withValues(alpha: 0.5),
-            isPrismatic: true,
-            padding: CBInsets.screen,
-            child: CBPrimaryButton(
-              label: 'CONFIRM IDENTITY',
-              icon: Icons.fingerprint_rounded,
-              backgroundColor: color,
-              onPressed: () {
-                bridge.confirmRole(playerId: playerId);
-                HapticService.heavy();
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildGameActionBar(
     BuildContext context,

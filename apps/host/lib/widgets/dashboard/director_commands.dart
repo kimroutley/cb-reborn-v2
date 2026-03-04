@@ -60,6 +60,7 @@ class DirectorCommands extends ConsumerWidget {
                   description: 'VOICE OF GOD',
                   onPressed: () => _voiceOfGod(context, ref),
                 ),
+              ),
             ],
           ),
           const SizedBox(height: CBSpace.x3),

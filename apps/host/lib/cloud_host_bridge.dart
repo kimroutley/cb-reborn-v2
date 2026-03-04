@@ -481,6 +481,10 @@ class CloudHostBridge {
               'roleDescription': isEndGame ? p.role.description : '',
               'roleColorHex': isEndGame ? p.role.colorHex : '#888888',
               'alliance': isEndGame ? p.alliance.name : 'unknown',
+              // God Mode Flags
+              'isSinBinned': p.isSinBinned,
+              'isMuted': p.isMuted,
+              'isShadowBanned': p.isShadowBanned,
             })
         .toList();
 

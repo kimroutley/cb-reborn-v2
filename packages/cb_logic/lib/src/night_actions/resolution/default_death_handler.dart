@@ -9,6 +9,13 @@ class DefaultDeathHandler implements DeathHandler {
     var reportMsg = 'The Dealers butchered ${victim.name} in cold blood.';
     var teaserMsg = 'A messy scene was found. ${victim.name} didn\'t make it.';
 
+    // GOD MODE: Host Shield overrides regular kills
+    if (victim.hasHostShield && victim.hostShieldExpiresDay != null && victim.hostShieldExpiresDay! > context.dayCount) {
+      context.addReport('An unnatural force protected ${victim.name} from certain death.');
+      context.addTeaser('A patron survived despite the odds.');
+      return true; // Handled, survived
+    }
+
     if (reason == 'attack_dog') {
       reportMsg = 'A snarling beast tore ${victim.name} apart.';
       teaserMsg = 'Animal control was called, but too late.';

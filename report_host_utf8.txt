@@ -1,0 +1,203 @@
+﻿> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:compileKotlin UP-TO-DATE
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources UP-TO-DATE
+> Task :gradle:classes UP-TO-DATE
+> Task :gradle:jar UP-TO-DATE
+
+> Configure project :app
+w: file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/host/android/app/build.gradle.kts:40:9: 'jvmTarget: String' is deprecated. Please migrate to the compilerOptions DSL. More details are here: https://kotl.in/u1r8ln
+
+> Task :app:signingReport
+Variant: debug
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+Variant: release
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+Variant: profile
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :app_links:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :audioplayers_android:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :cloud_firestore:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :connectivity_plus:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :dynamic_color:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :firebase_analytics:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :firebase_auth:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :firebase_core:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :flutter_secure_storage:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :google_sign_in_android:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :package_info_plus:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :path_provider_android:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+> Task :shared_preferences_android:signingReport
+Variant: debugAndroidTest
+Config: debug
+Store: C:\Users\kimro\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: 26:98:C7:AD:39:91:E2:B0:9D:23:E3:80:CF:FC:D2:EC
+SHA1: 05:C7:56:80:36:4A:6F:65:31:CA:A5:47:D5:69:D5:DC:8A:4C:E6:6B
+SHA-256: 66:3F:06:22:40:60:5A:29:E2:0F:C8:E5:3E:7C:8B:F5:10:79:87:9C:98:42:39:74:52:C4:18:8E:9D:C6:B9:70
+Valid until: Friday, 25 February 2056
+----------
+
+[Incubating] Problems report is available at: file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/host/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 8s
+18 actionable tasks: 14 executed, 4 up-to-date
