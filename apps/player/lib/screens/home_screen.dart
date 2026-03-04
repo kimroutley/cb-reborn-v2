@@ -338,110 +338,117 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: Stack(
         children: [
           SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6, vertical: CBSpace.x12),
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    CBFadeSlide(
-                      child: Text(
-                        'CONNECT TO HOST',
-                        textAlign: TextAlign.center,
-                        style: textTheme.displayMedium!.copyWith(
-                          color: scheme.primary,
-                          letterSpacing: 4,
-                          fontWeight: FontWeight.w900,
-                          shadows: CBColors.textGlow(scheme.primary),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: CBSpace.x12),
-                    CBFadeSlide(
-                      delay: const Duration(milliseconds: 200),
-                      child: CBPanel(
-                        borderColor: scheme.primary.withValues(alpha: 0.4),
-                        padding: CBInsets.panel,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            CBTextField(
-                              controller: _joinCodeController,
-                              hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
-                              textCapitalization: TextCapitalization.characters,
-                              prefixIcon: Icons.qr_code_rounded,
-                            ),
-                            const SizedBox(height: CBSpace.x8),
-                            CBPrimaryButton(
-                              label: _isConnecting
-                                  ? 'ESTABLISHING UPLINK...'
-                                  : 'INITIATE CONNECTION',
-                              onPressed:
-                                  _isConnecting ? null : () {
-                                    HapticService.heavy();
-                                    _connectFromButton();
-                                  },
-                            ),
-                            if (_connectionError != null) ...[
-                              const SizedBox(height: CBSpace.x6),
-                              CBGlassTile(
-                                borderColor: scheme.error.withValues(alpha: 0.5),
-                                padding: CBInsets.screen,
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.gpp_bad_rounded,
-                                        color: scheme.error, size: 24),
-                                    const SizedBox(width: CBSpace.x4),
-                                    Expanded(
-                                      child: Text(
-                                        'UPLINK FAILED: ${_connectionError!.toUpperCase()}',
-                                        style: textTheme.labelSmall?.copyWith(
-                                          color: scheme.error,
-                                          fontWeight: FontWeight.w900,
-                                          height: 1.4,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: CBSpace.x8),
-                            TextButton(
-                              onPressed: () {
-                                HapticService.selection();
-                                ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.guides);
-                              },
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'JUST BROWSING?',
-                                    style: textTheme.labelLarge?.copyWith(
-                                      color: scheme.secondary,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 600;
+
+                if (isWide) {
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x8, vertical: CBSpace.x12),
+                            physics: const BouncingScrollPhysics(),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CBFadeSlide(
+                                  child: Text(
+                                    'CLUB\nBLACKOUT',
+                                    style: textTheme.displayLarge!.copyWith(
+                                      color: scheme.primary,
+                                      letterSpacing: 6,
                                       fontWeight: FontWeight.w900,
-                                      letterSpacing: 1.0,
+                                      height: 1.1,
+                                      shadows: CBColors.textGlow(scheme.primary),
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Read the Blackbook',
-                                    style: textTheme.bodySmall?.copyWith(
+                                ),
+                                const SizedBox(height: CBSpace.x8),
+                                CBFadeSlide(
+                                  delay: const Duration(milliseconds: 200),
+                                  child: Text(
+                                    'A SOCIAL DEDUCTION GAME OF\nIDENTITY, DECEPTION & INTRIGUE.',
+                                    style: textTheme.bodyLarge!.copyWith(
                                       color: scheme.onSurface.withValues(alpha: 0.6),
+                                      letterSpacing: 1.5,
+                                      fontWeight: FontWeight.w700,
+                                      height: 1.5,
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                const SizedBox(height: CBSpace.x10),
+                                CBFadeSlide(
+                                  delay: const Duration(milliseconds: 400),
+                                  child: CBGlassTile(
+                                    padding: const EdgeInsets.all(CBSpace.x4),
+                                    borderColor: scheme.secondary.withValues(alpha: 0.3),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.shield_rounded, color: scheme.secondary, size: 20),
+                                        const SizedBox(width: CBSpace.x3),
+                                        Flexible(
+                                          child: Text(
+                                            'ENTER YOUR JOIN CODE TO CONNECT TO THE HOST TERMINAL.',
+                                            style: textTheme.labelSmall?.copyWith(
+                                              color: scheme.onSurface.withValues(alpha: 0.5),
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
+                      Expanded(
+                        child: Center(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6, vertical: CBSpace.x12),
+                            physics: const BouncingScrollPhysics(),
+                            child: _buildJoinForm(scheme, textTheme),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6, vertical: CBSpace.x12),
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        CBFadeSlide(
+                          child: Text(
+                            'CONNECT TO HOST',
+                            textAlign: TextAlign.center,
+                            style: textTheme.displayMedium!.copyWith(
+                              color: scheme.primary,
+                              letterSpacing: 4,
+                              fontWeight: FontWeight.w900,
+                              shadows: CBColors.textGlow(scheme.primary),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: CBSpace.x12),
+                        _buildJoinForm(scheme, textTheme),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
           ),
           if (_isConnecting)
@@ -454,6 +461,88 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  Widget _buildJoinForm(ColorScheme scheme, TextTheme textTheme) {
+    return CBFadeSlide(
+      delay: const Duration(milliseconds: 200),
+      child: CBPanel(
+        borderColor: scheme.primary.withValues(alpha: 0.4),
+        padding: CBInsets.panel,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CBTextField(
+              controller: _joinCodeController,
+              hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
+              textCapitalization: TextCapitalization.characters,
+              prefixIcon: Icons.qr_code_rounded,
+            ),
+            const SizedBox(height: CBSpace.x8),
+            CBPrimaryButton(
+              label: _isConnecting
+                  ? 'ESTABLISHING UPLINK...'
+                  : 'INITIATE CONNECTION',
+              onPressed:
+                  _isConnecting ? null : () {
+                    HapticService.heavy();
+                    _connectFromButton();
+                  },
+            ),
+            if (_connectionError != null) ...[
+              const SizedBox(height: CBSpace.x6),
+              CBGlassTile(
+                borderColor: scheme.error.withValues(alpha: 0.5),
+                padding: CBInsets.screen,
+                child: Row(
+                  children: [
+                    Icon(Icons.gpp_bad_rounded,
+                        color: scheme.error, size: 24),
+                    const SizedBox(width: CBSpace.x4),
+                    Expanded(
+                      child: Text(
+                        'UPLINK FAILED: ${_connectionError!.toUpperCase()}',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: scheme.error,
+                          fontWeight: FontWeight.w900,
+                          height: 1.4,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: CBSpace.x8),
+            TextButton(
+              onPressed: () {
+                HapticService.selection();
+                ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.guides);
+              },
+              child: Column(
+                children: [
+                  Text(
+                    'JUST BROWSING?',
+                    style: textTheme.labelLarge?.copyWith(
+                      color: scheme.secondary,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Read the Blackbook',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _LoadingDialogOverlay extends StatelessWidget {

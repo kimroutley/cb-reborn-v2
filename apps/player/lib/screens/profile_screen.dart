@@ -90,7 +90,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   StreamSubscription<User?>? _authSubscription;
   String? _listeningUid;
   Map<String, dynamic>? _queuedRemoteProfile;
-  bool _remoteUpdatePending = false;
   bool _isApplyingRemoteUpdate = false;
   _ProfileLayoutMode _layoutMode = _ProfileLayoutMode.wallet;
   _WalletAwardSnapshot _awardSnapshot = const _WalletAwardSnapshot.empty();
@@ -210,7 +209,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         if (!mounted || _listeningUid != uid) return;
         if (_saving || _hasChanges || _isApplyingRemoteUpdate) {
           _queuedRemoteProfile = profileData;
-          setState(() => _remoteUpdatePending = true);
           return;
         }
         _applyProfileData(profileData, _user!);
@@ -235,7 +233,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 : _preferredStyles.first;
         _createdAt = _dateFromFirestore(profile?['createdAt']);
         _updatedAt = _dateFromFirestore(profile?['updatedAt']) ?? DateTime.now();
-        _remoteUpdatePending = false;
       });
       _captureInitialSnapshot();
     } finally {
@@ -260,6 +257,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _publicIdError = null;
     _syncDirtyFlag();
     if (mounted) setState(() {});
+    _drainQueuedRemoteProfile();
+  }
+
+  void _drainQueuedRemoteProfile() {
+    final queued = _queuedRemoteProfile;
+    _queuedRemoteProfile = null;
+    if (queued != null && _user != null && mounted) {
+      _applyProfileData(queued, _user!);
+    }
   }
 
   DateTime? _dateFromFirestore(dynamic value) {
@@ -383,6 +389,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) showThemedSnackBar(context, 'UPLINK ERROR: COULD NOT SAVE.', accentColor: Theme.of(context).colorScheme.error);
     } finally {
       if (mounted) setState(() => _saving = false);
+      _queuedRemoteProfile = null; // Stale — save persisted fresh data
     }
   }
 
@@ -390,7 +397,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
 
     return CBPrismScaffold(
       title: 'OPERATIVE PROFILE',

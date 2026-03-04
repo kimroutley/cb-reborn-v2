@@ -38,6 +38,10 @@ void main() {
   testWidgets(
     'ConnectScreen only pushes ClaimScreen once when both bridges accept rapidly',
     (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
       final observer = _TestNavigatorObserver();
 
       await tester.pumpWidget(

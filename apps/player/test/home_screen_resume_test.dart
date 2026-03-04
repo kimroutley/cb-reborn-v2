@@ -118,6 +118,10 @@ void main() {
   testWidgets(
       'pending legacy local autoconnect URL is coerced to cloud reconnect flow',
       (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final playerBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
     final pendingUrl = Uri(
@@ -166,6 +170,10 @@ void main() {
 
   testWidgets('pending cloud autoconnect URL triggers cloud reconnect flow',
       (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final playerBridge = _TrackingPlayerBridge();
     final cloudBridge = _TrackingCloudBridge();
     final pendingUrl = Uri(
@@ -209,6 +217,10 @@ void main() {
 
   testWidgets('pending cloud autoconnect retries after transient failure',
       (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final playerBridge = _TrackingPlayerBridge();
     final cloudBridge = _FlakyCloudBridge(1);
     final pendingUrl = Uri(

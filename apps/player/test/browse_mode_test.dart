@@ -46,6 +46,10 @@ class _NoopPlayerBridge extends PlayerBridge {
 void main() {
   testWidgets('PlayerAuthScreen: Just Browsing CTA navigates to guides',
       (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final navNotifier = MockNavigationNotifier();
 
     await tester.pumpWidget(
@@ -76,6 +80,10 @@ void main() {
 
   testWidgets('HomeScreen: Just Browsing CTA navigates to guides',
       (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final navNotifier = MockNavigationNotifier();
 
     await tester.pumpWidget(
@@ -108,6 +116,10 @@ void main() {
 
   testWidgets('GuidesScreen: Renders in scaffold when disconnected',
       (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

@@ -67,6 +67,10 @@ void main() {
   testWidgets(
     'PlayerAuthScreen initial state shows neutral boot splash (no login flash)',
     (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -91,6 +95,10 @@ void main() {
   testWidgets(
     'PlayerAuthScreen shows loading dialog overlay while preserving splash context',
     (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -119,6 +127,10 @@ void main() {
   testWidgets(
     'PlayerAuthScreen loading with existing user stays on neutral boot state (no id-print flash)',
     (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -148,6 +160,10 @@ void main() {
   testWidgets(
     'HomeScreen shows modal loading dialog while connecting',
     (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
       final joinCompleter = Completer<void>();
 
       await tester.pumpWidget(
@@ -194,6 +210,10 @@ void main() {
   testWidgets(
     'ClaimScreen shows loading placeholder when identities have not synced yet',
     (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -224,6 +244,10 @@ void main() {
   testWidgets(
     'ClaimScreen shows waiting placeholder when all identities are already claimed',
     (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
       const players = [
         PlayerSnapshot(
           id: 'p1',

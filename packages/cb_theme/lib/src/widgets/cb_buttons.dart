@@ -49,7 +49,13 @@ class CBPrimaryButton extends StatelessWidget {
             Icon(icon, size: 18),
             const SizedBox(width: CBSpace.x2),
           ],
-          Text(label.toUpperCase()),
+          Flexible(
+            child: Text(
+              label.toUpperCase(),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.visible,
+            ),
+          ),
         ],
       ),
     );
@@ -109,9 +115,12 @@ class CBGhostButton extends StatelessWidget {
             Icon(icon, size: 18),
             const SizedBox(width: CBSpace.x2),
           ],
-          Text(
-            label.toUpperCase(),
-            style: theme.textTheme.labelLarge,
+          Flexible(
+            child: Text(
+              label.toUpperCase(),
+              style: theme.textTheme.labelLarge,
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),
@@ -167,9 +176,12 @@ class CBTextButton extends StatelessWidget {
             Icon(icon, size: 18),
             const SizedBox(width: CBSpace.x2),
           ],
-          Text(
-            label.toUpperCase(),
-            style: theme.textTheme.labelLarge,
+          Flexible(
+            child: Text(
+              label.toUpperCase(),
+              style: theme.textTheme.labelLarge,
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),
