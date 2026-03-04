@@ -24,6 +24,21 @@ class _TestCloudBridge extends CloudPlayerBridge {
     state = state.copyWith(phase: phase, isConnected: true);
   }
 
+
+
+
+  void emitPhaseWithPlayer(String phase, String playerId) {
+    state = state.copyWith(
+      phase: phase,
+      isConnected: true,
+      myPlayerId: playerId,
+    );
+  }
+
+  void emitClaimPlayer(String playerId) {
+    state = state.copyWith(myPlayerId: playerId);
+  }
+
   @override
   Future<void> disconnect() async {}
 }
@@ -47,10 +62,18 @@ class _LobbyFirstNavigationNotifier extends PlayerNavigationNotifier {
   PlayerDestination build() => PlayerDestination.lobby;
 }
 
+void _setLargeScreen(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1920, 1080);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
 void main() {
   testWidgets(
       'PlayerHomeShell preserves hall of fame destination while disconnected',
       (tester) async {
+    _setLargeScreen(tester);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -82,6 +105,7 @@ void main() {
 
   testWidgets('PlayerHomeShell routes join acceptance to lobby from home',
       (tester) async {
+    _setLargeScreen(tester);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -112,6 +136,7 @@ void main() {
 
   testWidgets('PlayerHomeShell auto-syncs navigation from active bridge phase',
       (tester) async {
+    _setLargeScreen(tester);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -149,25 +174,28 @@ void main() {
 
     expect(container.read(playerNavigationProvider), PlayerDestination.lobby);
 
+    // Without a claimed player, active phases route to claim
     cloud.emitPhase('night');
     await tester.pump();
-    expect(container.read(playerNavigationProvider), PlayerDestination.game);
+    expect(container.read(playerNavigationProvider), PlayerDestination.claim);
 
-    cloud.emitPhase('day');
+    // With a claimed player, active phases route to game
+    cloud.emitPhaseWithPlayer('day', 'player_1');
     await tester.pump();
     expect(container.read(playerNavigationProvider), PlayerDestination.game);
 
-    cloud.emitPhase('resolution');
+    cloud.emitPhaseWithPlayer('resolution', 'player_1');
     await tester.pump();
     expect(container.read(playerNavigationProvider), PlayerDestination.game);
 
-    cloud.emitPhase('endGame');
+    cloud.emitPhaseWithPlayer('endGame', 'player_1');
     await tester.pump();
     expect(container.read(playerNavigationProvider), PlayerDestination.game);
   });
 
   testWidgets('Shell does not render duplicate menu button overlay',
       (tester) async {
+    _setLargeScreen(tester);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -220,5 +248,49 @@ void main() {
       find.byKey(const ValueKey('player_shell_menu_button')),
       findsNothing,
     );
+  });
+
+  testWidgets(
+      'Shell navigates from claim to game when myPlayerId is set during active phase',
+      (tester) async {
+    _setLargeScreen(tester);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          cloudPlayerBridgeProvider.overrideWith(() => _TestCloudBridge()),
+          playerBridgeProvider.overrideWith(() => _TestLocalBridge()),
+          playerNavigationProvider
+              .overrideWith(() => _LobbyFirstNavigationNotifier()),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(
+            body: PlayerHomeShell(
+              startConfirmTimeout: Duration.zero,
+              transitionDuration: Duration(milliseconds: 20),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlayerHomeShell)),
+    );
+
+    final cloud =
+        container.read(cloudPlayerBridgeProvider.notifier) as _TestCloudBridge;
+
+    // Join and move to an active phase without a claimed player
+    cloud.emitJoinAcceptedLobby();
+    await tester.pump();
+
+    cloud.emitPhase('night');
+    await tester.pump();
+    expect(container.read(playerNavigationProvider), PlayerDestination.claim);
+
+    // Simulate claiming a player identity (phase stays the same)
+    cloud.emitClaimPlayer('player_1');
+    await tester.pump();
+    expect(container.read(playerNavigationProvider), PlayerDestination.game);
   });
 }

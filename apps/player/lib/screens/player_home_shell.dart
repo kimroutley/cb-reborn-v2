@@ -84,6 +84,17 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
       nav.setDestination(PlayerDestination.lobby);
     }
 
+    // If player just claimed identity mid-game, navigate to game screen
+    final prevMyPlayerId = prevState?.myPlayerId;
+    final nextMyPlayerId = nextState.myPlayerId;
+    if (prevMyPlayerId == null && nextMyPlayerId != null) {
+      final currentDest = ref.read(playerNavigationProvider);
+      if (currentDest == PlayerDestination.claim) {
+        nav.setDestination(PlayerDestination.game);
+        return;
+      }
+    }
+
     if (nextPhase == prevPhase) {
       return;
     }
@@ -99,7 +110,11 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
       case 'resolution':
       case 'endGame':
         onboarding.setAwaitingStartConfirmation(false);
-        nav.setDestination(PlayerDestination.game);
+        if (nextState.myPlayerId == null) {
+          nav.setDestination(PlayerDestination.claim);
+        } else {
+          nav.setDestination(PlayerDestination.game);
+        }
         break;
       default:
         break;
@@ -218,7 +233,12 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
       if (!mounted) {
         return;
       }
-      nav.setDestination(PlayerDestination.game);
+      final myPlayerId = ref.read(activeBridgeProvider).state.myPlayerId;
+      if (myPlayerId == null) {
+        nav.setDestination(PlayerDestination.claim);
+      } else {
+        nav.setDestination(PlayerDestination.game);
+      }
     });
   }
 
