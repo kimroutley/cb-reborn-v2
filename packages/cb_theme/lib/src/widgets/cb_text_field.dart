@@ -22,6 +22,7 @@ class CBTextField extends StatelessWidget {
   final bool monospace;
   final bool hapticOnChange;
   final IconData? prefixIcon;
+  final Widget? suffixIcon;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final List<TextInputFormatter>? inputFormatters;
@@ -47,6 +48,7 @@ class CBTextField extends StatelessWidget {
     this.monospace = false,
     this.hapticOnChange = false,
     this.prefixIcon,
+    this.suffixIcon,
     this.onChanged,
     this.onSubmitted,
     this.inputFormatters,
@@ -72,6 +74,7 @@ class CBTextField extends StatelessWidget {
       hintText: hintText ?? baseDecoration.hintText,
       errorText: errorText ?? baseDecoration.errorText,
       prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20) : null,
+      suffixIcon: suffixIcon,
       filled: true,
       fillColor: fillColor,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

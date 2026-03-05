@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/custom_drawer.dart';
 import '../player_destinations.dart';
 import '../player_navigation.dart';
+import 'qr_scanner_screen.dart';
 
 /// Connection is cloud-only; local/WebSocket mode is not offered.
 enum PlayerSyncMode {
@@ -475,6 +476,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               hintText: 'JOIN CODE (E.G. NEON-XXXXXX)',
               textCapitalization: TextCapitalization.characters,
               prefixIcon: Icons.qr_code_rounded,
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.qr_code_scanner_rounded),
+                onPressed: () async {
+                  final code = await Navigator.of(context).push<String>(
+                    MaterialPageRoute(builder: (_) => const QRScannerScreen()),
+                  );
+                  if (code != null && code.isNotEmpty) {
+                    _joinCodeController.text = code;
+                    _connectToHost();
+                  }
+                },
+              ),
             ),
             const SizedBox(height: CBSpace.x8),
             CBPrimaryButton(

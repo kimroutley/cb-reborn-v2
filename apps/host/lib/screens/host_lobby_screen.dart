@@ -278,8 +278,6 @@ class _HostLobbyScreenState extends ConsumerState<HostLobbyScreen>
         top: false,
         child: Column(
           children: [
-            // Push content below the AppBar and TabBar
-            SizedBox(height: kToolbarHeight + 48 + MediaQuery.paddingOf(context).top),
             // ─── NETWORK STATUS BAR ───
             Padding(
               padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),

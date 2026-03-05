@@ -62,11 +62,8 @@ class _CBGuideScreenState extends State<CBGuideScreen>
             TabBarView(
               children: [
                 // Tab 1: Manual
-                Padding(
-                  padding: EdgeInsets.only(top: kToolbarHeight + 48 + MediaQuery.paddingOf(context).top),
-                  child: CBIndexedHandbook(
-                    gameState: widget.gameState,
-                  ),
+                CBIndexedHandbook(
+                  gameState: widget.gameState,
                 ),
                 // Tab 2: Operatives
                 _buildOperativesTab(),
@@ -116,7 +113,6 @@ class _CBGuideScreenState extends State<CBGuideScreen>
 
     return Column(
       children: [
-        SizedBox(height: kToolbarHeight + 48 + MediaQuery.paddingOf(context).top),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: CBTextField(
@@ -493,7 +489,6 @@ class _CBGuideScreenState extends State<CBGuideScreen>
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       children: [
-        SizedBox(height: kToolbarHeight + 48 + MediaQuery.paddingOf(context).top),
         CBSectionHeader(
             title: "STRATEGIC INTEL",
             color: Theme.of(context).colorScheme.primary),

@@ -18,7 +18,6 @@ import 'host_save_load_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
-import 'dj_booth_view.dart';
 
 /// Central destination host for the Host app.
 ///
@@ -60,11 +59,6 @@ class HostNavigationShell extends ConsumerWidget {
         return const HostGameScreen();
       case HostDestination.gameSetup:
         return const HostGameSetupScreen();
-      case HostDestination.djBooth:
-        return Consumer(builder: (context, ref, child) {
-          final gameState = ref.watch(gameProvider);
-          return DjBoothView(gameState: gameState);
-        });
       case HostDestination.hallOfFame:
         return const HostHallOfFameScreen();
       case HostDestination.saveLoad:

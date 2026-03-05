@@ -24,6 +24,9 @@ class CBSlidingPanel extends StatelessWidget {
     const curve = Curves.easeOutExpo;
     const duration = Duration(milliseconds: 400);
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final panelWidth = width > screenWidth ? screenWidth : width;
+
     return Stack(
       children: [
         // 1. Scrim (Tap to close)
@@ -49,56 +52,58 @@ class CBSlidingPanel extends StatelessWidget {
           curve: curve,
           top: 0,
           bottom: 0,
-          right: isOpen ? 0 : -width, // Slide out completely
-          width: width,
+          right: isOpen ? 0 : -panelWidth, // Slide out completely
+          width: panelWidth,
           child: CBPanel(
             padding: EdgeInsets.zero,
             borderColor:
                 Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Header
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .outlineVariant
-                            .withValues(alpha: 0.2),
+            child: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outlineVariant
+                              .withValues(alpha: 0.2),
+                        ),
                       ),
                     ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          title.toUpperCase(),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    letterSpacing: 3.0,
+                                    fontWeight: FontWeight.w900,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    shadows: CBColors.textGlow(
+                                        Theme.of(context).colorScheme.primary),
+                                  ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: onClose,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        title.toUpperCase(),
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  letterSpacing: 3.0,
-                                  fontWeight: FontWeight.w900,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  shadows: CBColors.textGlow(
-                                      Theme.of(context).colorScheme.primary),
-                                ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: onClose,
-                        color: Theme.of(context).colorScheme.onErrorContainer,
-                      ),
-                    ],
+                  // Content
+                  Expanded(
+                    child: child,
                   ),
-                ),
-                // Content
-                Expanded(
-                  child: child,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

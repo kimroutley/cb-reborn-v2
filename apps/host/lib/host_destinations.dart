@@ -6,7 +6,6 @@ enum HostDestination {
   lobby,
   gameSetup,
   game,
-  djBooth,
   guides,
   gamesNight,
   hallOfFame,
@@ -44,11 +43,6 @@ const hostDestinations = <HostDestinationConfig>[
     destination: HostDestination.gameSetup,
     label: 'Game Setup',
     icon: Icons.tune_rounded,
-  ),
-  HostDestinationConfig(
-    destination: HostDestination.djBooth,
-    label: 'DJ Booth',
-    icon: Icons.queue_music_rounded,
   ),
   HostDestinationConfig(
     destination: HostDestination.profile,

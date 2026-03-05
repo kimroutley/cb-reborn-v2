@@ -60,7 +60,17 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
     }
 
     await _setStatus('RESTORING LAST SESSION...');
-    await _restoreCachedSession();
+    try {
+      await _restoreCachedSession();
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[Bootstrap] Recoverable error during session restore: $e\n$st');
+      }
+      // If the cache is unparseable or throws, we just clear it to avoid repeated errors.
+      try {
+        await ref.read(playerSessionCacheRepositoryProvider).clear();
+      } catch (_) {}
+    }
     _advanceProgress();
 
     if (!widget.skipAssetWarmup) {
@@ -205,7 +215,8 @@ class _PlayerBootstrapGateState extends ConsumerState<PlayerBootstrapGate> {
         return;
       }
       try {
-        await precacheImage(provider, context);
+        await precacheImage(provider, context)
+            .timeout(const Duration(seconds: 2));
       } catch (_) {
         // Continue warming remaining assets.
       }
