@@ -83,13 +83,13 @@ class GodModePanel extends ConsumerWidget {
         HapticService.selection();
         onTap();
       },
-      borderRadius: BorderRadius.circular(CBRadius.sm),
+      borderRadius: BorderRadius.circular(CBRadius.md),
       child: Container(
         padding: const EdgeInsets.symmetric(
             horizontal: CBSpace.x4, vertical: CBSpace.x3),
         decoration: BoxDecoration(
           color: scheme.secondary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(CBRadius.sm),
+          borderRadius: BorderRadius.circular(CBRadius.md),
           border: Border.all(color: scheme.secondary.withValues(alpha: 0.3)),
         ),
         child: Row(
@@ -218,7 +218,7 @@ class GodModePanel extends ConsumerWidget {
                   margin: EdgeInsets.only(top: CBSpace.x3, bottom: CBSpace.x3),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: CBSpace.x2),
+                  padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x2),
                   child: Text(
                     'TACTICAL OVERRIDE: ${player.name.toUpperCase()}',
                     style: textTheme.headlineSmall?.copyWith(
@@ -315,7 +315,7 @@ class GodModePanel extends ConsumerWidget {
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(CBRadius.md),
-          border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
+          border: Border.all(color: color.withValues(alpha: 0.4), width: 1.0),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

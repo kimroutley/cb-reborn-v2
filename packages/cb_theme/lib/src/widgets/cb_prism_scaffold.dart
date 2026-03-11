@@ -4,11 +4,13 @@ import 'cb_neon_background.dart';
 /// CBPrismScaffold: Neon-themed scaffold with glowing effects
 class CBPrismScaffold extends StatelessWidget {
   final String title;
+  final Widget? titleWidget;
   final Widget body;
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Widget? bottomNavigationBar;
   final bool showAppBar;
+  final PreferredSizeWidget? appBar;
   final bool useSafeArea;
   final List<Widget>? actions;
   final Widget? drawer;
@@ -23,11 +25,13 @@ class CBPrismScaffold extends StatelessWidget {
   const CBPrismScaffold({
     super.key,
     required this.title,
+    this.titleWidget,
     required this.body,
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.bottomNavigationBar,
     this.showAppBar = true,
+    this.appBar,
     this.useSafeArea = true,
     this.actions,
     this.drawer,
@@ -44,17 +48,17 @@ class CBPrismScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: showAppBar
+      appBar: appBar ?? (showAppBar
           ? AppBar(
-              title: Text(
+              title: titleWidget ?? Text(
                 title.toUpperCase(),
                 style: Theme.of(context).textTheme.titleLarge!,
               ),
-              centerTitle: true,
+              centerTitle: titleWidget == null,
               actions: actions,
               bottom: appBarBottom,
             )
-          : null,
+          : null),
       drawer: drawer,
       body: CBNeonBackground(
         backgroundAsset: backgroundAsset,

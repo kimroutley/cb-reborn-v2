@@ -32,6 +32,10 @@ class Game extends _$Game {
     ref.onDispose(() {
       _persistDebounceTimer?.cancel();
     });
+    ref.listen(geminiNarrationServiceProvider, (prev, next) {
+      _narrationController = GameNarrationController(next);
+    });
+
     _narrationController =
         GameNarrationController(ref.read(geminiNarrationServiceProvider));
     return const GameState();
@@ -700,10 +704,12 @@ class Game extends _$Game {
     if (step == null || step.readAloudText.trim().isEmpty) {
       return false;
     }
+    
+    final activePersonalityId = personalityId ?? ref.read(activeHostPersonalityIdProvider);
 
     try {
       final variation = await _generateCurrentStepNarrationVariation(
-        personalityId: personalityId,
+        personalityId: activePersonalityId,
       );
       if (variation == null) {
         return false;
@@ -724,9 +730,11 @@ class Game extends _$Game {
       return false;
     }
 
+    final activePersonalityId = personalityId ?? ref.read(activeHostPersonalityIdProvider);
+
     try {
       final variation = await _generateCurrentStepNarrationVariation(
-        personalityId: personalityId,
+        personalityId: activePersonalityId,
       );
       if (variation == null) {
         return false;
@@ -1911,8 +1919,13 @@ class Game extends _$Game {
 
   /// Triggers and dispatches both public (safe) and host (spicy) AI narrations.
   Future<void> _triggerDualTrackNightNarration() async {
+    final personalityId = ref.read(activeHostPersonalityIdProvider);
+
     // 1. Host (Spicy) - Dispatch first so host sees it loading/appearing
-    generateDynamicNightNarration(forHostOnly: true).then((hostNarration) {
+    generateDynamicNightNarration(
+      personalityId: personalityId,
+      forHostOnly: true,
+    ).then((hostNarration) {
       if (!ref.mounted) return;
       if (hostNarration != null && hostNarration.isNotEmpty) {
         dispatchBulletin(
@@ -1926,7 +1939,10 @@ class Game extends _$Game {
     });
 
     // 2. Public (Player-Safe)
-    generateDynamicNightNarration(forHostOnly: false).then((publicNarration) {
+    generateDynamicNightNarration(
+      personalityId: personalityId,
+      forHostOnly: false,
+    ).then((publicNarration) {
       if (!ref.mounted) return;
       if (publicNarration != null && publicNarration.isNotEmpty) {
         dispatchBulletin(

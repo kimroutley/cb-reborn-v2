@@ -14,6 +14,9 @@ import 'screens/stats_screen.dart';
 import 'screens/hall_of_fame_screen.dart';
 import 'screens/intro_screen.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'shared_prefs_provider.dart';
+
 Future<void> _initializeFirebaseServices() async {
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(
@@ -29,6 +32,7 @@ Future<void> _initializeFirebaseServices() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
+    final prefs = await SharedPreferences.getInstance();
     await _initializeFirebaseServices();
     if (kIsWeb) initPwaInstallListener();
 
@@ -41,6 +45,7 @@ Future<void> main() async {
     runApp(
       ProviderScope(
         overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
           pendingJoinUrlProvider.overrideWith(
             () => PendingJoinUrlNotifier()..setValue(initialJoinUrl),
           ),

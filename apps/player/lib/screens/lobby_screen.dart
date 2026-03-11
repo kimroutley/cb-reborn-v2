@@ -14,6 +14,7 @@ import '../widgets/custom_drawer.dart';
 import '../widgets/full_role_reveal_content.dart';
 import '../widgets/notifications_prompt_banner.dart';
 import '../widgets/privacy_reveal_button.dart';
+import '../widgets/biometric_identity_header.dart';
 
 class LobbyScreen extends ConsumerStatefulWidget {
   const LobbyScreen({super.key});
@@ -468,102 +469,98 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         ),
     };
 
-    final isMobile = MediaQuery.of(context).size.width < 600;
-
-    return DefaultTabController(
-      length: 2,
-      child: CBPrismScaffold(
+    return CBPrismScaffold(
+      title: 'THE LOUNGE',
+      appBar: CBMessagingAppBar(
         title: 'THE LOUNGE',
-        drawer: const CustomDrawer(),
-        appBarBottom: isMobile
-            ? TabBar(
-                indicatorColor: scheme.primary,
-                labelColor: scheme.primary,
-                tabs: const [
-                  Tab(text: 'STATUS', icon: Icon(Icons.hub_rounded, size: 18)),
-                  Tab(text: 'LOUNGE', icon: Icon(Icons.chat_bubble_outline_rounded, size: 18)),
-                ],
-              )
-            : null,
-        body: isMobile
-            ? TabBarView(
-                children: [
-                  _buildStatusTab(
-                    context: context,
-                    scheme: scheme,
-                    textTheme: textTheme,
-                    gameState: gameState,
-                    onboarding: onboarding,
-                    pushState: pushState,
-                    status: status,
-                    statusIcon: statusIcon,
-                    statusColor: statusColor,
-                    hasRole: hasRole,
-                    isRoleConfirmed: isRoleConfirmed,
-                    myPlayer: myPlayer,
-                    displayName: displayName,
-                  ),
-                  _buildLoungeTab(
-                    context: context,
-                    scheme: scheme,
-                    gameState: gameState,
-                    onboarding: onboarding,
-                  ),
-                ],
-              )
-            : Row(
-                children: [
-                  Expanded(
-                    child: _buildStatusTab(
-                      context: context,
-                      scheme: scheme,
-                      textTheme: textTheme,
-                      gameState: gameState,
-                      onboarding: onboarding,
-                      pushState: pushState,
-                      status: status,
-                      statusIcon: statusIcon,
-                      statusColor: statusColor,
-                      hasRole: hasRole,
-                      isRoleConfirmed: isRoleConfirmed,
-                      myPlayer: myPlayer,
-                      displayName: displayName,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildLoungeTab(
-                      context: context,
-                      scheme: scheme,
-                      gameState: gameState,
-                      onboarding: onboarding,
-                    ),
-                  ),
-                ],
-              ),
-        bottomNavigationBar: onboarding.awaitingStartConfirmation
-            ? Padding(
-                padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x2, CBSpace.x6, CBSpace.x6),
-                child: SafeArea(
-                  top: false,
-                  child: CBPrimaryButton(
-                    label: 'CONFIRM & JOIN',
-                    icon: Icons.fingerprint_rounded,
-                    onPressed: () {
-                      HapticService.heavy();
-                      ref
-                          .read(playerOnboardingProvider.notifier)
-                          .setAwaitingStartConfirmation(true);
-                    },
-                  ),
-                ),
-              )
-            : null,
+        subtitle: '${gameState.players.length} PATRON(S) CONNECTED',
+        avatar: Icon(Icons.hub_rounded, color: scheme.primary),
+        showBackButton: false,
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.more_vert_rounded),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+        ],
       ),
+      drawer: const CustomDrawer(),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x6, CBSpace.x6, 120),
+              physics: const BouncingScrollPhysics(),
+              children: [
+                ..._buildStatusItems(
+                  context: context,
+                  scheme: scheme,
+                  textTheme: textTheme,
+                  gameState: gameState,
+                  onboarding: onboarding,
+                  pushState: pushState,
+                  status: status,
+                  statusIcon: statusIcon,
+                  statusColor: statusColor,
+                  hasRole: hasRole,
+                  isRoleConfirmed: isRoleConfirmed,
+                  myPlayer: myPlayer,
+                  displayName: displayName,
+                ),
+                if (hasRole && !isRoleConfirmed && !onboarding.awaitingStartConfirmation)
+                  _buildRoleDirectiveAction(myPlayer!, scheme),
+                ..._buildLoungeFeed(gameState, scheme),
+              ],
+            ),
+          ),
+          if (!onboarding.awaitingStartConfirmation)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Builder(
+                builder: (ctx) => CBChatInput(
+                  controller: _chatController,
+                  onSend: _sendMessage,
+                  onAddAttachment: () {
+                    HapticService.selection();
+                    Scaffold.of(ctx).openDrawer();
+                  },
+                  hintText: 'SEND TRANSMISSION...',
+                ),
+              ),
+            ),
+          if (isRoleConfirmed && myPlayer != null)
+            PrivacyRevealButton(
+              player: myPlayer,
+              bottomOffset: onboarding.awaitingStartConfirmation ? CBSpace.x6 : 80,
+            ),
+        ],
+      ),
+      bottomNavigationBar: onboarding.awaitingStartConfirmation
+          ? Padding(
+              padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x2, CBSpace.x6, CBSpace.x6),
+              child: SafeArea(
+                top: false,
+                child: CBPrimaryButton(
+                  label: 'CONFIRM & JOIN',
+                  icon: Icons.fingerprint_rounded,
+                  onPressed: () {
+                    HapticService.heavy();
+                    ref
+                        .read(playerOnboardingProvider.notifier)
+                        .setAwaitingStartConfirmation(true);
+                  },
+                ),
+              ),
+            )
+          : null,
     );
   }
 
-  /// STATUS tab — connection status, identity, roster, and role reveal.
-  Widget _buildStatusTab({
+  /// STATUS tab combined items
+  List<Widget> _buildStatusItems({
     required BuildContext context,
     required ColorScheme scheme,
     required TextTheme textTheme,
@@ -578,11 +575,8 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     required PlayerSnapshot? myPlayer,
     required String displayName,
   }) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x6, CBSpace.x6, 120),
-      physics: const BouncingScrollPhysics(),
-      children: [
-        const NotificationsPromptBanner(),
+    return [
+      const NotificationsPromptBanner(),
 
         if (gameState.phase != 'lobby' && gameState.phase != 'setup')
           Padding(
@@ -779,83 +773,12 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
         const SizedBox(height: CBSpace.x6),
 
         if (!onboarding.awaitingStartConfirmation) ...[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'CURRENT IDENTITY',
-                style: textTheme.labelSmall?.copyWith(
-                  color: scheme.primary,
-                  letterSpacing: 2.0,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  HapticService.light();
-                  Scaffold.of(context).openDrawer();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(CBSpace.x1),
-                  child: Text(
-                    'EDIT PROFILE',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.secondary,
-                      fontWeight: FontWeight.w900,
-                      decoration: TextDecoration.underline,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: CBSpace.x3),
-          CBGlassTile(
-            padding: const EdgeInsets.all(CBSpace.x4),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: scheme.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: scheme.primary.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Icon(Icons.person_rounded,
-                      color: scheme.primary, size: 22),
-                ),
-                const SizedBox(width: CBSpace.x4),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        displayName,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.2,
-                          fontFamily: 'RobotoMono',
-                          color: scheme.onSurface,
-                        ),
-                      ),
-                      Text(
-                        'SESSION ACCESS GRANTED',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                          fontSize: 9,
-                          letterSpacing: 1.0,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          BiometricIdentityHeader(
+            displayName: displayName,
+            onEditProfile: () {
+              HapticService.light();
+              Scaffold.of(context).openDrawer();
+            },
           ),
         ],
 
@@ -869,14 +792,18 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
               scheme,
               textTheme,
               gameState.phase),
-      ],
-    );
+      ];
   }
 
   Widget _buildRoleDirectiveAction(PlayerSnapshot currentPlayer, ColorScheme scheme) {
     return Padding(
       padding: const EdgeInsets.only(bottom: CBSpace.x6),
-      child: GestureDetector(
+      child: CBActionCard(
+        title: 'SYSTEM DIRECTIVE',
+        subtitle: 'NEW DIRECTIVE RECEIVED',
+        instruction: 'TAP TO VIEW DOSSIER',
+        icon: Icons.assignment_ind_rounded,
+        color: scheme.tertiary,
         onTap: () {
           HapticService.medium();
           showThemedDialog<void>(
@@ -898,62 +825,11 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             ),
           );
         },
-        child: CBMessageBubble(
-          sender: 'SYSTEM DIRECTIVE',
-          message: 'NEW DIRECTIVE: TAP TO VIEW DOSSIER',
-          style: CBMessageStyle.system,
-          color: scheme.tertiary,
-          isSender: false,
-          groupPosition: CBMessageGroupPosition.single,
-        ),
       ),
     );
   }
 
-  /// LOUNGE tab — chat feed with input bar.
-  Widget _buildLoungeTab({
-    required BuildContext context,
-    required ColorScheme scheme,
-    required PlayerGameState gameState,
-    required dynamic onboarding,
-  }) {
-    final myPlayer = gameState.myPlayerSnapshot;
-    final hasRole = myPlayer?.roleId != null && myPlayer?.roleId != 'unassigned';
-    final isRoleConfirmed = gameState.roleConfirmedPlayerIds.contains(myPlayer?.id ?? '');
 
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x6, CBSpace.x6, 120),
-            physics: const BouncingScrollPhysics(),
-            children: [
-              if (hasRole && !isRoleConfirmed && !onboarding.awaitingStartConfirmation)
-                _buildRoleDirectiveAction(myPlayer!, scheme),
-              ..._buildLoungeFeed(gameState, scheme),
-            ],
-          ),
-        ),
-        if (!onboarding.awaitingStartConfirmation)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _ChatInputBar(
-              controller: _chatController,
-              onSend: _sendMessage,
-              roleColor: scheme.primary,
-            ),
-          ),
-        
-        if (isRoleConfirmed && myPlayer != null)
-          PrivacyRevealButton(
-            player: myPlayer,
-            bottomOffset: onboarding.awaitingStartConfirmation ? CBSpace.x6 : 80,
-          ),
-      ],
-    );
-  }
 }
 
 enum _LobbyStatusTone {
@@ -1040,73 +916,3 @@ List<Widget> _buildLoungeFeed(PlayerGameState gameState, ColorScheme scheme) {
   ];
 }
 
-class _ChatInputBar extends StatelessWidget {
-  final TextEditingController controller;
-  final VoidCallback onSend;
-  final Color roleColor;
-
-  const _ChatInputBar({
-    required this.controller,
-    required this.onSend,
-    required this.roleColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            CBColors.transparent,
-            scheme.scrim.withValues(alpha: 0.5),
-          ],
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(CBSpace.x3),
-        child: SafeArea(
-          top: false,
-          child: CBGlassTile(
-            borderColor: roleColor.withValues(alpha: 0.3),
-            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x1),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => onSend(),
-                    decoration: InputDecoration(
-                      hintText: 'SEND TRANSMISSION...',
-                      hintStyle: theme.textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.4),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      ),
-                      border: InputBorder.none,
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.send_rounded, color: roleColor, size: 20),
-                  onPressed: onSend,
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

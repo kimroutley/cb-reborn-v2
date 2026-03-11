@@ -98,7 +98,7 @@ class CBGhostButton extends StatelessWidget {
 
     final button = OutlinedButton(
       style: OutlinedButton.styleFrom(
-        side: BorderSide(color: buttonColor, width: 2),
+        side: BorderSide(color: buttonColor.withValues(alpha: 0.8), width: 1.5),
         foregroundColor: buttonColor,
       ),
       onPressed: onPressed != null

@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/custom_drawer.dart';
 import '../player_destinations.dart';
 import '../player_navigation.dart';
+import '../auth/player_auth_screen.dart';
 import 'qr_scanner_screen.dart';
 
 /// Connection is cloud-only; local/WebSocket mode is not offered.
@@ -261,7 +262,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .timeout(_connectAttemptTimeout);
   }
 
-  void _connectFromButton() {
+  void _connectFromButton() async {
+    final authState = ref.read(authProvider);
+    if (authState.user == null) {
+      FocusScope.of(context).unfocus();
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => PlayerAuthScreen(
+            onSignedIn: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+      );
+      
+      if (ref.read(authProvider).user == null) {
+        return;
+      }
+    }
+
     _enableResumeAutoReconnect();
     unawaited(_connect(fromResumeAutoReconnect: false));
   }
@@ -484,7 +504,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   );
                   if (code != null && code.isNotEmpty) {
                     _joinCodeController.text = code;
-                    _connectToHost();
+                    _connectFromButton();
                   }
                 },
               ),

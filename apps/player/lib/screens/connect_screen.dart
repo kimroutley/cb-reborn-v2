@@ -250,12 +250,22 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         ),
         const SizedBox(height: CBSpace.x4),
         CBGlassTile(
-          borderColor: toneColor.withValues(alpha: 0.35),
+          borderColor: toneColor.withValues(alpha: 0.5),
+          isPrismatic: _isConnecting,
+          padding: const EdgeInsets.all(CBSpace.x4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(toneIcon, size: 18, color: toneColor),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(CBSpace.x2),
+                decoration: BoxDecoration(
+                  color: toneColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                  boxShadow: CBColors.circleGlow(toneColor, intensity: 0.3),
+                ),
+                child: Icon(toneIcon, size: 20, color: toneColor),
+              ),
+              const SizedBox(width: CBSpace.x4),
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 220),
@@ -269,8 +279,9 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                         toneTitle,
                         style: textTheme.labelMedium?.copyWith(
                           color: toneColor,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                          shadows: CBColors.textGlow(toneColor, intensity: 0.4),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -294,10 +305,17 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
           color: accent,
         ),
         const SizedBox(height: CBSpace.x2),
-        CBTextField(
-          controller: joinUrlController,
-          hintText: 'https://.../join?mode=cloud&code=NEON-ABCDEF',
-          textStyle: textTheme.bodySmall,
+        Container(
+          decoration: BoxDecoration(
+            color: CBColors.voidBlack.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(CBRadius.sm),
+            border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.1)),
+          ),
+          child: CBTextField(
+            controller: joinUrlController,
+            hintText: 'https://.../join?mode=cloud&code=NEON-ABCDEF',
+            textStyle: textTheme.bodySmall,
+          ),
         ),
         const SizedBox(height: CBSpace.x2),
         Align(
@@ -322,19 +340,33 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         const SizedBox(height: CBSpace.x4),
 
         CBBadge(
-          text: 'JOIN CODE',
+          text: 'ACCESS KEY',
           color: accent,
         ),
         const SizedBox(height: CBSpace.x2),
-        CBTextField(
-          controller: joinCodeController,
-          hintText: 'NEON-ABCDEF',
-          textStyle: textTheme.bodyMedium?.copyWith(fontFamily: 'RobotoMono'),
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
-            _JoinCodeFormatter(),
-          ],
-          errorText: error,
+        Container(
+          decoration: BoxDecoration(
+            color: CBColors.voidBlack.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(CBRadius.md),
+            border: Border.all(color: accent.withValues(alpha: 0.4), width: 1.5),
+            boxShadow: CBColors.boxGlow(accent, intensity: 0.1),
+          ),
+          child: CBTextField(
+            controller: joinCodeController,
+            hintText: 'NEON-ABCDEF',
+            textStyle: textTheme.headlineSmall?.copyWith(
+              fontFamily: 'RobotoMono',
+              fontWeight: FontWeight.w900,
+              letterSpacing: 4.0,
+              color: accent,
+              shadows: CBColors.textGlow(accent, intensity: 0.4),
+            ),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9]')),
+              _JoinCodeFormatter(),
+            ],
+            errorText: error,
+          ),
         ),
 
         if (error != null) ...[

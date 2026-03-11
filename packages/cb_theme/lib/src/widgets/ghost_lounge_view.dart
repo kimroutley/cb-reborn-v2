@@ -281,29 +281,32 @@ class GhostLoungeView extends StatelessWidget {
                                 fontSize: 8,
                               ),
                             ),
-                            Row(
-                              children: [
-                                Text(
-                                  'PREDICTS ',
-                                  style: textTheme.labelSmall!.copyWith(
-                                    color: scheme.error
-                                        .withValues(alpha: 0.7),
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'PREDICTS ',
+                                      style: textTheme.labelSmall!.copyWith(
+                                        color: scheme.error
+                                            .withValues(alpha: 0.7),
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        bet.targetName.toUpperCase(),
+                                        style: textTheme.labelLarge!.copyWith(
+                                          color: scheme.onSurface,
+                                          fontWeight: FontWeight.w900,
+                                          shadows: CBColors.textGlow(
+                                              scheme.error,
+                                              intensity: 0.3),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Text(
-                                  bet.targetName.toUpperCase(),
-                                  style: textTheme.labelLarge!.copyWith(
-                                    color: scheme.onSurface,
-                                    fontWeight: FontWeight.w900,
-                                    shadows: CBColors.textGlow(
-                                        scheme.error,
-                                        intensity: 0.3),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),

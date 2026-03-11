@@ -8,7 +8,6 @@ import '../player_bridge.dart';
 import '../player_bridge_actions.dart';
 import '../player_destinations.dart';
 import '../player_navigation.dart';
-import '../widgets/biometric_identity_header.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/game_action_tile.dart';
 import '../widgets/ghost_lounge_content.dart';
@@ -171,73 +170,40 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final roleColor =
         Color(int.parse(player.roleColorHex.replaceAll('#', '0xff')));
     final isRoleConfirmed = gameState.roleConfirmedPlayerIds.contains(playerId);
-    final isMobile = MediaQuery.sizeOf(context).width < 800;
 
     return Theme(
       data: CBTheme.buildTheme(CBTheme.buildColorScheme(roleColor)),
-      child: DefaultTabController(
-        length: 2,
-        child: CBPrismScaffold(
+      child: CBPrismScaffold(
+        title: 'MISSION TERMINAL',
+        appBar: CBMessagingAppBar(
           title: 'MISSION TERMINAL',
-          drawer: const CustomDrawer(),
-          appBarBottom: isMobile
-              ? TabBar(
-                  indicatorColor: roleColor,
-                  labelColor: roleColor,
-                  tabs: const [
-                    Tab(text: 'FEED', icon: Icon(Icons.chat_bubble_outline_rounded, size: 18)),
-                    Tab(text: 'INTEL', icon: Icon(Icons.shield_outlined, size: 18)),
-                  ],
-                )
-              : null,
-          body: CBPhaseOverlay(
-            isNight: gameState.phase == 'night',
-            child: Column(
-              children: [
-                BiometricIdentityHeader(
-                  player: player,
-                  roleColor: roleColor,
-                  isMyTurn: canAct,
-                ),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      isMobile
-                          ? TabBarView(
-                              children: [
-                                _buildFeedTab(gameState, player, playerId, newStep, roleColor, scheme, isRoleConfirmed),
-                                _buildIntelTab(gameState, player, playerId, roleColor, scheme),
-                              ],
-                            )
-                          : Row(
-                              children: [
-                                Expanded(
-                                  child: _buildFeedTab(gameState, player, playerId, newStep, roleColor, scheme, isRoleConfirmed),
-                                ),
-                                Expanded(
-                                  child: _buildIntelTab(gameState, player, playerId, roleColor, scheme),
-                                ),
-                              ],
-                            ),
-                      if (isRoleConfirmed)
-                        PrivacyRevealButton(player: player),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          subtitle: '${player.name.toUpperCase()} • ${gameState.phase.toUpperCase()}',
+          avatar: CBRoleAvatar(
+            assetPath: 'assets/roles/${player.roleId}.png',
+            color: roleColor,
+            size: 36,
+            pulsing: canAct,
           ),
-          bottomNavigationBar: canAct
-              ? _buildGameActionBar(
-                  context,
-                  newStep,
-                  roleColor,
-                  player,
-                  gameState,
-                  playerId,
-                  bridge,
-                )
-              : null,
+          showBackButton: false,
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.more_vert_rounded),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+            ),
+          ],
+        ),
+        drawer: const CustomDrawer(),
+        body: CBPhaseOverlay(
+          isNight: gameState.phase == 'night',
+          child: Stack(
+            children: [
+              _buildFeedTab(gameState, player, playerId, newStep, roleColor, scheme, isRoleConfirmed, bridge, canAct),
+              if (isRoleConfirmed)
+                PrivacyRevealButton(player: player),
+            ],
+          ),
         ),
       ),
     );
@@ -245,8 +211,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   Widget _buildRoleDirectiveAction(PlayerSnapshot currentPlayer, ColorScheme scheme) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: CBSpace.x6),
-      child: GestureDetector(
+      padding: const EdgeInsets.fromLTRB(CBSpace.x5, CBSpace.x4, CBSpace.x5, CBSpace.x6),
+      child: CBActionCard(
+        title: 'SYSTEM DIRECTIVE',
+        subtitle: 'TAP TO LOAD DOSSIER',
+        instruction: 'YOUR CLEARANCE LEVEL HAS BEEN GRANTED',
+        icon: Icons.assignment_ind_rounded,
+        color: scheme.tertiary,
+        actionLabel: 'OPEN DOSSIER',
         onTap: () {
           HapticService.medium();
           showThemedDialog<void>(
@@ -265,19 +237,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ),
           );
         },
-        child: CBMessageBubble(
-          sender: 'SYSTEM DIRECTIVE',
-          message: 'NEW DIRECTIVE: TAP TO VIEW DOSSIER',
-          style: CBMessageStyle.system,
-          color: scheme.tertiary,
-          isSender: false,
-          groupPosition: CBMessageGroupPosition.single,
-        ),
       ),
     );
   }
 
-  /// The main bulletin/chat feed with phase header and step narration.
+  /// The main bulletin/chat feed with phase header and step narration and inlined intel.
   Widget _buildFeedTab(
     PlayerGameState gameState,
     PlayerSnapshot player,
@@ -286,171 +250,89 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     Color roleColor,
     ColorScheme scheme,
     bool isRoleConfirmed,
+    PlayerBridgeActions bridge,
+    bool canAct,
   ) {
-    return ListView(
-      controller: _scrollController,
-      padding: const EdgeInsets.only(top: CBSpace.x4, bottom: 200),
-      physics: const BouncingScrollPhysics(),
+    return Column(
       children: [
-        if (!isRoleConfirmed && player.roleId != 'unassigned')
-          _buildRoleDirectiveAction(player, scheme),
-        const NotificationsPromptBanner(),
-
-        // God Mode Status Alerts
-        if (player.isSinBinned)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(CBSpace.x5, 0, CBSpace.x5, CBSpace.x4),
-            child: CBInfoBanner(
-              title: 'SIN BIN ACTIVE',
-              message: 'YOUR ACTIONS WILL BE IGNORED. BEHAVE.',
-              color: scheme.error,
-              icon: Icons.gavel_rounded,
-            ),
-          ),
-        if (player.isMuted)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(CBSpace.x5, 0, CBSpace.x5, CBSpace.x4),
-            child: CBInfoBanner(
-              title: 'COMMS RESTRICTED',
-              message: 'THE HOST HAS MUTED YOUR CHANNELS.',
-              color: scheme.tertiary,
-              icon: Icons.mic_off_rounded,
-            ),
-          ),
-        if (player.isShadowBanned)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(CBSpace.x5, 0, CBSpace.x5, CBSpace.x4),
-            child: CBInfoBanner(
-              title: 'NETWORK INTERFERENCE',
-              message: 'UPLINK DEGRADED. PACKET LOSS DETECTED.',
-              color: scheme.error.withValues(alpha: 0.5),
-              icon: Icons.wifi_off_rounded,
-            ),
-          ),
-
-        // Phase/Day Header
-        CBFadeSlide(
-          child: CBFeedSeparator(
-            label: "${gameState.phase.toUpperCase()} // CYCLE ${gameState.dayCount}",
-            color: roleColor,
-          ),
-        ),
-
-        const SizedBox(height: CBSpace.x4),
-
-        // Bulletin Board
-        const CBFadeSlide(
-          delay: Duration(milliseconds: 100),
-          child: CBFeedSeparator(label: 'SECURE CHANNEL'),
-        ),
-
-        _buildBulletinFeed(gameState, player, scheme),
-
-        // Current Step Narration
-        if (newStep != null && newStep.readAloudText.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(CBSpace.x5, CBSpace.x6, CBSpace.x5, 0),
-            child: CBFadeSlide(
-              delay: const Duration(milliseconds: 200),
-              child: CBMessageBubble(
-                sender: 'SYSTEM DIRECTIVE',
-                message: newStep.readAloudText.toUpperCase(),
-                avatarAsset: 'assets/roles/${player.roleId}.png',
-                color: roleColor,
-                style: CBMessageStyle.standard,
-                isSender: false,
-                groupPosition: CBMessageGroupPosition.single,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  /// Role-specific intel panels and private messages.
-  Widget _buildIntelTab(
-    PlayerGameState gameState,
-    PlayerSnapshot player,
-    String playerId,
-    Color roleColor,
-    ColorScheme scheme,
-  ) {
-    return ListView(
-      padding: const EdgeInsets.only(top: CBSpace.x4, bottom: 200),
-      physics: const BouncingScrollPhysics(),
-      children: [
-        // Intel header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        Expanded(
+          child: ListView(
+            controller: _scrollController,
+            padding: const EdgeInsets.only(top: CBSpace.x4, bottom: CBSpace.x4),
+            physics: const BouncingScrollPhysics(),
             children: [
-              Icon(Icons.shield_rounded, size: 18, color: roleColor),
-              const SizedBox(width: 12),
-              Text(
-                'CLASSIFIED INTEL',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: roleColor,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.0,
-                      shadows: CBColors.textGlow(roleColor, intensity: 0.3),
-                    ),
+              if (!isRoleConfirmed && player.roleId != 'unassigned')
+                _buildRoleDirectiveAction(player, scheme),
+              const NotificationsPromptBanner(),
+
+              // Phase/Day Header
+              CBFadeSlide(
+                child: CBFeedSeparator(
+                  label: "${_capitalize(gameState.phase)} ${gameState.dayCount} • ${_formatTime(DateTime.now())}",
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
+
+              const SizedBox(height: CBSpace.x4),
+
+              // Inlined Classified Intel (Encrypted DMs)
+              if (player.roleId == RoleIds.bartender)
+                _buildBartenderIntel(gameState, roleColor),
+              if (player.roleId == RoleIds.clubManager)
+                _buildClubManagerIntel(gameState, roleColor),
+              if (gameState.privateMessages.containsKey(playerId))
+                ..._buildPrivateMessages(gameState.privateMessages[playerId]!, scheme, roleColor),
+
+              const CBFadeSlide(
+                delay: Duration(milliseconds: 100),
+                child: CBFeedSeparator(label: 'SECURE CHANNEL'),
+              ),
+
+              _buildBulletinFeed(gameState, player, scheme),
+
+              // Current Step Narration
+              if (newStep != null && newStep.readAloudText.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(CBSpace.x5, CBSpace.x6, CBSpace.x5, 0),
+                  child: CBFadeSlide(
+                    delay: const Duration(milliseconds: 200),
+                    child: CBMessageBubble(
+                      sender: 'SYSTEM DIRECTIVE',
+                      message: newStep.readAloudText.toUpperCase(),
+                      avatarAsset: 'assets/roles/${player.roleId}.png',
+                      color: roleColor,
+                      style: CBMessageStyle.standard,
+                      isSender: false,
+                      groupPosition: CBMessageGroupPosition.single,
+                    ),
+                  ),
+                ),
+                
+              if (canAct && newStep != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(CBSpace.x5, CBSpace.x4, CBSpace.x5, CBSpace.x12),
+                  child: _buildGameActionCard(
+                    context,
+                    newStep,
+                    roleColor,
+                    player,
+                    gameState,
+                    playerId,
+                    bridge,
+                  ),
+                )
             ],
           ),
         ),
-
-        // Role Specific Intel
-        if (player.roleId == RoleIds.bartender)
-          _buildBartenderIntel(gameState, roleColor),
-
-        if (player.roleId == RoleIds.clubManager)
-          _buildClubManagerIntel(gameState, roleColor),
-
-        // Private Messages
-        if (gameState.privateMessages.containsKey(playerId))
-          ..._buildPrivateMessages(
-              gameState.privateMessages[playerId]!, scheme, roleColor),
-
-        // Fallback when no intel is available
-        if (player.roleId != RoleIds.bartender &&
-            player.roleId != RoleIds.clubManager &&
-            !gameState.privateMessages.containsKey(playerId))
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: CBSpace.x12, horizontal: CBSpace.x6),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(Icons.lock_outline_rounded,
-                      color: scheme.onSurface.withValues(alpha: 0.1), size: 32),
-                  const SizedBox(height: CBSpace.x3),
-                  Text(
-                    'NO CLASSIFIED INTEL',
-                    style: TextStyle(
-                      fontFamily: 'RobotoMono',
-                      color: scheme.onSurface.withValues(alpha: 0.3),
-                      fontSize: 11,
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: CBSpace.x2),
-                  Text(
-                    'INTEL WILL APPEAR HERE WHEN AVAILABLE.',
-                    style: TextStyle(
-                      color: scheme.onSurface.withValues(alpha: 0.2),
-                      fontSize: 10,
-                      letterSpacing: 0.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        _PlayerChatInput(
+          bridge: bridge,
+          player: player,
+          scheme: scheme,
+        ),
       ],
     );
   }
+
 
   Widget _buildBulletinFeed(PlayerGameState gameState, PlayerSnapshot player, ColorScheme scheme) {
     final entries = gameState.bulletinBoard;
@@ -473,7 +355,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             message: entry.content,
             style: entry.type == 'system'
                 ? CBMessageStyle.system
-                : CBMessageStyle.narrative,
+                : CBMessageStyle.standard,
             color: color,
             isSender: isMe,
             avatarAsset: entry.roleId != null ? role.assetPath : null,
@@ -645,7 +527,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
 
 
-  Widget _buildGameActionBar(
+  Widget _buildGameActionCard(
     BuildContext context,
     StepSnapshot step,
     Color roleColor,
@@ -654,26 +536,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     String playerId,
     PlayerBridgeActions bridge,
   ) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(CBSpace.x3, CBSpace.x2, CBSpace.x3, CBSpace.x3),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [CBColors.transparent, Theme.of(context).colorScheme.scrim.withValues(alpha: 0.6)],
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: GameActionTile(
-          step: step,
-          roleColor: roleColor,
-          player: player,
-          gameState: gameState,
-          playerId: playerId,
-          bridge: bridge,
-        ),
-      ),
+    return GameActionTile(
+      step: step,
+      roleColor: roleColor,
+      player: player,
+      gameState: gameState,
+      playerId: playerId,
+      bridge: bridge,
     );
   }
 
@@ -754,6 +623,144 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  String _capitalize(String input) {
+    if (input.isEmpty) return input;
+    return input[0].toUpperCase() + input.substring(1).toLowerCase();
+  }
+
+  String _formatTime(DateTime dt) {
+    String period = dt.hour >= 12 ? 'pm' : 'am';
+    int hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+    String minute = dt.minute.toString().padLeft(2, '0');
+    return "$hour:$minute $period";
+  }
+}
+
+class _PlayerChatInput extends StatefulWidget {
+  final PlayerSnapshot player;
+  final PlayerBridgeActions bridge;
+  final ColorScheme scheme;
+
+  const _PlayerChatInput({
+    required this.player,
+    required this.bridge,
+    required this.scheme,
+  });
+
+  @override
+  State<_PlayerChatInput> createState() => _PlayerChatInputState();
+}
+
+class _PlayerChatInputState extends State<_PlayerChatInput> {
+  final TextEditingController _controller = TextEditingController();
+
+  void _onSend() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+    HapticService.selection();
+
+    widget.bridge.sendBulletin(
+      title: widget.player.name,
+      floatContent: text,
+      roleId: widget.player.roleId,
+    );
+    _controller.clear();
+  }
+
+  void _onAddAttachment() {
+    HapticService.selection();
+    final roleColor = Color(int.parse(widget.player.roleColorHex.replaceAll('#', '0xff')));
+
+    CBAttachmentMenu.show(
+      context,
+      items: [
+        CBAttachmentMenuItem(
+          label: 'DOSSIER',
+          subtitle: 'VIEW IDENTITY',
+          icon: Icons.fingerprint_rounded,
+          color: roleColor,
+          onTap: () {
+            showThemedDialog<void>(
+              context: context,
+              child: FullRoleRevealContent(
+                player: widget.player,
+                onConfirm: () => Navigator.pop(context),
+              ),
+            );
+          },
+        ),
+        CBAttachmentMenuItem(
+          label: 'BLACKBOOK',
+          subtitle: 'READ RULES',
+          icon: Icons.menu_book_rounded,
+          color: widget.scheme.secondary,
+          onTap: () {
+            Scaffold.of(context).openDrawer();
+          },
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.player.isMuted || widget.player.isSinBinned) {
+      final text = widget.player.isSinBinned
+          ? "Sin Bin active. Actions restricted. Learn more"
+          : "Comms restricted by host. Learn more";
+      final icon = widget.player.isSinBinned ? Icons.gavel_rounded : Icons.mic_off_rounded;
+      final color = widget.player.isSinBinned ? widget.scheme.error : widget.scheme.tertiary;
+
+      return CBChatInput(
+        controller: _controller,
+        onSend: _onSend,
+        onAddAttachment: _onAddAttachment,
+        isRestricted: true,
+        restrictedMessage: text,
+        restrictedIcon: icon,
+        restrictedColor: color,
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.player.isShadowBanned && !widget.player.isSinBinned && !widget.player.isMuted)
+          Container(
+            color: widget.scheme.error.withValues(alpha: 0.1),
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.wifi_off_rounded, size: 12, color: widget.scheme.error),
+                const SizedBox(width: 6),
+                Text(
+                  'NETWORK INTERFERENCE DETECTED',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: widget.scheme.error,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        CBChatInput(
+          controller: _controller,
+          onSend: _onSend,
+          onAddAttachment: _onAddAttachment,
+        ),
+      ],
     );
   }
 }

@@ -83,17 +83,17 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                 ),
                 const SizedBox(height: CBSpace.x5),
                 Text(
-                  'SELECT IDENTITY',
+                  'BIOMETRIC BINDING',
                   style: textTheme.headlineMedium!.copyWith(
                     color: scheme.primary,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 2.0,
-                    shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
+                    shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
                   ),
                 ),
                 const SizedBox(height: CBSpace.x2),
                 Text(
-                  'CHOOSE YOUR ASSIGNED IDENTITY FROM THE LIST BELOW.',
+                  'SELECT AN OPEN IDENTITY TO BIND YOUR DEVICE TO THIS SESSION.',
                   textAlign: TextAlign.center,
                   style: textTheme.labelSmall!.copyWith(
                     color: scheme.onSurface.withValues(alpha: 0.5),
@@ -200,35 +200,67 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                             borderColor: isSelected
                                 ? scheme.primary
                                 : scheme.outlineVariant.withValues(alpha: 0.3),
-                            child: Row(
-                              children: [
-                                CBRoleAvatar(
-                                  size: 40,
-                                  color: isSelected
-                                      ? scheme.primary
-                                      : scheme.onSurface.withValues(alpha: 0.5),
-                                ),
-                                const SizedBox(width: CBSpace.x4),
-                                Expanded(
-                                  child: Text(
-                                    player.name.toUpperCase(),
-                                    style: textTheme.titleMedium!.copyWith(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(CBSpace.x2),
+                                    decoration: BoxDecoration(
+                                      color: isSelected 
+                                          ? scheme.primary.withValues(alpha: 0.1)
+                                          : scheme.onSurface.withValues(alpha: 0.05),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? scheme.primary.withValues(alpha: 0.5)
+                                            : scheme.outlineVariant.withValues(alpha: 0.1),
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      Icons.person_outline_rounded,
                                       color: isSelected
                                           ? scheme.primary
-                                          : scheme.onSurface,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 1.2,
+                                          : scheme.onSurface.withValues(alpha: 0.4),
                                     ),
                                   ),
-                                ),
-                                if (isSelected)
-                                  Icon(
-                                    Icons.check_circle_rounded,
-                                    color: scheme.primary,
-                                    shadows: CBColors.iconGlow(scheme.primary),
+                                  const SizedBox(width: CBSpace.x4),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          player.name.toUpperCase(),
+                                          style: textTheme.titleMedium!.copyWith(
+                                            color: isSelected
+                                                ? scheme.primary
+                                                : scheme.onSurface,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 2.0,
+                                            fontFamily: 'RobotoMono',
+                                          ),
+                                        ),
+                                        if (isSelected) ...[
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'TARGET ACQUIRED',
+                                            style: textTheme.labelSmall?.copyWith(
+                                              fontSize: 8,
+                                              color: scheme.primary.withValues(alpha: 0.7),
+                                              letterSpacing: 1.5,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ]
+                                      ],
+                                    ),
                                   ),
-                              ],
-                            ),
+                                  if (isSelected)
+                                    Icon(
+                                      Icons.fingerprint_rounded,
+                                      color: scheme.primary,
+                                      shadows: CBColors.iconGlow(scheme.primary),
+                                    ),
+                                ],
+                              ),
                           ),
                         ),
                       );

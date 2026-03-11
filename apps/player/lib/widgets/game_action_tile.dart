@@ -36,8 +36,9 @@ class _GameActionTileState extends State<GameActionTile> {
         widget.step.actionType == ScriptActionType.selectPlayer.name ||
         isMultiSelect) {
 
-      // Pass Lightweight's blocked vote targets if it's a vote step
-      final disabledIds = widget.step.isVote
+      // Pass Lightweight's blocked vote targets if it's a vote step 
+      // AND also filter them out from their night action so they can't double-block
+      final disabledIds = widget.step.isVote || widget.step.roleId == RoleIds.lightweight
           ? widget.player.blockedVoteTargets
           : const <String>[];
 
@@ -113,7 +114,7 @@ class _GameActionTileState extends State<GameActionTile> {
   Widget build(BuildContext context) {
     String title;
     IconData icon;
-    String subTitle = "INPUT REQUIRED";
+    String subTitle;
 
     if (widget.step.isVote) {
       title = "CRITICAL VOTE";
@@ -131,103 +132,28 @@ class _GameActionTileState extends State<GameActionTile> {
     } else {
       title = "OPERATIVE ACTION";
       icon = Icons.flash_on_rounded;
+      subTitle = "INPUT REQUIRED";
     }
 
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final instructionText = widget.step.instructionText.isNotEmpty
+        ? widget.step.instructionText.toUpperCase()
+        : "WAITING FOR YOUR INPUT...";
 
-    return CBGlassTile(
-      borderColor: widget.roleColor.withValues(alpha: 0.6),
+    return CBActionCard(
+      title: title,
+      subtitle: subTitle,
+      instruction: instructionText,
+      icon: icon,
+      color: widget.roleColor,
       onTap: _handleActionTap,
-      isPrismatic: true,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: widget.roleColor, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: textTheme.labelLarge!.copyWith(
-                  color: widget.roleColor,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.4,
-                  shadows: CBColors.textGlow(widget.roleColor, intensity: 0.4),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            subTitle,
-            style: textTheme.labelSmall!.copyWith(
-              color: widget.roleColor.withValues(alpha: 0.68),
-              letterSpacing: 1.1,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.step.instructionText.isNotEmpty
-                ? widget.step.instructionText.toUpperCase()
-                : "WAITING FOR YOUR INPUT...",
-            textAlign: TextAlign.center,
-            style: textTheme.bodyMedium!.copyWith(
-              color: scheme.onSurface,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.4,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 32,
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      CBColors.transparent,
-                      widget.roleColor.withValues(alpha: 0.5)
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Icon(
-                  Icons.touch_app_rounded,
-                  color: widget.roleColor.withValues(alpha: 0.4),
-                  size: 18,
-                ),
-              ),
-              Container(
-                width: 32,
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      widget.roleColor.withValues(alpha: 0.5),
-                      CBColors.transparent
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            "WAKE UP, ${widget.player.name.toUpperCase()}. THE CLUB IS WAITING.",
-            textAlign: TextAlign.center,
-            style: textTheme.labelSmall!.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.45),
-              letterSpacing: 0.8,
-            ),
-          ),
-        ],
-      ),
+      actionLabel: 'EXECUTE',
+      trailing: widget.step.isVote ? Text(
+        'VOTE',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: widget.roleColor.withValues(alpha: 0.7),
+          fontWeight: FontWeight.w900,
+        ),
+      ) : null,
     );
   }
 }

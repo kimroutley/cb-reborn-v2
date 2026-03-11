@@ -97,7 +97,7 @@ class CBMessageBubble extends StatelessWidget {
     final accentColor = color ?? Theme.of(context).colorScheme.primary;
 
     // Bubble shape constants
-    const radius = Radius.circular(20);
+    const radius = Radius.circular(24);
     const smallRadius = Radius.circular(4);
 
     BorderRadius borderRadius;
@@ -213,20 +213,20 @@ class CBMessageBubble extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: isSender
-                        ? accentColor.withValues(alpha: 0.2)
+                        ? accentColor.withValues(alpha: 0.85) // more solid neon for sent
                         : Theme.of(context)
                             .colorScheme
                             .surfaceContainerHighest
-                            .withValues(alpha: 0.6),
+                            .withValues(alpha: 0.6), // dark charcoal/burgundy for received
                     borderRadius: borderRadius,
                     border: isSender
-                        ? Border.all(color: accentColor.withValues(alpha: 0.5))
-                        : null,
+                        ? null
+                        : Border.all(color: accentColor.withValues(alpha: 0.15)), // subtle rim to frame
                   ),
                   child: Text(
                     message,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: isSender ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
                           height: 1.4,
                         ),
                   ),

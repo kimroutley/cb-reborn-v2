@@ -1,85 +1,15 @@
-import 'dart:ui';
-
-import 'package:cb_player/player_bridge.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 
-/// A "Hold to Reveal" role identity header for secure, dramatic role checking.
-class BiometricIdentityHeader extends StatefulWidget {
-  final PlayerSnapshot player;
-  final Color roleColor;
-  final bool isMyTurn;
+class BiometricIdentityHeader extends StatelessWidget {
+  final String displayName;
+  final VoidCallback onEditProfile;
 
   const BiometricIdentityHeader({
     super.key,
-    required this.player,
-    required this.roleColor,
-    required this.isMyTurn,
+    required this.displayName,
+    required this.onEditProfile,
   });
-
-  @override
-  State<BiometricIdentityHeader> createState() =>
-      _BiometricIdentityHeaderState();
-}
-
-class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
-    with TickerProviderStateMixin {
-  bool _isRevealed = false;
-  late AnimationController _revealController;
-  late Animation<double> _revealAnimation;
-  late AnimationController _scanController;
-
-  @override
-  void initState() {
-    super.initState();
-    _revealController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-    _revealAnimation = CurvedAnimation(
-      parent: _revealController,
-      curve: Curves.easeInOut,
-    );
-    _scanController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    );
-    if (widget.isMyTurn) _scanController.repeat();
-  }
-
-  @override
-  void didUpdateWidget(BiometricIdentityHeader old) {
-    super.didUpdateWidget(old);
-    if (widget.isMyTurn && !_scanController.isAnimating) {
-      _scanController.repeat();
-    } else if (!widget.isMyTurn && _scanController.isAnimating) {
-      _scanController.stop();
-      _scanController.reset();
-    }
-  }
-
-  @override
-  void dispose() {
-    _revealController.dispose();
-    _scanController.dispose();
-    super.dispose();
-  }
-
-  void _handleLongPressStart(LongPressStartDetails details) {
-    if (!_isRevealed) {
-      _revealController.forward();
-      HapticService.light();
-    }
-  }
-
-  void _handleLongPressEnd(LongPressEndDetails details) {
-    if (_revealController.value < 1.0) {
-      _revealController.reverse();
-    } else {
-      setState(() => _isRevealed = true);
-      HapticService.heavy();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,157 +17,102 @@ class _BiometricIdentityHeaderState extends State<BiometricIdentityHeader>
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return GestureDetector(
-      onLongPressStart: _handleLongPressStart,
-      onLongPressEnd: _handleLongPressEnd,
-      child: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              color: scheme.surface.withValues(alpha: 0.7),
-              border: Border(
-                bottom: BorderSide(
-                  color: widget.roleColor.withValues(alpha: 0.4),
-                  width: 1.5,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'BIOMETRIC BINDING',
+              style: textTheme.labelSmall?.copyWith(
+                color: scheme.primary,
+                letterSpacing: 2.0,
+                fontWeight: FontWeight.w900,
+                shadows: CBColors.textGlow(scheme.primary, intensity: 0.3),
+              ),
+            ),
+            InkWell(
+              onTap: onEditProfile,
+              child: Padding(
+                padding: const EdgeInsets.all(CBSpace.x1),
+                child: Text(
+                  'EDIT PROFILE',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: scheme.secondary,
+                    fontWeight: FontWeight.w900,
+                    decoration: TextDecoration.underline,
+                    letterSpacing: 1.0,
+                  ),
                 ),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: widget.roleColor.withValues(alpha: 0.15),
-                  blurRadius: 20,
-                  offset: const Offset(0, 4),
-                )
-              ],
             ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 60,
-                  height: 60,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    clipBehavior: Clip.none,
-                    children: [
-                      CBRoleAvatar(
-                        assetPath: _isRevealed
-                            ? 'assets/roles/${widget.player.roleId}.png'
-                            : null,
-                        color: widget.roleColor,
-                        size: 54,
-                        pulsing: widget.isMyTurn,
-                        breathing: _isRevealed,
-                      ),
-                      if (!_isRevealed)
-                        AnimatedBuilder(
-                          animation: _revealAnimation,
-                          builder: (context, child) {
-                            return SizedBox(
-                              width: 60,
-                              height: 60,
-                              child: CircularProgressIndicator(
-                                value: _revealAnimation.value,
-                                strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    widget.roleColor),
-                                backgroundColor:
-                                    widget.roleColor.withValues(alpha: 0.1),
-                              ),
-                            );
-                          },
-                        ),
-                      if (widget.isMyTurn)
-                        AnimatedBuilder(
-                          animation: _scanController,
-                          builder: (context, _) {
-                            final yOffset =
-                                -27.0 + (_scanController.value * 54.0);
-                            return Positioned(
-                              top: yOffset + 3,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                height: 2,
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      widget.roleColor
-                                          .withValues(alpha: 0.0),
-                                      widget.roleColor
-                                          .withValues(alpha: 0.8),
-                                      widget.roleColor
-                                          .withValues(alpha: 0.0),
-                                    ],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: widget.roleColor
-                                          .withValues(alpha: 0.6),
-                                      blurRadius: 8,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                    ],
+          ],
+        ),
+        const SizedBox(height: CBSpace.x3),
+        CBGlassTile(
+          borderColor: scheme.primary.withValues(alpha: 0.5),
+          isPrismatic: true,
+          padding: const EdgeInsets.all(CBSpace.x4),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: scheme.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: scheme.primary.withValues(alpha: 0.5),
+                    width: 1.5,
                   ),
+                  boxShadow: CBColors.circleGlow(scheme.primary, intensity: 0.4),
                 ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        widget.player.name.toUpperCase(),
-                        style: textTheme.labelLarge!.copyWith(
-                          color: scheme.onSurface,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.5,
-                          shadows: _isRevealed
-                              ? CBColors.textGlow(widget.roleColor,
-                                  intensity: 0.4)
-                              : null,
-                        ),
+                child: Icon(
+                  Icons.fingerprint_rounded,
+                  color: scheme.primary,
+                  size: 24,
+                  shadows: CBColors.iconGlow(scheme.primary),
+                ),
+              ),
+              const SizedBox(width: CBSpace.x4),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName.toUpperCase(),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2.0,
+                        fontFamily: 'RobotoMono',
+                        color: scheme.onSurface,
+                        shadows: CBColors.textGlow(scheme.primary, intensity: 0.2),
                       ),
-                      const SizedBox(height: 4),
-                      if (_isRevealed)
-                        Text(
-                          widget.player.roleName.toUpperCase(),
-                          style: textTheme.labelSmall!.copyWith(
-                            color: widget.roleColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2.5,
-                          ),
-                        )
-                      else
-                        Text(
-                          "SCANNING BIOMETRICS...",
-                          style: textTheme.labelSmall!.copyWith(
-                            color: scheme.onSurface.withValues(alpha: 0.4),
-                            fontSize: 8,
-                            letterSpacing: 1.2,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'SESSION ACCESS GRANTED',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontSize: 9,
+                        letterSpacing: 1.0,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                if (widget.isMyTurn)
-                  CBBadge(text: "YOUR TURN", color: widget.roleColor)
-                else
-                  CBBadge(text: "ACTIVE", color: scheme.tertiary),
-              ],
-            ),
+              ),
+              Icon(
+                Icons.check_circle_rounded,
+                color: scheme.primary,
+                shadows: CBColors.iconGlow(scheme.primary),
+              ),
+            ],
           ),
         ),
-      ),
+      ],
     );
   }
 }

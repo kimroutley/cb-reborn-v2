@@ -1,43 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../auth/host_auth_screen.dart';
 import 'package:cb_theme/cb_theme.dart';
+import '../shared_prefs_provider.dart';
 
-class HostOnboardingScreen extends ConsumerStatefulWidget {
+class HostOnboardingScreen extends ConsumerWidget {
   const HostOnboardingScreen({super.key});
 
   @override
-  ConsumerState<HostOnboardingScreen> createState() =>
-      _HostOnboardingScreenState();
-}
-
-class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
-  final PageController _pageController = PageController();
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return CBPrismScaffold(
       title: 'Onboarding',
       showAppBar: false,
-      body: PageView(
-        controller: _pageController,
-        children: [
-          _buildIntroPage(context),
-          const HostAuthScreen(),
-          _buildAboutPage(context),
-        ],
-      ),
+      body: _buildIntroPage(context, ref),
     );
   }
 
-  Widget _buildIntroPage(BuildContext context) {
+  Widget _buildIntroPage(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
@@ -46,135 +25,96 @@ class _HostOnboardingScreenState extends ConsumerState<HostOnboardingScreen> {
       showOverlay: true,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(CBSpace.x6),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(CBRadius.md),
-                child: Image.asset(
-                  'assets/images/neon_x_brand.png',
-                  width: 96,
-                  height: 96,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Text(
-                'COMMAND THE NIGHT',
-                textAlign: TextAlign.center,
-                style: textTheme.displayMedium!.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2.0,
-                  shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'CLUB BLACKOUT REBORN',
-                style: textTheme.labelLarge!.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.7),
-                  letterSpacing: 4.0,
-                ),
-              ),
-              const SizedBox(height: 48),
-              CBPanel(
-                borderColor: scheme.primary.withValues(alpha: 0.5),
-                child: Column(
-                  children: [
-                    Text(
-                      'YOU ARE THE HOST. THE DIRECTOR. THE GOD OF THIS CLUB.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyLarge!.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                        height: 1.5,
-                      ),
+              CBFadeSlide(
+                child: Hero(
+                  tag: 'host_auth_icon',
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(CBRadius.md),
+                    child: Image.asset(
+                      'assets/images/neon_x_brand.png',
+                      width: 96,
+                      height: 96,
+                      fit: BoxFit.cover,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Manage roles, trigger narrative events, and control the chaos from your dashboard. Keep the party alive... or watch it burn.',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium!.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+              const SizedBox(height: CBSpace.x8),
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 100),
+                child: Text(
+                  'COMMAND THE NIGHT',
+                  textAlign: TextAlign.center,
+                  style: textTheme.displayMedium!.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2.0,
+                    shadows: CBColors.textGlow(scheme.primary, intensity: 0.8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: CBSpace.x4),
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 150),
+                child: Text(
+                  'CLUB BLACKOUT REBORN',
+                  style: textTheme.labelLarge!.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.7),
+                    letterSpacing: 4.0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: CBSpace.x12),
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 250),
+                child: CBPanel(
+                  borderColor: scheme.primary.withValues(alpha: 0.5),
+                  padding: CBInsets.panel,
+                  child: Column(
+                    children: [
+                      Text(
+                        'YOU ARE THE HOST. THE DIRECTOR. THE GOD OF THIS CLUB.',
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodyLarge!.copyWith(
+                          color: scheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          height: 1.5,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: CBSpace.x4),
+                      Text(
+                        'VERIFY YOUR CLEARANCE TO MANAGE ROLES, TRIGGER EVENTS, AND CONTROL THE CHAOS.',
+                        textAlign: TextAlign.center,
+                        style: textTheme.bodyMedium!.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const Spacer(),
-              CBPrimaryButton(
-                label: 'CONTINUE',
-                icon: Icons.arrow_forward_rounded,
-                onPressed: () {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
+              CBFadeSlide(
+                delay: const Duration(milliseconds: 350),
+                child: CBPrimaryButton(
+                  label: 'INITIATE UPLINK',
+                  icon: Icons.login_rounded,
+                  onPressed: () async {
+                    HapticService.heavy();
+                    final prefs = ref.read(sharedPrefsProvider);
+                    await prefs.setBool('hasSeenHostIntro', true);
+                    ref.read(hostIntroSeenProvider.notifier).setSeen(true);
+                  },
+                ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: CBSpace.x6),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAboutPage(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-    return CBPrismScaffold(
-      title: 'About',
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: Column(
-          children: [
-            Text('ABOUT', style: textTheme.headlineMedium),
-            const SizedBox(height: 24),
-            CBPanel(
-              margin: const EdgeInsets.only(bottom: 16),
-              borderColor: scheme.primary.withValues(alpha: 0.5),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'DATA COLLECTION',
-                    style: textTheme.labelLarge!.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.0,
-                      shadows:
-                          CBColors.textGlow(scheme.primary, intensity: 0.4),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Club Blackout Reborn collects minimal data necessary for gameplay. '
-                    'In local mode, all data is stored on your device. In cloud mode, '
-                    'game state is synchronized via Firebase Firestore.',
-                    style: textTheme.bodyMedium!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.85),
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 48),
-            CBGhostButton(
-              label: 'BACK TO LOGIN',
-              icon: Icons.arrow_back_rounded,
-              onPressed: () {
-                _pageController.previousPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-            ),
-          ],
         ),
       ),
     );

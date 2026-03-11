@@ -12,6 +12,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../profile_edit_guard.dart';
 import '../widgets/custom_drawer.dart';
+import '../auth/auth_provider.dart';
+import '../auth/player_auth_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({
@@ -397,6 +399,66 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    
+    final authState = ref.watch(authProvider);
+    final isGuest = authState.user == null;
+
+    if (isGuest) {
+      return CBPrismScaffold(
+        title: 'OPERATIVE PROFILE',
+        drawer: const CustomDrawer(),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(CBSpace.x6),
+            child: CBPanel(
+              borderColor: scheme.primary.withValues(alpha: 0.4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.lock_person_rounded, size: 64, color: scheme.primary),
+                  const SizedBox(height: CBSpace.x4),
+                  Text(
+                    'VIP PASS REQUIRED',
+                    style: textTheme.headlineSmall!.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: scheme.primary,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                  const SizedBox(height: CBSpace.x2),
+                  Text(
+                    'Identity verification is required to manage your profile and view awards.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium!.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const SizedBox(height: CBSpace.x6),
+                  CBPrimaryButton(
+                    label: 'VERIFY IDENTITY',
+                    icon: Icons.fingerprint_rounded,
+                    backgroundColor: scheme.primary,
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          fullscreenDialog: true,
+                          builder: (_) => PlayerAuthScreen(
+                            onSignedIn: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return CBPrismScaffold(
       title: 'OPERATIVE PROFILE',

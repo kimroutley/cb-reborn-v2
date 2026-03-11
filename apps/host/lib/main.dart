@@ -14,14 +14,33 @@ import 'screens/intro_screen.dart';
 
 import 'host_settings.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'shared_prefs_provider.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  final prefs = await SharedPreferences.getInstance();
+  
   await Hive.initFlutter();
   await _initializePersistenceOfflineFirst();
   await _initializeFirebaseServices();
 
-  runApp(const ProviderScope(
-    child: HostApp(),
+  runApp(ProviderScope(
+    overrides: [
+      sharedPrefsProvider.overrideWithValue(prefs),
+      geminiNarrationServiceProvider.overrideWith((ref) {
+        final settings = ref.watch(hostSettingsProvider);
+        return GeminiNarrationService(
+          apiKey: settings.geminiApiKey,
+          enabled: settings.geminiNarrationEnabled,
+        );
+      }),
+      activeHostPersonalityIdProvider.overrideWith((ref) {
+        return ref.watch(hostSettingsProvider).hostPersonalityId;
+      }),
+    ],
+    child: const HostApp(),
   ));
 }
 
@@ -65,7 +84,9 @@ Future<void> _initializeFirebaseServices() async {
 }
 
 class HostApp extends ConsumerWidget {
-  const HostApp({super.key});
+  final Uri? initialPendingLink;
+
+  const HostApp({super.key, this.initialPendingLink});
 
   static final Future<Color> _seedFuture =
       ImageProcessingService.sampleSeedFromGlobalBackground();

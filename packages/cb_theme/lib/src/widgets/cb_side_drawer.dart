@@ -26,21 +26,21 @@ class CBSideDrawer extends StatelessWidget {
     return Drawer(
       backgroundColor: CBColors.transparent,
       elevation: 0,
-      width: 300,
+      width: 320,
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.surface.withValues(alpha: 0.15), // Subtle transparency
+          color: colorScheme.surface.withValues(alpha: 0.25), // Stronger glass base
           border: Border(
             right: BorderSide(
-              color: colorScheme.primary.withValues(alpha: 0.35), // Vibrant neon border
+              color: colorScheme.primary.withValues(alpha: 0.4), 
               width: 1.5,
             ),
           ),
-          boxShadow: CBColors.boxGlow(colorScheme.primary, intensity: 0.25), // Neon glow
+          boxShadow: CBColors.boxGlow(colorScheme.primary, intensity: 0.15),
         ),
         child: ClipRect(
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0), // Strong blur effect
+            filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0), // Deep M3 Blur
             child: SafeArea(
               child: ListView(
                 padding: EdgeInsets.zero,

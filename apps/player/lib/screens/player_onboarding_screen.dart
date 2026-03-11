@@ -3,56 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter/foundation.dart';
-import 'package:web/web.dart' as web;
+// conditional import to not break Android builds:
+import 'package:universal_html/html.dart' as web;
 
-import '../auth/player_auth_screen.dart';
-import 'connect_screen.dart';
+import '../shared_prefs_provider.dart';
 
-class PlayerOnboardingScreen extends ConsumerStatefulWidget {
+class PlayerOnboardingScreen extends ConsumerWidget {
   const PlayerOnboardingScreen({super.key});
 
   @override
-  ConsumerState<PlayerOnboardingScreen> createState() =>
-      _PlayerOnboardingScreenState();
-}
-
-class _PlayerOnboardingScreenState
-    extends ConsumerState<PlayerOnboardingScreen> {
-  final PageController _pageController = PageController();
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return CBPrismScaffold(
       title: 'JOIN THE CLUB',
       showAppBar: false,
-      useSafeArea: false, // PageView items handle layout safely
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [
-          _buildIntroPage(context),
-          PlayerAuthScreen(
-            isEmbedded: true,
-            onSignedIn: () {
-              _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-          ),
-          _buildConnectPage(context),
-        ],
-      ),
+      useSafeArea: false,
+      body: _buildIntroPage(context, ref),
     );
   }
 
-  Widget _buildIntroPage(BuildContext context) {
+  Widget _buildIntroPage(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final textTheme = theme.textTheme;
@@ -154,12 +123,11 @@ class _PlayerOnboardingScreenState
                 child: CBPrimaryButton(
                   label: 'ENTER THE CLUB',
                   icon: Icons.login_rounded,
-                  onPressed: () {
+                  onPressed: () async {
                     HapticService.heavy();
-                    _pageController.nextPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
+                    final prefs = ref.read(sharedPrefsProvider);
+                    await prefs.setBool('hasSeenPlayerIntro', true);
+                    ref.read(playerIntroSeenProvider.notifier).setSeen(true);
                   },
                   backgroundColor: scheme.secondary,
                 ),
@@ -189,67 +157,6 @@ class _PlayerOnboardingScreenState
                 ),
               ],
               const SizedBox(height: CBSpace.x6),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConnectPage(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-
-    return Semantics(
-      label: 'Join a game. Enter the code from the host screen.',
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(CBSpace.x6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              CBFadeSlide(
-                child: Text(
-                  'UPLINK INITIATED',
-                  textAlign: TextAlign.center,
-                  style: textTheme.headlineSmall?.copyWith(
-                    color: scheme.primary,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2.0,
-                    shadows: CBColors.textGlow(scheme.primary),
-                  ),
-                ),
-              ),
-              const SizedBox(height: CBSpace.x2),
-              CBFadeSlide(
-                delay: const Duration(milliseconds: 50),
-                child: Text(
-                  'ESTABLISH SECURE LINK VIA JOIN CODE.',
-                  textAlign: TextAlign.center,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurface.withValues(alpha: 0.4),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-              ),
-              const Expanded(child: ConnectScreen()),
-              const SizedBox(height: CBSpace.x4),
-              CBFadeSlide(
-                delay: const Duration(milliseconds: 100),
-                child: CBGhostButton(
-                  label: 'BACK TO IDENTITY CHECK',
-                  icon: Icons.arrow_back_rounded,
-                  onPressed: () {
-                    HapticService.light();
-                    _pageController.previousPage(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                ),
-              ),
             ],
           ),
         ),

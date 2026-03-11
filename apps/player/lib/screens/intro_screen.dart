@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../auth/auth_provider.dart';
+import '../shared_prefs_provider.dart';
 import '../bootstrap/player_bootstrap_gate.dart';
 import 'player_home_shell.dart';
 import '../widgets/effects_overlay.dart';
@@ -17,9 +17,9 @@ class PlayerIntroScreen extends ConsumerStatefulWidget {
 class _PlayerIntroScreenState extends ConsumerState<PlayerIntroScreen> {
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final hasSeenIntro = ref.watch(playerIntroSeenProvider);
 
-    if (authState.user == null) {
+    if (!hasSeenIntro) {
       return const PlayerOnboardingScreen();
     }
 

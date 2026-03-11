@@ -135,7 +135,7 @@ class CBTheme {
           textStyle: CBTypography.textTheme.labelLarge!,
           padding: const EdgeInsets.symmetric(
               vertical: CBSpace.x4, horizontal: CBSpace.x6),
-          elevation: 2,
+          elevation: 1, // M3 favors lower elevations
         ),
       ),
 
@@ -164,19 +164,17 @@ class CBTheme {
 
       // Cards
       cardTheme: CardThemeData(
-        // Slight translucency so the app-wide neon radiance can read through
-        // without turning panels into a muddy double-overlay.
-        color: scheme.surfaceContainerLow.withValues(alpha: 0.62),
-        elevation: 1,
+        // Translucent dark background to let ambient neon bleed through
+        color: scheme.surfaceContainerLow.withValues(alpha: 0.75),
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            CBRadius.lg,
-          ), // M3 Standard is 12, we use 24 for "Squircle" vibe
+          borderRadius: BorderRadius.circular(CBRadius.lg), 
           side: BorderSide(
-            color: scheme.outlineVariant.withValues(alpha: 0.3),
+            color: scheme.outlineVariant.withValues(alpha: 0.15),
             width: 1,
           ),
         ),
+        clipBehavior: Clip.antiAlias,
         margin: EdgeInsets.zero,
       ),
 
@@ -236,9 +234,15 @@ class CBTheme {
 
       // Dialogs
       dialogTheme: DialogThemeData(
-        backgroundColor: scheme.surfaceContainerHigh.withValues(alpha: 0.9),
+        backgroundColor: scheme.surfaceContainerHigh.withValues(alpha: 0.95),
+        elevation: 12, // Deep drop shadow for floating modal
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(CBRadius.dialog)),
+          borderRadius: BorderRadius.circular(CBRadius.dialog),
+          side: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
         titleTextStyle: CBTypography.textTheme.headlineSmall?.copyWith(
           color: scheme.onSurface,
         ),
@@ -311,12 +315,14 @@ class CBTheme {
 
       // Bottom Sheets
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: scheme.surfaceContainer.withValues(alpha: 0.92),
-        modalBackgroundColor: scheme.surfaceContainer.withValues(alpha: 0.92),
+        backgroundColor: scheme.surfaceContainer.withValues(alpha: 0.96),
+        modalBackgroundColor: scheme.surfaceContainer.withValues(alpha: 0.96),
+        modalElevation: 8,
         shape: const RoundedRectangleBorder(
           borderRadius:
               BorderRadius.vertical(top: Radius.circular(CBRadius.dialog)),
         ),
+        clipBehavior: Clip.antiAlias,
       ),
 
       // Chips
@@ -363,10 +369,11 @@ class CBTheme {
       // Sliders
       sliderTheme: SliderThemeData(
         activeTrackColor: scheme.primary,
-        inactiveTrackColor: scheme.outlineVariant.withValues(alpha: 0.35),
+        inactiveTrackColor: scheme.outlineVariant.withValues(alpha: 0.25),
         thumbColor: scheme.primary,
-        overlayColor: scheme.primary.withValues(alpha: 0.14),
-        trackHeight: 4,
+        overlayColor: scheme.primary.withValues(alpha: 0.12),
+        trackHeight: 6, // Slightly thicker, tactile M3 feel
+        trackShape: const RoundedRectSliderTrackShape(),
       ),
 
       // Tooltips
@@ -421,8 +428,76 @@ class CBTheme {
         backgroundColor: scheme.primaryContainer,
         foregroundColor: scheme.onPrimaryContainer,
         elevation: 3,
+        hoverElevation: 6,
+        focusElevation: 3,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(CBRadius.md)),
+      ),
+
+      // ── NEW M3 COMPLIANT COMPONENTS ──
+      
+      // SnackBars (Neon accent alert style)
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: CBColors.voidBlack.withValues(alpha: 0.95),
+        contentTextStyle: CBTypography.textTheme.bodyMedium!.copyWith(
+          color: scheme.onSurface,
+        ),
+        actionTextColor: scheme.primary,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(CBRadius.sm),
+          side: BorderSide(
+            color: scheme.outlineVariant.withValues(alpha: 0.2), 
+            width: 1,
+          ),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+
+      // Checkboxes
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            if (states.contains(WidgetState.disabled)) {
+              return scheme.onSurface.withValues(alpha: 0.38);
+            }
+            return scheme.primary;
+          }
+          return Colors.transparent;
+        }),
+        checkColor: const WidgetStatePropertyAll(CBColors.voidBlack),
+        side: BorderSide(color: scheme.outline, width: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)), // M3 slight rounding
+      ),
+
+      // Radio Buttons
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            if (states.contains(WidgetState.disabled)) {
+              return scheme.onSurface.withValues(alpha: 0.38);
+            }
+            return scheme.primary;
+          }
+          return scheme.outline;
+        }),
+      ),
+
+      // Progress Indicators
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: scheme.primary,
+        circularTrackColor: scheme.primaryContainer.withValues(alpha: 0.3),
+        linearTrackColor: scheme.primaryContainer.withValues(alpha: 0.3),
+      ),
+      
+      // Bottom App Bar (used for Host view actions)
+      bottomAppBarTheme: BottomAppBarThemeData(
+        color: scheme.surfaceContainer,
+        elevation: 0,
+        shape: const AutomaticNotchedShape(
+          RoundedRectangleBorder(),
+          StadiumBorder(),
+        ),
       ),
     );
   }

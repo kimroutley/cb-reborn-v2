@@ -28,6 +28,7 @@ class CBTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final TextStyle? textStyle;
   final TextAlign textAlign;
+  final bool obscureText;
 
   const CBTextField({
     super.key,
@@ -54,6 +55,7 @@ class CBTextField extends StatelessWidget {
     this.inputFormatters,
     this.textStyle,
     this.textAlign = TextAlign.start,
+    this.obscureText = false,
   });
 
   @override
@@ -132,6 +134,7 @@ class CBTextField extends StatelessWidget {
       onSubmitted: onSubmitted,
       textCapitalization: textCapitalization,
       textAlign: textAlign,
+      obscureText: obscureText,
       style: textStyle ??
           (monospace
               ? theme.textTheme.bodyLarge!

@@ -2,6 +2,8 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../auth/auth_provider.dart';
+import '../auth/host_auth_screen.dart';
 import '../host_destinations.dart';
 import '../host_navigation.dart';
 import '../widgets/custom_drawer.dart';
@@ -15,6 +17,26 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  void _executeAuthenticatedAction(VoidCallback action) async {
+    final authState = ref.read(authProvider);
+    if (authState.user == null) {
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => HostAuthScreen(
+            onSignedIn: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+      );
+      if (ref.read(authProvider).user == null) {
+        return;
+      }
+    }
+    action();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -70,32 +92,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     CBPrimaryButton(
                       label: 'START NEW GAME',
                       icon: Icons.add_circle_outline,
-                      onPressed: () {
+                      onPressed: () => _executeAuthenticatedAction(() {
                         HapticService.heavy();
                         ref
                             .read(hostNavigationProvider.notifier)
                             .setDestination(HostDestination.lobby);
-                      },
+                      }),
                     ),
                     const SizedBox(height: CBSpace.x4),
                     CBGhostButton(
                       label: 'RESTORE SESSION',
-                      onPressed: () {
+                      onPressed: () => _executeAuthenticatedAction(() {
                         HapticService.light();
                         ref
                             .read(hostNavigationProvider.notifier)
                             .setDestination(HostDestination.saveLoad);
-                      },
+                      }),
                     ),
                     const SizedBox(height: CBSpace.x3),
                     CBGhostButton(
                       label: 'VIEW HALL OF FAME',
-                      onPressed: () {
+                      onPressed: () => _executeAuthenticatedAction(() {
                         HapticService.light();
                         ref
                             .read(hostNavigationProvider.notifier)
                             .setDestination(HostDestination.hallOfFame);
-                      },
+                      }),
                     ),
                   ],
                 ),

@@ -8,17 +8,24 @@ final geminiNarrationServiceProvider = Provider<GeminiNarrationService>((ref) {
   return GeminiNarrationService();
 });
 
+final activeHostPersonalityIdProvider = Provider<String?>((ref) => null);
+
 class GeminiNarrationService {
-  GeminiNarrationService({http.Client? client, String? apiKey})
-      : _client = client ?? http.Client(),
+  GeminiNarrationService({
+    http.Client? client,
+    String? apiKey,
+    this.enabled = true,
+  })  : _client = client ?? http.Client(),
         _injectedApiKey = apiKey;
 
   final http.Client _client;
   final String? _injectedApiKey;
+  final bool enabled;
 
   static const _fallbackModel = 'gemini-1.5-flash';
 
   String get _apiKey {
+    if (!enabled) return '';
     if (_injectedApiKey != null) return _injectedApiKey!;
     const direct = String.fromEnvironment('GEMINI_API_KEY');
     if (direct.isNotEmpty) return direct;

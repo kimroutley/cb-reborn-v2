@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../profile_edit_guard.dart';
 import '../host_destinations.dart';
 import '../widgets/custom_drawer.dart';
+import '../auth/host_auth_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({
@@ -768,9 +769,67 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
     final user = _user;
     final normalizedPublicId =
         ProfileFormValidation.sanitizePublicPlayerId(_publicIdController.text);
+
+    if (user == null) {
+      return CBPrismScaffold(
+        title: 'OPERATIVE PROFILE',
+        drawer: const CustomDrawer(currentDestination: HostDestination.profile),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(CBSpace.x6),
+            child: CBPanel(
+              borderColor: scheme.primary.withValues(alpha: 0.4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.lock_person_rounded, size: 64, color: scheme.primary),
+                  const SizedBox(height: CBSpace.x4),
+                  Text(
+                    'MANAGER CLEARANCE REQUIRED',
+                    style: textTheme.headlineSmall!.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: scheme.primary,
+                      letterSpacing: 2.0,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: CBSpace.x2),
+                  Text(
+                    'Identity verification is required to manage your profile and view awards.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyMedium!.copyWith(
+                      color: scheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const SizedBox(height: CBSpace.x6),
+                  CBPrimaryButton(
+                    label: 'VERIFY IDENTITY',
+                    icon: Icons.fingerprint_rounded,
+                    backgroundColor: scheme.primary,
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          fullscreenDialog: true,
+                          builder: (_) => HostAuthScreen(
+                            onSignedIn: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return PopScope(
       canPop: _allowImmediatePop || !_hasChanges,

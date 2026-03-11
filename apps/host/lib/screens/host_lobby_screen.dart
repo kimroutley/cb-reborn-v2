@@ -612,11 +612,18 @@ class _LaunchBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, CBSpace.x4),
       decoration: BoxDecoration(
-        color: scheme.surface,
+        color: CBColors.voidBlack.withValues(alpha: 0.8),
         border: Border(
-          top:
-              BorderSide(color: statusColor.withValues(alpha: 0.3), width: 1.5),
+          top: BorderSide(color: statusColor.withValues(alpha: 0.5), width: 1.5),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: statusColor.withValues(alpha: 0.1),
+            blurRadius: 15,
+            spreadRadius: 2,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -625,11 +632,13 @@ class _LaunchBar extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: CBSpace.x2),
               decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
+                color: statusColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(CBRadius.sm),
                 border: Border.all(
-                  color: statusColor.withValues(alpha: 0.3),
+                  color: statusColor.withValues(alpha: 0.4),
+                  width: 1.5,
                 ),
+                boxShadow: CBColors.boxGlow(statusColor, intensity: 0.2),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

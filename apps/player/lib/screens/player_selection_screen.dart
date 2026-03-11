@@ -178,24 +178,28 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
     final scheme = Theme.of(context).colorScheme;
 
     if (_isMultiSelect) {
-      return Padding(
-        padding: const EdgeInsets.all(CBSpace.x6),
-        child: CBPrimaryButton(
-          label: 'CONFIRM TARGETS',
-          onPressed: _selectedIds.length == 2 ? _confirmSelection : null,
-          icon: Icons.check_circle_outline_rounded,
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(CBSpace.x6),
+          child: CBPrimaryButton(
+            label: 'CONFIRM TARGETS',
+            onPressed: _selectedIds.length == 2 ? _confirmSelection : null,
+            icon: Icons.check_circle_outline_rounded,
+          ),
         ),
       );
     }
 
-    return Padding(
-      padding: CBInsets.panel,
-      child: CBPrimaryButton(
-        label: 'ABSTAIN / SKIP',
-        backgroundColor: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        foregroundColor: scheme.onSurfaceVariant,
-        onPressed: () => widget.onPlayerSelected('abstain'),
-        icon: Icons.block_flipped,
+    return SafeArea(
+      child: Padding(
+        padding: CBInsets.panel,
+        child: CBPrimaryButton(
+          label: 'ABSTAIN / SKIP',
+          backgroundColor: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          foregroundColor: scheme.onSurfaceVariant,
+          onPressed: () => widget.onPlayerSelected('abstain'),
+          icon: Icons.block_flipped,
+        ),
       ),
     );
   }

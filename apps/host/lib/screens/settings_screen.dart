@@ -389,7 +389,135 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           if (settings.geminiNarrationEnabled) ...[
             const SizedBox(height: CBSpace.x6),
             _buildPersonalitySelector(context, settings, notifier, scheme),
+            const SizedBox(height: CBSpace.x6),
+            _buildApiKeyInput(context, settings, notifier, scheme),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildApiKeyInput(
+    BuildContext context,
+    HostSettings settings,
+    HostSettingsNotifier notifier,
+    ColorScheme scheme,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'GEMINI API KEY (REQUIRED FOR GENERATION)',
+              style: CBTypography.labelSmall.copyWith(
+                color: scheme.tertiary.withValues(alpha: 0.8),
+                fontSize: 9,
+                letterSpacing: 1.5,
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.help_outline_rounded, color: scheme.tertiary, size: 20),
+              onPressed: () => _showApiKeyHelp(context, scheme),
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
+        const SizedBox(height: CBSpace.x3),
+        CBTextField(
+          controller: TextEditingController(text: settings.geminiApiKey),
+          hintText: 'Enter API Key...',
+          obscureText: true,
+          onChanged: (val) => notifier.setGeminiApiKey(val),
+        ),
+      ],
+    );
+  }
+
+  void _showApiKeyHelp(BuildContext context, ColorScheme scheme) {
+    showThemedDialog(
+      context: context,
+      accentColor: scheme.tertiary,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.vpn_key_rounded, color: scheme.tertiary),
+              const SizedBox(width: CBSpace.x3),
+              Text(
+                'GETTING AN API KEY',
+                style: CBTypography.labelLarge.copyWith(
+                  color: scheme.tertiary,
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w900,
+                  shadows: CBColors.textGlow(scheme.tertiary, intensity: 0.5),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: CBSpace.x5),
+          Text(
+            'To power the AI narration, you need a free Google Gemini API Key. Follow these steps:',
+            style: CBTypography.bodyMedium.copyWith(
+              color: scheme.onSurface.withValues(alpha: 0.9),
+            ),
+          ),
+          const SizedBox(height: CBSpace.x4),
+          _buildHelpStep(scheme, '1', 'Go to aistudio.google.com in your web browser.'),
+          _buildHelpStep(scheme, '2', 'Sign in with your Google account.'),
+          _buildHelpStep(scheme, '3', 'Click "Get API Key" on the left menu.'),
+          _buildHelpStep(scheme, '4', 'Click "Create API Key in new project".'),
+          _buildHelpStep(scheme, '5', 'Copy the generated key and paste it here.'),
+          const SizedBox(height: CBSpace.x6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: CBPrimaryButton(
+              label: 'GOT IT',
+              backgroundColor: scheme.tertiary,
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHelpStep(ColorScheme scheme, String number, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: CBSpace.x3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: scheme.tertiary.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              number,
+              style: CBTypography.labelSmall.copyWith(
+                color: scheme.tertiary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          const SizedBox(width: CBSpace.x3),
+          Expanded(
+            child: Text(
+              text,
+              style: CBTypography.bodyMedium.copyWith(
+                color: scheme.onSurface.withValues(alpha: 0.8),
+                height: 1.4,
+              ),
+            ),
+          ),
         ],
       ),
     );

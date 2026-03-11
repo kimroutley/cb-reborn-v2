@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../layout.dart';
-
 /// A sleek, centered "Phase/Time" separator for the feed.
 class CBFeedSeparator extends StatelessWidget {
   final String label;
@@ -20,33 +18,17 @@ class CBFeedSeparator extends StatelessWidget {
     final accent = color ?? scheme.outlineVariant;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Row(
-        children: [
-          Expanded(
-            child: Divider(color: accent.withValues(alpha: 0.2), endIndent: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: Text(
+          label, // removed toUpperCase to allow fine control (e.g. Saturday 28...)
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: accent.withValues(alpha: 0.7),
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.5,
+            fontSize: 11,
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(CBRadius.sm),
-              border: Border.all(color: accent.withValues(alpha: 0.3)),
-            ),
-            child: Text(
-              label.toUpperCase(),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-                fontSize: 10,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Divider(color: accent.withValues(alpha: 0.2), indent: 16),
-          ),
-        ],
+        ),
       ),
     );
   }

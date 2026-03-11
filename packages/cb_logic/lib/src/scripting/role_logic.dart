@@ -32,7 +32,7 @@ class DealerStrategy extends RoleStrategy {
       title: 'THE DEALER',
       readAloudText:
           'Dealers and associates, wake up and choose a player to eliminate.',
-      instructionText: 'SELECT A TARGET TO ELIMINATE',
+      instructionText: 'ELIMINATE PATRON',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
     );
@@ -56,7 +56,7 @@ class SilverFoxStrategy extends RoleStrategy {
       id: 'silver_fox_act_${player.id}_$dayCount',
       title: 'THE SILVER FOX',
       readAloudText: 'Silver Fox, wake up and choose someone to give an alibi.',
-      instructionText: 'SELECT A PLAYER TO GRANT IMMUNITY FROM VOTING',
+      instructionText: 'GIVE AN ALIBI',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
     );
@@ -83,7 +83,7 @@ class WhoreStrategy extends RoleStrategy {
       id: 'whore_act_${player.id}_$dayCount',
       title: 'THE WHORE',
       readAloudText: 'Dealers and associates, wake up and choose your target.',
-      instructionText: 'SELECT A SCAPEGOAT FOR VOTE DEFLECTION (ONE USE)',
+      instructionText: 'PICK SCAPEGOAT',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
     );
@@ -111,7 +111,7 @@ class SoberStrategy extends RoleStrategy {
       id: 'sober_act_${player.id}_$dayCount',
       title: 'SOBER',
       readAloudText: 'Sober, wake up and choose a player to investigate.',
-      instructionText: 'SELECT A PLAYER TO BLOCK TONIGHT',
+      instructionText: 'BLOCK A PLAYER',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
     );
@@ -135,7 +135,7 @@ class RoofiStrategy extends RoleStrategy {
       id: 'roofi_act_${player.id}_$dayCount',
       title: 'THE ROOFI',
       readAloudText: 'Roofi, wake up and slip the drink.',
-      instructionText: 'SELECT A PLAYER TO SILENCE TOMORROW',
+      instructionText: 'SILENCE A PLAYER',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
     );
@@ -159,7 +159,7 @@ class BouncerStrategy extends RoleStrategy {
       id: 'bouncer_act_${player.id}_$dayCount',
       title: 'THE BOUNCER',
       readAloudText: 'Bouncer, wake up and check a player\'s ID.',
-      instructionText: 'SELECT A PLAYER TO CHECK ALLIANCE',
+      instructionText: 'IDENTIFY ALIGNMENT',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
     );
@@ -192,8 +192,8 @@ class MedicStrategy extends RoleStrategy {
         : 'Medic, wake up and choose someone to protect.';
 
     final instruction = player.medicChoice == 'REVIVE'
-        ? 'SELECT A DEAD PLAYER TO REVIVE'
-        : 'SELECT A PLAYER TO PROTECT FROM MURDER';
+        ? 'REVIVE A PATRON'
+        : 'HEAL A PATRON';
 
     return ScriptStep(
       id: 'medic_act_${player.id}_$dayCount',
@@ -223,7 +223,7 @@ class BartenderStrategy extends RoleStrategy {
       id: '${player.role.id}_act_${player.id}_$dayCount',
       title: 'THE BARTENDER',
       readAloudText: 'Bartender, wake up and choose two players to compare.',
-      instructionText: 'SELECT TWO PLAYERS TO CHECK ALIGNMENT',
+      instructionText: 'COMPARE TWO PATRONS',
       actionType: ScriptActionType.selectTwoPlayers,
       roleId: roleId,
     );
@@ -247,7 +247,7 @@ class LightweightStrategy extends RoleStrategy {
       id: 'lightweight_act_${player.id}_$dayCount',
       title: 'THE LIGHTWEIGHT',
       readAloudText: 'Lightweight, wake up. A new name is now taboo.',
-      instructionText: 'SELECT A PLAYER TO MAKE THEIR NAME TABOO',
+      instructionText: 'BLOCK A VOTE TARGET',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
     );
@@ -275,7 +275,7 @@ class MessyBitchStrategy extends RoleStrategy {
       id: '${player.role.id}_act_${player.id}_$dayCount',
       title: 'THE MESSY BITCH',
       readAloudText: 'Messy Bitch, wake up and start a rumour.',
-      instructionText: 'SELECT A PLAYER TO START A RUMOR ABOUT',
+      instructionText: 'SPREAD A RUMOR',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
     );
@@ -300,7 +300,7 @@ class ClubManagerStrategy extends RoleStrategy {
       title: 'THE CLUB MANAGER',
       readAloudText:
           'Club Manager, wake up and secretly look at a player\'s card.',
-      instructionText: 'SELECT A PLAYER TO INSPECT THEIR ROLE CARD',
+      instructionText: 'CHECK FILES',
       actionType: ScriptActionType.selectPlayer,
       roleId: roleId,
     );
@@ -327,7 +327,7 @@ class AttackDogStrategy extends RoleStrategy {
       id: '${roleId}_act_${player.id}_$dayCount',
       title: 'THE ATTACK DOG',
       readAloudText: 'Attack Dog, wake up. You are free. Choose your revenge.',
-      instructionText: 'SELECT A PLAYER TO ELIMINATE (ONE USE)',
+      instructionText: 'SICK THE DOG',
       actionType: ScriptActionType.selectPlayer,
       roleId: RoleIds.attackDog,
     );
@@ -353,7 +353,7 @@ class MessyBitchKillStrategy extends RoleStrategy {
       title: 'THE MESSY BITCH - KILL',
       readAloudText:
           'Messy Bitch, do you wish to use your one-time kill tonight?',
-      instructionText: 'OPTIONAL: SELECT A PLAYER TO KILL, OR SKIP.',
+      instructionText: 'SETTLE A SCORE',
       actionType: ScriptActionType.selectPlayer,
       roleId: RoleIds.messyBitch,
       isOptional: true,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../host_settings.dart';
+import 'dashboard_view.dart';
 
 /// A shared view for the host to see the group chat (The Lounge).
 /// Used in both the Lobby (as a tab) and the Game screen (as the main feed).
@@ -192,378 +193,244 @@ class _HostChatViewState extends ConsumerState<HostChatView> {
         ],
         if (widget.showRoster) _buildRosterStrip(scheme, textTheme),
         Expanded(
-          child: CBGlassTile(
-            padding: EdgeInsets.zero,
-            child: allMessages.isEmpty
-                ? Center(
-                    child: CBFadeSlide(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.forum_outlined,
-                              size: 48,
-                              color: scheme.onSurface.withValues(alpha: 0.1)),
-                          const SizedBox(height: CBSpace.x4),
-                          Text(
-                            'NO TRANSMISSIONS LOGGED',
-                            style: textTheme.labelSmall?.copyWith(
-                              color: scheme.onSurface.withValues(alpha: 0.3),
-                              letterSpacing: 2.0,
-                              fontWeight: FontWeight.w900,
-                            ),
+          child: allMessages.isEmpty
+              ? Center(
+                  child: CBFadeSlide(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.forum_outlined,
+                            size: 48,
+                            color: scheme.onSurface.withValues(alpha: 0.1)),
+                        const SizedBox(height: CBSpace.x4),
+                        Text(
+                          'NO MESSAGES YET',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: scheme.onSurface.withValues(alpha: 0.3),
+                            letterSpacing: 2.0,
+                            fontWeight: FontWeight.w900,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  )
-                : ListView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: CBSpace.x4, vertical: CBSpace.x4),
-                    physics: const BouncingScrollPhysics(),
-                    children: [
-                      BulletinFeed(
-                        entries: allMessages,
-                        itemBuilder: (context, i, entry, groupPosition) {
-                          final isHost = entry.roleId == null &&
-                              (entry.title == 'HOST' || entry.type != 'chat');
+                  ),
+                )
+              : ListView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: CBSpace.x4, vertical: CBSpace.x4),
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    BulletinFeed(
+                      entries: allMessages,
+                      itemBuilder: (context, i, entry, groupPosition) {
+                        final isHost = entry.roleId == null &&
+                            (entry.title == 'HOST' || entry.type != 'chat');
 
-                          if (entry.type == 'system' || entry.type == 'phase') {
-                            final isNight =
-                                entry.content.toUpperCase().contains('NIGHT');
-                            final phaseColor =
-                                isNight ? scheme.secondary : scheme.primary;
-                            return CBFadeSlide(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: CBSpace.x3),
-                                child: CBFeedSeparator(
-                                  label: entry.content.toUpperCase(),
-                                  color: entry.type == 'system'
-                                      ? scheme.error
-                                      : phaseColor,
-                                ),
-                              ),
-                            );
-                          }
-
-                          if (entry.type == 'hostIntel') {
-                            final isOverride = entry.title.contains('OVERRIDE');
-                            final isPhase = entry.title.contains('PHASE');
-                            final intelColor = isOverride
-                                ? scheme.error
-                                : isPhase
-                                    ? scheme.secondary
-                                    : CBColors.alertOrange;
-                            final intelIcon = isOverride
-                                ? Icons.gavel_rounded
-                                : isPhase
-                                    ? Icons.change_circle_rounded
-                                    : Icons.visibility_rounded;
-
-                            return CBFadeSlide(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: CBSpace.x1),
-                                child: CBGlassTile(
-                                  borderColor: intelColor.withValues(alpha: 0.3),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: CBSpace.x4,
-                                      vertical: CBSpace.x3),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding:
-                                            const EdgeInsets.all(CBSpace.x2),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              intelColor.withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(
-                                              CBRadius.xs),
-                                        ),
-                                        child: Icon(intelIcon,
-                                            size: 16, color: intelColor),
-                                      ),
-                                      const SizedBox(width: CBSpace.x4),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              entry.title.toUpperCase(),
-                                              style: textTheme.labelSmall
-                                                  ?.copyWith(
-                                                color: intelColor,
-                                                fontWeight: FontWeight.w900,
-                                                letterSpacing: 1.0,
-                                                fontSize: 9,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              entry.content.toUpperCase(),
-                                              style: textTheme.bodySmall
-                                                  ?.copyWith(
-                                                color: scheme.onSurface
-                                                    .withValues(alpha: 0.6),
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const CBMiniTag(
-                                        text: 'CLASSIFIED',
-                                        color: CBColors.alertOrange,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-
-                          if (entry.type == 'ghostChat') {
-                            return CBFadeSlide(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: CBSpace.x1),
-                                child: CBGlassTile(
-                                  borderColor:
-                                      scheme.tertiary.withValues(alpha: 0.2),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: CBSpace.x4,
-                                      vertical: CBSpace.x3),
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding:
-                                            const EdgeInsets.all(CBSpace.x2),
-                                        decoration: BoxDecoration(
-                                          color: scheme.tertiary
-                                              .withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(
-                                              CBRadius.xs),
-                                        ),
-                                        child: Icon(Icons.blur_on_rounded,
-                                            size: 16, color: scheme.tertiary),
-                                      ),
-                                      const SizedBox(width: CBSpace.x4),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '${entry.title.toUpperCase()} (GHOST LOUNGE)',
-                                              style: textTheme.labelSmall
-                                                  ?.copyWith(
-                                                color: scheme.tertiary,
-                                                fontWeight: FontWeight.w900,
-                                                letterSpacing: 1.0,
-                                                fontSize: 9,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              entry.content.toUpperCase(),
-                                              style: textTheme.bodySmall
-                                                  ?.copyWith(
-                                                color: scheme.onSurface
-                                                    .withValues(alpha: 0.5),
-                                                fontSize: 10,
-                                                fontStyle: FontStyle.italic,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      CBMiniTag(
-                                        text: 'SPECTATOR',
-                                        color: scheme.tertiary,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-
-                          if (entry.type == 'dayRecap') {
-                            final payload =
-                                DayRecapCardPayload.tryParse(entry.content);
-                            if (payload != null) {
-                              return CBFadeSlide(
-                                child: CBDayRecapCard(
-                                  title: (payload.hostTitle.isNotEmpty
-                                          ? payload.hostTitle
-                                          : 'DAY ${payload.day} RECAP (HOST)')
-                                      .toUpperCase(),
-                                  bullets: payload.hostBullets
-                                      .map((b) => b.toUpperCase())
-                                      .toList(),
-                                ),
-                              );
-                            }
-                            return const SizedBox.shrink();
-                          }
-
-                          String senderName = entry.title;
-                          String? avatarAsset;
-                          Color bubbleColor = scheme.primary;
-                          List<Widget>? bubbleTags;
-
-                          if (isHost) {
-                            senderName = 'HOST';
-                            avatarAsset = 'assets/roles/host_avatar.png';
-                            final personalityId = ref
-                                .watch(hostSettingsProvider)
-                                .hostPersonalityId;
-                            if (personalityId == 'the_ice_queen') {
-                              bubbleColor = scheme.tertiary;
-                            } else if (personalityId == 'protocol_9') {
-                              bubbleColor = scheme.error;
-                            } else {
-                              bubbleColor = scheme.secondary;
-                            }
-                          } else if (entry.roleId != null) {
-                            try {
-                              final player = widget.gameState.players.firstWhere(
-                                (p) => p.role.id == entry.roleId,
-                              );
-                              senderName = player.name;
-                              avatarAsset = 'assets/roles/${player.role.id}.png';
-                              bubbleColor =
-                                  CBColors.fromHex(player.role.colorHex);
-
-                              final tags = <Widget>[];
-                              if (!player.isAlive) {
-                                tags.add(CBMiniTag(
-                                    text: 'ELIMINATED', color: scheme.error));
-                              }
-                              if (player.isShadowBanned) {
-                                tags.add(CBMiniTag(
-                                    text: 'SHADOWED', color: scheme.tertiary));
-                              }
-                              if (player.isSinBinned) {
-                                tags.add(CBMiniTag(
-                                    text: 'SIN BIN', color: scheme.error));
-                              }
-                              if (player.isMuted) {
-                                tags.add(CBMiniTag(
-                                    text: 'MUTED', color: scheme.secondary));
-                              }
-
-                              if (tags.isNotEmpty) {
-                                bubbleTags = tags;
-                              }
-                            } catch (_) {}
-                          }
-
-                          if (entry.isHostOnly && entry.type != 'hostIntel') {
-                            final isSpicy = entry.title.contains('SPICY');
-                            bubbleTags = [
-                              ...?bubbleTags,
-                              CBMiniTag(
-                                text: isSpicy ? 'SPICY' : 'CLASSIFIED',
-                                color: isSpicy
-                                    ? scheme.error
-                                    : CBColors.alertOrange,
-                              ),
-                            ];
-                          }
-
+                        if (entry.type == 'system' || entry.type == 'phase') {
+                          final isNight =
+                              entry.content.toUpperCase().contains('NIGHT');
+                          final phaseColor =
+                              isNight ? scheme.secondary : scheme.primary;
                           return CBFadeSlide(
-                            child: CBMessageBubble(
-                              sender: senderName.toUpperCase(),
-                              message: entry.content,
-                              style: isHost
-                                  ? CBMessageStyle.narrative
-                                  : CBMessageStyle.standard,
-                              color: bubbleColor,
-                              isSender: isHost,
-                              avatarAsset: avatarAsset,
-                              groupPosition: groupPosition,
-                              onAvatarTap: null,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: CBSpace.x3),
+                              child: CBFeedSeparator(
+                                label: entry.content.toUpperCase(),
+                                color: entry.type == 'system'
+                                    ? scheme.error
+                                    : phaseColor,
+                              ),
                             ),
                           );
-                        },
-                      ),
-                    ],
-                  ),
-          ),
+                        }
+
+                        if (entry.type == 'hostIntel') {
+                          final isOverride = entry.title.contains('OVERRIDE');
+                          final isPhase = entry.title.contains('PHASE');
+                          final intelColor = isOverride
+                              ? scheme.error
+                              : isPhase
+                                  ? scheme.secondary
+                                  : CBColors.alertOrange;
+                          return CBFadeSlide(
+                            child: CBMessageBubble(
+                              sender: 'SYSTEM: ${entry.title.toUpperCase()}',
+                              message: entry.content,
+                              timestamp: entry.timestamp,
+                              style: CBMessageStyle.system,
+                              color: intelColor,
+                              isSender: false,
+                              groupPosition: groupPosition,
+                            ),
+                          );
+                        }
+
+                        if (entry.type == 'ghostChat') {
+                          return CBFadeSlide(
+                            child: CBMessageBubble(
+                              sender: '${entry.title.toUpperCase()} (GHOST)',
+                              message: entry.content,
+                              timestamp: entry.timestamp,
+                              style: CBMessageStyle.whisper, // or standard
+                              color: scheme.tertiary,
+                              isSender: false,
+                              avatarAsset: null,
+                              groupPosition: groupPosition,
+                            ),
+                          );
+                        }
+
+                        if (entry.type == 'dayRecap') {
+                          final payload =
+                              DayRecapCardPayload.tryParse(entry.content);
+                          if (payload != null) {
+                            return CBFadeSlide(
+                              child: CBDayRecapCard(
+                                title: (payload.hostTitle.isNotEmpty
+                                        ? payload.hostTitle
+                                        : 'DAY ${payload.day} RECAP (HOST)')
+                                    .toUpperCase(),
+                                bullets: payload.hostBullets
+                                    .map((b) => b.toUpperCase())
+                                    .toList(),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        }
+
+                        String senderName = entry.title;
+                        String? avatarAsset;
+                        Color bubbleColor = scheme.primary;
+                        List<Widget>? bubbleTags;
+
+                        if (isHost) {
+                          senderName = 'HOST';
+                          avatarAsset = 'assets/roles/host_avatar.png';
+                          final personalityId = ref
+                              .watch(hostSettingsProvider)
+                              .hostPersonalityId;
+                          if (personalityId == 'the_ice_queen') {
+                            bubbleColor = scheme.tertiary;
+                          } else if (personalityId == 'protocol_9') {
+                            bubbleColor = scheme.error;
+                          } else {
+                            bubbleColor = scheme.secondary;
+                          }
+                        } else if (entry.roleId != null) {
+                          try {
+                            final player = widget.gameState.players.firstWhere(
+                              (p) => p.role.id == entry.roleId,
+                            );
+                            senderName = player.name;
+                            avatarAsset = 'assets/roles/${player.role.id}.png';
+                            bubbleColor =
+                                CBColors.fromHex(player.role.colorHex);
+
+                            final tags = <Widget>[];
+                            if (!player.isAlive) {
+                              tags.add(CBMiniTag(
+                                  text: 'ELIMINATED', color: scheme.error));
+                            }
+                            if (player.isShadowBanned) {
+                              tags.add(CBMiniTag(
+                                  text: 'SHADOWED', color: scheme.tertiary));
+                            }
+                            if (player.isSinBinned) {
+                              tags.add(CBMiniTag(
+                                  text: 'SIN BIN', color: scheme.error));
+                            }
+                            if (player.isMuted) {
+                              tags.add(CBMiniTag(
+                                  text: 'MUTED', color: scheme.secondary));
+                            }
+
+                            if (tags.isNotEmpty) {
+                              bubbleTags = tags;
+                            }
+                          } catch (_) {}
+                        }
+
+                        if (entry.isHostOnly && entry.type != 'hostIntel') {
+                          final isSpicy = entry.title.contains('SPICY');
+                          bubbleTags = [
+                            ...?bubbleTags,
+                            CBMiniTag(
+                              text: isSpicy ? 'SPICY' : 'CLASSIFIED',
+                              color: isSpicy
+                                  ? scheme.error
+                                  : CBColors.alertOrange,
+                            ),
+                          ];
+                        }
+
+                        return CBFadeSlide(
+                          child: CBMessageBubble(
+                            sender: senderName.toUpperCase(),
+                            message: entry.content,
+                            timestamp: entry.timestamp,
+                            style: isHost
+                                ? CBMessageStyle.narrative
+                                : CBMessageStyle.standard,
+                            color: bubbleColor,
+                            isSender: isHost,
+                            avatarAsset: avatarAsset,
+                            groupPosition: groupPosition,
+                            onAvatarTap: null,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
         ),
         const SizedBox(height: CBSpace.x2),
         _buildTargetRoleChips(scheme, textTheme),
-        const SizedBox(height: CBSpace.x2),
-        CBGlassTile(
-          borderColor: scheme.primary.withValues(alpha: 0.25),
-          padding: const EdgeInsets.symmetric(
-              horizontal: CBSpace.x3, vertical: CBSpace.x2),
-          child: Row(
-            children: [
-              if (_targetRoleId != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: CBSpace.x2, vertical: CBSpace.x1),
-                  decoration: BoxDecoration(
-                    color: scheme.error.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(CBRadius.xs),
-                    border: Border.all(
-                        color: scheme.error.withValues(alpha: 0.4)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.lock_rounded, size: 10, color: scheme.error),
-                      const SizedBox(width: 4),
-                      Text(
-                        'INTEL',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: scheme.error,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 8,
-                          letterSpacing: 1.0,
+        CBChatInput(
+          controller: _controller,
+          onSend: _onSend,
+          onAddAttachment: () {
+            HapticService.selection();
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: scheme.surface,
+              isScrollControlled: true,
+              builder: (ctx) => ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: scheme.onSurface.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: DashboardView(
+                          gameState: widget.gameState,
+                          onAction: ref.read(gameProvider.notifier).advancePhase,
+                          onAddMock: ref.read(gameProvider.notifier).addBot,
+                          eyesOpen: widget.gameState.eyesOpen,
+                          onToggleEyes: ref.read(gameProvider.notifier).toggleEyes,
+                          onBack: () {}, // Handled differently if needed
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              if (_targetRoleId != null) const SizedBox(width: CBSpace.x2),
-              Expanded(
-                child: CBTextField(
-                  controller: _controller,
-                  textStyle: Theme.of(context).textTheme.bodyMedium!,
-                  textInputAction: TextInputAction.send,
-                  decoration: InputDecoration(
-                    hintText: _targetRoleId != null
-                        ? 'PRIVATE INTEL DISPATCH...'
-                        : 'DISPATCH PUBLIC TRANSMISSION...',
-                    hintStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: _targetRoleId != null
-                              ? scheme.error.withValues(alpha: 0.5)
-                              : scheme.onSurface.withValues(alpha: 0.4),
-                        ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: CBSpace.x4,
-                      vertical: CBSpace.x2,
                     ),
-                    border: InputBorder.none,
-                  ),
-                  onSubmitted: (_) => _onSend(),
+                  ],
                 ),
               ),
-              const SizedBox(width: CBSpace.x2),
-              IconButton(
-                onPressed: _onSend,
-                icon: Icon(Icons.send_rounded, color: scheme.primary),
-                tooltip: 'Send Transmission',
-              ),
-            ],
-          ),
+            );
+          },
+          hintText: _targetRoleId != null ? 'Private broadcast...' : 'Host transmission...',
+          prefixIcon: _targetRoleId != null ? Icon(Icons.lock_rounded, size: 16, color: scheme.error) : null,
         ),
       ],
     );

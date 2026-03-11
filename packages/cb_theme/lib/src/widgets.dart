@@ -40,3 +40,7 @@ export 'widgets/cb_sliding_panel.dart';
 export 'widgets/cb_mini_tag.dart';
 export 'widgets/cb_day_recap_card.dart';
 export 'widgets/cb_info_banner.dart';
+export 'widgets/cb_messaging_app_bar.dart';
+export 'widgets/cb_chat_input.dart';
+export 'widgets/cb_action_card.dart';
+export 'widgets/cb_attachment_menu.dart';

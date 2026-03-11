@@ -21,7 +21,7 @@ class VoteSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final scheme = theme.colorScheme;
-    final accent = scheme.secondary;
+    final accent = scheme.error; // Execution theme
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -38,27 +38,28 @@ class VoteSheet extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
+                  boxShadow: CBColors.circleGlow(accent, intensity: 0.3),
                 ),
-                child: Icon(Icons.how_to_vote_rounded, color: accent, size: 20),
+                child: Icon(Icons.gavel_rounded, color: accent, size: 20),
               ),
               const SizedBox(width: CBSpace.x3),
               Text(
-                'CAST YOUR VOTE',
+                'EXECUTIONS',
                 style: textTheme.headlineSmall!.copyWith(
                   color: accent,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                  shadows: CBColors.textGlow(accent, intensity: 0.4),
+                  letterSpacing: 2.0,
+                  shadows: CBColors.textGlow(accent, intensity: 0.6),
                 ),
               ),
               const Spacer(),
               CBGhostButton(
-                label: 'SKIP',
+                label: 'ABSTAIN',
                 onPressed: () {
                   HapticService.light();
                   onSkip();
                 },
-                color: scheme.onSurface.withValues(alpha: 0.4),
+                color: scheme.onSurface.withValues(alpha: 0.5),
                 fullWidth: false,
               ),
             ],
@@ -69,16 +70,18 @@ class VoteSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: CBSpace.x5),
             child: CBGlassTile(
               padding: const EdgeInsets.all(CBSpace.x4),
-              borderColor: accent.withValues(alpha: 0.3),
+              isPrismatic: true,
+              borderColor: accent.withValues(alpha: 0.5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'LIVE TALLY PREVIEW',
+                    'LIVE VOTE TALLY',
                     style: textTheme.labelSmall?.copyWith(
-                      color: accent.withValues(alpha: 0.6),
+                      color: accent,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 1.5,
+                      shadows: CBColors.textGlow(accent, intensity: 0.2),
                     ),
                   ),
                   const SizedBox(height: CBSpace.x3),
@@ -149,13 +152,15 @@ class VoteSheet extends StatelessWidget {
                       ),
                     ),
                     CBPrimaryButton(
-                      label: 'VOTE',
+                      label: 'ELIMINATE',
+                      icon: Icons.close_rounded,
                       onPressed: () {
                         HapticService.heavy();
                         onVote(player.id);
                       },
                       fullWidth: false,
-                      backgroundColor: accent.withValues(alpha: 0.8),
+                      backgroundColor: accent.withValues(alpha: 0.2),
+                      foregroundColor: accent,
                     ),
                   ],
                 ),

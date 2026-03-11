@@ -12,6 +12,7 @@ class HostSettings {
   final bool highContrast;
   final bool geminiNarrationEnabled;
   final String hostPersonalityId;
+  final String geminiApiKey;
 
   const HostSettings({
     required this.sfxVolume,
@@ -19,6 +20,7 @@ class HostSettings {
     required this.highContrast,
     required this.geminiNarrationEnabled,
     required this.hostPersonalityId,
+    required this.geminiApiKey,
   });
 
   HostSettings copyWith({
@@ -27,6 +29,7 @@ class HostSettings {
     bool? highContrast,
     bool? geminiNarrationEnabled,
     String? hostPersonalityId,
+    String? geminiApiKey,
   }) {
     return HostSettings(
       sfxVolume: sfxVolume ?? this.sfxVolume,
@@ -35,6 +38,7 @@ class HostSettings {
       geminiNarrationEnabled:
           geminiNarrationEnabled ?? this.geminiNarrationEnabled,
       hostPersonalityId: hostPersonalityId ?? this.hostPersonalityId,
+      geminiApiKey: geminiApiKey ?? this.geminiApiKey,
     );
   }
 
@@ -44,6 +48,7 @@ class HostSettings {
     highContrast: false,
     geminiNarrationEnabled: true,
     hostPersonalityId: 'noir_narrator',
+    geminiApiKey: '',
   );
 }
 
@@ -53,6 +58,7 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
   static const _keyHighContrast = 'highContrast';
   static const _keyGeminiNarrationEnabled = 'geminiNarrationEnabled';
   static const _keyHostPersonalityId = 'hostPersonalityId';
+  static const _keyGeminiApiKey = 'geminiApiKey';
 
   @override
   HostSettings build() {
@@ -69,6 +75,7 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
       final highContrast = prefs.getBool(_keyHighContrast);
       final geminiNarrationEnabled = prefs.getBool(_keyGeminiNarrationEnabled);
       final hostPersonalityId = prefs.getString(_keyHostPersonalityId);
+      final geminiApiKey = prefs.getString(_keyGeminiApiKey);
 
       state = state.copyWith(
         sfxVolume: (sfxVolume ?? state.sfxVolume).clamp(0.0, 1.0),
@@ -77,6 +84,7 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
         geminiNarrationEnabled:
             geminiNarrationEnabled ?? state.geminiNarrationEnabled,
         hostPersonalityId: hostPersonalityId ?? state.hostPersonalityId,
+        geminiApiKey: geminiApiKey ?? state.geminiApiKey,
       );
 
       _applySideEffects(state);
@@ -94,6 +102,7 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
       await prefs.setBool(
           _keyGeminiNarrationEnabled, next.geminiNarrationEnabled);
       await prefs.setString(_keyHostPersonalityId, next.hostPersonalityId);
+      await prefs.setString(_keyGeminiApiKey, next.geminiApiKey);
     } catch (e) {
       // Best-effort
     }
@@ -131,6 +140,13 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
 
   void setHostPersonalityId(String id) {
     final next = state.copyWith(hostPersonalityId: id);
+    state = next;
+    _applySideEffects(next);
+    unawaited(_persist(next));
+  }
+
+  void setGeminiApiKey(String apiKey) {
+    final next = state.copyWith(geminiApiKey: apiKey);
     state = next;
     _applySideEffects(next);
     unawaited(_persist(next));
