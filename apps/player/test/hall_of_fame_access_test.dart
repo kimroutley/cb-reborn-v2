@@ -5,6 +5,8 @@ import 'package:cb_player/screens/stats_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:cb_player/auth/auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class _FakePlayerStatsNotifier extends PlayerStatsNotifier {
   @override
@@ -18,12 +20,30 @@ class _FakePlayerStatsNotifier extends PlayerStatsNotifier {
   }
 }
 
+class _StubAuthNotifier extends AuthNotifier {
+  _StubAuthNotifier(this.initial);
+
+  final AuthState initial;
+
+  @override
+  AuthState build() => initial;
+}
+
+class _FakeUser implements User {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
 void main() {
   testWidgets('Stats action opens Hall of Fame destination',
       (WidgetTester tester) async {
     final container = ProviderContainer(
       overrides: [
         playerStatsProvider.overrideWith(_FakePlayerStatsNotifier.new),
+        authProvider.overrideWith(
+          () => _StubAuthNotifier(
+              AuthState(AuthStatus.authenticated, user: _FakeUser())),
+        ),
       ],
     );
     addTearDown(container.dispose);

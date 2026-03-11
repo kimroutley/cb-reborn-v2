@@ -1,10 +1,27 @@
 import 'package:cb_player/profile_edit_guard.dart';
 import 'package:cb_player/screens/profile_screen.dart';
+import 'package:cb_player/auth/auth_provider.dart';
+import 'package:cb_theme/cb_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core_platform_interface/test.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+class _StubAuthNotifier extends AuthNotifier {
+  _StubAuthNotifier(this.initial);
+
+  final AuthState initial;
+
+  @override
+  AuthState build() => initial;
+}
+
+class _FakeUser implements User {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -22,8 +39,16 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
-          navigatorKey: navKey,
+        child: ProviderScope(
+          overrides: [
+            authProvider.overrideWith(
+              () => _StubAuthNotifier(
+                  AuthState(AuthStatus.authenticated, user: _FakeUser())),
+            ),
+          ],
+          child: MaterialApp(
+            navigatorKey: navKey,
+            theme: CBTheme.buildTheme(CBTheme.buildColorScheme(null)),
           home: Builder(
             builder: (context) {
               return Scaffold(
@@ -45,6 +70,7 @@ void main() {
               );
             },
           ),
+          ),
         ),
       ),
     );
@@ -53,7 +79,11 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    await tester.enterText(find.byType(TextField).first, 'Night Fox');
+    final usernameEditable = find.descendant(
+      of: find.byType(CBTextField).first,
+      matching: find.byType(EditableText),
+    );
+    await tester.enterText(usernameEditable, 'Night Fox');
     await tester.pump();
     expect(container.read(playerProfileDirtyProvider), isTrue);
 
