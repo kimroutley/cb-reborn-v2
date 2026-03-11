@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cb_theme/cb_theme.dart';
 
 /// CBMessagingAppBar
 /// 
@@ -36,26 +35,31 @@ class CBMessagingAppBar extends StatelessWidget implements PreferredSizeWidget {
     final scheme = theme.colorScheme;
     
     return AppBar(
+      toolbarHeight: 64, // Taller M3 app bar
       elevation: 0,
-      backgroundColor: backgroundColor ?? Colors.transparent,
+      scrolledUnderElevation: 2,
+      surfaceTintColor: scheme.primary.withValues(alpha: 0.05),
+      shadowColor: scheme.shadow.withValues(alpha: 0.1),
+      backgroundColor: backgroundColor ?? scheme.surface,
       leading: showBackButton 
         ? IconButton(
             icon: Icon(Icons.arrow_back_rounded, color: scheme.onSurface),
             onPressed: onBackPressed ?? () => Navigator.maybePop(context),
+            splashRadius: 24,
           )
         : null,
-      titleSpacing: showBackButton ? 0 : NavigationToolbar.kMiddleSpacing,
+      titleSpacing: showBackButton ? 0 : 16,
       title: InkWell(
         onTap: onAvatarTap,
-        borderRadius: BorderRadius.circular(CBRadius.sm),
+        borderRadius: BorderRadius.circular(32),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: CBSpace.x1, horizontal: CBSpace.x1),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             children: [
               if (avatar != null) ...[
                 avatar!,
-                const SizedBox(width: CBSpace.x3),
+                const SizedBox(width: 12),
               ],
               Expanded(
                 child: Column(
@@ -64,9 +68,11 @@ class CBMessagingAppBar extends StatelessWidget implements PreferredSizeWidget {
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800, // Stronger weight for neon aesthetic
+                        letterSpacing: -0.5,
+                        fontSize: 22, // Larger title for M3
+                        color: scheme.onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -75,9 +81,11 @@ class CBMessagingAppBar extends StatelessWidget implements PreferredSizeWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle!,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: scheme.onSurface.withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w600,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.1,
+                          fontSize: 14,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -95,5 +103,5 @@ class CBMessagingAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(64.0); // Match new toolbarHeight
 }

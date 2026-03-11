@@ -415,30 +415,47 @@ class GameResolutionLogic {
       );
     }
 
-    int staff = 0;
-    int pa = 0;
+    int actualDealers = 0;
+    int clubStaffAllies = 0;
+    int partyAnimals = 0;
+    int neutrals = 0;
 
     for (final p in livingPlayers) {
-      if (p.alliance == Team.clubStaff) {
-        staff++;
+      if (p.role.id == RoleIds.dealer) {
+        actualDealers++;
+      } else if (p.alliance == Team.clubStaff) {
+        clubStaffAllies++;
       } else if (p.alliance == Team.partyAnimals) {
-        pa++;
+        partyAnimals++;
+      } else if (p.alliance == Team.neutral) {
+        neutrals++;
       }
     }
 
-    // staff == 0 only if there WERE dealers to begin with
-    final hadStaff = players.any((p) => p.alliance == Team.clubStaff);
+    // All of the dealers get voted off. Dealer ally are not part of the dealer 'lives'.
+    final hadActualDealers = players.any((p) => p.role.id == RoleIds.dealer);
 
-    if (hadStaff && staff == 0) {
+    if (hadActualDealers && actualDealers == 0) {
       return WinResult(
           winner: Team.partyAnimals,
           report: ['All Dealers have been eliminated. Party Animals win!']);
     }
-    if (staff >= pa && staff > 0) {
+
+    // 1 Dealer + 1 Neutral = Neutral Wins.
+    if (livingPlayers.length == 2 && actualDealers == 1 && neutrals == 1) {
+      return WinResult(
+          winner: Team.neutral,
+          report: ['Only a Dealer and a Neutral remain. The Neutral outmaneuvers the Dealer. Neutral wins!']);
+    }
+
+    // 1 Dealer + 1 Party Animal = Dealer Wins.
+    // (Dealer also generally wins if Club Staff numbers meet or exceed remaining players)
+    if ((actualDealers + clubStaffAllies) >= (partyAnimals + neutrals) && actualDealers > 0) {
       return WinResult(
           winner: Team.clubStaff,
           report: ['The Dealers have taken over the club. Staff win!']);
     }
+
     return null;
   }
 

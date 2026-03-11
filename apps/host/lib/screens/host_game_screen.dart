@@ -9,9 +9,9 @@ import '../host_navigation.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/simulation_mode_badge_action.dart';
 import '../widgets/host_main_feed.dart';
+import '../widgets/dashboard/enhanced_logs_panel.dart';
+import '../sheets/game_settings_sheet.dart';
 import 'end_game_view.dart';
-import 'stats_view.dart';
-
 class HostGameScreen extends ConsumerWidget {
   const HostGameScreen({super.key});
 
@@ -54,22 +54,32 @@ class HostGameScreen extends ConsumerWidget {
         showBackButton: false,
         actions: [
           IconButton(
-            tooltip: 'View Analytics',
-            icon: const Icon(Icons.analytics_outlined),
+            tooltip: 'Game Log',
+            icon: const Icon(Icons.receipt_long_rounded),
             onPressed: () {
+              HapticService.selection();
               showThemedDialog(
                 context: context,
-                child: StatsView(
-                  gameState: gameState,
-                  onOpenCommand: () => Navigator.of(context).pop(),
-                ),
+                child: EnhancedLogsPanel(logs: gameState.gameHistory),
               );
             },
           ),
           const SimulationModeBadgeAction(),
+          IconButton(
+            tooltip: 'Host Settings',
+            icon: const Icon(Icons.settings_rounded),
+            onPressed: () {
+              HapticService.selection();
+              showThemedBottomSheet(
+                context: context,
+                child: const GameSettingsSheet(),
+              );
+            },
+          ),
           Builder(
             builder: (context) => IconButton(
-              icon: const Icon(Icons.settings_rounded),
+              tooltip: 'Host Menu',
+              icon: const Icon(Icons.more_vert_rounded),
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           ),

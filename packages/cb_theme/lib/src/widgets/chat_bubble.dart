@@ -93,11 +93,11 @@ class CBMessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildBubbleMessage(BuildContext context) {
+    Widget _buildBubbleMessage(BuildContext context) {
     final accentColor = color ?? Theme.of(context).colorScheme.primary;
 
-    // Bubble shape constants
-    const radius = Radius.circular(24);
+    // Bubble shape constants - increased for M3 aesthetic
+    const radius = Radius.circular(28);
     const smallRadius = Radius.circular(4);
 
     BorderRadius borderRadius;
@@ -151,11 +151,7 @@ class CBMessageBubble extends StatelessWidget {
             bottomRight: radius);
       } else {
         // single
-        borderRadius = const BorderRadius.only(
-            topLeft: radius,
-            topRight: radius,
-            bottomLeft: radius,
-            bottomRight: radius);
+        borderRadius = const BorderRadius.all(radius);
       }
     }
 
@@ -171,14 +167,14 @@ class CBMessageBubble extends StatelessWidget {
       padding: EdgeInsets.only(
           top: (groupPosition == CBMessageGroupPosition.top ||
                   groupPosition == CBMessageGroupPosition.single)
-              ? 4
-              : 1,
+              ? 8 // Tighter spacing adjustments
+              : 2,
           bottom: (groupPosition == CBMessageGroupPosition.bottom ||
                   groupPosition == CBMessageGroupPosition.single)
-              ? 4
-              : 1,
-          left: 8,
-          right: 8),
+              ? 8
+              : 2,
+          left: 16, // Increase horizontal padding for M3
+          right: 16),
       child: Row(
         mainAxisAlignment:
             isSender ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -198,36 +194,33 @@ class CBMessageBubble extends StatelessWidget {
               children: [
                 if (showSenderName)
                   Padding(
-                    padding: const EdgeInsets.only(left: 12, bottom: 4),
+                    padding: const EdgeInsets.only(left: 12, bottom: 2),
                     child: Text(
-                      sender.toUpperCase(),
+                      sender,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: accentColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
                           ),
                     ),
                   ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                   decoration: BoxDecoration(
                     color: isSender
-                        ? accentColor.withValues(alpha: 0.85) // more solid neon for sent
-                        : Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest
-                            .withValues(alpha: 0.6), // dark charcoal/burgundy for received
+                        ? Theme.of(context).colorScheme.primaryContainer 
+                        : Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: borderRadius,
-                    border: isSender
-                        ? null
-                        : Border.all(color: accentColor.withValues(alpha: 0.15)), // subtle rim to frame
                   ),
                   child: Text(
                     message,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isSender ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
-                          height: 1.4,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: isSender 
+                            ? Theme.of(context).colorScheme.onPrimaryContainer 
+                            : Theme.of(context).colorScheme.onSurface,
+                          height: 1.5,
+                          fontSize: 16,
                         ),
                   ),
                 ),

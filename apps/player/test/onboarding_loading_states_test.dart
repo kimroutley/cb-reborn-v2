@@ -175,7 +175,7 @@ void main() {
             playerBridgeProvider.overrideWith(() => _NoopPlayerBridge()),
             authProvider.overrideWith(
               () => _StubAuthNotifier(
-                  const AuthState(AuthStatus.unauthenticated)),
+                  AuthState(AuthStatus.authenticated, user: _FakeUser())),
             ),
           ],
           child: MaterialApp(

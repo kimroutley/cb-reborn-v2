@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../layout.dart';
+import '../../cb_theme.dart';
 
 /// A compact player chip for inline selection in chat action bubbles.
 class CBCompactPlayerChip extends StatelessWidget {
@@ -10,6 +11,7 @@ class CBCompactPlayerChip extends StatelessWidget {
   final VoidCallback? onTap;
   final bool isSelected;
   final bool isDisabled;
+  final List<String> statusEffects;
 
   const CBCompactPlayerChip({
     super.key,
@@ -19,7 +21,41 @@ class CBCompactPlayerChip extends StatelessWidget {
     this.onTap,
     this.isSelected = false,
     this.isDisabled = false,
+    this.statusEffects = const [],
   });
+
+  IconData? _statusIcon(String effect) {
+    return switch (effect.toLowerCase()) {
+      'protected' => Icons.shield_rounded,
+      'silenced' => Icons.voice_over_off_rounded,
+      'id checked' => Icons.badge_rounded,
+      'sighted' => Icons.visibility_rounded,
+      'alibi' => Icons.fingerprint_rounded,
+      'sent home' => Icons.home_rounded,
+      'clinging' => Icons.link_rounded,
+      'obsession' => Icons.favorite_rounded,
+      'target' => Icons.my_location_rounded,
+      'paralysed' || 'paralyzed' => Icons.bolt_rounded,
+      _ => Icons.star_rounded,
+    };
+  }
+
+  Color _statusColor(BuildContext context, String effect) {
+    final scheme = Theme.of(context).colorScheme;
+    return switch (effect.toLowerCase()) {
+      'protected' => scheme.tertiary,
+      'silenced' => CBColors.alertOrange,
+      'id checked' => scheme.primary,
+      'sighted' => scheme.secondary,
+      'alibi' => scheme.primary,
+      'sent home' => scheme.secondary,
+      'clinging' => scheme.tertiary,
+      'obsession' => scheme.secondary,
+      'target' => scheme.error,
+      'paralysed' || 'paralyzed' => scheme.error,
+      _ => scheme.outline,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +127,22 @@ class CBCompactPlayerChip extends StatelessWidget {
                     letterSpacing: 1.0,
                   ),
                 ),
+                if (statusEffects.isNotEmpty) ...[
+                  const SizedBox(width: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: statusEffects.map((effect) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 2),
+                        child: Icon(
+                          _statusIcon(effect),
+                          size: 12,
+                          color: _statusColor(context, effect),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ],
             ),
           ),

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cb_comms/cb_comms_player.dart';
 import 'package:cb_logic/cb_logic.dart';
+import 'package:cb_player/auth/auth_provider.dart';
 import 'package:cb_player/screens/profile_screen.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -81,6 +82,15 @@ class _TestProfileRepository extends ProfileRepository {
   }) async {}
 }
 
+class _StubAuthNotifier extends AuthNotifier {
+  _StubAuthNotifier(this.initialState);
+
+  final AuthState initialState;
+
+  @override
+  AuthState build() => initialState;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setupFirebaseCoreMocks();
@@ -126,6 +136,11 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          authProvider.overrideWith(
+            () => _StubAuthNotifier(AuthState(AuthStatus.authenticated, user: user)),
+          ),
+        ],
         child: MaterialApp(
           home: Scaffold(
             body: ProfileScreen(
@@ -174,7 +189,10 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('STARTER'), findsOneWidget);
+    expect(
+      tester.widget<EditableText>(usernameEditable).controller.text,
+      'Remote Applied',
+    );
   });
 
   testWidgets(
@@ -195,6 +213,11 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          authProvider.overrideWith(
+            () => _StubAuthNotifier(AuthState(AuthStatus.authenticated, user: user)),
+          ),
+        ],
         child: MaterialApp(
           home: Scaffold(
             body: ProfileScreen(

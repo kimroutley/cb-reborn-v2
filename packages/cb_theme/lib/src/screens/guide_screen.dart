@@ -556,14 +556,15 @@ class _CBGuideScreenState extends State<CBGuideScreen>
 
   Widget _buildRoleSelector() {
     final color = CBColors.fromHex(_selectedRoleForTips!.colorHex);
-    return CBPanel(
-      child: InkWell(
-        onTap: () {
-          HapticService.medium();
-          _showRolePickerModal();
-        },
-        child: Row(
-          children: [
+    return CBGlassTile(
+      padding: const EdgeInsets.all(16),
+      borderColor: color.withValues(alpha: 0.3),
+      onTap: () {
+        HapticService.medium();
+        _showRolePickerModal();
+      },
+      child: Row(
+        children: [
             CBRoleAvatar(
               assetPath: _selectedRoleForTips!.assetPath,
               color: color,
@@ -573,6 +574,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     _selectedRoleForTips!.name,
@@ -593,8 +595,7 @@ class _CBGuideScreenState extends State<CBGuideScreen>
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   void _showRolePickerModal() {

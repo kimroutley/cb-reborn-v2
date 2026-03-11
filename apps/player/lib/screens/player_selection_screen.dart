@@ -33,24 +33,30 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
       return;
     }
 
-    if (!_isMultiSelect) {
-      widget.onPlayerSelected(id);
-      return;
-    }
-
     setState(() {
-      if (_selectedIds.contains(id)) {
-        _selectedIds.remove(id);
-      } else {
-        if (_selectedIds.length < 2) {
+      HapticService.selection();
+      if (!_isMultiSelect) {
+        if (_selectedIds.contains(id)) {
+          _selectedIds.remove(id);
+        } else {
+          _selectedIds.clear();
           _selectedIds.add(id);
+        }
+      } else {
+        if (_selectedIds.contains(id)) {
+          _selectedIds.remove(id);
+        } else {
+          if (_selectedIds.length < 2) {
+            _selectedIds.add(id);
+          }
         }
       }
     });
   }
 
   void _confirmSelection() {
-    if (_selectedIds.length == 2) {
+    final isValid = _isMultiSelect ? _selectedIds.length == 2 : _selectedIds.length == 1;
+    if (isValid) {
       widget.onPlayerSelected(_selectedIds.join(','));
     }
   }
@@ -168,38 +174,130 @@ class _PlayerSelectionScreenState extends State<PlayerSelectionScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: (widget.step.isVote || _isMultiSelect)
-          ? _buildBottomBar(context)
-          : null,
+      bottomNavigationBar: _buildBottomBar(context),
     );
   }
 
   Widget _buildBottomBar(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-    if (_isMultiSelect) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(CBSpace.x6),
-          child: CBPrimaryButton(
-            label: 'CONFIRM TARGETS',
-            onPressed: _selectedIds.length == 2 ? _confirmSelection : null,
-            icon: Icons.check_circle_outline_rounded,
-          ),
-        ),
-      );
+    final isValidSelection =
+        _isMultiSelect ? _selectedIds.length == 2 : _selectedIds.length == 1;
+
+    String selectedText = 'AWAITING SELECTION...';
+    if (_selectedIds.isNotEmpty) {
+      final names = _selectedIds
+          .map((id) => widget.players.firstWhere((p) => p.id == id).name)
+          .join(', ');
+      selectedText = 'TARGET: ${names.toUpperCase()}';
     }
 
-    return SafeArea(
-      child: Padding(
-        padding: CBInsets.panel,
-        child: CBPrimaryButton(
-          label: 'ABSTAIN / SKIP',
-          backgroundColor: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          foregroundColor: scheme.onSurfaceVariant,
-          onPressed: () => widget.onPlayerSelected('abstain'),
-          icon: Icons.block_flipped,
-        ),
+    return Container(
+      color: scheme.surface,
+      padding: EdgeInsets.only(
+        left: CBSpace.x2,
+        right: CBSpace.x2,
+        top: CBSpace.x2,
+        bottom: MediaQuery.of(context).padding.bottom + CBSpace.x2,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Abstain / Skip button (left)
+          if (widget.step.isVote)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
+              child: IconButton(
+                icon: Icon(Icons.block_flipped,
+                    color: scheme.onSurfaceVariant, size: 28),
+                tooltip: 'Abstain / Skip',
+                onPressed: () => widget.onPlayerSelected('abstain'),
+                splashRadius: 24,
+              ),
+            ),
+
+          Expanded(
+            child: Container(
+              padding:
+                  const EdgeInsets.only(left: CBSpace.x4, right: CBSpace.x2),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      child: Text(
+                        selectedText,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: isValidSelection
+                              ? scheme.onSurface
+                              : scheme.onSurfaceVariant.withValues(alpha: 0.6),
+                          letterSpacing: 0.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4, top: 4),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      transitionBuilder: (child, animation) =>
+                          ScaleTransition(scale: animation, child: child),
+                      child: isValidSelection
+                          ? Container(
+                              key: const ValueKey('send_btn'),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: scheme.primary.withValues(alpha: 0.2),
+                                border: Border.all(
+                                  color: scheme.primary.withValues(alpha: 0.5),
+                                ),
+                                boxShadow: CBColors.circleGlow(scheme.primary,
+                                    intensity: 0.3),
+                              ),
+                              child: IconButton(
+                                icon: Icon(Icons.send_rounded,
+                                    color: scheme.primary, size: 20),
+                                onPressed: () {
+                                  HapticService.medium();
+                                  _confirmSelection();
+                                },
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                    minWidth: 40, minHeight: 40),
+                              ),
+                            )
+                          : Container(
+                              key: const ValueKey('disabled_btn'),
+                              child: IconButton(
+                                icon: Icon(Icons.send_rounded,
+                                    color: scheme.onSurfaceVariant
+                                        .withValues(alpha: 0.3),
+                                    size: 20),
+                                onPressed: null,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                    minWidth: 40, minHeight: 40),
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

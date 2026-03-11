@@ -8,11 +8,10 @@ import 'games_night_recap_screen.dart';
 /// Displays game history records and aggregate stats.
 class StatsView extends StatefulWidget {
   final GameState gameState;
-  final VoidCallback? onOpenCommand;
+
   const StatsView({
     super.key,
     required this.gameState,
-    this.onOpenCommand,
   });
 
   @override
@@ -62,21 +61,13 @@ class _StatsViewState extends State<StatsView> {
           padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: CBSpace.x2),
           child: Row(
             children: [
-              CBBadge(text: 'ANALYTICS ENGINE', color: scheme.primary),
+              CBBadge(text: 'HOST ANALYTICS ENGINE', color: scheme.primary),
               const Spacer(),
-              if (widget.onOpenCommand != null) ...[
-                OutlinedButton.icon(
-                  onPressed: widget.onOpenCommand,
-                  icon: const Icon(Icons.dashboard_customize_rounded, size: 16),
-                  label: const Text('Command'),
-                ),
-                const SizedBox(width: CBSpace.x2),
-              ],
               if (_records.isNotEmpty)
                 CBGhostButton(
                   label: 'PURGE DATA',
                   fullWidth: false,
-                  color: scheme.error, // Migrated from CBColors.dead
+                  color: scheme.error,
                   onPressed: _confirmClearAll,
                 ),
             ],

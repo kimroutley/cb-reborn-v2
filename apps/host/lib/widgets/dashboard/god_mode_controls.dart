@@ -36,26 +36,53 @@ class GodModeControls extends ConsumerWidget {
     }
 
     return CBPanel(
-      borderColor: scheme.secondary.withValues(alpha: 0.4),
+      borderColor: scheme.error.withValues(alpha: 0.3),
       padding: const EdgeInsets.all(CBSpace.x5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CBSectionHeader(
-            title: 'GOD MODE PROTOCOLS',
-            color: scheme.secondary,
-            icon: Icons.bolt_rounded,
+          Row(
+            children: [
+              Icon(Icons.bolt_rounded, color: scheme.error, shadows: CBColors.iconGlow(scheme.error)),
+              const SizedBox(width: CBSpace.x3),
+              Expanded(
+                child: Text(
+                  'GOD MODE PROTOCOLS',
+                  style: textTheme.titleMedium!.copyWith(
+                    color: scheme.error,
+                    letterSpacing: 2.0,
+                    fontWeight: FontWeight.w900,
+                    shadows: CBColors.textGlow(scheme.error, intensity: 0.5),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: CBSpace.x4),
-          Text(
-            'AUTHORIZED HOST INTERVENTIONS ONLY. USE WITH EXTREME PREJUDICE.',
-            style: textTheme.labelSmall!.copyWith(
-              color: scheme.onSurface.withValues(alpha: 0.4),
-              fontSize: 9,
-              letterSpacing: 1.5,
-              fontWeight: FontWeight.w900,
+          const SizedBox(height: CBSpace.x3),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: CBSpace.x2),
+            decoration: BoxDecoration(
+              color: scheme.error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(CBRadius.sm),
+              border: Border.all(color: scheme.error.withValues(alpha: 0.3)),
             ),
-            textAlign: TextAlign.center,
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, size: 14, color: scheme.error),
+                const SizedBox(width: CBSpace.x2),
+                Expanded(
+                  child: Text(
+                    'AUTHORIZED HOST INTERVENTIONS ONLY. USE WITH EXTREME PREJUDICE.',
+                    style: textTheme.labelSmall!.copyWith(
+                      color: scheme.error,
+                      fontSize: 8,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: CBSpace.x5),
           if (alivePlayers.isEmpty)
@@ -99,14 +126,20 @@ class GodModeControls extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final roleColor = CBColors.fromHex(player.role.colorHex);
 
-    return CBGlassTile(
-      padding: EdgeInsets.zero,
-      borderColor: roleColor.withValues(alpha: 0.3),
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(CBRadius.md),
+        border: Border.all(
+          color: roleColor.withValues(alpha: 0.3),
+        ),
+        boxShadow: [BoxShadow(color: roleColor.withValues(alpha: 0.1), blurRadius: 15, spreadRadius: -2)],
+      ),
       child: Theme(
         data: theme.copyWith(
-          dividerColor: scheme.surface.withValues(alpha: 0.0),
-          hoverColor: scheme.surface.withValues(alpha: 0.0),
+          dividerColor: Colors.transparent,
           splashColor: roleColor.withValues(alpha: 0.1),
+          highlightColor: roleColor.withValues(alpha: 0.05),
         ),
         child: ExpansionTile(
           iconColor: roleColor,
@@ -117,6 +150,7 @@ class GodModeControls extends ConsumerWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: roleColor.withValues(alpha: 0.3), width: 1.5),
+              boxShadow: [BoxShadow(color: roleColor.withValues(alpha: 0.2), blurRadius: 15, spreadRadius: -2)],
             ),
             child: CBRoleAvatar(
               assetPath: player.role.assetPath,
@@ -135,7 +169,7 @@ class GodModeControls extends ConsumerWidget {
                     letterSpacing: 1.2,
                     fontFamily: 'RobotoMono',
                     color: scheme.onSurface,
-                    shadows: CBColors.textGlow(roleColor, intensity: 0.3),
+                    shadows: CBColors.textGlow(roleColor, intensity: 0.5),
                   ),
                 ),
               ),
@@ -153,7 +187,7 @@ class GodModeControls extends ConsumerWidget {
           subtitle: Text(
             player.role.name.toUpperCase(),
             style: textTheme.labelSmall!.copyWith(
-              color: roleColor.withValues(alpha: 0.6),
+              color: roleColor.withValues(alpha: 0.8),
               fontSize: 10,
               fontWeight: FontWeight.w800,
               letterSpacing: 1.0,
@@ -161,7 +195,11 @@ class GodModeControls extends ConsumerWidget {
           ),
           children: [
             Container(
-              padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, CBSpace.x5),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(CBRadius.md)),
+              ),
+              padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x3, CBSpace.x4, CBSpace.x5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -171,32 +209,38 @@ class GodModeControls extends ConsumerWidget {
                       gradient: LinearGradient(
                         colors: [
                           roleColor.withValues(alpha: 0.0),
-                          roleColor.withValues(alpha: 0.2),
+                          roleColor.withValues(alpha: 0.4),
                           roleColor.withValues(alpha: 0.0),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: CBSpace.x4),
-                  Text(
-                    'AVAILABLE INTERVENTIONS',
-                    style: textTheme.labelSmall!.copyWith(
-                      color: scheme.onSurface.withValues(alpha: 0.3),
-                      fontSize: 9,
-                      letterSpacing: 1.5,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    textAlign: TextAlign.center,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.terminal_rounded, size: 14, color: scheme.onSurface.withValues(alpha: 0.4)),
+                      const SizedBox(width: CBSpace.x2),
+                      Text(
+                        'AVAILABLE INTERVENTIONS',
+                        style: textTheme.labelSmall!.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.4),
+                          fontSize: 9,
+                          letterSpacing: 1.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: CBSpace.x4),
                   Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
+                    spacing: 8,
+                    runSpacing: 8,
                     alignment: WrapAlignment.center,
                     children: [
                       _ActionChip(
                         label: 'TERMINATE',
-                        icon: Icons.cancel_rounded,
+                        icon: Icons.dangerous_rounded,
                         color: scheme.error,
                         onTap: () => _confirmKill(context, ref, player),
                       ),
@@ -205,7 +249,7 @@ class GodModeControls extends ConsumerWidget {
                         icon: player.isMuted
                             ? Icons.volume_up_rounded
                             : Icons.volume_off_rounded,
-                        color: scheme.secondary,
+                        color: player.isMuted ? CBColors.success : scheme.secondary,
                         onTap: () => _toggleMute(context, ref, player),
                       ),
                       _ActionChip(
@@ -218,18 +262,18 @@ class GodModeControls extends ConsumerWidget {
                       _ActionChip(
                         label: player.isSinBinned ? 'RELEASE' : 'SIN BIN',
                         icon: Icons.timer_rounded,
-                        color: scheme.outline,
+                        color: CBColors.alertOrange,
                         onTap: () => _toggleSinBin(context, ref, player),
                       ),
                       _ActionChip(
                         label: player.isShadowBanned ? 'LIFT SHADOW' : 'SHADOW BAN',
                         icon: Icons.visibility_off_rounded,
-                        color: scheme.secondary,
+                        color: CBColors.yellow,
                         onTap: () => _toggleShadowBan(context, ref, player),
                       ),
                       _ActionChip(
                         label: 'EJECT NODE',
-                        icon: Icons.person_remove_rounded,
+                        icon: Icons.output_rounded,
                         color: scheme.error,
                         onTap: () => _kickPlayer(context, ref, player),
                       ),
@@ -569,12 +613,13 @@ class _ActionChip extends StatelessWidget {
             color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(CBRadius.sm),
             border: Border.all(color: color.withValues(alpha: 0.4), width: 1.2),
+            boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 15, spreadRadius: -2)],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 10),
+              Icon(icon, size: 16, color: color, shadows: CBColors.iconGlow(color, intensity: 0.4)),
+              const SizedBox(width: 8),
               Text(
                 label.toUpperCase(),
                 style: textTheme.labelSmall!.copyWith(
@@ -582,6 +627,7 @@ class _ActionChip extends StatelessWidget {
                   fontSize: 9,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.0,
+                  shadows: CBColors.textGlow(color, intensity: 0.3),
                 ),
               ),
             ],

@@ -52,12 +52,45 @@ class ScriptStepPanel extends StatelessWidget {
     final selectedNames = selectedPlayers.map((p) => p.name).toList();
     const int multiTargetCap = 2; // selectTwoPlayers / multiSelect common cap
 
+    final String waitingText = targetPlayer != null 
+        ? 'WAITING FOR ${targetPlayer.name.toUpperCase()} TO MAKE THEIR CHOICE'
+        : 'AWAITING HOST ACTION';
+
+    String completedText = 'ACTION RECORDED';
+    if (isComplete && targetPlayer != null) {
+      if (selectedNames.isNotEmpty) {
+        completedText = '$roleLabel CHOSE ${selectedNames.join(', ').toUpperCase()}';
+      } else if (value.isNotEmpty) {
+        final vp = gameState.players.cast<Player?>().firstWhere(
+              (p) => p?.id == value,
+              orElse: () => null,
+            );
+        if (vp != null) {
+          completedText = '$roleLabel CHOSE ${vp.name.toUpperCase()}';
+        } else {
+          final valUpper = value.toUpperCase();
+          if (valUpper == 'SKIP' || valUpper == 'NONE' || valUpper == 'NO ACTION' || valUpper == 'ABSTAIN') {
+            completedText = '$roleLabel TOOK NO ACTION';
+          } else {
+            completedText = '$roleLabel CHOSE $valUpper';
+          }
+        }
+      }
+    }
+
     return CBFadeSlide(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: CBGlassTile(
-          borderColor: (isComplete ? scheme.primary : scheme.tertiary)
-              .withValues(alpha: 0.4),
+        child: Container(
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(CBRadius.md),
+            border: Border.all(
+              color: (isComplete ? scheme.primary : scheme.tertiary).withValues(alpha: 0.5),
+              width: 1.5,
+            ),
+            boxShadow: [BoxShadow(color: isComplete ? scheme.primary.withValues(alpha: 0.3) : scheme.tertiary.withValues(alpha: 0.15), blurRadius: 15, spreadRadius: -2)],
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,45 +102,57 @@ class ScriptStepPanel extends StatelessWidget {
                     isComplete
                         ? Icons.check_circle_rounded
                         : Icons.schedule_rounded,
-                    size: 18,
+                    size: 20,
                     color: isComplete
                         ? scheme.primary
-                        : scheme.onSurface.withValues(alpha: 0.5),
+                        : scheme.tertiary,
+                    shadows: CBColors.iconGlow(
+                      isComplete ? scheme.primary : scheme.tertiary,
+                      intensity: 0.6,
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       step.title.toUpperCase(),
                       style: textTheme.labelMedium?.copyWith(
                         color: scheme.onSurface,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.0,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        shadows: CBColors.textGlow(
+                          scheme.onSurface,
+                          intensity: 0.2,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 4),
-              Text(
-                roleLabel,
-                style: textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.6),
-                  letterSpacing: 0.8,
+              Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: Text(
+                  roleLabel,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: scheme.onSurface.withValues(alpha: 0.6),
+                    letterSpacing: 1.0,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: (isComplete ? scheme.primary : scheme.tertiary)
                           .withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(CBRadius.pill),
+                      borderRadius: BorderRadius.circular(4),
                       border: Border.all(
                         color: (isComplete ? scheme.primary : scheme.tertiary)
-                            .withValues(alpha: 0.4),
+                            .withValues(alpha: 0.5),
                       ),
                     ),
                     child: Row(
@@ -123,17 +168,25 @@ class ScriptStepPanel extends StatelessWidget {
                             ),
                           ),
                         if (!isComplete) const SizedBox(width: 8),
-                        Text(
-                          isComplete
-                              ? 'DATA RECEIVED'
-                              : 'AWAITING OPERATIVE UPLINK',
-                          style: textTheme.labelSmall?.copyWith(
-                            color: isComplete
-                                ? scheme.primary
-                                : scheme.onSurface.withValues(alpha: 0.7),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 9,
-                            letterSpacing: 1.2,
+                        Flexible(
+                          child: Text(
+                            isComplete
+                                ? completedText
+                                : waitingText,
+                            style: textTheme.labelSmall?.copyWith(
+                              color: isComplete
+                                  ? scheme.primary
+                                  : scheme.tertiary,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 9,
+                              letterSpacing: 1.5,
+                              shadows: CBColors.textGlow(
+                                isComplete ? scheme.primary : scheme.tertiary,
+                                intensity: 0.5,
+                              ),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],
@@ -142,10 +195,12 @@ class ScriptStepPanel extends StatelessWidget {
                   if (isMulti && selectedNames.isNotEmpty) ...[
                     const SizedBox(width: 12),
                     Text(
-                      '${selectedNames.length}/$multiTargetCap targets',
+                      '${selectedNames.length}/$multiTargetCap TGT',
                       style: textTheme.labelSmall?.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.6),
+                        color: scheme.onSurface.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w800,
                         fontSize: 9,
+                        letterSpacing: 1.0,
                       ),
                     ),
                   ],
@@ -159,10 +214,10 @@ class ScriptStepPanel extends StatelessWidget {
                 ],
               ),
               if (isMulti && selectedNames.isNotEmpty) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 10),
                 Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
+                  spacing: 8,
+                  runSpacing: 6,
                   children: selectedNames.map((name) {
                     return CBMiniTag(
                       text: name.toUpperCase(),

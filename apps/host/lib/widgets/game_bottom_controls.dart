@@ -53,9 +53,9 @@ class GameBottomControls extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, CBSpace.x4),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow.withValues(alpha: 0.8),
+        color: scheme.surfaceContainerLow.withValues(alpha: 0.9),
         border: Border(
-          top: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2), width: 1.5),
+          top: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.2), width: 1.0),
         ),
       ),
       child: Column(
@@ -65,15 +65,31 @@ class GameBottomControls extends StatelessWidget {
           // ── INPUT AREA ──
           if (isSelection || isBinary) ...[
             CBFadeSlide(
-              child: Text(
-                'DIRECT INTERVENTION'.toUpperCase(),
-                style: textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.4),
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                  fontSize: 9,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: scheme.onSurface.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.touch_app_rounded, size: 12, color: scheme.onSurface.withValues(alpha: 0.5)),
+                      const SizedBox(width: 6),
+                      Text(
+                        'DIRECT INTERVENTION',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.6),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                          fontSize: 9,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: CBSpace.x3),
@@ -160,12 +176,13 @@ class GameBottomControls extends StatelessWidget {
     return Container(
       height: 160,
       decoration: BoxDecoration(
-        color: scheme.onSurface.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(CBRadius.sm),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.1)),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(CBRadius.md),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.3), width: 1.5),
+        boxShadow: [BoxShadow(color: scheme.primary.withValues(alpha: 0.1), blurRadius: 15, spreadRadius: -2)],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(CBRadius.sm),
+        borderRadius: BorderRadius.circular(CBRadius.md),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(CBSpace.x3),
           physics: const BouncingScrollPhysics(),
@@ -176,12 +193,39 @@ class GameBottomControls extends StatelessWidget {
             children: eligiblePlayers.map((p) {
               final isSelected = currentPicks.contains(p.id);
               final roleColor = CBColors.fromHex(p.role.colorHex);
+
+              // Compute dynamic status chips
+              final statuses = <String>[...p.statusEffects];
+              
+              if (gameState.players.any((other) => other.clingerPartnerId == p.id)) {
+                if (!statuses.any((s) => s.toUpperCase() == 'OBSESSION')) statuses.add('OBSESSION');
+              }
+              
+              if (gameState.players.any((other) => 
+                  other.creepTargetId == p.id || 
+                  other.teaSpillerTargetId == p.id || 
+                  other.predatorTargetId == p.id ||
+                  other.dramaQueenTargetAId == p.id ||
+                  other.dramaQueenTargetBId == p.id)) {
+                if (!statuses.any((s) => s.toUpperCase() == 'TARGET')) statuses.add('TARGET');
+              }
+              
+              if (p.hasHostShield || gameState.players.any((other) => other.medicProtectedPlayerId == p.id)) {
+                if (!statuses.any((s) => s.toUpperCase() == 'PROTECTED')) statuses.add('PROTECTED');
+              }
+              
+              if (p.hasReviveToken) {
+                if (!statuses.any((s) => s.toUpperCase() == 'SAVED')) statuses.add('SAVED');
+              }
+
               return CBCompactPlayerChip(
                 name: p.name,
                 assetPath: p.role.assetPath,
                 color: roleColor,
                 isSelected: isSelected,
+                statusEffects: statuses.take(3).toList(), // Limit to avoid overflow
                 onTap: () {
+                  HapticService.selection();
                   if (!isMulti) {
                     controller.handleInteraction(
                       stepId: step.id,
@@ -224,6 +268,7 @@ class GameBottomControls extends StatelessWidget {
             label: left.toUpperCase(),
             selected: currentVal == left,
             onSelected: () {
+               HapticService.selection();
                controller.handleInteraction(stepId: step.id, targetId: left);
             },
             color: scheme.primary,
@@ -236,6 +281,7 @@ class GameBottomControls extends StatelessWidget {
             label: right.toUpperCase(),
             selected: currentVal == right,
             onSelected: () {
+               HapticService.selection();
                controller.handleInteraction(stepId: step.id, targetId: right);
             },
             color: scheme.error,

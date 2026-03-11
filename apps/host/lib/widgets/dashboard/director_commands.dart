@@ -237,17 +237,19 @@ class _DirectorActionButton extends StatelessWidget {
         HapticService.selection();
         onPressed();
       },
-      borderColor: color.withValues(alpha: 0.4),
+      borderColor: color.withValues(alpha: 0.5),
       padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: CBSpace.x4),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(CBSpace.x2),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.15),
               shape: BoxShape.circle,
+              border: Border.all(color: color.withValues(alpha: 0.5), width: 1.5),
+              boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 15, spreadRadius: -2)],
             ),
-            child: Icon(icon, color: color, size: 24, shadows: CBColors.iconGlow(color, intensity: 0.3)),
+            child: Icon(icon, color: color, size: 28, shadows: CBColors.iconGlow(color, intensity: 0.6)),
           ),
           const SizedBox(height: CBSpace.x3),
           Text(
@@ -255,17 +257,18 @@ class _DirectorActionButton extends StatelessWidget {
             style: textTheme.labelLarge!.copyWith(
               color: color,
               fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
+              letterSpacing: 1.2,
+              shadows: CBColors.textGlow(color, intensity: 0.5),
             ),
           ),
           const SizedBox(height: CBSpace.x1),
           Text(
             description.toUpperCase(),
             style: textTheme.labelSmall!.copyWith(
-              color: color.withValues(alpha: 0.5),
+              color: color.withValues(alpha: 0.7),
               fontSize: 8,
-              letterSpacing: 0.5,
-              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],

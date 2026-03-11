@@ -35,17 +35,41 @@ class VoteTallyPanel extends ConsumerWidget {
     }
 
     return CBFadeSlide(
-      child: CBPanel(
+      child: Container(
         margin: const EdgeInsets.symmetric(vertical: CBSpace.x2),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHigh.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(CBRadius.md),
+          border: Border.all(
+            color: scheme.secondary.withValues(alpha: 0.5),
+            width: 1.5,
+          ),
+          boxShadow: [BoxShadow(color: scheme.secondary.withValues(alpha: 0.15), blurRadius: 15, spreadRadius: -2)],
+        ),
         padding: const EdgeInsets.all(CBSpace.x5),
-        borderColor: scheme.secondary.withValues(alpha: 0.5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CBSectionHeader(
-              title: 'VOTE TALLY',
-              icon: Icons.how_to_vote_rounded,
-              color: scheme.secondary,
+            Row(
+              children: [
+                Icon(
+                  Icons.how_to_vote_rounded,
+                  color: scheme.secondary,
+                  shadows: CBColors.iconGlow(scheme.secondary, intensity: 0.5),
+                ),
+                const SizedBox(width: CBSpace.x3),
+                Expanded(
+                  child: Text(
+                    'VOTE TALLY',
+                    style: textTheme.titleMedium?.copyWith(
+                      color: scheme.secondary,
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w900,
+                      shadows: CBColors.textGlow(scheme.secondary, intensity: 0.4),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: CBSpace.x4),
             if (sorted.isEmpty)
@@ -54,6 +78,8 @@ class VoteTallyPanel extends ConsumerWidget {
                   'NO VOTES CAST YET',
                   style: textTheme.labelSmall?.copyWith(
                     color: scheme.onSurface.withValues(alpha: 0.5),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.5,
                   ),
                 ),
               )
@@ -83,22 +109,24 @@ class VoteTallyPanel extends ConsumerWidget {
                   return Row(
                     children: [
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: 36,
+                        height: 36,
                         decoration: BoxDecoration(
-                          color: roleColor.withValues(alpha: 0.1),
+                          color: roleColor.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                           border: Border.all(
-                              color: roleColor.withValues(alpha: 0.3),
+                              color: roleColor.withValues(alpha: 0.5),
                               width: 1.5),
+                          boxShadow: [BoxShadow(color: roleColor.withValues(alpha: 0.2), blurRadius: 15, spreadRadius: -2)],
                         ),
                         child: Center(
                           child: Text(
                             '${entry.value}',
-                            style: textTheme.labelLarge?.copyWith(
+                            style: textTheme.titleMedium?.copyWith(
                               color: roleColor,
                               fontWeight: FontWeight.w900,
                               fontFamily: 'RobotoMono',
+                              shadows: CBColors.textGlow(roleColor, intensity: 0.5),
                             ),
                           ),
                         ),
@@ -112,8 +140,9 @@ class VoteTallyPanel extends ConsumerWidget {
                               targetName.toUpperCase(),
                               style: textTheme.labelLarge?.copyWith(
                                 fontWeight: FontWeight.w900,
-                                letterSpacing: 1.0,
+                                letterSpacing: 1.2,
                                 color: scheme.onSurface,
+                                shadows: CBColors.textGlow(scheme.onSurface, intensity: 0.2),
                               ),
                             ),
                             if (voterText.isNotEmpty)
@@ -121,7 +150,7 @@ class VoteTallyPanel extends ConsumerWidget {
                                 voterText.toUpperCase(),
                                 style: textTheme.labelSmall?.copyWith(
                                   color:
-                                      scheme.onSurface.withValues(alpha: 0.4),
+                                      scheme.onSurface.withValues(alpha: 0.6),
                                   fontSize: 9,
                                   letterSpacing: 0.5,
                                   fontWeight: FontWeight.w700,
@@ -147,8 +176,11 @@ class VoteTallyPanel extends ConsumerWidget {
                 label: 'HOST VOTE OVERRIDE',
                 fullWidth: true,
                 icon: Icons.gavel_rounded,
-                onPressed: () =>
-                    _showVoteOverrideSheet(context, ref, currentStepId),
+                color: scheme.secondary,
+                onPressed: () {
+                    HapticService.selection();
+                    _showVoteOverrideSheet(context, ref, currentStepId, gameState);
+                },
               ),
             ],
           ],
@@ -158,7 +190,7 @@ class VoteTallyPanel extends ConsumerWidget {
   }
 
   void _showVoteOverrideSheet(
-      BuildContext context, WidgetRef ref, String stepId) {
+      BuildContext context, WidgetRef ref, String stepId, GameState gameState) {
     // Only alive players can vote
     final alivePlayers = players.where((p) => p.isAlive).toList();
     if (alivePlayers.isEmpty) return;
@@ -169,6 +201,7 @@ class VoteTallyPanel extends ConsumerWidget {
       context: context,
       child: HostVoteOverrideDialog(
         players: players,
+        gameState: gameState,
         controller: controller,
         onDismiss: () => Navigator.pop(context),
         stepId: stepId,
@@ -196,6 +229,7 @@ class VoteTallyPanel extends ConsumerWidget {
 
 class HostVoteOverrideDialog extends ConsumerStatefulWidget {
   final List<Player> players;
+  final GameState gameState;
   final Game controller;
   final void Function() onDismiss;
   final String stepId;
@@ -203,6 +237,7 @@ class HostVoteOverrideDialog extends ConsumerStatefulWidget {
   const HostVoteOverrideDialog({
     super.key,
     required this.players,
+    required this.gameState,
     required this.controller,
     required this.onDismiss,
     required this.stepId,
@@ -228,80 +263,93 @@ class _HostVoteOverrideDialogState
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return AlertDialog(
-      contentPadding: EdgeInsets.zero,
-      backgroundColor: scheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      content: Container(
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(CBSpace.x4),
+      child: Container(
         constraints: const BoxConstraints(maxWidth: 400),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHigh.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(CBRadius.lg),
+          border: Border.all(color: scheme.secondary.withValues(alpha: 0.5), width: 1.5),
+          boxShadow: [BoxShadow(color: scheme.secondary.withValues(alpha: 0.2), blurRadius: 15, spreadRadius: -2)],
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: const EdgeInsets.all(CBSpace.x5),
+              padding: const EdgeInsets.all(CBSpace.x6),
               decoration: BoxDecoration(
-                color: scheme.primary,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
+                color: scheme.secondary.withValues(alpha: 0.1),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(CBRadius.lg)),
+                border: Border(bottom: BorderSide(color: scheme.secondary.withValues(alpha: 0.2))),
               ),
               child: Column(
                 children: [
                   Icon(
                     Icons.gavel_rounded,
-                    color: scheme.onPrimary,
-                    size: 32,
+                    color: scheme.secondary,
+                    size: 36,
+                    shadows: CBColors.iconGlow(scheme.secondary, intensity: 0.5),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: CBSpace.x3),
                   Text(
                     'HOST VOTE OVERRIDE',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: scheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: scheme.secondary,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                          shadows: CBColors.textGlow(scheme.secondary, intensity: 0.5),
                         ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Select a player to override their vote, or choose "Clear Vote" to remove a vote.',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onPrimary.withValues(alpha: 0.8),
+                  ),
+                  const SizedBox(height: CBSpace.x2),
+                  Text(
+                    'FORCE A VOTE OUTCOME OR CLEAR AN EXISTING ENTRY.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.6),
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
                         ),
                   ),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(CBSpace.x4),
+              padding: const EdgeInsets.all(CBSpace.x6),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Select Target'),
-                    initialValue: _selectedTargetId,
-                    items: [
-                      const DropdownMenuItem(
-                        value: '',
-                        child: Text('(Clear Vote)'),
-                      ),
-                      const DropdownMenuItem(
-                        value: 'abstain',
-                        child: Text('Abstain'),
-                      ),
-                      ...potentialTargets.map((p) => DropdownMenuItem(
-                        value: p.id,
-                        child: Text(p.name),
-                      )),
-                     ],
-                    onChanged: (val) => setState(() => _selectedTargetId = val),
+                  Text(
+                    'TARGET SELECTION',
+                    style: TextStyle(
+                        color: scheme.secondary,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5),
                   ),
-                  const SizedBox(height: 16),
-                  CBGhostButton(
+                  const SizedBox(height: CBSpace.x2),
+                  _buildVotingSelectionGrid(context, scheme),
+                  const SizedBox(height: CBSpace.x6),
+                  CBPrimaryButton(
                     label: 'SUBMIT OVERRIDE',
-                    icon: Icons.save_rounded,
-                    onPressed: _applyVoteOverride,
+                    icon: Icons.done_all_rounded,
+                    backgroundColor: scheme.secondary,
+                    onPressed: () {
+                      HapticService.heavy();
+                      _applyVoteOverride();
+                    },
+                    fullWidth: true,
+                  ),
+                  const SizedBox(height: CBSpace.x3),
+                  CBGhostButton(
+                    label: 'ABORT',
+                    color: scheme.onSurface.withValues(alpha: 0.5),
+                    onPressed: () {
+                      HapticService.light();
+                      widget.onDismiss();
+                    },
                     fullWidth: true,
                   ),
                 ],
@@ -322,4 +370,90 @@ class _HostVoteOverrideDialogState
 
     widget.onDismiss();
   }
+
+  Widget _buildVotingSelectionGrid(BuildContext context, ColorScheme scheme) {
+    if (potentialTargets.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 200),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(CBRadius.md),
+        border: Border.all(color: scheme.secondary.withValues(alpha: 0.3), width: 1.5),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(CBRadius.md),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(CBSpace.x3),
+          physics: const BouncingScrollPhysics(),
+          child: Wrap(
+            spacing: CBSpace.x2,
+            runSpacing: CBSpace.x2,
+            alignment: WrapAlignment.center,
+            children: [
+              CBCompactPlayerChip(
+                name: '(CLEAR VOTE)',
+                color: scheme.onSurface.withValues(alpha: 0.5),
+                isSelected: _selectedTargetId == '',
+                onTap: () {
+                  HapticService.selection();
+                  setState(() => _selectedTargetId = '');
+                },
+              ),
+              CBCompactPlayerChip(
+                name: 'ABSTAIN',
+                color: scheme.tertiary,
+                isSelected: _selectedTargetId == 'abstain',
+                onTap: () {
+                  HapticService.selection();
+                  setState(() => _selectedTargetId = 'abstain');
+                },
+              ),
+              ...potentialTargets.map((p) {
+                final isSelected = _selectedTargetId == p.id;
+                final roleColor = CBColors.fromHex(p.role.colorHex);
+
+                // Compute dynamic status chips
+                final statuses = <String>[...p.statusEffects];
+                
+                if (widget.gameState.players.any((other) => other.clingerPartnerId == p.id)) {
+                  if (!statuses.any((s) => s.toUpperCase() == 'OBSESSION')) statuses.add('OBSESSION');
+                }
+                
+                if (widget.gameState.players.any((other) => 
+                    other.creepTargetId == p.id || 
+                    other.teaSpillerTargetId == p.id || 
+                    other.predatorTargetId == p.id ||
+                    other.dramaQueenTargetAId == p.id ||
+                    other.dramaQueenTargetBId == p.id)) {
+                  if (!statuses.any((s) => s.toUpperCase() == 'TARGET')) statuses.add('TARGET');
+                }
+                
+                if (p.hasHostShield || widget.gameState.players.any((other) => other.medicProtectedPlayerId == p.id)) {
+                  if (!statuses.any((s) => s.toUpperCase() == 'PROTECTED')) statuses.add('PROTECTED');
+                }
+                
+                if (p.hasReviveToken) {
+                  if (!statuses.any((s) => s.toUpperCase() == 'SAVED')) statuses.add('SAVED');
+                }
+
+                return CBCompactPlayerChip(
+                  name: p.name,
+                  assetPath: p.role.assetPath,
+                  color: roleColor,
+                  isSelected: isSelected,
+                  statusEffects: statuses.take(3).toList(),
+                  onTap: () {
+                    HapticService.selection();
+                    setState(() => _selectedTargetId = p.id);
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+

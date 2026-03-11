@@ -233,11 +233,13 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       children: [
         Row(
           children: [
-            Text(
-              'ESTABLISH LINK',
-              style: textTheme.headlineMedium!.copyWith(
-                color: scheme.onSurface,
-                shadows: CBColors.textGlow(scheme.primary, intensity: 0.3),
+            Expanded(
+              child: Text(
+                'ESTABLISH LINK',
+                style: textTheme.headlineMedium!.copyWith(
+                  color: scheme.onSurface,
+                  shadows: CBColors.textGlow(scheme.primary, intensity: 0.3),
+                ),
               ),
             ),
             const Spacer(),

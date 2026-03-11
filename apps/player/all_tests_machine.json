@@ -1,0 +1,408 @@
+{"protocolVersion":"0.1.1","runnerVersion":"1.29.0","pid":25128,"type":"start","time":0}
+{"suite":{"id":0,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/active_bridge_test.dart"},"type":"suite","time":0}
+{"test":{"id":1,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/active_bridge_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1}
+{"suite":{"id":2,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/auth_provider_cache_test.dart"},"type":"suite","time":8}
+{"test":{"id":3,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/auth_provider_cache_test.dart","suiteID":2,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":8}
+{"suite":{"id":4,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/browse_mode_test.dart"},"type":"suite","time":9}
+{"test":{"id":5,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/browse_mode_test.dart","suiteID":4,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":9}
+{"suite":{"id":6,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/connect_screen_navigation_guard_test.dart"},"type":"suite","time":10}
+{"test":{"id":7,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/connect_screen_navigation_guard_test.dart","suiteID":6,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":10}
+{"count":25,"time":12,"type":"allSuites"}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":1,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":4814}
+{"group":{"id":8,"suiteID":0,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":3,"line":null,"column":null,"url":null},"type":"group","time":4820}
+{"group":{"id":9,"suiteID":0,"parentID":8,"name":"activeBridgeProvider","metadata":{"skip":false,"skipReason":null},"testCount":3,"line":32,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/active_bridge_test.dart"},"type":"group","time":4820}
+{"test":{"id":10,"name":"activeBridgeProvider prefers cloud when cloud is connected","suiteID":0,"groupIDs":[8,9],"metadata":{"skip":false,"skipReason":null},"line":33,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/active_bridge_test.dart"},"type":"testStart","time":4821}
+{"testID":10,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":4944}
+{"test":{"id":11,"name":"activeBridgeProvider prefers cloud when join is accepted (even if not connected)","suiteID":0,"groupIDs":[8,9],"metadata":{"skip":false,"skipReason":null},"line":55,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/active_bridge_test.dart"},"type":"testStart","time":4944}
+{"testID":11,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":4951}
+{"test":{"id":12,"name":"activeBridgeProvider uses cloud bridge even when cloud is idle","suiteID":0,"groupIDs":[8,9],"metadata":{"skip":false,"skipReason":null},"line":82,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/active_bridge_test.dart"},"type":"testStart","time":4952}
+{"testID":12,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":4958}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"suite":{"id":13,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/end_game_card_logic_test.dart"},"type":"suite","time":5018}
+{"test":{"id":14,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/end_game_card_logic_test.dart","suiteID":13,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":5018}
+{"testID":3,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":5294}
+{"group":{"id":15,"suiteID":2,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":5294}
+{"test":{"id":16,"name":"signOut clears session cache even when Firebase is unavailable","suiteID":2,"groupIDs":[15],"metadata":{"skip":false,"skipReason":null},"line":14,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/auth_provider_cache_test.dart"},"type":"testStart","time":5295}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":16,"messageType":"print","message":"[SessionCache] Cleared","type":"print","time":5462}
+{"testID":16,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":5462}
+{"suite":{"id":17,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/hall_of_fame_access_test.dart"},"type":"suite","time":5515}
+{"test":{"id":18,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/hall_of_fame_access_test.dart","suiteID":17,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":5515}
+{"testID":5,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":5866}
+{"group":{"id":19,"suiteID":4,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":3,"line":null,"column":null,"url":null},"type":"group","time":5866}
+{"test":{"id":20,"name":"PlayerAuthScreen: Just Browsing CTA navigates to guides","suiteID":4,"groupIDs":[19],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":47,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/browse_mode_test.dart"},"type":"testStart","time":5866}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":7,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":6306}
+{"group":{"id":21,"suiteID":6,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":6308}
+{"test":{"id":22,"name":"ConnectScreen only pushes ClaimScreen once when both bridges accept rapidly","suiteID":6,"groupIDs":[21],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":38,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/connect_screen_navigation_guard_test.dart"},"type":"testStart","time":6308}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":14,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":6703}
+{"group":{"id":23,"suiteID":13,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":5,"line":null,"column":null,"url":null},"type":"group","time":6703}
+{"group":{"id":24,"suiteID":13,"parentID":23,"name":"isPlayerVictory","metadata":{"skip":false,"skipReason":null},"testCount":5,"line":21,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/end_game_card_logic_test.dart"},"type":"group","time":6704}
+{"test":{"id":25,"name":"isPlayerVictory club staff wins when winner is clubStaff","suiteID":13,"groupIDs":[23,24],"metadata":{"skip":false,"skipReason":null},"line":22,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/end_game_card_logic_test.dart"},"type":"testStart","time":6704}
+{"testID":25,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":6736}
+{"test":{"id":26,"name":"isPlayerVictory party animal wins when winner is partyAnimals","suiteID":13,"groupIDs":[23,24],"metadata":{"skip":false,"skipReason":null},"line":27,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/end_game_card_logic_test.dart"},"type":"testStart","time":6737}
+{"testID":26,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":6741}
+{"test":{"id":27,"name":"isPlayerVictory alive Club Manager co-wins with non-neutral winner","suiteID":13,"groupIDs":[23,24],"metadata":{"skip":false,"skipReason":null},"line":33,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/end_game_card_logic_test.dart"},"type":"testStart","time":6742}
+{"testID":27,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":6746}
+{"test":{"id":28,"name":"isPlayerVictory dead Club Manager does not co-win","suiteID":13,"groupIDs":[23,24],"metadata":{"skip":false,"skipReason":null},"line":43,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/end_game_card_logic_test.dart"},"type":"testStart","time":6747}
+{"testID":28,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":6750}
+{"test":{"id":29,"name":"isPlayerVictory Club Manager does not co-win neutral winner","suiteID":13,"groupIDs":[23,24],"metadata":{"skip":false,"skipReason":null},"line":52,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/end_game_card_logic_test.dart"},"type":"testStart","time":6750}
+{"testID":29,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":6754}
+{"suite":{"id":30,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/home_screen_resume_test.dart"},"type":"suite","time":6789}
+{"test":{"id":31,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/home_screen_resume_test.dart","suiteID":30,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":6789}
+{"testID":18,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":7422}
+{"group":{"id":32,"suiteID":17,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":7422}
+{"test":{"id":33,"name":"Stats action opens Hall of Fame destination","suiteID":17,"groupIDs":[32],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":38,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/hall_of_fame_access_test.dart"},"type":"testStart","time":7422}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":20,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":7682}
+{"test":{"id":34,"name":"HomeScreen: Just Browsing CTA navigates to guides","suiteID":4,"groupIDs":[19],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":81,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/browse_mode_test.dart"},"type":"testStart","time":7682}
+{"testID":34,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":8217}
+{"test":{"id":35,"name":"GuidesScreen: Renders in scaffold when disconnected","suiteID":4,"groupIDs":[19],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":117,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/browse_mode_test.dart"},"type":"testStart","time":8218}
+{"testID":22,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":8311}
+{"suite":{"id":36,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/host_overview_screen_test.dart"},"type":"suite","time":8369}
+{"test":{"id":37,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/host_overview_screen_test.dart","suiteID":36,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":8369}
+{"testID":31,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":8468}
+{"group":{"id":38,"suiteID":30,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":4,"line":null,"column":null,"url":null},"type":"group","time":8468}
+{"test":{"id":39,"name":"resume retry delay uses capped backoff schedule","suiteID":30,"groupIDs":[38],"metadata":{"skip":false,"skipReason":null},"line":111,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/home_screen_resume_test.dart"},"type":"testStart","time":8469}
+{"testID":39,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":8528}
+{"test":{"id":40,"name":"pending legacy local autoconnect URL is coerced to cloud reconnect flow","suiteID":30,"groupIDs":[38],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":118,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/home_screen_resume_test.dart"},"type":"testStart","time":8528}
+{"testID":35,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":8584}
+{"suite":{"id":41,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"suite","time":8670}
+{"test":{"id":42,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart","suiteID":41,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":8670}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":33,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":9139}
+{"suite":{"id":43,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"suite","time":9204}
+{"test":{"id":44,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart","suiteID":43,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":9204}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":37,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":9945}
+{"group":{"id":45,"suiteID":36,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":9947}
+{"test":{"id":46,"name":"HostOverviewScreen displays day count and player count","suiteID":36,"groupIDs":[45],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":70,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/host_overview_screen_test.dart"},"type":"testStart","time":9947}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":42,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":10399}
+{"group":{"id":47,"suiteID":41,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":7,"line":null,"column":null,"url":null},"type":"group","time":10399}
+{"group":{"id":48,"suiteID":41,"parentID":47,"name":"shouldAcceptJoinUrlEvent","metadata":{"skip":false,"skipReason":null},"testCount":4,"line":6,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"group","time":10399}
+{"test":{"id":49,"name":"shouldAcceptJoinUrlEvent accepts first non-empty URL","suiteID":41,"groupIDs":[47,48],"metadata":{"skip":false,"skipReason":null},"line":7,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"testStart","time":10399}
+{"testID":49,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10446}
+{"test":{"id":50,"name":"shouldAcceptJoinUrlEvent rejects duplicate URL inside debounce window","suiteID":41,"groupIDs":[47,48],"metadata":{"skip":false,"skipReason":null},"line":21,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"testStart","time":10446}
+{"testID":50,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10454}
+{"test":{"id":51,"name":"shouldAcceptJoinUrlEvent accepts duplicate URL after debounce window","suiteID":41,"groupIDs":[47,48],"metadata":{"skip":false,"skipReason":null},"line":37,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"testStart","time":10455}
+{"testID":51,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10460}
+{"test":{"id":52,"name":"shouldAcceptJoinUrlEvent accepts different URL even inside debounce window","suiteID":41,"groupIDs":[47,48],"metadata":{"skip":false,"skipReason":null},"line":53,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"testStart","time":10460}
+{"testID":52,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10464}
+{"group":{"id":53,"suiteID":41,"parentID":47,"name":"shouldNavigateToClaim","metadata":{"skip":false,"skipReason":null},"testCount":3,"line":70,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"group","time":10465}
+{"test":{"id":54,"name":"shouldNavigateToClaim returns true when mounted and not currently navigating","suiteID":41,"groupIDs":[47,53],"metadata":{"skip":false,"skipReason":null},"line":71,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"testStart","time":10465}
+{"testID":54,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10468}
+{"test":{"id":55,"name":"shouldNavigateToClaim returns false when already navigating","suiteID":41,"groupIDs":[47,53],"metadata":{"skip":false,"skipReason":null},"line":80,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"testStart","time":10470}
+{"testID":55,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10474}
+{"test":{"id":56,"name":"shouldNavigateToClaim returns false when widget is unmounted","suiteID":41,"groupIDs":[47,53],"metadata":{"skip":false,"skipReason":null},"line":89,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_link_debounce_test.dart"},"type":"testStart","time":10474}
+{"testID":56,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10483}
+{"suite":{"id":57,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/onboarding_loading_states_test.dart"},"type":"suite","time":10567}
+{"test":{"id":58,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/onboarding_loading_states_test.dart","suiteID":57,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":10568}
+{"testID":40,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10698}
+{"test":{"id":59,"name":"pending cloud autoconnect URL triggers cloud reconnect flow","suiteID":30,"groupIDs":[38],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":171,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/home_screen_resume_test.dart"},"type":"testStart","time":10698}
+{"testID":44,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":10850}
+{"group":{"id":60,"suiteID":43,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":7,"line":null,"column":null,"url":null},"type":"group","time":10851}
+{"group":{"id":61,"suiteID":43,"parentID":60,"name":"parseJoinUrlPayload","metadata":{"skip":false,"skipReason":null},"testCount":5,"line":5,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"group","time":10851}
+{"test":{"id":62,"name":"parseJoinUrlPayload parses cloud URL and normalizes code","suiteID":43,"groupIDs":[60,61],"metadata":{"skip":false,"skipReason":null},"line":6,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"testStart","time":10851}
+{"testID":62,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10891}
+{"test":{"id":63,"name":"parseJoinUrlPayload treats legacy local URL as cloud and decodes host endpoint","suiteID":43,"groupIDs":[60,61],"metadata":{"skip":false,"skipReason":null},"line":17,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"testStart","time":10892}
+{"testID":63,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10897}
+{"test":{"id":64,"name":"parseJoinUrlPayload returns null when code is missing","suiteID":43,"groupIDs":[60,61],"metadata":{"skip":false,"skipReason":null},"line":28,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"testStart","time":10898}
+{"testID":64,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10901}
+{"test":{"id":65,"name":"parseJoinUrlPayload returns null for non-url text","suiteID":43,"groupIDs":[60,61],"metadata":{"skip":false,"skipReason":null},"line":36,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"testStart","time":10901}
+{"testID":65,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10905}
+{"test":{"id":66,"name":"parseJoinUrlPayload unknown mode still parses code but leaves mode unset","suiteID":43,"groupIDs":[60,61],"metadata":{"skip":false,"skipReason":null},"line":41,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"testStart","time":10905}
+{"testID":66,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10909}
+{"group":{"id":67,"suiteID":43,"parentID":60,"name":"normalizeJoinCode","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":52,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"group","time":10909}
+{"test":{"id":68,"name":"normalizeJoinCode normalizes 10-char compact code to NEON-ABCDEF format","suiteID":43,"groupIDs":[60,67],"metadata":{"skip":false,"skipReason":null},"line":53,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"testStart","time":10910}
+{"testID":68,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10914}
+{"test":{"id":69,"name":"normalizeJoinCode preserves uppercase when length is not compact 10 chars","suiteID":43,"groupIDs":[60,67],"metadata":{"skip":false,"skipReason":null},"line":57,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/join_url_parser_test.dart"},"type":"testStart","time":10915}
+{"testID":69,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10918}
+{"suite":{"id":70,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bootstrap_gate_test.dart"},"type":"suite","time":10968}
+{"test":{"id":71,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bootstrap_gate_test.dart","suiteID":70,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":10969}
+{"testID":59,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":10971}
+{"test":{"id":72,"name":"pending cloud autoconnect retries after transient failure","suiteID":30,"groupIDs":[38],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":218,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/home_screen_resume_test.dart"},"type":"testStart","time":10974}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":72,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":11415}
+{"suite":{"id":73,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"suite","time":11524}
+{"test":{"id":74,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart","suiteID":73,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":11524}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":46,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":11686}
+{"suite":{"id":75,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_home_shell_navigation_test.dart"},"type":"suite","time":11744}
+{"test":{"id":76,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_home_shell_navigation_test.dart","suiteID":75,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":11744}
+{"testID":58,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":11925}
+{"group":{"id":77,"suiteID":57,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":6,"line":null,"column":null,"url":null},"type":"group","time":11925}
+{"test":{"id":78,"name":"PlayerAuthScreen initial state shows neutral boot splash (no login flash)","suiteID":57,"groupIDs":[77],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":67,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/onboarding_loading_states_test.dart"},"type":"testStart","time":11926}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":71,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":12509}
+{"group":{"id":79,"suiteID":70,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":4,"line":null,"column":null,"url":null},"type":"group","time":12510}
+{"test":{"id":80,"name":"bootstrap loader shows bounded progress label while restoring","suiteID":70,"groupIDs":[79],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":63,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bootstrap_gate_test.dart"},"type":"testStart","time":12510}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":74,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":13013}
+{"group":{"id":81,"suiteID":73,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":19,"line":null,"column":null,"url":null},"type":"group","time":13013}
+{"group":{"id":82,"suiteID":73,"parentID":81,"name":"StepSnapshot.isVote","metadata":{"skip":false,"skipReason":null},"testCount":3,"line":121,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"group","time":13014}
+{"test":{"id":83,"name":"StepSnapshot.isVote is true for unscoped day vote id","suiteID":73,"groupIDs":[81,82],"metadata":{"skip":false,"skipReason":null},"line":122,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13014}
+{"testID":83,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13077}
+{"test":{"id":84,"name":"StepSnapshot.isVote is true for scoped day vote id","suiteID":73,"groupIDs":[81,82],"metadata":{"skip":false,"skipReason":null},"line":132,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13077}
+{"testID":84,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13082}
+{"test":{"id":85,"name":"StepSnapshot.isVote is false for unrelated id","suiteID":73,"groupIDs":[81,82],"metadata":{"skip":false,"skipReason":null},"line":142,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13082}
+{"testID":85,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13087}
+{"test":{"id":86,"name":"Initial state is disconnected","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":153,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13087}
+{"testID":86,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13126}
+{"test":{"id":87,"name":"Connect updates state","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":159,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13127}
+{"testID":87,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13149}
+{"testID":87,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13150}
+{"test":{"id":88,"name":"Disconnect updates state","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":168,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13150}
+{"testID":88,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13155}
+{"testID":88,"messageType":"print","message":"[PlayerBridge] Connection: disconnected","type":"print","time":13155}
+{"testID":88,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13156}
+{"test":{"id":89,"name":"Join sends correct message","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":180,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13156}
+{"testID":89,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13161}
+{"testID":89,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13162}
+{"test":{"id":90,"name":"joinGame includes playerName in join payload","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":192,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13162}
+{"testID":90,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13208}
+{"testID":90,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13208}
+{"test":{"id":91,"name":"Claim sends correct message","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":205,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13209}
+{"testID":91,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13215}
+{"testID":91,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13215}
+{"test":{"id":92,"name":"Vote sends correct message","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":217,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13215}
+{"testID":92,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13220}
+{"testID":92,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13221}
+{"test":{"id":93,"name":"Send Action sends correct message","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":230,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13221}
+{"testID":93,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13226}
+{"testID":93,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13226}
+{"test":{"id":94,"name":"Handles state_sync message","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":245,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13227}
+{"testID":94,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13242}
+{"testID":94,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13243}
+{"test":{"id":95,"name":"Handles join_response accepted","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":270,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13243}
+{"testID":95,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13249}
+{"testID":95,"messageType":"print","message":"[PlayerBridge] Join accepted","type":"print","time":13249}
+{"testID":95,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13250}
+{"test":{"id":96,"name":"state_sync lobby empty players does not reset joinAccepted after accepted join_response","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":281,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13250}
+{"testID":96,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13255}
+{"testID":96,"messageType":"print","message":"[PlayerBridge] Join accepted","type":"print","time":13255}
+{"testID":96,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13256}
+{"test":{"id":97,"name":"Handles join_response rejected","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":303,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13256}
+{"testID":97,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13261}
+{"testID":97,"messageType":"print","message":"[PlayerBridge] Join rejected","type":"print","time":13262}
+{"testID":97,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13263}
+{"test":{"id":98,"name":"Handles claim_response success","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":315,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13263}
+{"testID":98,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13270}
+{"testID":98,"messageType":"print","message":"[PlayerBridge] Claim ok","type":"print","time":13271}
+{"testID":98,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13271}
+{"test":{"id":99,"name":"Handles claim_response failure","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":338,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13271}
+{"testID":99,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13276}
+{"testID":99,"messageType":"print","message":"[PlayerBridge] Claim failed","type":"print","time":13276}
+{"testID":99,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13276}
+{"test":{"id":100,"name":"Handles player_kicked (self)","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":348,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13277}
+{"testID":100,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13282}
+{"testID":100,"messageType":"print","message":"[PlayerBridge] Claim ok","type":"print","time":13283}
+{"testID":100,"messageType":"print","message":"[PlayerBridge] Kicked: p1","type":"print","time":13283}
+{"testID":100,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13283}
+{"test":{"id":101,"name":"Reconnection sends player_reconnect if previously claimed","suiteID":73,"groupIDs":[81],"metadata":{"skip":false,"skipReason":null},"line":374,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bridge_test.dart"},"type":"testStart","time":13284}
+{"testID":101,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13291}
+{"testID":101,"messageType":"print","message":"[PlayerBridge] Claim ok","type":"print","time":13291}
+{"testID":101,"messageType":"print","message":"[PlayerBridge] Connection: reconnecting","type":"print","time":13292}
+{"testID":101,"messageType":"print","message":"[PlayerBridge] Connection: connected","type":"print","time":13292}
+{"testID":101,"messageType":"print","message":"[PlayerBridge] Reconnected — sending player_reconnect for p1","type":"print","time":13293}
+{"testID":101,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13293}
+{"suite":{"id":102,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_session_cache_test.dart"},"type":"suite","time":13342}
+{"test":{"id":103,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_session_cache_test.dart","suiteID":102,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":13342}
+{"testID":78,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13449}
+{"test":{"id":104,"name":"PlayerAuthScreen shows loading dialog overlay while preserving splash context","suiteID":57,"groupIDs":[77],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":95,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/onboarding_loading_states_test.dart"},"type":"testStart","time":13449}
+{"testID":76,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":13656}
+{"group":{"id":105,"suiteID":75,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":5,"line":null,"column":null,"url":null},"type":"group","time":13657}
+{"test":{"id":106,"name":"PlayerHomeShell preserves hall of fame destination while disconnected","suiteID":75,"groupIDs":[105],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":73,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_home_shell_navigation_test.dart"},"type":"testStart","time":13657}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":104,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13799}
+{"test":{"id":107,"name":"PlayerAuthScreen loading with existing user stays on neutral boot state (no id-print flash)","suiteID":57,"groupIDs":[77],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":127,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/onboarding_loading_states_test.dart"},"type":"testStart","time":13799}
+{"testID":107,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13878}
+{"test":{"id":108,"name":"HomeScreen shows modal loading dialog while connecting","suiteID":57,"groupIDs":[77],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":160,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/onboarding_loading_states_test.dart"},"type":"testStart","time":13878}
+{"testID":80,"messageType":"print","message":"[Bootstrap] No cache restored","type":"print","time":13941}
+{"testID":80,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":13955}
+{"test":{"id":109,"name":"bootstrap with no cache does not seed pending join URL","suiteID":70,"groupIDs":[79],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":103,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bootstrap_gate_test.dart"},"type":"testStart","time":13956}
+{"testID":109,"messageType":"print","message":"[Bootstrap] No cache restored","type":"print","time":14167}
+{"testID":109,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":14172}
+{"test":{"id":110,"name":"bootstrap restores local cache and seeds local autoconnect URL","suiteID":70,"groupIDs":[79],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":138,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bootstrap_gate_test.dart"},"type":"testStart","time":14172}
+{"testID":110,"messageType":"print","message":"[Bootstrap] Restored local session code=NEON-ABCDEF host=ws://192.168.1.50","type":"print","time":14334}
+{"testID":110,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":14354}
+{"test":{"id":111,"name":"bootstrap restores cloud cache and seeds cloud autoconnect URL","suiteID":70,"groupIDs":[79],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":191,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_bootstrap_gate_test.dart"},"type":"testStart","time":14354}
+{"testID":111,"messageType":"print","message":"[Bootstrap] Restored cloud session code=NEON-UVWXYZ","type":"print","time":14916}
+{"testID":111,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":14922}
+{"testID":108,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":14991}
+{"test":{"id":112,"name":"ClaimScreen shows loading placeholder when identities have not synced yet","suiteID":57,"groupIDs":[77],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":210,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/onboarding_loading_states_test.dart"},"type":"testStart","time":14992}
+{"testID":103,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":15039}
+{"group":{"id":113,"suiteID":102,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":null,"column":null,"url":null},"type":"group","time":15040}
+{"test":{"id":114,"name":"PlayerSessionCacheRepository saves and loads entry","suiteID":102,"groupIDs":[113],"metadata":{"skip":false,"skipReason":null},"line":10,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_session_cache_test.dart"},"type":"testStart","time":15040}
+{"suite":{"id":115,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_session_clear_on_leave_test.dart"},"type":"suite","time":15061}
+{"test":{"id":116,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_session_clear_on_leave_test.dart","suiteID":115,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":15061}
+{"testID":114,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":15114}
+{"test":{"id":117,"name":"PlayerSessionCacheRepository drops stale entries","suiteID":102,"groupIDs":[113],"metadata":{"skip":false,"skipReason":null},"line":30,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_session_cache_test.dart"},"type":"testStart","time":15114}
+{"testID":117,"messageType":"print","message":"[SessionCache] Dropped stale entry savedAt=2026-03-09 11:25:52.404584Z","type":"print","time":15126}
+{"testID":117,"messageType":"print","message":"[SessionCache] Cleared","type":"print","time":15127}
+{"testID":117,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":15128}
+{"testID":112,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":15138}
+{"test":{"id":118,"name":"ClaimScreen shows waiting placeholder when all identities are already claimed","suiteID":57,"groupIDs":[77],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":244,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/onboarding_loading_states_test.dart"},"type":"testStart","time":15139}
+{"suite":{"id":119,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"suite","time":15201}
+{"test":{"id":120,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart","suiteID":119,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":15201}
+{"testID":118,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":15248}
+{"suite":{"id":121,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_state_cache_test.dart"},"type":"suite","time":15315}
+{"test":{"id":122,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_state_cache_test.dart","suiteID":121,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":15315}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":106,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":15885}
+{"test":{"id":123,"name":"PlayerHomeShell routes join acceptance to lobby from home","suiteID":75,"groupIDs":[105],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":106,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_home_shell_navigation_test.dart"},"type":"testStart","time":15885}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":123,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":16312}
+{"test":{"id":124,"name":"PlayerHomeShell auto-syncs navigation from active bridge phase","suiteID":75,"groupIDs":[105],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":137,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_home_shell_navigation_test.dart"},"type":"testStart","time":16312}
+{"testID":116,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":16474}
+{"group":{"id":125,"suiteID":115,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":null,"column":null,"url":null},"type":"group","time":16475}
+{"test":{"id":126,"name":"PlayerBridge.leave clears cached session","suiteID":115,"groupIDs":[125],"metadata":{"skip":false,"skipReason":null},"line":15,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_session_clear_on_leave_test.dart"},"type":"testStart","time":16475}
+{"testID":126,"messageType":"print","message":"[SessionCache] Cleared","type":"print","time":16645}
+{"testID":126,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":16649}
+{"test":{"id":127,"name":"CloudPlayerBridge.leave clears cached session","suiteID":115,"groupIDs":[125],"metadata":{"skip":false,"skipReason":null},"line":35,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_session_clear_on_leave_test.dart"},"type":"testStart","time":16649}
+{"testID":127,"messageType":"print","message":"[SessionCache] Cleared","type":"print","time":16665}
+{"testID":127,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":16666}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"suite":{"id":128,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"suite","time":16798}
+{"test":{"id":129,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart","suiteID":128,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":16798}
+{"testID":120,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":17053}
+{"group":{"id":130,"suiteID":119,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":7,"line":null,"column":null,"url":null},"type":"group","time":17054}
+{"group":{"id":131,"suiteID":119,"parentID":130,"name":"T1: Fresh install / no cache path","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":34,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"group","time":17054}
+{"test":{"id":132,"name":"T1: Fresh install / no cache path bootstrap with no cache does not set pending join URL","suiteID":119,"groupIDs":[130,131],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":35,"root_column":5,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"testStart","time":17054}
+{"testID":124,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":17200}
+{"test":{"id":133,"name":"Shell does not render duplicate menu button overlay","suiteID":75,"groupIDs":[105],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":196,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_home_shell_navigation_test.dart"},"type":"testStart","time":17200}
+{"testID":133,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":17483}
+{"test":{"id":134,"name":"Shell navigates from claim to game when myPlayerId is set during active phase","suiteID":75,"groupIDs":[105],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":253,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_home_shell_navigation_test.dart"},"type":"testStart","time":17483}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":122,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":17641}
+{"group":{"id":135,"suiteID":121,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":17641}
+{"test":{"id":136,"name":"PlayerGameState cache map roundtrips key gameplay fields","suiteID":121,"groupIDs":[135],"metadata":{"skip":false,"skipReason":null},"line":6,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_state_cache_test.dart"},"type":"testStart","time":17641}
+{"testID":136,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":17728}
+{"suite":{"id":137,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/games_night_recap_screen_test.dart"},"type":"suite","time":17774}
+{"test":{"id":138,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/games_night_recap_screen_test.dart","suiteID":137,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":17775}
+{"testID":134,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":17898}
+{"suite":{"id":139,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/profile_screen_live_sync_test.dart"},"type":"suite","time":18054}
+{"test":{"id":140,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/profile_screen_live_sync_test.dart","suiteID":139,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":18054}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":132,"messageType":"print","message":"[Bootstrap] No cache restored","type":"print","time":18534}
+{"testID":129,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":18573}
+{"group":{"id":141,"suiteID":128,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":8,"line":null,"column":null,"url":null},"type":"group","time":18573}
+{"group":{"id":142,"suiteID":128,"parentID":141,"name":"PlayerStats","metadata":{"skip":false,"skipReason":null},"testCount":8,"line":6,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"group","time":18573}
+{"test":{"id":143,"name":"PlayerStats winRate calculates correctly","suiteID":128,"groupIDs":[141,142],"metadata":{"skip":false,"skipReason":null},"line":7,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"testStart","time":18573}
+{"testID":143,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18609}
+{"test":{"id":144,"name":"PlayerStats favoriteRole returns N/A when no roles played","suiteID":128,"groupIDs":[141,142],"metadata":{"skip":false,"skipReason":null},"line":28,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"testStart","time":18609}
+{"testID":144,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18617}
+{"test":{"id":145,"name":"PlayerStats favoriteRole returns correct role name for single role","suiteID":128,"groupIDs":[141,142],"metadata":{"skip":false,"skipReason":null},"line":33,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"testStart","time":18617}
+{"testID":145,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18628}
+{"test":{"id":146,"name":"PlayerStats favoriteRole returns correct role name for most played role","suiteID":128,"groupIDs":[141,142],"metadata":{"skip":false,"skipReason":null},"line":42,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"testStart","time":18628}
+{"testID":146,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18633}
+{"test":{"id":147,"name":"PlayerStats favoriteRole breaks ties by taking the last one encountered","suiteID":128,"groupIDs":[141,142],"metadata":{"skip":false,"skipReason":null},"line":53,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"testStart","time":18634}
+{"testID":147,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18638}
+{"test":{"id":148,"name":"PlayerStats favoriteRole handles unknown roles gracefully","suiteID":128,"groupIDs":[141,142],"metadata":{"skip":false,"skipReason":null},"line":78,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"testStart","time":18638}
+{"testID":148,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18650}
+{"test":{"id":149,"name":"PlayerStats copyWith updates fields correctly","suiteID":128,"groupIDs":[141,142],"metadata":{"skip":false,"skipReason":null},"line":87,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"testStart","time":18651}
+{"testID":149,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18661}
+{"test":{"id":150,"name":"PlayerStats copyWith maintains existing values if arguments are null","suiteID":128,"groupIDs":[141,142],"metadata":{"skip":false,"skipReason":null},"line":106,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_stats_test.dart"},"type":"testStart","time":18662}
+{"testID":132,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18663}
+{"group":{"id":151,"suiteID":119,"parentID":130,"name":"T4: Sign-out clears cache","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":64,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"group","time":18663}
+{"test":{"id":152,"name":"T4: Sign-out clears cache signOut clears session cache","suiteID":119,"groupIDs":[130,151],"metadata":{"skip":false,"skipReason":null},"line":65,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"testStart","time":18663}
+{"testID":150,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18667}
+{"testID":152,"messageType":"print","message":"[SessionCache] Cleared","type":"print","time":18716}
+{"testID":152,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18717}
+{"group":{"id":153,"suiteID":119,"parentID":130,"name":"T5: Leave game clears cache","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":82,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"group","time":18717}
+{"test":{"id":154,"name":"T5: Leave game clears cache PlayerBridge.leave clears cache","suiteID":119,"groupIDs":[130,153],"metadata":{"skip":false,"skipReason":null},"line":83,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"testStart","time":18717}
+{"suite":{"id":155,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/profile_screen_unsaved_pop_test.dart"},"type":"suite","time":18748}
+{"test":{"id":156,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/profile_screen_unsaved_pop_test.dart","suiteID":155,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":18749}
+{"testID":154,"messageType":"print","message":"[SessionCache] Cleared","type":"print","time":18752}
+{"testID":154,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18752}
+{"test":{"id":157,"name":"T5: Leave game clears cache CloudPlayerBridge.leave clears cache","suiteID":119,"groupIDs":[130,153],"metadata":{"skip":false,"skipReason":null},"line":103,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"testStart","time":18753}
+{"testID":157,"messageType":"print","message":"[SessionCache] Cleared","type":"print","time":18772}
+{"testID":157,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18773}
+{"group":{"id":158,"suiteID":119,"parentID":130,"name":"T6: Stale cache expiry","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":123,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"group","time":18774}
+{"test":{"id":159,"name":"T6: Stale cache expiry loadSession returns null and clears when entry older than 18h","suiteID":119,"groupIDs":[130,158],"metadata":{"skip":false,"skipReason":null},"line":124,"column":5,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"testStart","time":18774}
+{"testID":159,"messageType":"print","message":"[SessionCache] Dropped stale entry savedAt=2026-03-10 15:25:56.063534Z","type":"print","time":18780}
+{"testID":159,"messageType":"print","message":"[SessionCache] Cleared","type":"print","time":18780}
+{"testID":159,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18781}
+{"group":{"id":160,"suiteID":119,"parentID":130,"name":"T7/T8: Local and cloud restore (bootstrap seeds pending URL)","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":142,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"group","time":18782}
+{"test":{"id":161,"name":"T7/T8: Local and cloud restore (bootstrap seeds pending URL) local cache restore seeds pending URL with mode=local and host","suiteID":119,"groupIDs":[130,160],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":143,"root_column":5,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"testStart","time":18782}
+{"testID":161,"messageType":"print","message":"[Bootstrap] Restored local session code=NEON-LOCAL host=ws://192.168.1.100","type":"print","time":18982}
+{"testID":161,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":18983}
+{"test":{"id":162,"name":"T7/T8: Local and cloud restore (bootstrap seeds pending URL) cloud cache restore seeds pending URL with mode=cloud","suiteID":119,"groupIDs":[130,160],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":191,"root_column":5,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/player_startup_cache_checklist_test.dart"},"type":"testStart","time":18983}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":162,"messageType":"print","message":"[Bootstrap] Restored cloud session code=NEON-CLOUD","type":"print","time":19100}
+{"testID":162,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":19101}
+{"suite":{"id":163,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widgets/custom_drawer_unsaved_changes_test.dart"},"type":"suite","time":19242}
+{"test":{"id":164,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widgets/custom_drawer_unsaved_changes_test.dart","suiteID":163,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":19242}
+{"testID":138,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":19434}
+{"group":{"id":165,"suiteID":137,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":19434}
+{"test":{"id":166,"name":"GamesNightRecapScreen renders correctly","suiteID":137,"groupIDs":[165],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":8,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/games_night_recap_screen_test.dart"},"type":"testStart","time":19434}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":140,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":20187}
+{"group":{"id":167,"suiteID":139,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":null,"column":null,"url":null},"type":"group","time":20188}
+{"test":{"id":168,"name":"(setUpAll)","suiteID":139,"groupIDs":[167],"metadata":{"skip":false,"skipReason":null},"line":98,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/profile_screen_live_sync_test.dart"},"type":"testStart","time":20188}
+{"testID":168,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":20255}
+{"test":{"id":169,"name":"queues remote profile updates while dirty then applies on discard","suiteID":139,"groupIDs":[167],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":121,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/profile_screen_live_sync_test.dart"},"type":"testStart","time":20255}
+{"testID":156,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":20623}
+{"group":{"id":170,"suiteID":155,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":20623}
+{"test":{"id":171,"name":"(setUpAll)","suiteID":155,"groupIDs":[170],"metadata":{"skip":false,"skipReason":null},"line":30,"column":3,"url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/profile_screen_unsaved_pop_test.dart"},"type":"testStart","time":20624}
+{"testID":171,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":20697}
+{"test":{"id":172,"name":"profile pop asks to discard unsaved changes","suiteID":155,"groupIDs":[170],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":34,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/profile_screen_unsaved_pop_test.dart"},"type":"testStart","time":20697}
+{"testID":164,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":21213}
+{"group":{"id":173,"suiteID":163,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":21213}
+{"test":{"id":174,"name":"drawer asks to discard unsaved profile changes","suiteID":163,"groupIDs":[173],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":11,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widgets/custom_drawer_unsaved_changes_test.dart"},"type":"testStart","time":21213}
+{"testID":166,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":22348}
+{"suite":{"id":175,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widgets/profile_action_buttons_test.dart"},"type":"suite","time":22475}
+{"test":{"id":176,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widgets/profile_action_buttons_test.dart","suiteID":175,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":22475}
+{"testID":169,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":23109}
+{"test":{"id":177,"name":"queues remote profile updates while dirty then applies after save","suiteID":139,"groupIDs":[167],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":198,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/screens/profile_screen_live_sync_test.dart"},"type":"testStart","time":23110}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":177,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":23630}
+{"test":{"id":178,"name":"(tearDownAll)","suiteID":139,"groupIDs":[167],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":23631}
+{"testID":178,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":23635}
+{"suite":{"id":179,"platform":"vm","path":"C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widget_test.dart"},"type":"suite","time":23752}
+{"test":{"id":180,"name":"loading C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widget_test.dart","suiteID":179,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":23752}
+{"testID":176,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":24416}
+{"group":{"id":181,"suiteID":175,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":2,"line":null,"column":null,"url":null},"type":"group","time":24416}
+{"test":{"id":182,"name":"save button is disabled when canSave is false","suiteID":175,"groupIDs":[181],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":12,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widgets/profile_action_buttons_test.dart"},"type":"testStart","time":24417}
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":null}}]
+{"testID":174,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":24446}
+{"testID":172,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":24577}
+{"test":{"id":183,"name":"(tearDownAll)","suiteID":155,"groupIDs":[170],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":24578}
+{"testID":183,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":24594}
+{"testID":180,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":25261}
+{"group":{"id":184,"suiteID":179,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":25261}
+{"test":{"id":185,"name":"Player app smoke test","suiteID":179,"groupIDs":[184],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":14,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widget_test.dart"},"type":"testStart","time":25261}
+{"testID":182,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":25415}
+{"test":{"id":186,"name":"save button is enabled when canSave is true","suiteID":175,"groupIDs":[181],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":30,"root_column":3,"root_url":"file:///C:/Users/kimro/Documents/cb-reborn-v2/apps/player/test/widgets/profile_action_buttons_test.dart"},"type":"testStart","time":25416}
+{"testID":186,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":25472}
+{"testID":185,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":26389}
+{"success":true,"type":"done","time":26439}

@@ -13,6 +13,7 @@ import '../widgets/game_action_tile.dart';
 import '../widgets/ghost_lounge_content.dart';
 import '../widgets/mission_alert_overlay.dart';
 import '../widgets/notifications_prompt_banner.dart';
+import '../widgets/player_report_section.dart';
 import '../widgets/full_role_reveal_content.dart';
 import '../widgets/privacy_reveal_button.dart';
 
@@ -274,6 +275,26 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ),
 
               const SizedBox(height: CBSpace.x4),
+
+              // Morning / Evening Reports
+              if (gameState.phase == 'day' && gameState.nightReport.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: CBSpace.x5),
+                  child: PlayerReportSection(
+                    title: 'NIGHT ${gameState.dayCount > 1 ? gameState.dayCount - 1 : 1} REPORT',
+                    lines: gameState.nightReport,
+                    color: scheme.secondary,
+                  ),
+                ),
+              if (gameState.phase == 'night' && gameState.dayReport.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: CBSpace.x5),
+                  child: PlayerReportSection(
+                    title: 'DAY ${gameState.dayCount} REPORT',
+                    lines: gameState.dayReport,
+                    color: scheme.primary,
+                  ),
+                ),
 
               // Inlined Classified Intel (Encrypted DMs)
               if (player.roleId == RoleIds.bartender)

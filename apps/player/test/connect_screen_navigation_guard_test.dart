@@ -55,7 +55,7 @@ void main() {
           child: MaterialApp(
             navigatorObservers: [observer],
             home: const Scaffold(
-              body: ConnectScreen(),
+              body: SingleChildScrollView(child: ConnectScreen()),
             ),
           ),
         ),

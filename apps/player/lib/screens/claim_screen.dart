@@ -142,8 +142,9 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
           Expanded(
             child: availablePlayers.isEmpty
                 ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(CBSpace.x8),
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(CBSpace.x8),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -177,7 +178,7 @@ class _ClaimScreenState extends ConsumerState<ClaimScreen> {
                         ],
                       ),
                     ),
-                  )
+                  ))
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4),
                     physics: const BouncingScrollPhysics(),
