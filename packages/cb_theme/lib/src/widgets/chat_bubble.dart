@@ -15,6 +15,21 @@ enum CBMessageGroupPosition {
   bottom,
 }
 
+/// Delivery status for WhatsApp-style ticks on sent messages.
+enum CBDeliveryStatus {
+  /// No ticks shown (default for received messages).
+  none,
+
+  /// Single tick: message sent.
+  sent,
+
+  /// Single tick: message delivered to host.
+  delivered,
+
+  /// Double tick: message seen/acknowledged by host.
+  seen,
+}
+
 class CBMessageBubble extends StatelessWidget {
   final String sender;
   final String message;
@@ -25,6 +40,12 @@ class CBMessageBubble extends StatelessWidget {
   final bool isSender;
   final CBMessageGroupPosition groupPosition;
   final VoidCallback? onAvatarTap;
+
+  /// Delivery status ticks (only rendered for sender messages).
+  final CBDeliveryStatus deliveryStatus;
+
+  /// Callback when the bubble is tapped (e.g. to show timestamp details).
+  final VoidCallback? onTap;
 
   /// Deprecated: Use style instead.
   final bool? isSystemMessage;
@@ -40,6 +61,8 @@ class CBMessageBubble extends StatelessWidget {
     this.isSender = false,
     this.groupPosition = CBMessageGroupPosition.single,
     this.onAvatarTap,
+    this.deliveryStatus = CBDeliveryStatus.none,
+    this.onTap,
     @Deprecated('Use style: CBMessageStyle.system instead')
     this.isSystemMessage,
   });
@@ -163,7 +186,9 @@ class CBMessageBubble extends StatelessWidget {
         (groupPosition == CBMessageGroupPosition.top ||
             groupPosition == CBMessageGroupPosition.single);
 
-    return Padding(
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
       padding: EdgeInsets.only(
           top: (groupPosition == CBMessageGroupPosition.top ||
                   groupPosition == CBMessageGroupPosition.single)
@@ -226,34 +251,39 @@ class CBMessageBubble extends StatelessWidget {
                 ),
                 if (groupPosition == CBMessageGroupPosition.bottom ||
                     groupPosition == CBMessageGroupPosition.single)
-                  if (timestamp != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
-                      child: Text(
-                        _formatTime(timestamp!),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant
-                                  .withValues(alpha: 0.5),
-                              fontSize: 9,
-                            ),
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (timestamp != null)
+                          Text(
+                            _formatTime(timestamp!),
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant
+                                      .withValues(alpha: 0.5),
+                                  fontSize: 9,
+                                ),
+                          ),
+                        if (isSender && deliveryStatus != CBDeliveryStatus.none) ...[
+                          const SizedBox(width: 3),
+                          _buildDeliveryTicks(context),
+                        ],
+                      ],
                     ),
+                  ),
               ],
             ),
           ),
           if (isSender) ...[
             const SizedBox(width: 8),
-            // Host usually doesn't need avatar on right for every message,
-            // but if we want it, we can apply similar logic.
-            // For now, let's keep it simple and just show it if single/bottom or always?
-            // "Advanced messaging" often skips own avatar.
-            // The previous implementation showed it. I'll hide it for cleaner look unless single.
             const SizedBox(width: 32),
           ],
         ],
       ),
+    ),
     );
   }
 
@@ -281,5 +311,112 @@ class CBMessageBubble extends StatelessWidget {
 
   String _formatTime(DateTime dt) {
     return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+  }
+
+  Widget _buildDeliveryTicks(BuildContext context) {
+    final tickColor = Theme.of(context)
+        .colorScheme
+        .onSurfaceVariant
+        .withValues(alpha: 0.5);
+    const tickSize = 12.0;
+
+    // Sent: bouncing three-dot animation
+    if (deliveryStatus == CBDeliveryStatus.sent) {
+      return _BouncingDots(color: tickColor, size: 4.0);
+    }
+
+    // Seen: double tick ✓✓ in primary color
+    if (deliveryStatus == CBDeliveryStatus.seen) {
+      final seenColor = Theme.of(context).colorScheme.primary;
+      return SizedBox(
+        width: tickSize + 4,
+        height: tickSize,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              child: Icon(Icons.check, size: tickSize, color: seenColor),
+            ),
+            Positioned(
+              left: 5,
+              child: Icon(Icons.check, size: tickSize, color: seenColor),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Delivered: single tick ✓
+    return Icon(Icons.check, size: tickSize, color: tickColor);
+  }
+}
+
+/// Animated bouncing three-dot indicator for "sending..." status.
+class _BouncingDots extends StatefulWidget {
+  final Color color;
+  final double size;
+
+  const _BouncingDots({required this.color, this.size = 4.0});
+
+  @override
+  State<_BouncingDots> createState() => _BouncingDotsState();
+}
+
+class _BouncingDotsState extends State<_BouncingDots>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: widget.size * 5,
+      height: widget.size * 3,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(3, (i) {
+              // Stagger each dot by 0.2 of the animation cycle
+              final delay = i * 0.2;
+              final t = (_controller.value - delay) % 1.0;
+              // Bounce only in the first half of each dot's cycle
+              final bounce = t < 0.5
+                  ? (-4.0 * widget.size * 0.6) * (1 - (2 * t - 1) * (2 * t - 1))
+                  : 0.0;
+              return Padding(
+                padding: EdgeInsets.only(right: i < 2 ? widget.size * 0.5 : 0),
+                child: Transform.translate(
+                  offset: Offset(0, bounce),
+                  child: Container(
+                    width: widget.size,
+                    height: widget.size,
+                    decoration: BoxDecoration(
+                      color: widget.color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          );
+        },
+      ),
+    );
   }
 }

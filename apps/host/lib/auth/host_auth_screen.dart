@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cb_comms/cb_comms.dart';
 import 'package:cb_theme/cb_theme.dart';
 
@@ -47,11 +46,11 @@ class HostAuthScreen extends ConsumerWidget {
             }
           });
         }
-        return const _AuthSplash(key: ValueKey('auth_authenticated'));
+        return const SizedBox.shrink(key: ValueKey('auth_authenticated'));
       case AuthStatus.needsProfile:
         return const _ProfileSetupForm(key: ValueKey('profile'));
       case AuthStatus.error:
-        return _AuthSplash(
+        return _UsernameEntryScreen(
           key: const ValueKey('auth_error'),
           errorMessage: authState.error,
         );
@@ -75,31 +74,56 @@ class HostAuthScreen extends ConsumerWidget {
             ],
           ),
         );
-      case AuthStatus.linkSent:
-        return const _LinkSentMessage(key: ValueKey('link_sent'));
       default:
-        return const _AuthSplash(key: ValueKey('auth_splash'));
+        return _UsernameEntryScreen(
+          key: const ValueKey('auth_splash'),
+          errorMessage: authState.error,
+        );
     }
   }
 }
 
-class _AuthSplash extends ConsumerWidget {
+/// The main host entry screen — username only, no Google/email.
+class _UsernameEntryScreen extends ConsumerStatefulWidget {
   final String? errorMessage;
 
-  const _AuthSplash({super.key, this.errorMessage});
+  const _UsernameEntryScreen({super.key, this.errorMessage});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_UsernameEntryScreen> createState() =>
+      _UsernameEntryScreenState();
+}
+
+class _UsernameEntryScreenState extends ConsumerState<_UsernameEntryScreen> {
+  late final TextEditingController _publicPlayerIdController;
+  late String _selectedAvatar;
+
+  @override
+  void initState() {
+    super.initState();
+    _publicPlayerIdController = TextEditingController();
+    _selectedAvatar = clubAvatarEmojis.first;
+  }
+
+  @override
+  void dispose() {
+    _publicPlayerIdController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final notifier = ref.read(authProvider.notifier);
-    final currentLink = Uri.base.toString();
-    final isSignInLink =
-        FirebaseAuth.instance.isSignInWithEmailLink(currentLink);
+    final authState = ref.watch(authProvider);
+    final isLoading = authState.status == AuthStatus.loading;
+    final avatarChoices = clubAvatarEmojis.take(20).toList(growable: false);
 
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6, vertical: CBSpace.x12),
+        padding: const EdgeInsets.symmetric(
+            horizontal: CBSpace.x6, vertical: CBSpace.x12),
         physics: const BouncingScrollPhysics(),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -180,7 +204,7 @@ class _AuthSplash extends ConsumerWidget {
 
             const SizedBox(height: CBSpace.x16),
 
-            // ── AUTH PANEL ──
+            // ── USERNAME ENTRY PANEL ──
             CBFadeSlide(
               delay: const Duration(milliseconds: 400),
               child: CBPanel(
@@ -200,74 +224,72 @@ class _AuthSplash extends ConsumerWidget {
                     ),
                     const SizedBox(height: CBSpace.x6),
 
-                    // Enhanced Google Button
-                    CBPrimaryButton(
-                      label: 'SCAN MANAGER BADGE',
-                      icon: Icons.account_circle_outlined,
-                      onPressed: () {
-                        HapticService.heavy();
-                        notifier.signInWithGoogle();
-                      },
-                    ),
-
-                    const SizedBox(height: CBSpace.x8),
-                    Row(
-                      children: [
-                        Expanded(
-                            child: Divider(
-                                color:
-                                    scheme.onSurface.withValues(alpha: 0.1))),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4),
-                          child: Text(
-                            'MANUAL OVERRIDE',
-                            style: textTheme.labelSmall?.copyWith(
-                              color: scheme.onSurface.withValues(alpha: 0.3),
-                              fontSize: 9,
-                              letterSpacing: 2,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                            child: Divider(
-                                color:
-                                    scheme.onSurface.withValues(alpha: 0.1))),
-                      ],
-                    ),
-                    const SizedBox(height: CBSpace.x6),
-
-                    // Email Field
+                    // Manager name field
                     CBTextField(
-                      controller: notifier.emailController,
-                      hintText: 'REGISTERED EMAIL',
-                      keyboardType: TextInputType.emailAddress,
+                      controller: notifier.usernameController,
+                      hintText: 'MANAGER NAME',
+                      autofocus: true,
+                      prefixIcon: Icons.person_pin_rounded,
+                    ),
+                    const SizedBox(height: CBSpace.x4),
+
+                    // Public Player ID (optional)
+                    CBTextField(
+                      controller: _publicPlayerIdController,
+                      hintText: 'PUBLIC PLAYER ID (OPTIONAL)',
                       prefixIcon: Icons.alternate_email_rounded,
                       monospace: true,
                     ),
-                    const SizedBox(height: CBSpace.x4),
-                    CBGhostButton(
-                      label: 'SEND ACCESS LINK',
-                      icon: Icons.send_rounded,
-                      onPressed: () {
-                        HapticService.medium();
-                        notifier.sendSignInLink();
-                      },
+                    const SizedBox(height: CBSpace.x8),
+
+                    // Avatar selection
+                    Text(
+                      'CHOOSE AVATAR',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        fontSize: 10,
+                      ),
+                    ),
+                    const SizedBox(height: CBSpace.x3),
+                    Wrap(
+                      spacing: CBSpace.x3,
+                      runSpacing: CBSpace.x3,
+                      alignment: WrapAlignment.center,
+                      children: avatarChoices.map((emoji) {
+                        final selected = emoji == _selectedAvatar;
+                        return CBProfileAvatarChip(
+                          emoji: emoji,
+                          selected: selected,
+                          onTap: () {
+                            HapticService.selection();
+                            setState(() => _selectedAvatar = emoji);
+                          },
+                        );
+                      }).toList(growable: false),
+                    ),
+                    const SizedBox(height: CBSpace.x10),
+
+                    // Enter button
+                    CBPrimaryButton(
+                      label: isLoading
+                          ? 'VERIFYING CLEARANCE...'
+                          : 'OPEN THE CLUB',
+                      backgroundColor: scheme.primary,
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              HapticService.heavy();
+                              notifier.signInAnonymouslyWithUsername(
+                                publicPlayerId:
+                                    _publicPlayerIdController.text.trim(),
+                                avatarEmoji: _selectedAvatar,
+                              );
+                            },
                     ),
 
-                    if (isSignInLink) ...[
-                      const SizedBox(height: CBSpace.x3),
-                      CBPrimaryButton(
-                        label: 'COMPLETE AUTHENTICATION',
-                        backgroundColor: scheme.tertiary,
-                        onPressed: () {
-                          HapticService.heavy();
-                          notifier.completeSignInFromCurrentLink();
-                        },
-                      ),
-                    ],
-
-                    if (errorMessage != null) ...[
+                    if (widget.errorMessage != null) ...[
                       const SizedBox(height: CBSpace.x6),
                       CBGlassTile(
                         borderColor: scheme.error.withValues(alpha: 0.5),
@@ -279,7 +301,7 @@ class _AuthSplash extends ConsumerWidget {
                             const SizedBox(width: CBSpace.x4),
                             Expanded(
                               child: Text(
-                                'ACCESS DENIED: ${errorMessage!.toUpperCase()}',
+                                'ACCESS DENIED: ${widget.errorMessage!.toUpperCase()}',
                                 style: textTheme.labelSmall?.copyWith(
                                   color: scheme.error,
                                   fontWeight: FontWeight.w900,
@@ -314,80 +336,8 @@ class _AuthSplash extends ConsumerWidget {
   }
 }
 
-class _LinkSentMessage extends ConsumerWidget {
-  const _LinkSentMessage({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-    final notifier = ref.read(authProvider.notifier);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(CBSpace.x8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CBFadeSlide(
-              child: Container(
-                padding: const EdgeInsets.all(CBSpace.x8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: scheme.tertiary.withValues(alpha: 0.1),
-                  border: Border.all(
-                      color: scheme.tertiary.withValues(alpha: 0.5), width: 2),
-                  boxShadow: CBColors.circleGlow(scheme.tertiary, intensity: 0.4),
-                ),
-                child: Icon(Icons.mark_email_read_rounded,
-                    color: scheme.tertiary, size: 64),
-              ),
-            ),
-            const SizedBox(height: CBSpace.x12),
-            CBFadeSlide(
-              delay: const Duration(milliseconds: 100),
-              child: Text(
-                'LINK DISPATCHED',
-                style: textTheme.headlineMedium?.copyWith(
-                  color: scheme.tertiary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 4,
-                  shadows: CBColors.textGlow(scheme.tertiary),
-                ),
-              ),
-            ),
-            const SizedBox(height: CBSpace.x6),
-            CBFadeSlide(
-              delay: const Duration(milliseconds: 200),
-              child: Text(
-                'CHECK YOUR ENCRYPTED INBOX. OPENING THE LINK WILL GRANT YOU FULL TERMINAL ACCESS.',
-                textAlign: TextAlign.center,
-                style: textTheme.bodyLarge?.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.8),
-                  height: 1.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: CBSpace.x16),
-            CBFadeSlide(
-              delay: const Duration(milliseconds: 300),
-              child: CBGhostButton(
-                label: 'USE DIFFERENT CREDENTIALS',
-                icon: Icons.refresh_rounded,
-                onPressed: () {
-                  HapticService.light();
-                  notifier.reset();
-                },
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
+/// Fallback for returning anonymous hosts who have a Firebase session
+/// but lost their Firestore profile.
 class _ProfileSetupForm extends ConsumerStatefulWidget {
   const _ProfileSetupForm({super.key});
 
@@ -434,10 +384,14 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                   decoration: BoxDecoration(
                     color: scheme.secondary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
-                    border: Border.all(color: scheme.secondary.withValues(alpha: 0.4), width: 2),
-                    boxShadow: CBColors.circleGlow(scheme.secondary, intensity: 0.3),
+                    border: Border.all(
+                        color: scheme.secondary.withValues(alpha: 0.4),
+                        width: 2),
+                    boxShadow:
+                        CBColors.circleGlow(scheme.secondary, intensity: 0.3),
                   ),
-                  child: Icon(Icons.badge_rounded, color: scheme.secondary, size: 64),
+                  child: Icon(Icons.badge_rounded,
+                      color: scheme.secondary, size: 64),
                 ),
               ),
             ),
@@ -529,7 +483,8 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                           : () {
                               HapticService.heavy();
                               notifier.saveUsername(
-                                publicPlayerId: _publicPlayerIdController.text.trim(),
+                                publicPlayerId:
+                                    _publicPlayerIdController.text.trim(),
                                 avatarEmoji: _selectedAvatar,
                               );
                             },
@@ -548,7 +503,8 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                       Text(
                         authState.error!.toUpperCase(),
                         textAlign: TextAlign.center,
-                        style: textTheme.labelSmall?.copyWith(color: scheme.error, fontWeight: FontWeight.w800),
+                        style: textTheme.labelSmall?.copyWith(
+                            color: scheme.error, fontWeight: FontWeight.w800),
                       ),
                     ],
                   ],
@@ -584,7 +540,8 @@ class CBProfileAvatarChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(CBRadius.pill),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: CBSpace.x2),
+        padding: const EdgeInsets.symmetric(
+            horizontal: CBSpace.x3, vertical: CBSpace.x2),
         decoration: BoxDecoration(
           color: selected
               ? scheme.secondary.withValues(alpha: 0.22)

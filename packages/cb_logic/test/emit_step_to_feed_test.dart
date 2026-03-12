@@ -174,7 +174,7 @@ void main() {
       expect(found, true);
     });
 
-    test('emitCurrentStepNarrationVariationToFeed adds AI narrative event',
+    test('emitCurrentStepNarrationVariationToFeed adds narrative variation event',
         () async {
       _addMockPlayers(game, 6);
       game.autoAssignRoles();
@@ -189,11 +189,11 @@ void main() {
       final after = container.read(gameProvider);
       expect(after.feedEvents.length, greaterThan(before.feedEvents.length));
 
-      final aiEvent = after.feedEvents.last;
-      expect(aiEvent.type, FeedEventType.narrative);
-      expect(aiEvent.title, contains('AI VARIATION'));
-      expect(aiEvent.content.trim(), isNotEmpty);
-      expect(aiEvent.stepId, before.currentStep!.id);
+      final variationEvent = after.feedEvents.last;
+      expect(variationEvent.type, FeedEventType.narrative);
+      expect(variationEvent.title, contains('HOST VARIATION'));
+      expect(variationEvent.content.trim(), isNotEmpty);
+      expect(variationEvent.stepId, before.currentStep!.id);
     });
 
     test('emitCurrentStepNarrationVariationToFeed returns false when no step',

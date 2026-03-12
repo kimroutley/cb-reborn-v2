@@ -43,9 +43,9 @@ class DeathResolutionStrategy implements NightActionStrategy {
 
       if (context.protectedPlayerIds.contains(targetId)) {
         final victim = context.getPlayer(targetId);
-        context.addReport('A murder attempt on ${victim.name} was thwarted.');
+        context.addReport('There was an altercation in the VIP section, but security broke it up. Another hit was narrowly avoided.');
         context.addTeaser(
-            'A patron barely escaped a close encounter with "the staff".');
+            'Someone barely escaped a close encounter with the floor.');
         continue;
       }
 

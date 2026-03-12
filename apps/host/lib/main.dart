@@ -29,16 +29,6 @@ Future<void> main() async {
   runApp(ProviderScope(
     overrides: [
       sharedPrefsProvider.overrideWithValue(prefs),
-      geminiNarrationServiceProvider.overrideWith((ref) {
-        final settings = ref.watch(hostSettingsProvider);
-        return GeminiNarrationService(
-          apiKey: settings.geminiApiKey,
-          enabled: settings.geminiNarrationEnabled,
-        );
-      }),
-      activeHostPersonalityIdProvider.overrideWith((ref) {
-        return ref.watch(hostSettingsProvider).hostPersonalityId;
-      }),
     ],
     child: const HostApp(),
   ));

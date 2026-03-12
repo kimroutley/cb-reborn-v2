@@ -43,10 +43,10 @@ Before testing Host sign-in, confirm all 5 are true:
 
 ## Run
 
-```powershell
-cd apps/host
-$env:GEMINI_API_KEY="<YOUR_GEMINI_API_KEY>"
-flutter run --dart-define=GEMINI_API_KEY=$env:GEMINI_API_KEY
+To run the host app in development:
+
+```bash
+flutter run
 ```
 
 ## Build + Install (Android, Windows)

@@ -62,7 +62,7 @@ abstract class GameState with _$GameState {
     // Host configuration
     @Default(300) int discussionTimerSeconds,
     @Default(SyncMode.local) SyncMode syncMode,
-    @Default(GameStyle.chaos) GameStyle gameStyle,
+    @Default(GameStyle.anythingGoes) GameStyle gameStyle,
     @Default(TieBreakStrategy.peaceful) TieBreakStrategy tieBreakStrategy,
     @Default(true) bool eyesOpen,
 

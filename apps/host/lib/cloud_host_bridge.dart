@@ -270,6 +270,36 @@ class CloudHostBridge {
             continue;
           }
 
+          if (type == 'chat') {
+            final playerId = data['playerId'] as String? ?? '';
+            final playerName = (data['playerName'] as String?) ??
+                (payload['playerName'] as String?) ??
+                (payload['title'] as String?) ??
+                'Unknown';
+            final message = (data['message'] as String?) ??
+                (payload['message'] as String?) ??
+                (payload['content'] as String?) ??
+                '';
+
+            if (playerId.isNotEmpty && message.trim().isNotEmpty) {
+              String? roleId;
+              try {
+                final player = _ref.read(gameProvider).players.firstWhere((p) => p.id == playerId);
+                roleId = player.role.id;
+              } catch (_) {}
+
+              _ref.read(gameProvider.notifier).postBulletin(
+                    title: playerName,
+                    content: message.trim(),
+                    type: 'chat',
+                    roleId: roleId,
+                    deliveryStatus: MessageDeliveryStatus.delivered,
+                  );
+              debugPrint('[CloudHostBridge] Chat from $playerName ($playerId)');
+            }
+            continue;
+          }
+
           if (type == 'dead_pool_bet') {
             final playerId = data['playerId'] as String? ?? '';
             final targetPlayerId =
@@ -311,6 +341,15 @@ class CloudHostBridge {
             if (playerId.isNotEmpty) {
               _ref.read(sessionProvider.notifier).confirmRole(playerId);
               debugPrint('[CloudHostBridge] Role confirmed: $playerId');
+            }
+            continue;
+          }
+
+          if (type == 'player_claim') {
+            final playerId = data['playerId'] as String? ?? '';
+            if (playerId.isNotEmpty) {
+              _ref.read(sessionProvider.notifier).claimPlayer(playerId);
+              debugPrint('[CloudHostBridge] Player identity claimed: $playerId');
             }
             continue;
           }
@@ -519,6 +558,7 @@ class CloudHostBridge {
       'roleConfirmedPlayerIds': roleConfirmedPlayerIds,
       'rematchOffered': game.rematchOffered,
       'gameHistory': game.gameHistory.isNotEmpty ? game.gameHistory : null,
+      'bulletinBoard': game.bulletinBoard.map((b) => b.toJson()).toList(),
       'updatedAt': DateTime.now().millisecondsSinceEpoch,
     };
 
@@ -599,7 +639,9 @@ class CloudHostBridge {
       game.gameHistory,
       game.deadPoolBets,
       game.privateMessages,
+      game.bulletinBoard,
       session.claimedPlayerIds,
+      session.roleConfirmedPlayerIds,
     );
   }
 

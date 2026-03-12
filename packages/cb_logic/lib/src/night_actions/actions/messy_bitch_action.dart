@@ -29,10 +29,11 @@ class MessyBitchAction implements NightActionStrategy {
         final target = context.getPlayer(targetId);
         context.addPrivateMessage(
             bitch.id, 'You leaked info on ${target.name}.');
-        context.addReport('MB spread rumor on ${target.name}.');
+        context.addReport('A scandalous rumor about ${target.name} spread like wildfire. They look highly suspicious today.');
         context.addTeaser('Juicy rumors about ${target.name}...');
         context.updatePlayer(target.copyWith(hasRumour: true));
       }
     }
   }
 }
+

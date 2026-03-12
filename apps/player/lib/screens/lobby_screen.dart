@@ -50,28 +50,47 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
     super.dispose();
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _chatController.text.trim();
     if (text.isEmpty) return;
     HapticService.medium();
 
-    final player = ref.read(activeBridgeProvider).state.myPlayerSnapshot;
-    if (player == null) {
-      ref.read(activeBridgeProvider).actions.sendBulletin(
-            title: 'LOUNGE',
-            floatContent: text,
-            roleId: null,
-          );
-    } else {
-      ref.read(activeBridgeProvider).actions.sendBulletin(
-            title: player.roleName,
-            floatContent: text,
-            roleId: player.roleId,
-          );
-    }
+    final bridge = ref.read(activeBridgeProvider);
+    final player = bridge.state.myPlayerSnapshot;
+    final myPlayerId = bridge.state.myPlayerId;
 
+    debugPrint('[LobbyChat] Sending message: myPlayerId=$myPlayerId, '
+        'hasPlayer=${player != null}, text="${text.length > 20 ? '${text.substring(0, 20)}...' : text}"');
+
+    // Clear input immediately for responsive UX
     _chatController.clear();
     FocusScope.of(context).unfocus();
+
+    try {
+      if (player == null) {
+        await bridge.actions.sendBulletin(
+              title: 'LOUNGE',
+              floatContent: text,
+              roleId: null,
+            );
+      } else {
+        await bridge.actions.sendBulletin(
+              title: player.roleName,
+              floatContent: text,
+              roleId: player.roleId,
+            );
+      }
+      debugPrint('[LobbyChat] Message sent successfully');
+    } catch (e) {
+      debugPrint('[LobbyChat] SEND FAILED: $e');
+      if (mounted) {
+        showThemedSnackBar(
+          context,
+          'MESSAGE FAILED TO SEND. CHECK CONNECTION.',
+          accentColor: Theme.of(context).colorScheme.error,
+        );
+      }
+    }
   }
 
   Future<void> _showPlayerGuideDialog(BuildContext context) async {
@@ -538,24 +557,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: onboarding.awaitingStartConfirmation
-          ? Padding(
-              padding: const EdgeInsets.fromLTRB(CBSpace.x6, CBSpace.x2, CBSpace.x6, CBSpace.x6),
-              child: SafeArea(
-                top: false,
-                child: CBPrimaryButton(
-                  label: 'CONFIRM & JOIN',
-                  icon: Icons.fingerprint_rounded,
-                  onPressed: () {
-                    HapticService.heavy();
-                    ref
-                        .read(playerOnboardingProvider.notifier)
-                        .setAwaitingStartConfirmation(true);
-                  },
-                ),
-              ),
-            )
-          : null,
     );
   }
 
@@ -577,26 +578,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
   }) {
     return [
       const NotificationsPromptBanner(),
-
-        if (gameState.phase != 'lobby' && gameState.phase != 'setup')
-          Padding(
-            padding: const EdgeInsets.only(bottom: CBSpace.x6),
-            child: CBFadeSlide(
-              child: CBGlassTile(
-                borderColor: scheme.primary.withValues(alpha: 0.5),
-                isPrismatic: true,
-                padding: const EdgeInsets.all(CBSpace.x4),
-                child: CBPrimaryButton(
-                  label: "LET'S GO!",
-                  icon: Icons.rocket_launch_rounded,
-                  onPressed: () {
-                    HapticService.heavy();
-                    ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.game);
-                  },
-                ),
-              ),
-            ),
-          ),
 
         if (pushState.isSupported &&
             pushState.permissionStatus ==
@@ -817,9 +798,6 @@ class _LobbyScreenState extends ConsumerState<LobbyScreen> {
                     .read(activeBridgeProvider)
                     .actions
                     .confirmRole(playerId: currentPlayer.id);
-                ref
-                    .read(playerOnboardingProvider.notifier)
-                    .setAwaitingStartConfirmation(true);
                 Navigator.pop(context);
               },
             ),
@@ -903,10 +881,11 @@ List<Widget> _buildLoungeFeed(PlayerGameState gameState, ColorScheme scheme) {
             message: entry.content,
             style: entry.type == 'system'
                 ? CBMessageStyle.system
-                : CBMessageStyle.narrative,
+                : (entry.type == 'chat' ? CBMessageStyle.standard : CBMessageStyle.narrative),
             color: color,
             avatarAsset: entry.roleId != null ? role.assetPath : null,
             groupPosition: groupPosition,
+            isSender: entry.roleId == myPlayer?.roleId,
           );
         } catch (_) {
           return const SizedBox.shrink();

@@ -137,26 +137,30 @@ If these package/bundle IDs differ in your Firebase projects, update the auth ga
 
 5. **Launch the apps**
 
-   **Gemini API key (required for AI narration):**
-
-   ```powershell
-   # Current key for this environment
-   $env:GEMINI_API_KEY="<YOUR_GEMINI_API_KEY>"
-   ```
-
    **Player App (Mobile/Web):**
 
    ```bash
    cd apps/player
-   flutter run --dart-define=GEMINI_API_KEY=$env:GEMINI_API_KEY
+   flutter run
    ```
 
    **Host App (Desktop/Tablet):**
 
    ```bash
    cd apps/host
-   flutter run -d <device-id> --dart-define=GEMINI_API_KEY=$env:GEMINI_API_KEY
+   flutter run -d <device-id>
    ```
+
+### Running on Mobile (Android/iOS)
+
+1.  **Select Target Device:**
+    Make sure your emulator/simulator is running or a physical device is connected.
+2.  **Run Command:**
+    ```powershell
+    cd apps/player
+    flutter run
+    ```
+    *(Repeat for Host app if testing host functionality on mobile)*
 
 ### Build + Install (Android Host, Windows)
 

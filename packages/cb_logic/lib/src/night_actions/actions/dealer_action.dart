@@ -32,8 +32,8 @@ class DealerAction implements NightActionStrategy {
         context.dealerAttacks[dealer.id] = targetId;
         context.addPrivateMessage(dealer.id, 'Target acquired.');
 
-        context.addReport('Dealer target: ${target.name}.');
       }
     }
   }
 }
+

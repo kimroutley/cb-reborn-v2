@@ -304,18 +304,16 @@ class _GameStyleSection extends StatelessWidget {
           ...GameStyle.values.map((style) {
             final isSelected = currentStyle == style;
             final styleColor = switch (style) {
-              GameStyle.offensive => scheme.error,
-              GameStyle.defensive => scheme.tertiary,
-              GameStyle.reactive => scheme.secondary,
+              GameStyle.anythingGoes => scheme.primary,
+              GameStyle.politicalMF => scheme.tertiary,
+              GameStyle.wtf => scheme.error,
               GameStyle.manual => scheme.onSurface.withValues(alpha: 0.6),
-              GameStyle.chaos => scheme.primary,
             };
             final styleIcon = switch (style) {
-              GameStyle.offensive => Icons.local_fire_department_rounded,
-              GameStyle.defensive => Icons.shield_rounded,
-              GameStyle.reactive => Icons.psychology_rounded,
+              GameStyle.anythingGoes => Icons.casino_rounded,
+              GameStyle.politicalMF => Icons.psychology_rounded,
+              GameStyle.wtf => Icons.local_fire_department_rounded,
               GameStyle.manual => Icons.touch_app_rounded,
-              GameStyle.chaos => Icons.casino_rounded,
             };
 
             return Padding(

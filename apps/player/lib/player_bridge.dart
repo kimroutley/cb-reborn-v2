@@ -186,7 +186,7 @@ class PlayerGameState {
       players: players,
       currentStep: currentStep,
       bulletinBoard: sanitizePublicBulletinEntries(bulletin,
-          myRoleId: myPlayerSnapshot?.roleId),
+          myRoleId: myPlayerSnapshot?.roleId, myPlayerId: myPlayerId),
       eyesOpen: map['eyesOpen'] as bool? ?? true,
       winner: map['winner'] as String?,
       endGameReport: _toStringList(map['endGameReport']),
@@ -293,6 +293,7 @@ class PlayerGameState {
   static List<BulletinEntry> sanitizePublicBulletinEntries(
     List<BulletinEntry> entries, {
     String? myRoleId,
+    String? myPlayerId,
   }) {
     if (entries.isEmpty) {
       return const <BulletinEntry>[];
@@ -300,7 +301,8 @@ class PlayerGameState {
 
     final out = <BulletinEntry>[];
     for (final entry in entries) {
-      final safe = _toPlayerSafeBulletin(entry, myRoleId: myRoleId);
+      final safe = _toPlayerSafeBulletin(entry,
+          myRoleId: myRoleId, myPlayerId: myPlayerId);
       if (safe != null) {
         out.add(safe);
       }
@@ -309,9 +311,16 @@ class PlayerGameState {
   }
 
   static BulletinEntry? _toPlayerSafeBulletin(BulletinEntry entry,
-      {String? myRoleId}) {
+      {String? myRoleId, String? myPlayerId}) {
     // SECURITY: Explicit host-only check
     if (entry.isHostOnly) {
+      return null;
+    }
+
+    // SECURITY: Player-targeted filtering (private messages / whispers)
+    if (entry.targetPlayerId != null &&
+        entry.targetPlayerId!.isNotEmpty &&
+        entry.targetPlayerId != myPlayerId) {
       return null;
     }
 
@@ -879,7 +888,8 @@ class PlayerBridge extends Notifier<PlayerGameState>
         players: players,
         currentStep: step,
         bulletinBoard: PlayerGameState.sanitizePublicBulletinEntries(bulletin,
-            myRoleId: updatedMyPlayerSnapshot?.roleId),
+            myRoleId: updatedMyPlayerSnapshot?.roleId,
+            myPlayerId: updatedMyPlayerId),
         eyesOpen: eyesOpen,
         winner: winner,
         endGameReport: _toStringList(payload['endGameReport']),

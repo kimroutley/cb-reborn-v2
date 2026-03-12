@@ -3,7 +3,9 @@ import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../ai_recap_export.dart';
+import 'package:flutter/services.dart';
+
+import '../host_settings.dart';
 
 class AIExportPanel extends ConsumerWidget {
   const AIExportPanel({super.key});
@@ -20,14 +22,14 @@ class AIExportPanel extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CBSectionHeader(
-            title: 'AI MISSION RECAP',
-            icon: Icons.auto_awesome_rounded,
+            title: 'MISSION LOG EXPORT',
+            icon: Icons.receipt_long_rounded,
             color: scheme.secondary,
           ),
           const SizedBox(height: CBSpace.x4),
 
           Text(
-            'GENERATE A GEMINI-READY PROMPT FOR AN IMMERSIVE MISSION DEBRIEF.',
+            'COPY THE RAW MISSION LOG TO YOUR CLIPBOARD FOR ARCHIVING OR EXTERNAL USE.',
             style: textTheme.bodySmall!.copyWith(
               color: scheme.onSurface.withValues(alpha: 0.6),
               fontWeight: FontWeight.w700,
@@ -39,14 +41,17 @@ class AIExportPanel extends ConsumerWidget {
           const SizedBox(height: CBSpace.x5),
 
           CBPrimaryButton(
-            label: 'GENERATE AI PROMPT',
-            icon: Icons.auto_awesome_rounded,
+            label: 'COPY GAME LOG',
+            icon: Icons.copy_rounded,
             backgroundColor: scheme.secondary,
             onPressed: () {
               HapticService.heavy();
-              showAIRecapExportMenu(
-                context: context,
-                controller: ref.read(gameProvider.notifier),
+              final log = ref.read(gameProvider.notifier).exportGameLog();
+              Clipboard.setData(ClipboardData(text: log));
+              showThemedSnackBar(
+                context,
+                'MISSION LOG COPIED TO CLIPBOARD.',
+                accentColor: scheme.secondary,
               );
             },
           ),

@@ -10,35 +10,26 @@ class HostSettings {
   final double sfxVolume;
   final double musicVolume;
   final bool highContrast;
-  final bool geminiNarrationEnabled;
   final String hostPersonalityId;
-  final String geminiApiKey;
 
   const HostSettings({
     required this.sfxVolume,
     required this.musicVolume,
     required this.highContrast,
-    required this.geminiNarrationEnabled,
     required this.hostPersonalityId,
-    required this.geminiApiKey,
   });
 
   HostSettings copyWith({
     double? sfxVolume,
     double? musicVolume,
     bool? highContrast,
-    bool? geminiNarrationEnabled,
     String? hostPersonalityId,
-    String? geminiApiKey,
   }) {
     return HostSettings(
       sfxVolume: sfxVolume ?? this.sfxVolume,
       musicVolume: musicVolume ?? this.musicVolume,
       highContrast: highContrast ?? this.highContrast,
-      geminiNarrationEnabled:
-          geminiNarrationEnabled ?? this.geminiNarrationEnabled,
       hostPersonalityId: hostPersonalityId ?? this.hostPersonalityId,
-      geminiApiKey: geminiApiKey ?? this.geminiApiKey,
     );
   }
 
@@ -46,9 +37,7 @@ class HostSettings {
     sfxVolume: 1.0,
     musicVolume: 1.0,
     highContrast: false,
-    geminiNarrationEnabled: true,
     hostPersonalityId: 'noir_narrator',
-    geminiApiKey: '',
   );
 }
 
@@ -56,9 +45,7 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
   static const _keySfxVolume = 'sfxVolume';
   static const _keyMusicVolume = 'musicVolume';
   static const _keyHighContrast = 'highContrast';
-  static const _keyGeminiNarrationEnabled = 'geminiNarrationEnabled';
   static const _keyHostPersonalityId = 'hostPersonalityId';
-  static const _keyGeminiApiKey = 'geminiApiKey';
 
   @override
   HostSettings build() {
@@ -73,18 +60,13 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
       final sfxVolume = prefs.getDouble(_keySfxVolume);
       final musicVolume = prefs.getDouble(_keyMusicVolume);
       final highContrast = prefs.getBool(_keyHighContrast);
-      final geminiNarrationEnabled = prefs.getBool(_keyGeminiNarrationEnabled);
       final hostPersonalityId = prefs.getString(_keyHostPersonalityId);
-      final geminiApiKey = prefs.getString(_keyGeminiApiKey);
 
       state = state.copyWith(
         sfxVolume: (sfxVolume ?? state.sfxVolume).clamp(0.0, 1.0),
         musicVolume: (musicVolume ?? state.musicVolume).clamp(0.0, 1.0),
         highContrast: highContrast ?? state.highContrast,
-        geminiNarrationEnabled:
-            geminiNarrationEnabled ?? state.geminiNarrationEnabled,
         hostPersonalityId: hostPersonalityId ?? state.hostPersonalityId,
-        geminiApiKey: geminiApiKey ?? state.geminiApiKey,
       );
 
       _applySideEffects(state);
@@ -99,20 +81,13 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
       await prefs.setDouble(_keySfxVolume, next.sfxVolume);
       await prefs.setDouble(_keyMusicVolume, next.musicVolume);
       await prefs.setBool(_keyHighContrast, next.highContrast);
-      await prefs.setBool(
-          _keyGeminiNarrationEnabled, next.geminiNarrationEnabled);
       await prefs.setString(_keyHostPersonalityId, next.hostPersonalityId);
-      await prefs.setString(_keyGeminiApiKey, next.geminiApiKey);
     } catch (e) {
       // Best-effort
     }
   }
 
-  void toggleGeminiNarration() {
-    final next = !state.geminiNarrationEnabled;
-    state = state.copyWith(geminiNarrationEnabled: next);
-    _persist(state);
-  }
+
 
   void setSfxVolume(double value) {
     state = state.copyWith(sfxVolume: value.clamp(0.0, 1.0));
@@ -131,12 +106,7 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
     unawaited(_persist(next));
   }
 
-  void setGeminiNarrationEnabled(bool enabled) {
-    final next = state.copyWith(geminiNarrationEnabled: enabled);
-    state = next;
-    _applySideEffects(next);
-    unawaited(_persist(next));
-  }
+
 
   void setHostPersonalityId(String id) {
     final next = state.copyWith(hostPersonalityId: id);
@@ -145,12 +115,7 @@ class HostSettingsNotifier extends Notifier<HostSettings> {
     unawaited(_persist(next));
   }
 
-  void setGeminiApiKey(String apiKey) {
-    final next = state.copyWith(geminiApiKey: apiKey);
-    state = next;
-    _applySideEffects(next);
-    unawaited(_persist(next));
-  }
+
 
   void _applySideEffects(HostSettings settings) {
     SoundService.setVolume(settings.sfxVolume);

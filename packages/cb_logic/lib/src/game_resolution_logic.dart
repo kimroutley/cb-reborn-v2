@@ -39,17 +39,30 @@ class WinResult {
 class GameResolutionLogic {
   static List<Player> assignRoles(
     List<Player> players, {
-    GameStyle gameStyle = GameStyle.chaos,
+    GameStyle gameStyle = GameStyle.anythingGoes,
   }) {
     final rng = Random();
     final count = players.length;
-    final staffCount = max(1, count ~/ 5);
+
+    // ── 0. Manual style: no auto-assignment ──
+    if (gameStyle == GameStyle.manual) return players;
+
+    // ── 1. Dealer count formula ──
+    // ≤6 → 1, 7-10 → 2, then +1 per 3 beyond 10.
+    int dealerCount;
+    if (count <= 6) {
+      dealerCount = 1;
+    } else if (count <= 10) {
+      dealerCount = 2;
+    } else {
+      dealerCount = 2 + ((count - 10) / 3).ceil();
+    }
 
     final shuffledPlayers = [...players]..shuffle(rng);
     var assigned = <Player>[];
 
-    // 1. Assign Dealer(s)
-    for (var i = 0; i < staffCount; i++) {
+    // ── 2. Assign Dealer(s) ──
+    for (var i = 0; i < dealerCount && shuffledPlayers.isNotEmpty; i++) {
       final p = shuffledPlayers.removeAt(0);
       assigned.add(p.copyWith(
         role: roleCatalogMap[RoleIds.dealer]!,
@@ -57,9 +70,22 @@ class GameResolutionLogic {
       ));
     }
 
-    // 2. Assign Required roles if any
+    // ── 3. Assign base required roles: Medic, Bouncer, Party Animal ──
+    const baseRoleIds = [RoleIds.medic, RoleIds.bouncer, RoleIds.partyAnimal];
+    for (final roleId in baseRoleIds) {
+      if (shuffledPlayers.isNotEmpty) {
+        final role = roleCatalogMap[roleId]!;
+        final p = shuffledPlayers.removeAt(0);
+        assigned.add(p.copyWith(role: role, alliance: role.alliance));
+      }
+    }
+
+    // ── 4. Assign remaining isRequired roles (e.g. Wallflower) ──
     final requiredRoles = roleCatalog
-        .where((r) => r.isRequired && r.id != RoleIds.dealer)
+        .where((r) =>
+            r.isRequired &&
+            r.id != RoleIds.dealer &&
+            !baseRoleIds.contains(r.id))
         .toList();
     for (final role in requiredRoles) {
       if (shuffledPlayers.isNotEmpty) {
@@ -68,16 +94,23 @@ class GameResolutionLogic {
       }
     }
 
-    // 3. Assign remaining roles using game-style pool
+    // ── 5. Fill remaining slots from game-style pool ──
     final modePool = gameStyle.rolePool.toSet();
-    final poolRoleIds = modePool.where((id) => id != RoleIds.dealer).toSet();
+    // Exclude roles already guaranteed by base assignment.
+    final excludedIds = {
+      RoleIds.dealer,
+      RoleIds.medic,
+      RoleIds.bouncer,
+      RoleIds.partyAnimal,
+      ...requiredRoles.map((r) => r.id),
+    };
     final scopedPool = roleCatalog
-        .where((r) => !r.isRequired && r.id != RoleIds.dealer)
-        .where((r) => poolRoleIds.isEmpty || poolRoleIds.contains(r.id))
+        .where((r) => !excludedIds.contains(r.id))
+        .where((r) => modePool.isEmpty || modePool.contains(r.id))
         .toList();
 
     final fallbackPool = roleCatalog
-        .where((r) => !r.isRequired && r.id != RoleIds.dealer)
+        .where((r) => !excludedIds.contains(r.id))
         .toList();
 
     var remainingRoles = scopedPool.isEmpty ? fallbackPool : [...scopedPool];
@@ -85,6 +118,7 @@ class GameResolutionLogic {
     while (shuffledPlayers.isNotEmpty) {
       final p = shuffledPlayers.removeAt(0);
       if (remainingRoles.isEmpty) {
+        // Overflow: assign Party Animal (the only repeatable non-staff role)
         final partyAnimal = roleCatalogMap[RoleIds.partyAnimal]!;
         assigned
             .add(p.copyWith(role: partyAnimal, alliance: partyAnimal.alliance));
@@ -96,7 +130,7 @@ class GameResolutionLogic {
       if (!role.canRepeat) remainingRoles.remove(role);
     }
 
-    // 4. Special Initialization for multi-life roles
+    // ── 6. Special Initialization for multi-life roles ──
     final actualStaffCount =
         assigned.where((p) => p.alliance == Team.clubStaff).length;
     assigned = assigned.map((p) {
@@ -416,23 +450,26 @@ class GameResolutionLogic {
     }
 
     int actualDealers = 0;
-    int clubStaffAllies = 0;
     int partyAnimals = 0;
     int neutrals = 0;
+    bool hasLivingClubManager = false;
 
     for (final p in livingPlayers) {
       if (p.role.id == RoleIds.dealer) {
         actualDealers++;
-      } else if (p.alliance == Team.clubStaff) {
-        clubStaffAllies++;
+      } else if (p.role.id == RoleIds.clubManager) {
+        hasLivingClubManager = true;
+        // Club Manager is neutral — don't count toward any other faction.
       } else if (p.alliance == Team.partyAnimals) {
         partyAnimals++;
       } else if (p.alliance == Team.neutral) {
         neutrals++;
       }
+      // Dealer allies (Whore, Silver Fox, etc.) are clubStaff but do NOT
+      // count toward the dealer win ratio — they are ignored here.
     }
 
-    // All of the dealers get voted off. Dealer ally are not part of the dealer 'lives'.
+    // All of the dealers get voted off. Dealer allies are not part of the dealer 'lives'.
     final hadActualDealers = players.any((p) => p.role.id == RoleIds.dealer);
 
     if (hadActualDealers && actualDealers == 0) {
@@ -448,9 +485,24 @@ class GameResolutionLogic {
           report: ['Only a Dealer and a Neutral remain. The Neutral outmaneuvers the Dealer. Neutral wins!']);
     }
 
-    // 1 Dealer + 1 Party Animal = Dealer Wins.
-    // (Dealer also generally wins if Club Staff numbers meet or exceed remaining players)
-    if ((actualDealers + clubStaffAllies) >= (partyAnimals + neutrals) && actualDealers > 0) {
+    // Club Manager solo win: Dealer(s) + Club Manager + Party Animal(s) alive.
+    // The Club Manager has manipulated both sides and claims victory.
+    if (hasLivingClubManager && actualDealers > 0 && partyAnimals > 0) {
+      final cmName = livingPlayers
+          .firstWhere((p) => p.role.id == RoleIds.clubManager)
+          .name;
+      return WinResult(
+          winner: Team.neutral,
+          report: [
+            'The Club Manager ($cmName) played both sides and wins! '
+                'With Dealers and Party Animals still fighting, '
+                'the Manager takes the crown.',
+          ]);
+    }
+
+    // Dealer wins when actual Dealers outnumber or equal remaining opponents.
+    // Dealer allies do NOT count toward this ratio.
+    if (actualDealers >= (partyAnimals + neutrals) && actualDealers > 0) {
       return WinResult(
           winner: Team.clubStaff,
           report: ['The Dealers have taken over the club. Staff win!']);
@@ -541,23 +593,10 @@ class GameResolutionLogic {
   }
 
   static GameState applyWinResult(GameState state, WinResult win) {
-    final winningReport = List<String>.from(win.report);
-    if (win.winner != Team.neutral) {
-      final livingManagers = state.players.where(
-        (p) => p.isAlive && p.role.id == RoleIds.clubManager,
-      );
-      if (livingManagers.isNotEmpty) {
-        final managerNames = livingManagers.map((p) => p.name).join(', ');
-        winningReport.add(
-          'Club Manager survived and wins with the house: $managerNames.',
-        );
-      }
-    }
-
     return state.copyWith(
       phase: GamePhase.endGame,
       winner: win.winner,
-      endGameReport: winningReport,
+      endGameReport: win.report,
       scriptQueue: const [],
       scriptIndex: 0,
     );

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileRepository {
   ProfileRepository({FirebaseFirestore? firestore})
@@ -154,6 +155,53 @@ class ProfileRepository {
       transaction.set(docRef, payload, SetOptions(merge: true));
     });
   }
+
+  // ── Email Recovery ──────────────────────────────────────────────────
+
+  /// Whether [user] has an email/password provider linked.
+  static bool hasLinkedEmail(User user) {
+    return user.providerData.any((info) => info.providerId == 'password');
+  }
+
+  /// Links an email + password credential to the current anonymous [user],
+  /// then persists the email in the Firestore profile document.
+  ///
+  /// Throws [FirebaseAuthException] on failure (e.g. email already in use,
+  /// weak password).
+  Future<void> linkRecoveryEmail({
+    required User user,
+    required String email,
+    required String password,
+  }) async {
+    final credential = EmailAuthProvider.credential(
+      email: email.trim(),
+      password: password,
+    );
+    await user.linkWithCredential(credential);
+
+    // Persist in Firestore profile so the wallet view can display it.
+    await _profiles.doc(user.uid).update({
+      'email': email.trim(),
+      'emailLower': email.trim().toLowerCase(),
+      'emailMasked': maskEmail(email.trim()),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Unlinks the email/password provider from [user] and clears Firestore
+  /// email fields.
+  Future<void> unlinkRecoveryEmail({required User user}) async {
+    await user.unlink('password');
+
+    await _profiles.doc(user.uid).update({
+      'email': FieldValue.delete(),
+      'emailLower': FieldValue.delete(),
+      'emailMasked': FieldValue.delete(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────
 
   static String normalizePublicPlayerId(String input) {
     return input.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9_-]'), '');

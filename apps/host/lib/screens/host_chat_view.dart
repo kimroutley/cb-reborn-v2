@@ -371,9 +371,7 @@ class _HostChatViewState extends ConsumerState<HostChatView> {
                             sender: senderName.toUpperCase(),
                             message: entry.content,
                             timestamp: entry.timestamp,
-                            style: isHost
-                                ? CBMessageStyle.narrative
-                                : CBMessageStyle.standard,
+                            style: CBMessageStyle.standard,
                             color: bubbleColor,
                             isSender: isHost,
                             avatarAsset: avatarAsset,

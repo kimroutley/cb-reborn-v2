@@ -14,7 +14,6 @@ The `cb_logic` package contains the core game engine and state transitions for C
 
 - Dynamic host script generation for setup, night, and day phases.
 - Role-specific host prompts (including reactive/passive role support).
-- Optional Gemini narration integration for themed recap output.
 
 ### State management
 

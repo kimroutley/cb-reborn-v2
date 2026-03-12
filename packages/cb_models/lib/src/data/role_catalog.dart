@@ -428,9 +428,9 @@ const List<Role> roleCatalog = [
     type: 'Investigative',
     complexity: 3,
     tacticalTip:
-        'Survival is your only goal. Gather intel to stay ahead of the curve, but don\'t become such a threat that the Dealers target you.',
+        'Play both sides. Gather intel to stay ahead, but don\'t become such a threat that either side targets you. You win when the Dealers and Party Animals are deadlocked.',
     description:
-        'Every night, secretly look at a fellow player\'s role card. Objective is pure self-survival.',
+        'Every night, secretly look at a fellow player\'s role card. Wins when both Dealers and Party Animals are still alive — the Manager played both sides.',
     nightPriority: 25,
     ability: 'Sight Card',
     assetPath: 'assets/roles/club_manager.png',
@@ -438,7 +438,7 @@ const List<Role> roleCatalog = [
     lore:
         "This is your club. These are your people. Or at least, they were. Now you're just trying to survive the night without getting caught in the crossfire. You see everything, but you say nothing.",
     detailedAbility:
-        "Each night, you can look at the role card of one other player. You learn their exact role. Your goal is simply to survive until the end of the game, regardless of who wins.",
+        "Each night, you can look at the role card of one other player. You learn their exact role. Your unique win condition: if the game reaches a point where you, at least one Dealer, and at least one Party Animal are all alive, YOU win — not the Dealers, not the Party Animals. You played both sides and took the crown.",
     synergies: [RoleIds.bouncer, RoleIds.wallflower],
     counters: [RoleIds.dealer, RoleIds.roofi],
   ),

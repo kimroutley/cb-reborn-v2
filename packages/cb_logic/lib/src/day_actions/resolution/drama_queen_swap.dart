@@ -93,10 +93,10 @@ DramaQueenSwapResolution resolveDramaQueenSwaps({
     );
 
     lines.add(
-      'Drama Queen chaos: ${targetA.name} and ${targetB.name} swapped roles.',
+      'The Drama Queen went down swinging! In a massive twist of fate, ${targetA.name} and ${targetB.name} just completely swapped lives.',
     );
     lines.add(
-      'Drama Queen reveal: ${targetA.name} is now ${targetB.role.name}, ${targetB.name} is now ${targetA.role.name}.',
+      'Spilling the tea: ${targetA.name} is now playing ${targetB.role.name}, and ${targetB.name} is stuck being ${targetA.role.name}. Good luck with that context switch.',
     );
 
     privateMessages.putIfAbsent(targetA.id, () => []).add(

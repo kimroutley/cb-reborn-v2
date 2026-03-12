@@ -113,8 +113,8 @@ void main() {
       final state = container.read(gameProvider);
       final dealerCount =
           state.players.where((p) => p.role.id == 'dealer').length;
-      // For 12 players: floor(12/5) = 2 dealers (minimum 1)
-      expect(dealerCount, 2);
+      // For 12 players: 2 + ceil((12-10)/3) = 3 dealers
+      expect(dealerCount, 3);
     });
 
     test('Seasoned Drinker gets lives equal to dealer count', () {
@@ -1167,32 +1167,37 @@ void main() {
       expect(gs.phase, GamePhase.setup);
     });
 
-    test('alive Club Manager is included as co-winner in endGameReport', () {
+    test('Club Manager wins when Dealer + CM + PA are alive', () {
       game.addPlayer('Dealer');
       game.addPlayer('Manager');
-      game.addPlayer('PA');
+      game.addPlayer('PA1');
+      game.addPlayer('PA2');
 
       final state = container.read(gameProvider);
       final dealerId = state.players[0].id;
       final managerId = state.players[1].id;
-      final partyId = state.players[2].id;
+      final pa1Id = state.players[2].id;
+      final pa2Id = state.players[3].id;
 
       game.assignRole(dealerId, RoleIds.dealer);
       game.assignRole(managerId, RoleIds.clubManager);
-      game.assignRole(partyId, RoleIds.partyAnimal);
+      game.assignRole(pa1Id, RoleIds.partyAnimal);
+      game.assignRole(pa2Id, RoleIds.partyAnimal);
 
-      // Trigger a Staff win while Manager remains alive.
-      game.forceKillPlayer(partyId);
+      // Kill one PA — still Dealer + CM + 1 PA alive → CM wins
+      game.forceKillPlayer(pa1Id);
 
       final gs = container.read(gameProvider);
       expect(gs.phase, GamePhase.endGame);
-      expect(gs.winner, Team.clubStaff);
+      expect(gs.winner, Team.neutral);
       expect(
-        gs.endGameReport.any((line) =>
-            line.contains('Club Manager survived and wins with the house')),
+        gs.endGameReport.any((line) => line.contains('Club Manager')),
         true,
       );
-      expect(gs.endGameReport.any((line) => line.contains('Manager')), true);
+      expect(
+        gs.endGameReport.any((line) => line.contains('played both sides')),
+        true,
+      );
     });
   });
 

@@ -24,87 +24,83 @@ enum Team {
 
 @JsonEnum()
 enum GameStyle {
-  offensive, // "Blood Bath" - high kill/aggression
-  defensive, // "Last One Standing" - high protection/tank
-  reactive, // "Whodunit" - high investigation/information
+  anythingGoes, // Completely random after base roles
+  politicalMF, // Defensive/neutral roles, Party Animal-favoured
+  wtf, // More Dealer allies, reactive players, Dealer-favoured
   manual, // Host assigns all roles manually
-  chaos, // "Free For All" - all 22 roles possible
 }
 
 extension GameStyleExtension on GameStyle {
   String get label {
     switch (this) {
-      case GameStyle.offensive:
-        return 'BLOOD_BATH';
-      case GameStyle.defensive:
-        return 'POLITICAL';
-      case GameStyle.reactive:
-        return 'CHAOS';
+      case GameStyle.anythingGoes:
+        return 'ANYTHING GOES';
+      case GameStyle.politicalMF:
+        return 'POLITICAL MIND F**K';
+      case GameStyle.wtf:
+        return 'WTF';
       case GameStyle.manual:
         return 'MANUAL';
-      case GameStyle.chaos:
-        return 'FREE_FOR_ALL';
     }
   }
 
   String get description {
     switch (this) {
-      case GameStyle.offensive:
-        return 'High aggression. More kills, less protection.';
-      case GameStyle.defensive:
-        return 'Strategic social play with balanced pressure.';
-      case GameStyle.reactive:
-        return 'Guide CHAOS mode with weighted disruptive roles.';
+      case GameStyle.anythingGoes:
+        return 'Completely random roles after the base are filled. One role per player, overflow becomes Party Animals.';
+      case GameStyle.politicalMF:
+        return 'Defensive & neutral roles. Odds favour the Party Animals, but the right cast can swing it.';
+      case GameStyle.wtf:
+        return 'More Dealer allies, reactive players. Odds are stacked for the Dealers.';
       case GameStyle.manual:
         return 'Host assigns every role before setup starts.';
-      case GameStyle.chaos:
-        return 'Legacy full random from all available roles.';
     }
   }
 
+  /// The pool of role IDs available for this game style.
+  ///
+  /// Base roles (Dealer, Medic, Bouncer, Party Animal) are always assigned
+  /// first by the algorithm regardless of this pool. The pool only controls
+  /// which *extra* roles can fill remaining player slots.
+  ///
+  /// An empty pool means either all roles (anythingGoes) or host-selected
+  /// (manual).
   List<String> get rolePool {
     switch (this) {
-      case GameStyle.offensive:
+      case GameStyle.anythingGoes:
+        return []; // Empty = all non-base roles are eligible
+      case GameStyle.politicalMF:
+        // Defensive, protective, tank, investigative, neutral — NO offensive,
+        // NO reactive, NO extra dealer-staff allies (Whore, Silver Fox).
         return [
-          RoleIds.dealer,
-          RoleIds.whore,
-          RoleIds.roofi,
-          RoleIds.predator,
-          RoleIds.dramaQueen,
-          RoleIds.teaSpiller,
-          RoleIds.messyBitch,
-          RoleIds.partyAnimal,
-        ];
-      case GameStyle.defensive:
-        return [
-          RoleIds.dealer,
-          RoleIds.silverFox,
-          RoleIds.medic,
           RoleIds.sober,
           RoleIds.minor,
           RoleIds.seasonedDrinker,
-          RoleIds.bouncer,
-          RoleIds.secondWind,
-          RoleIds.partyAnimal,
-        ];
-      case GameStyle.reactive:
-        return [
-          RoleIds.dealer,
-          RoleIds.silverFox,
-          RoleIds.bouncer,
-          RoleIds.wallflower,
           RoleIds.allyCat,
-          RoleIds.bartender,
-          RoleIds.teaSpiller,
-          RoleIds.lightweight,
+          RoleIds.secondWind,
+          RoleIds.messyBitch,
           RoleIds.clubManager,
+          RoleIds.clinger,
           RoleIds.creep,
-          RoleIds.partyAnimal,
+          RoleIds.bartender,
+          RoleIds.lightweight,
+          RoleIds.wallflower,
+        ];
+      case GameStyle.wtf:
+        // Staff allies + reactive roles — stacks odds for the Dealers.
+        return [
+          RoleIds.whore,
+          RoleIds.silverFox,
+          RoleIds.roofi,
+          RoleIds.teaSpiller,
+          RoleIds.predator,
+          RoleIds.dramaQueen,
+          RoleIds.secondWind,
+          RoleIds.lightweight,
+          RoleIds.messyBitch,
         ];
       case GameStyle.manual:
         return []; // Host chooses roles directly.
-      case GameStyle.chaos:
-        return []; // Empty means all roles
     }
   }
 }

@@ -87,7 +87,7 @@ void main() {
           addTearDown(container.dispose);
           final game = container.read(gameProvider.notifier);
 
-          game.setGameStyle(GameStyle.offensive);
+          game.setGameStyle(GameStyle.anythingGoes);
 
           // Add 15 generic players
           for (var i = 0; i < 15; i++) {
@@ -112,7 +112,7 @@ void main() {
           addTearDown(container.dispose);
           final game = container.read(gameProvider.notifier);
 
-          game.setGameStyle(GameStyle.defensive);
+          game.setGameStyle(GameStyle.politicalMF);
 
           for (var i = 0; i < 12; i++) {
             game.addPlayer('Player_$i');

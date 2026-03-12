@@ -144,10 +144,9 @@ void main() {
 
     test('multi-style invariant soak completes repeatedly', () {
       final styles = <GameStyle>[
-        GameStyle.offensive,
-        GameStyle.defensive,
-        GameStyle.reactive,
-        GameStyle.chaos,
+        GameStyle.anythingGoes,
+        GameStyle.politicalMF,
+        GameStyle.wtf,
       ];
 
       const runsPerStyle = 8;

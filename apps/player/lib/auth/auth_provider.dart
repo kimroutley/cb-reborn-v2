@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cb_comms/cb_comms_player.dart';
 import 'package:cb_logic/cb_logic.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../player_session_cache.dart';
 
 @immutable
@@ -38,7 +36,6 @@ enum AuthStatus {
 class AuthNotifier extends Notifier<AuthState> {
   FirebaseAuth? _auth;
   FirebaseFirestore? _firestore;
-  GoogleSignIn? _googleSignIn;
   StreamSubscription? _userSub;
 
   final usernameController = TextEditingController();
@@ -52,18 +49,20 @@ class AuthNotifier extends Notifier<AuthState> {
     final currentUser = _auth!.currentUser;
 
     _userSub?.cancel();
-    _userSub = _auth!.authStateChanges().listen((user) async {
-      if (user != null) {
-        state = AuthState(AuthStatus.loading, user: user);
-        final profile = await _loadProfile(user);
-        if (profile.exists) {
-          state = AuthState(AuthStatus.authenticated, user: user);
+    _userSub = _auth!.authStateChanges().listen((user) {
+      Future.microtask(() async {
+        if (user != null) {
+          state = AuthState(AuthStatus.loading, user: user);
+          final profile = await _loadProfile(user);
+          if (profile.exists) {
+            state = AuthState(AuthStatus.authenticated, user: user);
+          } else {
+            state = AuthState(AuthStatus.needsProfile, user: user);
+          }
         } else {
-          state = AuthState(AuthStatus.needsProfile, user: user);
+          state = const AuthState(AuthStatus.unauthenticated);
         }
-      } else {
-        state = const AuthState(AuthStatus.unauthenticated);
-      }
+      });
     });
 
     ref.onDispose(() {
@@ -78,7 +77,12 @@ class AuthNotifier extends Notifier<AuthState> {
     return const AuthState(AuthStatus.initial);
   }
 
-  Future<void> signInWithGoogle() async {
+  /// Signs in anonymously with Firebase and immediately saves the username
+  /// profile. This is the single entry-point for the player app.
+  Future<void> signInAnonymouslyWithUsername({
+    String? publicPlayerId,
+    String? avatarEmoji,
+  }) async {
     if (!_ensureFirebaseServices()) {
       state = const AuthState(
         AuthStatus.error,
@@ -87,38 +91,97 @@ class AuthNotifier extends Notifier<AuthState> {
       return;
     }
 
+    final username = usernameController.text.trim();
+    if (username.length < 3) {
+      state = state.copyWith(
+        status: state.user != null
+            ? AuthStatus.needsProfile
+            : AuthStatus.unauthenticated,
+        error: 'Username must be at least 3 characters.',
+      );
+      return;
+    }
+
     state = state.copyWith(status: AuthStatus.loading);
+
     try {
-      if (kIsWeb) {
-        await _auth!.signInWithPopup(GoogleAuthProvider());
+      // If not already signed in anonymously, do so now.
+      User? user = _auth!.currentUser;
+      if (user == null) {
+        final credential = await _auth!.signInAnonymously();
+        user = credential.user;
+      }
+      if (user == null) {
+        state = const AuthState(
+          AuthStatus.error,
+          error: 'Failed to create anonymous session.',
+        );
         return;
       }
 
-      _googleSignIn ??= GoogleSignIn.instance;
-      await _googleSignIn!.initialize();
-      final GoogleSignInAccount googleUser =
-          await _googleSignIn!.authenticate();
+      // Save profile
+      final repository = ProfileRepository(firestore: _firestore!);
+      final trimmedPublicPlayerId = publicPlayerId?.trim();
+      final trimmedAvatarEmoji = avatarEmoji?.trim();
 
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
+      final usernameAvailable = await repository.isUsernameAvailable(
+        username,
+        excludingUid: user.uid,
       );
+      if (!usernameAvailable) {
+        state = AuthState(
+          AuthStatus.needsProfile,
+          user: user,
+          error: 'Handle already claimed. Choose a different moniker.',
+        );
+        return;
+      }
 
-      await _auth!.signInWithCredential(credential);
+      if (trimmedPublicPlayerId != null && trimmedPublicPlayerId.isNotEmpty) {
+        final publicPlayerIdAvailable =
+            await repository.isPublicPlayerIdAvailable(
+          trimmedPublicPlayerId,
+          excludingUid: user.uid,
+        );
+        if (!publicPlayerIdAvailable) {
+          state = AuthState(
+            AuthStatus.needsProfile,
+            user: user,
+            error: 'Public player ID already registered. Try another tag.',
+          );
+          return;
+        }
+      }
+
+      await repository.upsertBasicProfile(
+        uid: user.uid,
+        username: username,
+        email: null, // Anonymous users have no email
+        isHost: false,
+        publicPlayerId:
+            (trimmedPublicPlayerId == null || trimmedPublicPlayerId.isEmpty)
+                ? null
+                : trimmedPublicPlayerId,
+        avatarEmoji: (trimmedAvatarEmoji == null || trimmedAvatarEmoji.isEmpty)
+            ? null
+            : trimmedAvatarEmoji,
+      );
+      state = AuthState(AuthStatus.authenticated, user: user);
     } catch (e, stack) {
-      final String stackString = stack.toString();
-      final String truncatedStack = stackString.length > 100
-          ? stackString.substring(0, 100)
-          : stackString;
-      AnalyticsService.logError(
-        e.toString(),
-        stackTrace: truncatedStack,
+      final stackString = stack.toString();
+      final truncatedStack = stackString.length <= 100
+          ? stackString
+          : stackString.substring(0, 100);
+      AnalyticsService.logError(e.toString(), stackTrace: truncatedStack);
+      state = AuthState(
+        AuthStatus.error,
+        error: 'Failed to establish identity. System breach.',
       );
-      state = AuthState(AuthStatus.error,
-          error: 'Terminal link failed. Biometric interference detected.');
     }
   }
 
+  /// Saves a username for an existing anonymous user who is missing a profile
+  /// (e.g. returning user whose profile was lost).
   Future<void> saveUsername({
     String? publicPlayerId,
     String? avatarEmoji,
@@ -212,10 +275,6 @@ class AuthNotifier extends Notifier<AuthState> {
       return;
     }
 
-    if (!kIsWeb) {
-      _googleSignIn ??= GoogleSignIn.instance;
-      await _googleSignIn?.signOut();
-    }
     await _auth!.signOut();
     state = const AuthState(AuthStatus.unauthenticated);
   }

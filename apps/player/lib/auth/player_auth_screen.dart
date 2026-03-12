@@ -56,22 +56,24 @@ class PlayerAuthScreen extends ConsumerWidget {
       AuthState authState, ColorScheme scheme) {
     switch (authState.status) {
       case AuthStatus.initial:
-        return const _AuthBootScreen(key: ValueKey('auth_boot'));
+      case AuthStatus.unauthenticated:
+        return _UsernameEntryScreen(
+          key: const ValueKey('username_entry'),
+          errorMessage: authState.error,
+        );
       case AuthStatus.needsProfile:
         return _ProfileSetupForm(key: const ValueKey('profile'));
       case AuthStatus.loading:
         return authState.user != null
             ? const _AuthBootScreen(key: ValueKey('auth_boot_loading'))
-            : _AuthSplash(key: const ValueKey('auth_splash_loading'));
+            : const _AuthBootScreen(key: ValueKey('auth_splash_loading'));
       case AuthStatus.error:
-        return _AuthSplash(
+        return _UsernameEntryScreen(
           key: const ValueKey('auth_error'),
           errorMessage: authState.error,
         );
       case AuthStatus.authenticated:
         return Container();
-      default:
-        return const _AuthSplash(key: ValueKey('auth_splash'));
     }
   }
 }
@@ -165,20 +167,47 @@ class _AuthLoadingDialog extends StatelessWidget {
   }
 }
 
-class _AuthSplash extends ConsumerWidget {
+/// The main entry screen — username only, no Google button.
+class _UsernameEntryScreen extends ConsumerStatefulWidget {
   final String? errorMessage;
 
-  const _AuthSplash({super.key, this.errorMessage});
+  const _UsernameEntryScreen({super.key, this.errorMessage});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_UsernameEntryScreen> createState() =>
+      _UsernameEntryScreenState();
+}
+
+class _UsernameEntryScreenState extends ConsumerState<_UsernameEntryScreen> {
+  late final TextEditingController _publicPlayerIdController;
+  late String _selectedAvatar;
+
+  @override
+  void initState() {
+    super.initState();
+    _publicPlayerIdController = TextEditingController();
+    _selectedAvatar = clubAvatarEmojis.first;
+  }
+
+  @override
+  void dispose() {
+    _publicPlayerIdController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final notifier = ref.read(authProvider.notifier);
+    final authState = ref.watch(authProvider);
+    final isLoading = authState.status == AuthStatus.loading;
+    final avatarChoices = clubAvatarEmojis.take(20).toList(growable: false);
 
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x6, vertical: CBSpace.x12),
+        padding: const EdgeInsets.symmetric(
+            horizontal: CBSpace.x6, vertical: CBSpace.x12),
         physics: const BouncingScrollPhysics(),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -199,7 +228,8 @@ class _AuthSplash extends ConsumerWidget {
                   ),
                   border: Border.all(
                       color: scheme.primary.withValues(alpha: 0.5), width: 2),
-                  boxShadow: CBColors.circleGlow(scheme.primary, intensity: 0.4),
+                  boxShadow:
+                      CBColors.circleGlow(scheme.primary, intensity: 0.4),
                 ),
                 child: Hero(
                   tag: 'auth_icon',
@@ -236,15 +266,16 @@ class _AuthSplash extends ConsumerWidget {
                         fontWeight: FontWeight.w900,
                         letterSpacing: 6,
                         height: 0.9,
-                        color: scheme.onSurface, // Masked by ShaderMask
-                        shadows: CBColors.textGlow(scheme.primary, intensity: 0.6),
+                        color: scheme.onSurface,
+                        shadows: CBColors.textGlow(scheme.primary,
+                            intensity: 0.6),
                       ),
                     ),
                   ),
                   const SizedBox(height: CBSpace.x4),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: CBSpace.x4, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: CBSpace.x4, vertical: 6),
                     decoration: BoxDecoration(
                         color: scheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(CBRadius.pill),
@@ -261,7 +292,8 @@ class _AuthSplash extends ConsumerWidget {
                   ),
                   const SizedBox(height: CBSpace.x8),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: CBSpace.x4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: CBSpace.x4),
                     child: Text(
                       "TONIGHT IS THE NIGHT. THE MUSIC IS LOUD, THE LIGHTS ARE LOW, AND EVERYONE HAS A SECRET.\n\nCAN YOU SURVIVE UNTIL THE LIGHTS COME ON?",
                       textAlign: TextAlign.center,
@@ -279,7 +311,7 @@ class _AuthSplash extends ConsumerWidget {
 
             const SizedBox(height: CBSpace.x16),
 
-            // ── LOGIN SECTION ──
+            // ── USERNAME ENTRY SECTION ──
             CBFadeSlide(
               delay: const Duration(milliseconds: 400),
               child: CBPanel(
@@ -293,13 +325,14 @@ class _AuthSplash extends ConsumerWidget {
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.5,
-                        shadows: CBColors.textGlow(scheme.primary, intensity: 0.4),
+                        shadows: CBColors.textGlow(scheme.primary,
+                            intensity: 0.4),
                       ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: CBSpace.x2),
                     Text(
-                      'SHOW YOUR INVITE TO THE BOUNCER.',
+                      'WHAT DO THEY CALL YOU ON THE DANCE FLOOR?',
                       style: textTheme.labelSmall?.copyWith(
                         color: scheme.onSurface.withValues(alpha: 0.4),
                         fontWeight: FontWeight.w800,
@@ -309,8 +342,69 @@ class _AuthSplash extends ConsumerWidget {
                     ),
                     const SizedBox(height: CBSpace.x8),
 
-                    // Enhanced Google Button
-                    _buildGoogleButton(context, notifier, scheme),
+                    // Username field
+                    CBTextField(
+                      controller: notifier.usernameController,
+                      hintText: 'YOUR MONIKER',
+                      autofocus: true,
+                      prefixIcon: Icons.person_outline,
+                    ),
+                    const SizedBox(height: CBSpace.x4),
+
+                    // Public Player ID (optional)
+                    CBTextField(
+                      controller: _publicPlayerIdController,
+                      hintText: 'PUBLIC PLAYER ID (OPTIONAL)',
+                      prefixIcon: Icons.alternate_email_rounded,
+                      monospace: true,
+                    ),
+                    const SizedBox(height: CBSpace.x8),
+
+                    // Avatar selection
+                    Text(
+                      'CHOOSE AVATAR',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
+                        fontSize: 10,
+                      ),
+                    ),
+                    const SizedBox(height: CBSpace.x3),
+                    Wrap(
+                      spacing: CBSpace.x3,
+                      runSpacing: CBSpace.x3,
+                      alignment: WrapAlignment.center,
+                      children: avatarChoices.map((emoji) {
+                        final selected = emoji == _selectedAvatar;
+                        return CBProfileAvatarChip(
+                          emoji: emoji,
+                          selected: selected,
+                          onTap: () {
+                            HapticService.selection();
+                            setState(() => _selectedAvatar = emoji);
+                          },
+                        );
+                      }).toList(growable: false),
+                    ),
+                    const SizedBox(height: CBSpace.x10),
+
+                    // Enter button
+                    CBPrimaryButton(
+                      label:
+                          isLoading ? 'GETTING YOU IN...' : 'ENTER THE CLUB',
+                      backgroundColor: scheme.primary,
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              HapticService.heavy();
+                              notifier.signInAnonymouslyWithUsername(
+                                publicPlayerId:
+                                    _publicPlayerIdController.text.trim(),
+                                avatarEmoji: _selectedAvatar,
+                              );
+                            },
+                    ),
 
                     const SizedBox(height: CBSpace.x6),
 
@@ -318,7 +412,9 @@ class _AuthSplash extends ConsumerWidget {
                     TextButton(
                       onPressed: () {
                         HapticService.selection();
-                        ref.read(playerNavigationProvider.notifier).setDestination(PlayerDestination.guides);
+                        ref
+                            .read(playerNavigationProvider.notifier)
+                            .setDestination(PlayerDestination.guides);
                       },
                       child: Column(
                         children: [
@@ -341,7 +437,7 @@ class _AuthSplash extends ConsumerWidget {
                       ),
                     ),
 
-                    if (errorMessage != null) ...[
+                    if (widget.errorMessage != null) ...[
                       const SizedBox(height: CBSpace.x6),
                       CBGlassTile(
                         borderColor: scheme.error.withValues(alpha: 0.5),
@@ -353,7 +449,7 @@ class _AuthSplash extends ConsumerWidget {
                             const SizedBox(width: CBSpace.x4),
                             Expanded(
                               child: Text(
-                                'ACCESS DENIED: ${errorMessage!.toUpperCase()}',
+                                'ACCESS DENIED: ${widget.errorMessage!.toUpperCase()}',
                                 style: textTheme.labelSmall?.copyWith(
                                   color: scheme.error,
                                   fontWeight: FontWeight.w900,
@@ -386,55 +482,10 @@ class _AuthSplash extends ConsumerWidget {
       ),
     );
   }
-
-  Widget _buildGoogleButton(
-      BuildContext context, AuthNotifier notifier, ColorScheme scheme) {
-    return InkWell(
-      onTap: () {
-        HapticService.heavy();
-        notifier.signInWithGoogle();
-      },
-      borderRadius: BorderRadius.circular(CBRadius.md),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: CBSpace.x5),
-        decoration: BoxDecoration(
-          color: scheme.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(CBRadius.md),
-          border: Border.all(color: scheme.primary.withValues(alpha: 0.6)),
-          boxShadow: [
-            BoxShadow(
-              color: scheme.primary.withValues(alpha: 0.15),
-              blurRadius: 12,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.network(
-              'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
-              height: 24,
-              errorBuilder: (context, error, stackTrace) =>
-                  Icon(Icons.login, color: scheme.primary, size: 24),
-            ),
-            const SizedBox(width: CBSpace.x4),
-            Text(
-              'SHOW VIP PASS (GOOGLE)',
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    letterSpacing: 1.5,
-                    fontSize: 14,
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.w900,
-                  ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
+/// Fallback for returning anonymous users who have a Firebase session
+/// but lost their Firestore profile.
 class _ProfileSetupForm extends ConsumerStatefulWidget {
   const _ProfileSetupForm({super.key});
 
@@ -482,10 +533,14 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                   decoration: BoxDecoration(
                     color: scheme.secondary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
-                    border: Border.all(color: scheme.secondary.withValues(alpha: 0.4), width: 2),
-                    boxShadow: CBColors.circleGlow(scheme.secondary, intensity: 0.3),
+                    border: Border.all(
+                        color: scheme.secondary.withValues(alpha: 0.4),
+                        width: 2),
+                    boxShadow:
+                        CBColors.circleGlow(scheme.secondary, intensity: 0.3),
                   ),
-                  child: Icon(Icons.badge_rounded, color: scheme.secondary, size: 64),
+                  child: Icon(Icons.badge_rounded,
+                      color: scheme.secondary, size: 64),
                 ),
               ),
             ),
@@ -499,7 +554,8 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                   color: scheme.secondary,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
-                  shadows: CBColors.textGlow(scheme.secondary, intensity: 0.6),
+                  shadows:
+                      CBColors.textGlow(scheme.secondary, intensity: 0.6),
                 ),
               ),
             ),
@@ -530,7 +586,8 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.5,
-                        shadows: CBColors.textGlow(scheme.secondary, intensity: 0.4),
+                        shadows: CBColors.textGlow(scheme.secondary,
+                            intensity: 0.4),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -595,10 +652,12 @@ class _ProfileSetupFormState extends ConsumerState<_ProfileSetupForm> {
                     const SizedBox(height: CBSpace.x4),
                     CBGhostButton(
                       label: 'WALK AWAY',
-                      onPressed: isLoading ? null : () {
-                        HapticService.light();
-                        notifier.signOut();
-                      },
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              HapticService.light();
+                              notifier.signOut();
+                            },
                     ),
                     if (authState.error != null) ...[
                       const SizedBox(height: CBSpace.x5),
@@ -644,7 +703,8 @@ class CBProfileAvatarChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(CBRadius.pill),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: CBSpace.x2),
+        padding: const EdgeInsets.symmetric(
+            horizontal: CBSpace.x3, vertical: CBSpace.x2),
         decoration: BoxDecoration(
           color: selected
               ? scheme.secondary.withValues(alpha: 0.22)

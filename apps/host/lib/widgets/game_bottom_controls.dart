@@ -133,7 +133,9 @@ class GameBottomControls extends StatelessWidget {
                   icon: isMultiSelect ? Icons.check_circle_rounded : Icons.arrow_forward_rounded,
                   onPressed: isMultiSelect 
                       ? (canConfirm ? onConfirm : null)
-                      : onContinue,
+                      : (isSelection || isBinary)
+                          ? (canConfirm ? onContinue : null)
+                          : onContinue,
                 ),
               ),
             ],
@@ -256,7 +258,7 @@ class GameBottomControls extends StatelessWidget {
 
   Widget _buildBinaryChoice(BuildContext context, ScriptStep step, Game controller) {
     final scheme = Theme.of(context).colorScheme;
-    final options = step.instructionText.split('|');
+    final options = step.options.isNotEmpty ? step.options : ['YES', 'NO'];
     final left = options.isNotEmpty ? options[0].trim() : 'YES';
     final right = options.length > 1 ? options[1].trim() : 'NO';
     final currentVal = gameState.actionLog[step.id];

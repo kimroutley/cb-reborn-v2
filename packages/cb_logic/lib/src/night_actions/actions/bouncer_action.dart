@@ -48,7 +48,7 @@ class BouncerAction implements NightActionStrategy {
         );
       }
 
-      context.addReport('Bouncer checked ${target.name}.');
     }
   }
 }
+

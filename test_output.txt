@@ -1,0 +1,96 @@
+﻿00:00 +0: loading C:/Users/kimro/Documents/cb-reborn-v2/packages/cb_logic/test/game_provider_test.dart
+00:00 +0: Lobby initial state is lobby phase
+00:00 +1: Lobby addPlayer adds to roster
+00:00 +2: Lobby addPlayer stores authUid if provided
+00:00 +3: Lobby removePlayer removes from roster
+00:00 +4: Lobby assignRole sets Ally Cat lives to 9
+00:00 +5: Game Start startGame assigns roles and transitions to setup
+00:00 +6: Game Start role assignment respects dealer ratio
+00:00 +7: Game Start Seasoned Drinker gets lives equal to dealer count
+00:00 +8: Game Start setup gate blocks repeated advancePhase without feed emission or script index increment
+00:00 +9: Day Vote Resolution majority vote exiles a player
+00:00 +10: Day Vote Resolution abstain majority skips vote
+00:00 +11: Medic Interaction medic choice sets medicChoice and hasReviveToken
+00:00 +12: Medic Interaction medic protect choice does not set revive token
+00:00 +13: Creep / Clinger / Drama Queen Setup creep setup stores target and copies alliance
+00:00 +14: Creep / Clinger / Drama Queen Setup clinger setup stores partner id
+00:00 +15: Creep / Clinger / Drama Queen Setup drama queen setup stores two target ids
+00:00 +16: Whore Interaction whore act stores deflection target
+00:00 +17: Wallflower Observation PEEKED keeps wallflower hidden and does not set gawked player
+00:00 +18: Wallflower Observation PEEKED stores private intel for wallflower from dealer target
+00:00 +19: Wallflower Observation GAWKED report is emitted once and cleared for next night
+[GeminiNarrationService] No API key found. Using local fallback narration.
+[GeminiNarrationService] No API key found. Using local fallback narration.
+00:00 +20: Day Vote Tally votes accumulate correctly
+00:00 +21: Day Vote Tally changing vote updates tally
+00:00 +22: Day Vote Tally duplicate vote is ignored
+00:00 +23: Day Vote Tally silenced player cannot cast a day vote
+00:00 +24: Day Vote Tally resetDayVotes clears all votes
+00:00 +25: Clinger Day Vote Enforcement clinger cannot vote before partner has voted
+00:00 +26: Clinger Day Vote Enforcement clinger vote must match partner vote while partner is alive
+00:00 +27: Minor ID minor_id sets minorHasBeenIDd flag
+00:00 +28: Second Wind CONVERT sets alliance to clubStaff and joinsNextNight
+00:00 +29: Second Wind EXECUTE kills the player
+00:00 +30: Return to Lobby returnToLobby resets all state
+00:00 +31: Script Builder setup script includes intro and role assignment
+00:00 +32: Script Builder setup includes medic choice step when medic present
+00:00 +33: Script Builder setup includes creep step when creep present
+00:00 +34: Script Builder setup includes clinger step when clinger present
+00:00 +35: Script Builder setup includes wallflower notice when wallflower present
+00:00 +36: Script Builder night script includes dealer step
+00:00 +37: Script Builder night script includes wallflower observation after dealer
+00:00 +38: Script Builder day script includes timer and vote step
+00:00 +39: Script Builder day script includes second wind conversion when pending
+00:00 +40: Session joinCode is generated as NEON-XXXXXX
+00:00 +41: Session claimPlayer adds to claimed list
+00:00 +42: Session double claim returns false
+00:00 +43: Session releasePlayer removes from claimed
+00:00 +44: Force Kill forceKillPlayer marks player dead with host_kick reason
+00:00 +45: Force Kill forceKillPlayer adds to gameHistory
+00:00 +46: Game History night resolution adds history entries
+00:00 +47: Discussion Timer default discussion timer is 300
+00:00 +48: Wallflower Witness wallflower intel is delivered from host observation step
+00:00 +49: Script Builder Timer buildDayScript auto-calculates timer from alive players
+00:00 +50: Script Builder Timer buildDayScript clamps timer to max 300s
+00:00 +51: Script Builder Timer buildDayScript default timer is 300 with no players
+00:00 +52: Day Resolution Private Messages day resolution returns privateMessages from death triggers
+00:00 +53: Day Vote History day vote resolution adds history entries
+00:00 +54: GameMessage stateSync includes gameHistory and votesByVoter
+00:00 +55: GameMessage stateSync omits null optional fields
+00:00 +56: GameMessage playerReconnect carries claimed IDs
+00:00 +57: Discussion Timer in Game smart timer auto-calculates from alive players after night
+00:00 +58: Win Condition PA win when all club staff eliminated
+00:00 +59: Win Condition Staff win when they equal or outnumber PA
+00:00 +60: Win Condition game does not end immediately after startGame
+00:00 +61: Win Condition alive Club Manager is included as co-winner in endGameReport
+00:00 +61 -1: Win Condition alive Club Manager is included as co-winner in endGameReport [E]
+  Expected: Team:<Team.clubStaff>
+    Actual: Team:<Team.neutral>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\game_provider_test.dart 1189:7                 main.<fn>.<fn>
+  
+00:00 +61 -1: Minimum Players startGame requires at least 4 players
+00:00 +62 -1: Minimum Players startGame works with 4 players
+00:00 +63 -1: Return to Lobby returnToLobby preserves discussion timer
+00:00 +64 -1: Return to Lobby returnToLobby clears game state
+00:00 +65 -1: handleTimerExpiry skips vote and advances to night when no votes cast
+00:00 +66 -1: handleTimerExpiry skips vote when only 1 vote per player (< 2 threshold)
+00:00 +67 -1: handleTimerExpiry does NOT skip vote when a player has >= 2 votes
+00:00 +68 -1: handleTimerExpiry adds history entries on skip
+00:00 +69 -1: handleTimerExpiry abstain-only votes still skip (no real target has >= 2)
+00:00 +70 -1: Tea Spiller Reactive Reveal exiled Tea Spiller prompts for reveal target and applies selected expose
+00:00 +71 -1: Predator Retaliation exiled Predator prompts for retaliation target and applies selected kill
+00:00 +72 -1: Drama Queen Vendetta exiled Drama Queen prompts for two targets and swaps selected roles
+00:00 +73 -1: Drama Queen Vendetta malformed vendetta payload falls back to deterministic swap
+00:00 +74 -1: Drama Queen Vendetta vendetta payload with nonexistent/dead target falls back safely
+00:00 +75 -1: Dead Pool Day Resolution clears deadPoolBets and settles bettor after exile
+00:00 +76 -1: Dead Pool Day Resolution records LOSING dead pool outcome when bet target is not exiled
+00:00 +77 -1: Director Commands toggleEyes updates state and history
+00:00 +78 -1: Bot Simulation simulateBotTurns covers actor-scoped actionable night roles
+00:00 +79 -1: Bot Simulation simulateBotTurns covers setup and reactive role prompts
+00:00 +80 -1: Bot Simulation simulateBotTurns handles bartender two-target night action
+00:00 +81 -1: Bot Simulation simulateBotTurns handles drama queen setup two-target selection
+00:00 +82 -1: Bot Simulation simulateBotTurns handles vendetta two-target payload format
+00:00 +83 -1: Some tests failed.

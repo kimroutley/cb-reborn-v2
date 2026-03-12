@@ -32,8 +32,9 @@ class WhoreAction implements NightActionStrategy {
         final target = context.getPlayer(targetId);
         context.updatePlayer(whore.copyWith(whoreDeflectionTargetId: targetId));
         context.addPrivateMessage(whore.id, 'Scapegoat set: ${target.name}.');
-        context.addReport('Whore set scapegoat: ${target.name}.');
+
       }
     }
   }
 }
+

@@ -42,7 +42,7 @@ void main() {
       expect(gameState.privateMessages, isEmpty);
       expect(gameState.bulletinBoard, isEmpty);
       expect(gameState.syncMode, SyncMode.local);
-      expect(gameState.gameStyle, GameStyle.chaos);
+      expect(gameState.gameStyle, GameStyle.anythingGoes);
       expect(gameState.tieBreakStrategy, TieBreakStrategy.peaceful);
       expect(gameState.eyesOpen, isTrue);
     });

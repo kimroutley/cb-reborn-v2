@@ -368,6 +368,22 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             : scheme.primary;
         final senderName = role.id == 'unassigned' ? entry.title : role.name;
         final isMe = entry.roleId == player.roleId;
+
+        // Map model delivery status to theme delivery status
+        CBDeliveryStatus tickStatus = CBDeliveryStatus.none;
+        if (isMe) {
+          switch (entry.deliveryStatus) {
+            case MessageDeliveryStatus.sent:
+              tickStatus = CBDeliveryStatus.sent;
+              break;
+            case MessageDeliveryStatus.delivered:
+              tickStatus = CBDeliveryStatus.delivered;
+              break;
+            case MessageDeliveryStatus.seen:
+              tickStatus = CBDeliveryStatus.seen;
+              break;
+          }
+        }
         
         return CBFadeSlide(
           delay: Duration(milliseconds: 50 * (i % 5)),
@@ -381,9 +397,82 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             isSender: isMe,
             avatarAsset: entry.roleId != null ? role.assetPath : null,
             groupPosition: groupPosition,
+            deliveryStatus: tickStatus,
+            onTap: () => _showMessageDetails(context, entry),
           ),
         );
       },
+    );
+  }
+
+  void _showMessageDetails(BuildContext context, BulletinEntry entry) {
+    final time = entry.timestamp;
+    final timeStr =
+        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}';
+    final dateStr =
+        '${time.day}/${time.month}/${time.year}';
+
+    String statusLabel;
+    switch (entry.deliveryStatus) {
+      case MessageDeliveryStatus.sent:
+        statusLabel = 'Sent';
+        break;
+      case MessageDeliveryStatus.delivered:
+        statusLabel = 'Delivered';
+        break;
+      case MessageDeliveryStatus.seen:
+        statusLabel = 'Seen by Host';
+        break;
+    }
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(ctx).colorScheme.surfaceContainerHighest,
+        title: Text(
+          'MESSAGE INFO',
+          style: Theme.of(ctx).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _infoRow(ctx, 'Date', dateStr),
+            const SizedBox(height: 8),
+            _infoRow(ctx, 'Time', timeStr),
+            const SizedBox(height: 8),
+            _infoRow(ctx, 'Status', statusLabel),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('CLOSE'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(BuildContext context, String label, String value) {
+    return Row(
+      children: [
+        Text(
+          '$label: ',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ],
     );
   }
 

@@ -37,9 +37,10 @@ class LightweightAction implements NightActionStrategy {
 
         context.addPrivateMessage(
             lightweight.id, 'You can no longer vote for ${target.name}.');
-        context.addReport('LW blocked vote target: ${target.name}.');
+        context.addReport('${target.name} drank way too much last night and is too hungover to vote today.');
         context.addTeaser('Lightweight lost a voting option.');
       }
     }
   }
 }
+

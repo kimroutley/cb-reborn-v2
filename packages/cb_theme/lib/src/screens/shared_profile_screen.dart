@@ -19,6 +19,7 @@ class SharedProfileScreen extends ConsumerStatefulWidget {
     this.profileStreamFactory,
     this.authStateChangesResolver,
     this.startInEditMode = false,
+    this.isHost = false,
     this.drawer,
     this.onDirtyChanged,
     this.bridgePlayerId,
@@ -30,6 +31,7 @@ class SharedProfileScreen extends ConsumerStatefulWidget {
       profileStreamFactory;
   final Stream<User?> Function()? authStateChangesResolver;
   final bool startInEditMode;
+  final bool isHost;
   final Widget? drawer;
   final ValueChanged<bool>? onDirtyChanged;
   final String? bridgePlayerId;
@@ -86,6 +88,8 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
 
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _publicIdController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final FocusNode _usernameFocusNode = FocusNode();
   final FocusNode _publicIdFocusNode = FocusNode();
 
@@ -94,9 +98,12 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
   bool _loadingProfile = true;
   bool _loadingAwards = false;
   bool _saving = false;
+  bool _savingEmail = false;
   bool _allowImmediatePop = false;
   String? _usernameError;
   String? _publicIdError;
+  String? _emailError;
+  String? _passwordError;
   String _selectedAvatar = clubAvatarEmojis.first;
   String _selectedPreferredStyle = _preferredStyles.first;
   String _initialUsername = '';
@@ -161,6 +168,8 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
     _publicIdController.removeListener(_onInputChanged);
     _usernameController.dispose();
     _publicIdController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     _usernameFocusNode.dispose();
     _publicIdFocusNode.dispose();
     super.dispose();
@@ -704,6 +713,8 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: CBSpace.x4),
+            _buildRecoveryEmailSection(theme, scheme),
           ],
         ),
       ),
@@ -789,6 +800,7 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
         if (!usernameAvailable) {
           setState(() {
             _usernameError = 'That username is already in use.';
+            _saving = false;
           });
           return;
         }
@@ -804,6 +816,7 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
         if (!publicIdAvailable) {
           setState(() {
             _publicIdError = 'That public player ID is already in use.';
+            _saving = false;
           });
           return;
         }
@@ -816,7 +829,7 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
         uid: user.uid,
         username: username,
         email: user.email,
-        isHost: false,
+        isHost: widget.isHost,
         publicPlayerId: normalizedPublicId.isEmpty ? null : normalizedPublicId,
         avatarEmoji: _selectedAvatar,
         preferredStyle: preferredStyleToSave,
@@ -837,9 +850,10 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
       _applyQueuedRemoteProfileIfAny();
       await _refreshWalletAwards();
       _showFeedback('Profile saved.', tone: _FeedbackTone.success);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Error saving profile: $e\n$st');
       _showFeedback(
-        'Could not save profile right now.',
+        'Could not save profile: $e',
         tone: _FeedbackTone.error,
       );
     } finally {
@@ -865,6 +879,225 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
     _syncDirtyFlag();
     _applyQueuedRemoteProfileIfAny();
     unawaited(_refreshWalletAwards());
+  }
+
+  // ── Email Recovery ──────────────────────────────────────────────────
+
+  bool get _hasEmailLinked {
+    final user = _user;
+    return user != null && ProfileRepository.hasLinkedEmail(user);
+  }
+
+  Future<void> _linkRecoveryEmail() async {
+    final user = _user;
+    if (user == null) return;
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    // Validate
+    String? emailErr;
+    String? passErr;
+    if (email.isEmpty || !email.contains('@') || !email.contains('.')) {
+      emailErr = 'Enter a valid email address.';
+    }
+    if (password.length < 6) {
+      passErr = 'Password must be at least 6 characters.';
+    }
+    if (emailErr != null || passErr != null) {
+      setState(() {
+        _emailError = emailErr;
+        _passwordError = passErr;
+      });
+      return;
+    }
+
+    setState(() {
+      _savingEmail = true;
+      _emailError = null;
+      _passwordError = null;
+    });
+
+    try {
+      await _profileRepository.linkRecoveryEmail(
+        user: user,
+        email: email,
+        password: password,
+      );
+      _emailController.clear();
+      _passwordController.clear();
+      if (mounted) {
+        setState(() {});
+        _showFeedback('Recovery email linked.', tone: _FeedbackTone.success);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      final message = switch (e.code) {
+        'email-already-in-use' => 'This email is already linked to another account.',
+        'invalid-email' => 'Invalid email format.',
+        'weak-password' => 'Password is too weak. Use at least 6 characters.',
+        'credential-already-in-use' => 'This credential is already associated with another account.',
+        'provider-already-linked' => 'An email is already linked. Unlink first.',
+        _ => e.message ?? 'Failed to link email.',
+      };
+      setState(() => _emailError = message);
+    } catch (e, st) {
+      debugPrint('Failed to link email: $e\n$st');
+      if (mounted) {
+        setState(() => _emailError = 'Failed to link email: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _savingEmail = false);
+    }
+  }
+
+  Future<void> _unlinkRecoveryEmail() async {
+    final user = _user;
+    if (user == null) return;
+
+    final confirmed = await showCBDiscardChangesDialog(
+      context,
+      title: 'UNLINK EMAIL',
+      message: 'Remove your recovery email? You won\'t be able to recover this account if you lose your device.',
+      confirmLabel: 'UNLINK',
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _savingEmail = true);
+    try {
+      await _profileRepository.unlinkRecoveryEmail(user: user);
+      if (mounted) {
+        setState(() {});
+        _showFeedback('Recovery email removed.', tone: _FeedbackTone.success);
+      }
+    } catch (_) {
+      if (mounted) {
+        _showFeedback('Failed to unlink email.', tone: _FeedbackTone.error);
+      }
+    } finally {
+      if (mounted) setState(() => _savingEmail = false);
+    }
+  }
+
+  Widget _buildRecoveryEmailSection(ThemeData theme, ColorScheme scheme) {
+    final hasEmail = _hasEmailLinked;
+    final user = _user;
+    final maskedEmail = user?.email != null
+        ? ProfileRepository.maskEmail(user!.email)
+        : null;
+
+    return CBPanel(
+      borderColor: (hasEmail ? scheme.primary : scheme.error).withValues(alpha: 0.35),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                hasEmail ? Icons.verified_rounded : Icons.warning_amber_rounded,
+                color: hasEmail ? scheme.primary : scheme.error,
+                size: 20,
+              ),
+              const SizedBox(width: CBSpace.x2),
+              Text(
+                'ACCOUNT RECOVERY',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: hasEmail ? scheme.primary : scheme.error,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: CBSpace.x3),
+          if (hasEmail) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        maskedEmail ?? 'LINKED',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: scheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Your account can be recovered with this email.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurface.withValues(alpha: 0.5),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                CBBadge(text: 'LINKED', color: scheme.primary),
+              ],
+            ),
+            const SizedBox(height: CBSpace.x4),
+            SizedBox(
+              width: double.infinity,
+              child: CBGhostButton(
+                label: 'UNLINK EMAIL',
+                icon: Icons.link_off_rounded,
+                color: scheme.error,
+                onPressed: _savingEmail ? null : _unlinkRecoveryEmail,
+              ),
+            ),
+          ] else ...[
+            Text(
+              'No recovery email linked. If you lose your device, this account cannot be recovered.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(height: CBSpace.x4),
+            CBTextField(
+              controller: _emailController,
+              textInputAction: TextInputAction.next,
+              errorText: _emailError,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'RECOVERY EMAIL',
+                hintText: 'you@example.com',
+              ),
+            ),
+            const SizedBox(height: CBSpace.x3),
+            CBTextField(
+              controller: _passwordController,
+              textInputAction: TextInputAction.done,
+              errorText: _passwordError,
+              obscureText: true,
+              onSubmitted: (_) {
+                if (!_savingEmail) _linkRecoveryEmail();
+              },
+              decoration: const InputDecoration(
+                labelText: 'RECOVERY PASSWORD',
+                hintText: 'Min. 6 characters',
+              ),
+            ),
+            const SizedBox(height: CBSpace.x4),
+            SizedBox(
+              width: double.infinity,
+              child: CBPrimaryButton(
+                label: _savingEmail ? 'LINKING...' : 'LINK RECOVERY EMAIL',
+                icon: Icons.lock_rounded,
+                onPressed: _savingEmail ? null : _linkRecoveryEmail,
+              ),
+            ),
+          ],
+          if (_savingEmail)
+            const Padding(
+              padding: EdgeInsets.only(top: CBSpace.x2),
+              child: LinearProgressIndicator(minHeight: 2),
+            ),
+        ],
+      ),
+    );
   }
 
   void _showFeedback(String message,
@@ -1179,6 +1412,8 @@ class _ProfileScreenState extends ConsumerState<SharedProfileScreen> {
                                                 );
                                               }).toList(growable: false),
                                             ),
+                                            const SizedBox(height: CBSpace.x6),
+                                            _buildRecoveryEmailSection(theme, scheme),
                                             const SizedBox(height: CBSpace.x6),
                                             CBProfileActionButtons(
                                               saving: _saving,

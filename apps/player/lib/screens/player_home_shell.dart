@@ -113,11 +113,16 @@ class _PlayerHomeShellState extends ConsumerState<PlayerHomeShell> {
       case 'day':
       case 'resolution':
       case 'endGame':
-        onboarding.setAwaitingStartConfirmation(false);
         if (nextState.myPlayerId == null) {
+          onboarding.setAwaitingStartConfirmation(false);
           nav.setDestination(PlayerDestination.claim);
+        } else if (prevPhase == 'lobby' || prevPhase == 'setup') {
+          // Trigger the polished entry cutscene
+          _showStartConfirmationDialog();
+        } else if (destination == PlayerDestination.lobby || destination == PlayerDestination.transition) {
+          // Fallback if somehow stuck in lobby/transition during an active game
+          nav.setDestination(PlayerDestination.game);
         }
-        // Do not auto-navigate to Game screen when game starts; Let's Go button will handle this.
         break;
       default:
         break;

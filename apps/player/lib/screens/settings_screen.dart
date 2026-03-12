@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/auth_provider.dart';
 import '../cloud_player_bridge.dart';
 import '../player_bridge.dart';
+import '../profile_edit_guard.dart'; // import added for dirty profile checking
 import '../settings_provider.dart';
 import '../widgets/custom_drawer.dart';
 
@@ -152,6 +153,19 @@ class SettingsScreen extends ConsumerWidget {
                 color: scheme.error,
                 onPressed: () async {
                   HapticService.medium();
+                  
+                  // Handle Unsaved Profile Changes
+                  if (ref.read(playerProfileDirtyProvider)) {
+                    final discard = await showCBDiscardChangesDialog(
+                      context,
+                      title: 'UNSAVED EDITS',
+                      message: 'YOU HAVE UNSAVED PROFILE EDITS. SIGN OUT ANYWAY AND DISCARD THEM?',
+                      confirmLabel: 'DISCARD & CONTINUE',
+                    );
+                    if (!discard || !context.mounted) return;
+                    ref.read(playerProfileDirtyProvider.notifier).reset();
+                  }
+
                   final confirmed = await showCBDiscardChangesDialog(
                     context,
                     title: 'SIGN OUT',

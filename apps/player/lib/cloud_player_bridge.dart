@@ -190,6 +190,13 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       _applyPrivateState(data);
     });
 
+    // Notify the host about the claim
+    try {
+      await _firebase!.sendPlayerClaim(playerId: playerId);
+    } catch (e) {
+      debugPrint('[CloudPlayerBridge] Failed to send player claim: $e');
+    }
+
     // Update state to reflect claimed player, will be validated by public state sync
     final claimedPlayer = state.players.firstWhere((p) => p.id == playerId);
     state = state.copyWith(
@@ -316,28 +323,26 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
     required String floatContent,
     String? roleId,
   }) async {
-    if (_firebase == null) return;
-
-    final myPlayerId = state.myPlayerId?.trim() ?? '';
-    if (myPlayerId.isEmpty) {
-      final error = StateError(
-        'Cannot send chat before claiming a player identity.',
-      );
-      _reportRuntimeError(
-        message: 'Claim your player identity before sending chat.',
-        code: 'chat_identity_missing',
-        originalError: error,
-      );
-      throw error;
+    if (_firebase == null) {
+      debugPrint('[CloudPlayerBridge] sendBulletin SKIPPED: _firebase is null');
+      return;
     }
+
+    final myPlayerId = state.myPlayerId?.trim() ?? FirebaseAuth.instance.currentUser?.uid ?? '';
+    final resolvedTitle = state.myPlayerSnapshot?.name ?? _cachedPlayerName ?? title;
+    
+    debugPrint('[CloudPlayerBridge] sendBulletin: playerId=$myPlayerId, '
+        'title=$resolvedTitle, contentLen=${floatContent.length}');
     try {
       await _firebase!.sendChat(
         playerId: myPlayerId,
-        title: title,
+        title: resolvedTitle,
         message: floatContent,
         roleId: roleId,
       );
+      debugPrint('[CloudPlayerBridge] sendBulletin: Firestore write OK');
     } catch (e) {
+      debugPrint('[CloudPlayerBridge] sendBulletin FAILED: $e');
       _reportRuntimeError(
         message: 'Chat failed to send. Try again.',
         code: 'chat_failed',
@@ -462,6 +467,8 @@ class CloudPlayerBridge extends Notifier<PlayerGameState>
       deadPoolBets: deadPoolBets,
       bulletinBoard: PlayerGameState.sanitizePublicBulletinEntries(
         bulletinBoard,
+        myRoleId: updatedMyPlayerSnapshot?.roleId,
+        myPlayerId: updatedMyPlayerId,
       ),
       ghostChatMessages: state.ghostChatMessages,
       isConnected: true,

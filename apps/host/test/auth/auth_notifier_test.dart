@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:app_links/app_links.dart';
 import 'package:cb_host/auth/auth_provider.dart';
 import 'package:cb_host/auth/auth_service.dart';
 import 'package:cb_host/auth/user_repository.dart';
@@ -39,24 +37,7 @@ class FakeAuthService implements AuthService {
   }
 
   @override
-  Future<void> sendSignInLinkToEmail({
-    required String email,
-    required ActionCodeSettings actionCodeSettings,
-  }) async {}
-
-  @override
-  bool isSignInWithEmailLink(String link) => true;
-
-  @override
-  Future<UserCredential> signInWithEmailLink({
-    required String email,
-    required String emailLink,
-  }) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<UserCredential> signInWithGoogle() async {
+  Future<UserCredential> signInAnonymously() async {
     throw UnimplementedError();
   }
 
@@ -105,33 +86,20 @@ class FakeUserRepository implements UserRepository {
       true;
 }
 
-// Fake AppLinks implementation
-class FakeAppLinks extends Fake implements AppLinks {
-  @override
-  Future<Uri?> getInitialLink() async => null;
-
-  @override
-  Stream<Uri> get uriLinkStream => const Stream.empty();
-}
-
 void main() {
   late FakeAuthService fakeAuthService;
   late FakeUserRepository fakeUserRepository;
-  late FakeAppLinks fakeAppLinks;
   late ProviderContainer container;
 
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    SharedPreferences.setMockInitialValues({});
     fakeAuthService = FakeAuthService();
     fakeUserRepository = FakeUserRepository();
-    fakeAppLinks = FakeAppLinks();
 
     container = ProviderContainer(
       overrides: [
         authServiceProvider.overrideWithValue(fakeAuthService),
         userRepositoryProvider.overrideWithValue(fakeUserRepository),
-        appLinksProvider.overrideWithValue(fakeAppLinks),
       ],
     );
   });
@@ -147,12 +115,10 @@ void main() {
   });
 
   test('State becomes unauthenticated when user is null', () async {
-    // Listen to provider to trigger build and subscription
     final subscription = container.listen(authProvider, (_, __) {});
 
     fakeAuthService.emitUser(null);
 
-    // Allow stream to propagate
     await Future.delayed(Duration.zero);
 
     final authState = container.read(authProvider);
@@ -183,7 +149,7 @@ void main() {
     final subscription = container.listen(authProvider, (_, __) {});
 
     final user = FakeUser(uid: '456', email: 'new@example.com');
-    fakeUserRepository.setProfile('456', false); // No profile
+    fakeUserRepository.setProfile('456', false);
 
     fakeAuthService.emitUser(user);
 
@@ -200,22 +166,19 @@ void main() {
     final subscription = container.listen(authProvider, (_, __) {});
 
     final user = FakeUser(uid: '789', email: 'save@example.com');
-    fakeAuthService.emitUser(user); // Initially needs profile
+    fakeAuthService.emitUser(user);
 
     await Future.delayed(const Duration(milliseconds: 10));
 
     var authState = container.read(authProvider);
     expect(authState.status, AuthStatus.needsProfile);
 
-    // Call saveUsername
     final notifier = container.read(authProvider.notifier);
     notifier.usernameController.text = 'HostUser';
     await notifier.saveUsername();
 
-    // Check if profile created in repository
     expect(await fakeUserRepository.hasProfile('789'), true);
 
-    // Check state updated
     authState = container.read(authProvider);
     expect(authState.status, AuthStatus.authenticated);
 

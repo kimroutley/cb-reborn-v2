@@ -7,7 +7,6 @@ import 'package:cb_models/cb_models.dart';
 import 'persistence/persistence_service.dart';
 import 'session_provider.dart';
 import 'games_night_provider.dart';
-import 'gemini_narration_service.dart';
 import 'scripting/script_builder.dart';
 import 'scripting/step_key.dart';
 import 'day_actions/resolution/day_resolution.dart';
@@ -32,12 +31,8 @@ class Game extends _$Game {
     ref.onDispose(() {
       _persistDebounceTimer?.cancel();
     });
-    ref.listen(geminiNarrationServiceProvider, (prev, next) {
-      _narrationController = GameNarrationController(next);
-    });
 
-    _narrationController =
-        GameNarrationController(ref.read(geminiNarrationServiceProvider));
+    _narrationController = GameNarrationController();
     return const GameState();
   }
 
@@ -669,12 +664,7 @@ class Game extends _$Game {
   /// Export the game log as a formatted string.
   String exportGameLog() => _narrationController.exportGameLog(state);
 
-  /// Generate an AI-ready recap prompt for Gemini
-  String generateAIRecapPrompt(String style) =>
-      _narrationController.generateAIRecapPrompt(state, style);
-
-  /// Generate dynamic read-aloud narration from the last resolved night report
-  /// using Gemini.
+  /// Generate dynamic read-aloud narration from the last resolved night report.
   Future<String?> generateDynamicNightNarration({
     String? personalityId,
     String? voice,
@@ -745,7 +735,7 @@ class Game extends _$Game {
         FeedEvent(
           id: '${now.millisecondsSinceEpoch}_ai_var',
           type: FeedEventType.narrative,
-          title: '${step.title} • AI VARIATION',
+          title: '${step.title} • HOST VARIATION',
           content: variation,
           roleId: step.roleId,
           timestamp: now,
@@ -780,7 +770,7 @@ class Game extends _$Game {
           type: FeedEventType.narrative,
           title: narrationOverride == null
               ? step.title
-              : '${step.title} • AI VARIATION',
+              : '${step.title} • HOST VARIATION',
           content: narrationText,
           roleId: step.roleId,
           timestamp: now,
@@ -822,7 +812,7 @@ class Game extends _$Game {
   }
 
   void emitResultToFeed(String resultText,
-      {String? roleId, bool isHostOnly = false}) {
+      {String? roleId, String? targetRoleId, String? targetPlayerId, bool isHostOnly = false}) {
     _resolveLastAction(resultText);
     final entry = BulletinEntry(
       id: '${DateTime.now().millisecondsSinceEpoch}_res',
@@ -831,6 +821,8 @@ class Game extends _$Game {
       type: 'result',
       timestamp: DateTime.now(),
       roleId: roleId,
+      targetRoleId: targetRoleId,
+      targetPlayerId: targetPlayerId,
       isHostOnly: isHostOnly,
     );
     state = state.copyWith(bulletinBoard: [...state.bulletinBoard, entry]);
@@ -1224,11 +1216,31 @@ class Game extends _$Game {
     final target = _findPlayerById(targetId);
     if (actor == null || target == null) return;
 
+    // Post an action confirmation that appears in the player's chat feed
+    final confirmationEntry = BulletinEntry(
+      id: '${DateTime.now().millisecondsSinceEpoch}_action_confirm',
+      title: actor.role.name.toUpperCase(),
+      content: '🎯 You targeted ${target.name}',
+      type: 'action_confirmation',
+      timestamp: DateTime.now(),
+      roleId: actor.role.id,
+      targetPlayerId: actorId,
+      deliveryStatus: MessageDeliveryStatus.delivered,
+    );
+    state = state.copyWith(
+      bulletinBoard: [...state.bulletinBoard, confirmationEntry],
+    );
+
     final resultText =
         GameResolutionLogic.getImmediateActionText(actor, target, state);
 
     if (resultText.isNotEmpty) {
-      emitResultToFeed(resultText, roleId: actor.role.id);
+      emitResultToFeed(
+        resultText,
+        roleId: actor.role.id,
+        targetRoleId: actor.role.id,
+        targetPlayerId: actorId,
+      );
     }
   }
 
@@ -1346,7 +1358,9 @@ class Game extends _$Game {
     String type = 'info',
     String? roleId,
     String? targetRoleId,
+    String? targetPlayerId,
     bool isHostOnly = false,
+    MessageDeliveryStatus deliveryStatus = MessageDeliveryStatus.sent,
   }) {
     final entry = BulletinEntry(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -1356,7 +1370,9 @@ class Game extends _$Game {
       timestamp: DateTime.now(),
       roleId: roleId,
       targetRoleId: targetRoleId,
+      targetPlayerId: targetPlayerId,
       isHostOnly: isHostOnly,
+      deliveryStatus: deliveryStatus,
     );
     state = state.copyWith(
       bulletinBoard: [...state.bulletinBoard, entry],
@@ -1373,6 +1389,7 @@ class Game extends _$Game {
     String type = 'info',
     String? roleId,
     String? targetRoleId,
+    String? targetPlayerId,
     bool isHostOnly = false,
   }) {
     postBulletin(
@@ -1381,7 +1398,23 @@ class Game extends _$Game {
       type: type,
       roleId: roleId,
       targetRoleId: targetRoleId,
+      targetPlayerId: targetPlayerId,
       isHostOnly: isHostOnly,
+    );
+  }
+
+  /// Send a private whisper from the host to a specific player.
+  /// The message appears only in the targeted player's chat feed.
+  void sendWhisper({
+    required String targetPlayerId,
+    required String message,
+  }) {
+    postBulletin(
+      title: 'HOST',
+      content: message,
+      type: 'whisper',
+      targetPlayerId: targetPlayerId,
+      deliveryStatus: MessageDeliveryStatus.delivered,
     );
   }
 

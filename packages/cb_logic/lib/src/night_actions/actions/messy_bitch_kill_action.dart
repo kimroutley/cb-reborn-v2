@@ -34,9 +34,10 @@ class MessyBitchKillAction implements NightActionStrategy {
         context.addPrivateMessage(
             bitch.id, 'Score settled with ${target.name}.');
         context.addTeaser('Score settled.');
-        context.addReport('MB killed ${target.name}.');
+
         context.updatePlayer(bitch.copyWith(messyBitchKillUsed: true));
       }
     }
   }
 }
+

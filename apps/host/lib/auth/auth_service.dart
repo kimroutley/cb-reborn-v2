@@ -1,18 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 import '../firebase_options.dart';
 
 class AuthService {
   final FirebaseAuth? _auth;
-  final GoogleSignIn _googleSignIn;
 
-  AuthService({FirebaseAuth? auth, GoogleSignIn? googleSignIn})
-      : _auth = auth,
-        _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
+  AuthService({FirebaseAuth? auth}) : _auth = auth;
 
   FirebaseAuth get _firebaseAuth => _auth ?? FirebaseAuth.instance;
 
@@ -41,62 +36,12 @@ class AuthService {
       ? _firebaseAuth.currentUser
       : null;
 
-  Future<void> sendSignInLinkToEmail({
-    required String email,
-    required ActionCodeSettings actionCodeSettings,
-  }) async {
+  Future<UserCredential> signInAnonymously() async {
     await _ensureFirebaseInitialized();
-    return _firebaseAuth.sendSignInLinkToEmail(
-      email: email,
-      actionCodeSettings: actionCodeSettings,
-    );
-  }
-
-  bool isSignInWithEmailLink(String link) {
-    if (!(_auth != null || Firebase.apps.isNotEmpty)) {
-      return false;
-    }
-    return _firebaseAuth.isSignInWithEmailLink(link);
-  }
-
-  Future<UserCredential> signInWithEmailLink({
-    required String email,
-    required String emailLink,
-  }) async {
-    await _ensureFirebaseInitialized();
-    return _firebaseAuth.signInWithEmailLink(email: email, emailLink: emailLink);
-  }
-
-  Future<UserCredential> signInWithGoogle() async {
-    await _ensureFirebaseInitialized();
-
-    if (kIsWeb) {
-      return _firebaseAuth.signInWithPopup(GoogleAuthProvider());
-    }
-
-    await _googleSignIn.initialize();
-    final googleUser = await _googleSignIn.authenticate();
-
-    final googleAuth = googleUser.authentication;
-    if (googleAuth.idToken == null) {
-      throw FirebaseAuthException(
-        code: 'google-sign-in-no-token',
-        message:
-            'Google sign-in succeeded, but no auth token was returned by Google.',
-      );
-    }
-
-    final AuthCredential credential = GoogleAuthProvider.credential(
-      idToken: googleAuth.idToken,
-    );
-
-    return _firebaseAuth.signInWithCredential(credential);
+    return _firebaseAuth.signInAnonymously();
   }
 
   Future<void> signOut() async {
-    if (!kIsWeb) {
-      await _googleSignIn.signOut();
-    }
     if (_auth != null || Firebase.apps.isNotEmpty) {
       await _firebaseAuth.signOut();
     }

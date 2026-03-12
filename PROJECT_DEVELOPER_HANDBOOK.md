@@ -39,14 +39,14 @@ Club Blackout is a **social deduction party game** set in a neon-drenched nightc
 - **Cloud**: Firebase (Firestore, Auth, Analytics).
 - **Comm**: Dual-track (Local WebSocket + Cloud Firestore).
 
-### AI Narration Engine (Gemini 1.5 Flash)
-- **Context-Aware**: Narrations dynamically shift tone based on `dayCount` and `aliveCount` (e.g., Early-game energy vs Late-game desperation).
+### Game Narration Engine
+To enhance the club theme and immersion, the Host app triggers static narration recaps and variations.e based on `dayCount` and `aliveCount` (e.g., Early-game energy vs Late-game desperation).
 - **Host Personalities**: 5 selectable antagonistic/pragmatic profiles:
     - **The Cynic**: Gritty, hard-boiled, views players as data points.
     - **Protocol 9**: Corrupted AI, treats players as expendable assets.
     - **The Ice Queen**: Seductive and cold, finds the struggle amusing.
     - **The Promoter**: High-energy, treats carnage as house entertainment.
-    - **The Bouncer**: Cynical, treats players like trash that needs sorting.
+- **The Bouncer**: Cynical, treats players like trash that needs sorting.
 - **Zero-Config**: API Key is baked into the logic for immediate out-of-the-box functionality.
 - **Live Preview**: Hosts can "Preview Voice" directly in settings to test personality styles.
 

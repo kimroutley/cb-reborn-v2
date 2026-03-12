@@ -42,7 +42,8 @@ class BartenderAction implements NightActionStrategy {
       final isAligned = first.alliance == second.alliance;
       final msg = isAligned ? 'They are SAME.' : 'They are DIFF.';
       context.addPrivateMessage(bartender.id, msg);
-      context.addReport('Bartender mixed ${first.name} & ${second.name}.');
+
     }
   }
 }
+

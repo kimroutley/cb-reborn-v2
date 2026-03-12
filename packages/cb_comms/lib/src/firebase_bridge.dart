@@ -123,6 +123,20 @@ class FirebaseBridge {
     }
   }
 
+  /// Player: Claim a player identity.
+  Future<void> sendPlayerClaim({required String playerId}) async {
+    try {
+      await _sendActionEnvelope(
+        type: 'player_claim',
+        stepId: 'player_claim',
+        playerId: playerId,
+      );
+    } catch (e) {
+      debugPrint('[FirebaseBridge] Failed to send player claim: $e');
+      rethrow;
+    }
+  }
+
   /// Player: Subscribe to public game state.
   Stream<DocumentSnapshot<Map<String, dynamic>>> subscribeToGame() {
     return gameDoc.snapshots();
@@ -161,7 +175,7 @@ class FirebaseBridge {
       'type': type,
       'stepId': stepId,
       'playerId': playerId,
-      'targetId': targetId,
+      if (targetId != null) 'targetId': targetId,
       'payload': payload ?? <String, dynamic>{},
       'timestamp': FieldValue.serverTimestamp(),
     });
