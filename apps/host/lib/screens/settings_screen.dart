@@ -323,8 +323,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  }
-
   Widget _buildDisplaySettings(
     BuildContext context,
     HostSettings settings,

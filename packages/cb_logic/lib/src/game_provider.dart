@@ -695,11 +695,9 @@ class Game extends _$Game {
       return false;
     }
     
-    final activePersonalityId = personalityId ?? ref.read(activeHostPersonalityIdProvider);
-
     try {
       final variation = await _generateCurrentStepNarrationVariation(
-        personalityId: activePersonalityId,
+        personalityId: personalityId,
       );
       if (variation == null) {
         return false;
@@ -720,11 +718,9 @@ class Game extends _$Game {
       return false;
     }
 
-    final activePersonalityId = personalityId ?? ref.read(activeHostPersonalityIdProvider);
-
     try {
       final variation = await _generateCurrentStepNarrationVariation(
-        personalityId: activePersonalityId,
+        personalityId: personalityId,
       );
       if (variation == null) {
         return false;
