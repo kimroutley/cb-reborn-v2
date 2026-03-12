@@ -46,9 +46,8 @@ class RoofiAction implements NightActionStrategy {
         }
 
         context.addPrivateMessage(roofi.id, 'You silenced ${target.name}.');
-        context.addReport('Someone slipped something into ${target.name}\''s drink. They have completely lost their voice for the day.');
+        context.addReport('Someone slipped something into ${target.name}\'s drink. They have completely lost their voice for the day.');
       }
     }
   }
 }
-

@@ -7,8 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cb_models/cb_models.dart';
 import '../active_bridge.dart';
 import '../player_bridge.dart';
-import '../player_destinations.dart';
-import '../player_navigation.dart';
 import '../player_onboarding_provider.dart';
 import '../widgets/custom_drawer.dart';
 import '../widgets/full_role_reveal_content.dart';

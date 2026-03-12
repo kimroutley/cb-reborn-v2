@@ -1946,13 +1946,10 @@ class Game extends _$Game {
     );
   }
 
-  /// Triggers and dispatches both public (safe) and host (spicy) AI narrations.
+  /// Triggers and dispatches both public (safe) and host (spicy) narrations.
   Future<void> _triggerDualTrackNightNarration() async {
-    final personalityId = ref.read(activeHostPersonalityIdProvider);
-
     // 1. Host (Spicy) - Dispatch first so host sees it loading/appearing
     generateDynamicNightNarration(
-      personalityId: personalityId,
       forHostOnly: true,
     ).then((hostNarration) {
       if (!ref.mounted) return;
@@ -1969,7 +1966,6 @@ class Game extends _$Game {
 
     // 2. Public (Player-Safe)
     generateDynamicNightNarration(
-      personalityId: personalityId,
       forHostOnly: false,
     ).then((publicNarration) {
       if (!ref.mounted) return;

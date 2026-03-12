@@ -180,12 +180,12 @@ class ProfileRepository {
     await user.linkWithCredential(credential);
 
     // Persist in Firestore profile so the wallet view can display it.
-    await _profiles.doc(user.uid).update({
+    await _profiles.doc(user.uid).set({
       'email': email.trim(),
       'emailLower': email.trim().toLowerCase(),
       'emailMasked': maskEmail(email.trim()),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
 
   /// Unlinks the email/password provider from [user] and clears Firestore
@@ -193,12 +193,12 @@ class ProfileRepository {
   Future<void> unlinkRecoveryEmail({required User user}) async {
     await user.unlink('password');
 
-    await _profiles.doc(user.uid).update({
+    await _profiles.doc(user.uid).set({
       'email': FieldValue.delete(),
       'emailLower': FieldValue.delete(),
       'emailMasked': FieldValue.delete(),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    }, SetOptions(merge: true));
   }
 
   // ── Helpers ────────────────────────────────────────────────────────

@@ -39,8 +39,7 @@ class SettingsScreen extends ConsumerWidget {
                     color: scheme.primary,
                   ),
                   const SizedBox(height: CBSpace.x6),
-                  _buildSettingRow(
-                    context,
+                  CBSettingToggleRow(
                     title: 'SOUND EFFECTS',
                     subtitle: 'UI CLICKS AND INTERACTION SOUNDS',
                     value: settings.soundEffectsEnabled,
@@ -52,8 +51,7 @@ class SettingsScreen extends ConsumerWidget {
                     color: scheme.primary,
                   ),
                   const SizedBox(height: CBSpace.x4),
-                  _buildSettingRow(
-                    context,
+                  CBSettingToggleRow(
                     title: 'MUSIC',
                     subtitle: 'BACKGROUND AMBIENCE AND TRACKS',
                     value: settings.musicEnabled,
@@ -65,8 +63,7 @@ class SettingsScreen extends ConsumerWidget {
                     color: scheme.secondary,
                   ),
                   const SizedBox(height: CBSpace.x4),
-                  _buildSettingRow(
-                    context,
+                  CBSettingToggleRow(
                     title: 'HAPTIC FEEDBACK',
                     subtitle: 'VIBRATION ON TOUCH INTERACTIONS',
                     value: settings.hapticsEnabled,
@@ -199,64 +196,4 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSettingRow(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-    required IconData icon,
-    required Color color,
-  }) {
-    final textTheme = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(CBSpace.x2),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(CBRadius.xs),
-            border: Border.all(color: color.withValues(alpha: 0.3)),
-          ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: CBSpace.x4),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title.toUpperCase(),
-                style: textTheme.labelLarge?.copyWith(
-                  color: scheme.onSurface,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle.toUpperCase(),
-                style: textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurface.withValues(alpha: 0.5),
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Transform.scale(
-          scale: 0.8,
-          child: CBSwitch(
-            value: value,
-            onChanged: onChanged,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
 }

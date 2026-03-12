@@ -2,10 +2,7 @@ import 'package:cb_logic/cb_logic.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:flutter/services.dart';
-
-import '../host_settings.dart';
 
 class AIExportPanel extends ConsumerWidget {
   const AIExportPanel({super.key});

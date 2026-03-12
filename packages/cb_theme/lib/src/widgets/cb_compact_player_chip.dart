@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../layout.dart';
 import '../../cb_theme.dart';
 
 /// A compact player chip for inline selection in chat action bubbles.

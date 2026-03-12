@@ -174,6 +174,21 @@ class CloudHostBridge {
       message: 'Cloud runtime initialized. Publishing state...',
     );
 
+    // Publish initial state BEFORE listening.
+    // The Firestore security rules evaluate the parent game document. If it
+    // doesn't exist yet, listeners will immediately fail with permission-denied.
+    try {
+      await publishState();
+    } catch (e) {
+      debugPrint('[CloudHostBridge] Initial publish failed: $e');
+      _setLinkState(
+        CloudLinkPhase.degraded,
+        message: 'Cloud link failed to start. Retry required.',
+      );
+      await stop();
+      rethrow;
+    }
+
     // Listen for join requests from players
     _joinSub = _firebase!.subscribeToJoinRequests().listen(
       (snapshot) {
@@ -383,39 +398,27 @@ class CloudHostBridge {
       },
     );
 
-    // Publish initial state
-    try {
-      await publishState();
-      if (debugFirebase == null) {
+    if (debugFirebase == null) {
+      _setLinkState(
+        CloudLinkPhase.verifying,
+        message: 'Publish complete. Verifying end-to-end uplink...',
+      );
+
+      final verified = await _verifyEndToEnd();
+      if (!verified) {
+        _running = false;
         _setLinkState(
-          CloudLinkPhase.verifying,
-          message: 'Publish complete. Verifying end-to-end uplink...',
+          CloudLinkPhase.degraded,
+          message: 'Cloud link verification failed. Retry required.',
         );
-
-        final verified = await _verifyEndToEnd();
-        if (!verified) {
-          _running = false;
-          _setLinkState(
-            CloudLinkPhase.degraded,
-            message: 'Cloud link verification failed. Retry required.',
-          );
-          throw StateError('Cloud link verification failed.');
-        }
+        throw StateError('Cloud link verification failed.');
       }
-
-      _setLinkState(
-        CloudLinkPhase.verified,
-        message: 'Cloud link verified end-to-end.',
-      );
-    } catch (e) {
-      debugPrint('[CloudHostBridge] Initial publish failed: $e');
-      _setLinkState(
-        CloudLinkPhase.degraded,
-        message: 'Cloud link failed to start. Retry required.',
-      );
-      await stop();
-      rethrow;
     }
+
+    _setLinkState(
+      CloudLinkPhase.verified,
+      message: 'Cloud link verified end-to-end.',
+    );
     debugPrint('[CloudHostBridge] Started for game $joinCode');
   }
 

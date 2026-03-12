@@ -303,20 +303,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       borderColor: scheme.secondary.withValues(alpha: 0.35),
       child: Column(
         children: [
-          _buildSlider(
-            context,
-            'MUSIC LEVEL',
-            settings.musicVolume,
-            scheme.secondary,
-            (v) => notifier.setMusicVolume(v),
+          CBSettingSliderRow(
+            title: 'MUSIC LEVEL',
+            value: settings.musicVolume,
+            color: scheme.secondary,
+            onChanged: (v) => notifier.setMusicVolume(v),
           ),
           const SizedBox(height: CBSpace.x4),
-          _buildSlider(
-            context,
-            'SFX LEVEL',
-            settings.sfxVolume,
-            scheme.secondary,
-            (v) => notifier.setSfxVolume(v),
+          CBSettingSliderRow(
+            title: 'SFX LEVEL',
+            value: settings.sfxVolume,
+            color: scheme.secondary,
+            onChanged: (v) => notifier.setSfxVolume(v),
           ),
         ],
       ),
@@ -373,25 +371,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       borderColor: scheme.error.withValues(alpha: 0.35),
       child: Column(
         children: [
-          _buildActionRow(
-            context,
-            'PURGE HALL OF FAME',
-            'PERMANENTLY DELETE ALL RECORDS',
-            Icons.delete_forever_rounded,
-            scheme.error,
-            () => _confirmClearData(context),
+          CBSettingActionRow(
+            title: 'PURGE HALL OF FAME',
+            subtitle: 'PERMANENTLY DELETE ALL RECORDS',
+            icon: Icons.delete_forever_rounded,
+            color: scheme.error,
+            onTap: () => _confirmClearData(context),
           ),
           Divider(
             color: scheme.onSurface.withValues(alpha: 0.1),
             height: 24,
           ),
-          _buildActionRow(
-            context,
-            'RESET ACTIVE SESSION',
-            'CLEAR STUCK GAME STATES',
-            Icons.restore_page_rounded,
-            scheme.error,
-            () => _confirmClearSession(context, scheme.error),
+          CBSettingActionRow(
+            title: 'RESET ACTIVE SESSION',
+            subtitle: 'CLEAR STUCK GAME STATES',
+            icon: Icons.restore_page_rounded,
+            color: scheme.error,
+            onTap: () => _confirmClearSession(context, scheme.error),
           ),
         ],
       ),
@@ -426,106 +422,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildSlider(
-    BuildContext context,
-    String label,
-    double value,
-    Color accentColor,
-    ValueChanged<double> onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: CBTypography.labelSmall.copyWith(
-                color: accentColor,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.0,
-              ),
-            ),
-            Text(
-              '${(value * 100).toInt()}%',
-              style: CBTypography.labelSmall.copyWith(
-                color: accentColor.withValues(alpha: 0.7),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        CBSlider(
-          value: value,
-          onChanged: onChanged,
-          color: accentColor,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionRow(
-    BuildContext context,
-    String title,
-    String subtitle,
-    IconData icon,
-    Color accentColor,
-    VoidCallback onTap,
-  ) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(CBRadius.sm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: CBSpace.x2, horizontal: CBSpace.x1),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(CBSpace.x3),
-                decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(CBRadius.sm),
-                  border: Border.all(color: accentColor.withValues(alpha: 0.3)),
-                ),
-                child: Icon(icon, color: accentColor, size: 20),
-              ),
-              const SizedBox(width: CBSpace.x4),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: CBTypography.labelSmall.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: CBTypography.bodySmall.copyWith(
-                        color: scheme.onSurface.withValues(alpha: 0.5),
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: scheme.onSurface.withValues(alpha: 0.3),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   void _confirmClearData(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;

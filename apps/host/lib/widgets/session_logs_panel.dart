@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cb_theme/cb_theme.dart';
 import 'package:cb_logic/cb_logic.dart';
 
-import 'ai_recap_export.dart';
 
 class SessionLogsPanel extends StatelessWidget {
   final GameState gameState;
@@ -52,7 +51,7 @@ class SessionLogsPanel extends StatelessWidget {
                   fullWidth: false,
                   onPressed: () {
                     HapticService.selection();
-                    showAIRecapExportMenu(context: context, controller: controller);
+                    // showAIRecapExportMenu(context: context, controller: controller);
                   },
                 ),
               ],

@@ -35,7 +35,6 @@ class CustomDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
     final currentDestination = ref.watch(playerNavigationProvider);
     
     final phase = ref.watch(activeBridgeProvider).state.phase;
@@ -111,8 +110,10 @@ class CustomDrawer extends ConsumerWidget {
     return CBSideDrawer(
       selectedIndex: selectedIndex >= 0 ? selectedIndex : null,
       onDestinationSelected: handleDestinationSelected,
-      drawerHeader:
-          _buildDrawerHeader(context, theme, scheme), // Pass the header
+      drawerHeader: CBDrawerHeader(
+        subtitle: 'PLAYER TERMINAL',
+        color: scheme.primary,
+      ), // Pass the header
       children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(CBSpace.x4, CBSpace.x2, CBSpace.x4, 0),
@@ -125,10 +126,11 @@ class CustomDrawer extends ConsumerWidget {
         ...gameplayDestinations.map((dest) {
           final idx = drawerDestinations.indexOf(dest);
           final isSelected = idx == selectedIndex;
-          return _DrawerTile(
+          return CBDrawerTile(
             icon: dest.icon,
             label: dest.label,
             isSelected: isSelected,
+            color: scheme.primary,
             onTap: () => handleDestinationSelected(idx),
           );
         }),
@@ -143,10 +145,11 @@ class CustomDrawer extends ConsumerWidget {
         ...statsAndAwardsDestinations.map((dest) {
           final idx = drawerDestinations.indexOf(dest);
           final isSelected = idx == selectedIndex;
-          return _DrawerTile(
+          return CBDrawerTile(
             icon: dest.icon,
             label: dest.label,
             isSelected: isSelected,
+            color: scheme.primary,
             onTap: () => handleDestinationSelected(idx),
           );
         }),
@@ -161,10 +164,11 @@ class CustomDrawer extends ConsumerWidget {
         ...gamesNightDestinations.map((dest) {
           final idx = drawerDestinations.indexOf(dest);
           final isSelected = idx == selectedIndex;
-          return _DrawerTile(
+          return CBDrawerTile(
             icon: dest.icon,
             label: dest.label,
             isSelected: isSelected,
+            color: scheme.primary,
             onTap: () => handleDestinationSelected(idx),
           );
         }),
@@ -179,10 +183,11 @@ class CustomDrawer extends ConsumerWidget {
         ...walletDestinations.map((dest) {
           final idx = drawerDestinations.indexOf(dest);
           final isSelected = idx == selectedIndex;
-          return _DrawerTile(
+          return CBDrawerTile(
             icon: dest.icon,
             label: dest.label,
             isSelected: isSelected,
+            color: scheme.primary,
             onTap: () => handleDestinationSelected(idx),
           );
         }),
@@ -197,141 +202,16 @@ class CustomDrawer extends ConsumerWidget {
         ...otherDestinations.map((dest) {
           final idx = drawerDestinations.indexOf(dest);
           final isSelected = idx == selectedIndex;
-          return _DrawerTile(
+          return CBDrawerTile(
             icon: dest.icon,
             label: dest.label,
             isSelected: isSelected,
+            color: scheme.primary,
             onTap: () => handleDestinationSelected(idx),
           );
         }),
         const SizedBox(height: 12),
       ],
-    );
-  }
-
-  Widget _buildDrawerHeader(
-      BuildContext context, ThemeData theme, ColorScheme scheme) {
-    final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        CBSpace.x6,
-        CBSpace.x6,
-        CBSpace.x4,
-        CBSpace.x4,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'CLUB BLACKOUT',
-            style: textTheme.headlineSmall?.copyWith(
-              color: scheme.primary,
-              fontWeight: FontWeight.w900,
-              fontFamily: 'Orbitron',
-              letterSpacing: 1.5,
-              shadows: CBColors.textGlow(scheme.primary, intensity: 0.5),
-            ),
-          ),
-          const SizedBox(height: CBSpace.x1),
-          Text(
-            'PLAYER TERMINAL',
-            style: textTheme.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
-              letterSpacing: 2.0,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DrawerTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _DrawerTile({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: CBSpace.x3, vertical: 4),
-      child: Material(
-        color: CBColors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(28), // M3 fully rounded
-          splashColor: colorScheme.primary.withValues(alpha: 0.1),
-          highlightColor: colorScheme.primary.withValues(alpha: 0.05),
-          child: Container(
-            height: 56, // M3 standard height
-            decoration: BoxDecoration(
-              color: isSelected 
-                  ? colorScheme.primary.withValues(alpha: 0.15) 
-                  : CBColors.transparent,
-              borderRadius: BorderRadius.circular(28),
-              border: isSelected 
-                  ? Border.all(
-                      color: colorScheme.primary.withValues(alpha: 0.4),
-                      width: 1.0,
-                    )
-                  : Border.all(color: Colors.transparent),
-              boxShadow: isSelected 
-                  ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        blurRadius: 10,
-                        spreadRadius: -2,
-                      )
-                    ]
-                  : null,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Icon(
-                  // Filled icon when selected, outlined when not
-                  icon,
-                  color: isSelected 
-                      ? colorScheme.primary 
-                      : colorScheme.onSurfaceVariant,
-                  size: 24,
-                  shadows: isSelected 
-                      ? CBColors.iconGlow(colorScheme.primary, intensity: 0.6)
-                      : null,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: isSelected 
-                          ? colorScheme.primary 
-                          : colorScheme.onSurfaceVariant,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                      letterSpacing: 0.5,
-                      shadows: isSelected 
-                          ? CBColors.textGlow(colorScheme.primary, intensity: 0.2)
-                          : null,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
